@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
@@ -13,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -219,11 +219,11 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 						},
 
 						"virtual_machine_id": {
-							Type:       schema.TypeString,
-							Optional:   true,
-							Computed:   true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
 							ValidateFunc: computeValidate.VirtualMachineID,
-							Deprecated: "Deprecated in favour of `resource_id` since the service API supports more endpoint types",
+							Deprecated:   "Deprecated in favour of `resource_id` since the service API supports more resource types",
 						},
 					},
 				},
