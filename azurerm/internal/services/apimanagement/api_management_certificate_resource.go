@@ -194,11 +194,13 @@ func resourceApiManagementCertificateRead(d *schema.ResourceData, meta interface
 			formatted := expiration.Format(time.RFC3339)
 			d.Set("expiration", formatted)
 		}
-
 		d.Set("subject", props.Thumbprint)
 		d.Set("thumbprint", props.Thumbprint)
-		d.Set("key_vault_secret_id", props.KeyVault.SecretIdentifier)
-		d.Set("key_vault_identity_client_id", props.KeyVault.IdentityClientID)
+
+		if keyvault := props.KeyVault; keyvault != nil {
+			d.Set("key_vault_secret_id", keyvault.SecretIdentifier)
+			d.Set("key_vault_identity_client_id", keyvault.IdentityClientID)
+		}
 	}
 
 	return nil
