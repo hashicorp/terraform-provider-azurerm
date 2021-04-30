@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -178,9 +178,9 @@ func resourcePacketCaptureCreate(d *schema.ResourceData, meta interface{}) error
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int32(int32(bytesToCapturePerPacket)),
+			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int32(int32(totalBytesPerSession)),
+			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
 			Filters:                 expandPacketCaptureFilters(d),
 		},
 	}

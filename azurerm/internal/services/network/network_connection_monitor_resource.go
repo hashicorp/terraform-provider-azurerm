@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -484,7 +484,7 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta i
 		properties.Notes = utils.String(notes.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, properties, "") // empty string indicating we are not migrating V1 to V2
 	if err != nil {
 		return fmt.Errorf("Error creating Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}

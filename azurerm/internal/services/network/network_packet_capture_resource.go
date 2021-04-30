@@ -5,17 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -186,9 +185,9 @@ func resourceNetworkPacketCaptureCreate(d *schema.ResourceData, meta interface{}
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int32(int32(bytesToCapturePerPacket)),
+			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int32(int32(totalBytesPerSession)),
+			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
 			Filters:                 expandNetworkPacketCaptureFilters(d),
 		},
 	}
