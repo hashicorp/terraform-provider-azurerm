@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
@@ -12,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -200,10 +200,30 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
+						"resource_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.Any(
+								computeValidate.VirtualMachineID,
+								logAnalyticsValidate.LogAnalyticsWorkspaceID,
+							),
+						},
+
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.MMAWorkspaceMachine),
+							}, false),
+						},
+
 						"virtual_machine_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
+							Type:       schema.TypeString,
+							Optional:   true,
+							Computed:   true,
 							ValidateFunc: computeValidate.VirtualMachineID,
+							Deprecated: "Deprecated in favour of `resource_id` since the service API supports more endpoint types",
 						},
 					},
 				},
@@ -600,8 +620,16 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.Conn
 			result.Address = utils.String(address.(string))
 		}
 
-		if resourceId := v["virtual_machine_id"]; resourceId != "" {
+		if resourceId := v["resource_id"]; resourceId != "" {
 			result.ResourceID = utils.String(resourceId.(string))
+		}
+
+		if endpointType := v["type"]; endpointType != "" {
+			result.Type = network.EndpointType(endpointType.(string))
+		}
+
+		if vmId := v["virtual_machine_id"]; vmId != "" {
+			result.ResourceID = utils.String(vmId.(string))
 		}
 
 		results = append(results, result)
@@ -814,16 +842,22 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 			address = *item.Address
 		}
 
+		var endpointType network.EndpointType
+		if item.Type != "" {
+			endpointType = item.Type
+		}
+
 		var resourceId string
 		if item.ResourceID != nil {
 			resourceId = *item.ResourceID
 		}
 
 		v := map[string]interface{}{
-			"name":               name,
-			"address":            address,
-			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
-			"virtual_machine_id": resourceId,
+			"name":        name,
+			"address":     address,
+			"resource_id": resourceId,
+			"type":        endpointType,
+			"filter":      flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
 		}
 
 		results = append(results, v)

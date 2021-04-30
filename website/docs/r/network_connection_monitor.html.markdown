@@ -183,9 +183,13 @@ A `endpoint` block supports the following:
 
 * `address` - (Optional) The IP address or domain name of the Network Connection Monitor endpoint.
 
+* `resource_id` - (Optional) The resource ID which is used as the endpoint by the Network Connection Monitor.
+
 * `filter` - (Optional) A `filter` block as defined below.
 
-* `virtual_machine_id` - (Optional) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor.
+* `type` - (Optional) The endpoint type of the Network Connection Monitor. Possible value is `MMAWorkspaceMachine`.
+
+* `virtual_machine_id` - (Optional/ **Deprecated) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor.
 
 ---
 

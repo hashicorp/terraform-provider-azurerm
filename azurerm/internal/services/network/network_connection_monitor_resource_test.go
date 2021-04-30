@@ -234,6 +234,28 @@ func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	})
 }
 
+func testAccNetworkConnectionMonitor_updateEndpointType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.endpointType(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConnectionMonitorID(state.ID)
 	if err != nil {
@@ -834,4 +856,54 @@ resource "azurerm_network_connection_monitor" "test" {
   depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, r.baseConfig(data), data.RandomInteger)
+}
+
+func (r NetworkConnectionMonitorResource) endpointType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name               = "source"
+    type               = "MMAWorkspaceMachine"
+    address            = "test.internal.domain.com"
+    resource_id        = azurerm_log_analytics_workspace.test.id
+  }
+
+  endpoint {
+    name    = "destination"
+    address = "terraform.io"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
 }
