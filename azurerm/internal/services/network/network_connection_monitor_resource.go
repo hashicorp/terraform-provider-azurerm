@@ -624,7 +624,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		if v["resource_id"].(string) != "" && v["virtual_machine_id"] != "" {
+		if v["resource_id"].(string) != "" && v["virtual_machine_id"].(string) != "" {
 			return nil, fmt.Errorf("`resource_id` and `virtual_machine_id` cannot be set together")
 		}
 
