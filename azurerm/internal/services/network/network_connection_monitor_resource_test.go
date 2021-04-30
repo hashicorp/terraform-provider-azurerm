@@ -234,11 +234,18 @@ func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_updateEndpointType(t *testing.T) {
+func testAccNetworkConnectionMonitor_endpointType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.endpointType(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basicAddressConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -876,10 +883,10 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name               = "source"
-    type               = "MMAWorkspaceMachine"
-    address            = "test.internal.domain.com"
-    resource_id        = azurerm_log_analytics_workspace.test.id
+    name        = "source"
+    type        = "MMAWorkspaceMachine"
+    address     = "test.internal.domain.com"
+    resource_id = azurerm_log_analytics_workspace.test.id
   }
 
   endpoint {
