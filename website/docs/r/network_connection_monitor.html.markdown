@@ -107,8 +107,8 @@ resource "azurerm_network_connection_monitor" "example" {
   location             = azurerm_network_watcher.example.location
 
   endpoint {
-    name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.example.id
+    name        = "source"
+    resource_id = azurerm_virtual_machine.example.id
 
     filter {
       item {

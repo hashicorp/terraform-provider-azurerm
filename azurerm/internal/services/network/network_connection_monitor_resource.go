@@ -218,6 +218,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							}, false),
 						},
 
+						// TODO 3.0 - remove this property
 						"virtual_machine_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
