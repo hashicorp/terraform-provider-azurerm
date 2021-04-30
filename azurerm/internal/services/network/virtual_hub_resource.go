@@ -260,7 +260,7 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	routeTableParams := network.HubRouteTable{
 		Name:                    utils.String(defaultRouteTable),
-		HubRouteTableProperties: expandDefaultRouteTable(d.Get("default_route_table").([]interface{})),
+		HubRouteTableProperties: expandDefaultRouteTable(d.Get("route").(*schema.Set).List()),
 	}
 
 	if routeTableParams.HubRouteTableProperties != nil {
