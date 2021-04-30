@@ -419,12 +419,12 @@ func expandDefaultRouteTable(input []interface{}) *network.HubRouteTableProperti
 
 	var labelsRaw []interface{}
 	if item["labels"] != nil {
-		labelsRaw = item["labels"].([]interface{})
+		labelsRaw = item["labels"].(*schema.Set).List()
 	}
 
 	var routesRaw []interface{}
 	if item["route"] != nil {
-		routesRaw = item["route"].([]interface{})
+		routesRaw = item["route"].(*schema.Set).List()
 	}
 
 	routeTableProperties := network.HubRouteTableProperties{
