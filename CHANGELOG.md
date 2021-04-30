@@ -2,7 +2,7 @@
 
 UPGRADE NOTES
 
-* `azurerm_api_management_authorization_server` - due to a bug in the `2020-12-01` version of the API Management API, changes to `resource_owner_username` and `resource_owner_password` in Azure are not detectable by Terraform [GH-11146]
+* `azurerm_api_management_authorization_server` - due to a bug in the `2020-12-01` version of the API Management API, changes to `resource_owner_username` and `resource_owner_password` in Azure will not be noticed by Terraform [GH-11146]
 * `azurerm_cosmosdb_account` - the `2021-02-01` version of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` [GH-10926]
 * `azurerm_cosmosdb_mongo_collection` - the `_id` index is now required by the new API/MongoDB version [GH-10926]
 * `azurerm_cosmosdb_gremlin_graph` and `azurerm_cosmosdb_sql_container` - the `patition_key_path` property is now required [GH-10926]
@@ -85,12 +85,12 @@ BUG FIXES:
 * `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
-* `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
+* `azurerm_mssql_database ` - return an error when secondary database uses `max_size_gb` [GH-11401]
 * `azurerm_mssql_database` - correctly import the `create_mode` property [GH-11026]
 * `azurerm_netap_volume` - correctly set the `replication_frequency` attribute in the `data_protection_replication` block [GH-11530]
 * `azurerm_postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
-* `azurerm_postgresql_server` - can not correctly disable replication if required when `create_mode` is changed [GH-11467]
-* `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
+* `azurerm_postgresql_server` - can now correctly disable replication if required when `create_mode` is changed [GH-11467]
+* `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer forces a new resource to be created [GH- 11433]
 
 ## 2.56.0 (April 15, 2021)
 
