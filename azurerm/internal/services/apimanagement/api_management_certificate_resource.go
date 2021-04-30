@@ -49,6 +49,7 @@ func resourceApiManagementCertificate() *schema.Resource {
 				Optional:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsBase64,
+				AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 				ConflictsWith: []string{"key_vault_secret_id", "key_vault_identity_client_id"},
 			},
 
@@ -63,6 +64,7 @@ func resourceApiManagementCertificate() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
+				AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 				ConflictsWith: []string{"data", "password"},
 			},
 

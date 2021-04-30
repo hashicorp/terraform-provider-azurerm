@@ -61,11 +61,7 @@ func TestAccApiManagementCertificate_basicKeyVaultSystemIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-		},
+		data.ImportStep(),
 	})
 }
 
@@ -85,11 +81,7 @@ func TestAccApiManagementCertificate_basicKeyVaultUserIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-		},
+		data.ImportStep(),
 	})
 }
 
