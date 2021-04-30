@@ -177,6 +177,36 @@ func resourceContainerGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"exposed_port": {
+				Type:       schema.TypeSet,
+				Optional:   true, // change to 'Required' in 3.0 of the provider
+				ForceNew:   true,
+				Computed:   true,                        // remove in 3.0 of the provider
+				ConfigMode: schema.SchemaConfigModeAttr, // remove in 3.0 of the provider
+				Set:        resourceContainerGroupPortsHash,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.PortNumber,
+						},
+
+						"protocol": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  string(containerinstance.TCP),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerinstance.TCP),
+								string(containerinstance.UDP),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"container": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -672,6 +702,11 @@ func resourceContainerGroupRead(d *schema.ResourceData, meta interface{}) error 
 		if address := props.IPAddress; address != nil {
 			d.Set("ip_address_type", address.Type)
 			d.Set("ip_address", address.IP)
+			exposedPorts := make([]interface{}, len(*resp.ContainerGroupProperties.IPAddress.Ports))
+			for i := range *resp.ContainerGroupProperties.IPAddress.Ports {
+				exposedPorts[i] = (*resp.ContainerGroupProperties.IPAddress.Ports)[i]
+			}
+			d.Set("exposed_port", flattenPorts(exposedPorts))
 			d.Set("dns_name_label", address.DNSNameLabel)
 			d.Set("fqdn", address.Fqdn)
 		}
@@ -686,6 +721,30 @@ func resourceContainerGroupRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func flattenPorts(ports []interface{}) *schema.Set {
+	if len(ports) > 0 {
+		flatPorts := make([]interface{}, 0)
+		for _, p := range ports {
+			port := make(map[string]interface{})
+			switch t := p.(type) {
+			case containerinstance.Port:
+				if v := t.Port; v != nil {
+					port["port"] = int(*v)
+				}
+				port["protocol"] = string(t.Protocol)
+			case containerinstance.ContainerPort:
+				if v := t.Port; v != nil {
+					port["port"] = int(*v)
+				}
+				port["protocol"] = string(t.Protocol)
+			}
+			flatPorts = append(flatPorts, port)
+		}
+		return schema.NewSet(resourceContainerGroupPortsHash, flatPorts)
+	}
+	return schema.NewSet(resourceContainerGroupPortsHash, make([]interface{}, 0))
 }
 
 func resourceContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
@@ -807,6 +866,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
+	containerInstancePorts := make([]containerinstance.Port, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
 
@@ -861,7 +921,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 					Port:     &port,
 					Protocol: containerinstance.ContainerNetworkProtocol(proto),
 				})
-				containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
+				containerInstancePorts = append(containerInstancePorts, containerinstance.Port{
 					Port:     &port,
 					Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
 				})
@@ -919,6 +979,39 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		containers = append(containers, container)
+	}
+
+	// Determine ports to be exposed on the group level, based on exposed_ports
+	// and on what ports have been exposed on individual containers.
+	if v, ok := d.Get("exposed_port").(*schema.Set); ok && len(v.List()) > 0 {
+		cgpMap := make(map[int32]map[containerinstance.ContainerGroupNetworkProtocol]bool)
+		for _, p := range containerInstancePorts {
+			if val, ok := cgpMap[*p.Port]; ok {
+				val[p.Protocol] = true
+				cgpMap[*p.Port] = val
+			} else {
+				protoMap := map[containerinstance.ContainerGroupNetworkProtocol]bool{p.Protocol: true}
+				cgpMap[*p.Port] = protoMap
+			}
+		}
+
+		for _, p := range v.List() {
+			portConfig := p.(map[string]interface{})
+			port := int32(portConfig["port"].(int))
+			proto := portConfig["protocol"].(string)
+			if !cgpMap[port][containerinstance.ContainerGroupNetworkProtocol(proto)] {
+				return nil, nil, nil, fmt.Errorf("Port %d/%s is not exposed on any individual container in the container group.\n"+
+					"An exposed_ports block contains %d/%s, but no individual container has a ports block with the same port "+
+					"and protocol. Any ports exposed on the container group must also be exposed on an individual container.",
+					port, proto, port, proto)
+			}
+			containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
+				Port:     &port,
+				Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
+			})
+		}
+	} else {
+		containerGroupPorts = containerInstancePorts // remove in 3.0 of the provider
 	}
 
 	return &containers, &containerGroupPorts, &containerGroupVolumes, nil
@@ -1274,18 +1367,11 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 		}
 
-		if cPorts := container.Ports; cPorts != nil && len(*cPorts) > 0 {
-			ports := make([]interface{}, 0)
-			for _, p := range *cPorts {
-				port := make(map[string]interface{})
-				if v := p.Port; v != nil {
-					port["port"] = int(*v)
-				}
-				port["protocol"] = string(p.Protocol)
-				ports = append(ports, port)
-			}
-			containerConfig["ports"] = schema.NewSet(resourceContainerGroupPortsHash, ports)
+		containerPorts := make([]interface{}, len(*container.Ports))
+		for i := range *container.Ports {
+			containerPorts[i] = (*container.Ports)[i]
 		}
+		containerConfig["ports"] = flattenPorts(containerPorts)
 
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
