@@ -447,9 +447,9 @@ func expandAutomationRuleActions(d *schema.ResourceData, defaultTenantId string)
 		return nil, nil
 	}
 
-	out := make([]securityinsight.BasicAutomationRuleAction, len(actionIncident)+len(actionPlaybook))
-	copy(out, actionIncident)
-	copy(out, actionPlaybook)
+	out := make([]securityinsight.BasicAutomationRuleAction, 0, len(actionIncident)+len(actionPlaybook))
+	out = append(out, actionIncident...)
+	out = append(out, actionPlaybook...)
 	return &out, nil
 }
 
