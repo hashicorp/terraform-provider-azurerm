@@ -1,5 +1,9 @@
 ## 2.58.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11533]
+
 ENHANCEMENTS:
 
 * dependencies: updating `network-db` to API version `2020-07-01` [GH-10767]
