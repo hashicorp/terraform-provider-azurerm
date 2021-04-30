@@ -207,6 +207,8 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							ValidateFunc: validation.Any(
 								computeValidate.VirtualMachineID,
 								logAnalyticsValidate.LogAnalyticsWorkspaceID,
+								networkValidate.SubnetID,
+								networkValidate.VirtualNetworkID,
 							),
 						},
 
