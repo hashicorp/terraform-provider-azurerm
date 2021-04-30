@@ -159,6 +159,32 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							),
 						},
 
+						"coverage_level": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.AboveAverage),
+								string(network.Average),
+								string(network.BelowAverage),
+								string(network.Default),
+								string(network.Full),
+								string(network.Low),
+							}, false),
+						},
+
+						"excluded_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.Any(
+									validation.IsIPv4Address,
+									validation.IsIPv6Address,
+									validation.IsCIDR,
+								),
+							},
+						},
+
 						"filter": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -197,6 +223,19 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 										}, false),
 									},
 								},
+							},
+						},
+
+						"included_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.Any(
+									validation.IsIPv4Address,
+									validation.IsIPv6Address,
+									validation.IsCIDR,
+								),
 							},
 						},
 
@@ -637,6 +676,36 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 			result.Address = utils.String(address.(string))
 		}
 
+		if coverageLevel := v["coverage_level"]; coverageLevel != "" {
+			result.CoverageLevel = network.CoverageLevel(coverageLevel.(string))
+		}
+
+		excludedItems := v["excluded_addresses"].(*schema.Set).List()
+		includedItems := v["included_addresses"].(*schema.Set).List()
+		if len(excludedItems) != 0 || len(includedItems) != 0 {
+			result.Scope = &network.ConnectionMonitorEndpointScope{}
+
+			if len(excludedItems) != 0 {
+				var excludedAddresses []network.ConnectionMonitorEndpointScopeItem
+				for _, v := range excludedItems {
+					excludedAddresses = append(excludedAddresses, network.ConnectionMonitorEndpointScopeItem{
+						Address: utils.String(v.(string)),
+					})
+				}
+				result.Scope.Exclude = &excludedAddresses
+			}
+
+			if len(includedItems) != 0 {
+				var includedAddresses []network.ConnectionMonitorEndpointScopeItem
+				for _, v := range includedItems {
+					includedAddresses = append(includedAddresses, network.ConnectionMonitorEndpointScopeItem{
+						Address: utils.String(v.(string)),
+					})
+				}
+				result.Scope.Include = &includedAddresses
+			}
+		}
+
 		if resourceId := v["resource_id"]; resourceId != "" {
 			result.ResourceID = utils.String(resourceId.(string))
 		}
@@ -860,9 +929,34 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 			address = *item.Address
 		}
 
+		var coverageLevel string
+		if item.CoverageLevel != "" {
+			coverageLevel = string(item.CoverageLevel)
+		}
+
 		var endpointType string
 		if item.Type != "" {
 			endpointType = string(item.Type)
+		}
+
+		includedAddresses := make([]interface{}, 0)
+		excludedAddresses := make([]interface{}, 0)
+		if scope := item.Scope; scope != nil {
+			if includeScope := scope.Include; includeScope != nil {
+				for _, includedItem := range *includeScope {
+					if includedAddress := includedItem.Address; includedAddress != nil {
+						includedAddresses = append(includedAddresses, includedAddress)
+					}
+				}
+			}
+
+			if excludeScope := scope.Exclude; excludeScope != nil {
+				for _, excludedItem := range *excludeScope {
+					if excludedAddress := excludedItem.Address; excludedAddress != nil {
+						excludedAddresses = append(excludedAddresses, excludedAddress)
+					}
+				}
+			}
 		}
 
 		var resourceId string
@@ -871,11 +965,14 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 		}
 
 		v := map[string]interface{}{
-			"name":        name,
-			"address":     address,
-			"resource_id": resourceId,
-			"type":        endpointType,
-			"filter":      flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
+			"name":               name,
+			"address":            address,
+			"coverage_level":     coverageLevel,
+			"excluded_addresses": excludedAddresses,
+			"included_addresses": includedAddresses,
+			"resource_id":        resourceId,
+			"type":               endpointType,
+			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
 		}
 
 		results = append(results, v)

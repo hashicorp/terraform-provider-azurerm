@@ -183,6 +183,10 @@ A `endpoint` block supports the following:
 
 * `address` - (Optional) The IP address or domain name of the Network Connection Monitor endpoint.
 
+* `excluded_addresses` - (Optional) A list of IPv4/IPv6 subnet masks or IPv4/IPv6 IP addresses to be excluded to the Network Connection Monitor endpoint.
+
+* `included_addresses` - (Optional) A list of IPv4/IPv6 subnet masks or IPv4/IPv6 IP addresses to be included to the Network Connection Monitor endpoint.
+
 * `resource_id` - (Optional) The resource ID which is used as the endpoint by the Network Connection Monitor.
 
 * `filter` - (Optional) A `filter` block as defined below.
@@ -190,6 +194,8 @@ A `endpoint` block supports the following:
 * `type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
 
 * `virtual_machine_id` - (Optional / **Deprecated**) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor. This property is deprecated in favour of `resource_id`.
+
+* `coverage_level` - (Optional) The test coverage for the Network Connection Monitor endpoint. Possible values are `AboveAverage`, `Average`, `BelowAverage`, `Default`, `Full` and `Low`.
 
 ---
 
