@@ -58,12 +58,12 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "example" {
 }
 
 resource "azurerm_iot_time_series_insights_event_source_iothub" "example" {
-  name = "example"
+  name                     = "example"
   location                 = azurerm_resource_group.example.location
   environment_id           = azurerm_iot_time_series_insights_gen2_environment.example.id
   iothub_name              = azurerm_iothub.example.name
   shared_access_key        = azurerm_iothub.example.shared_access_policy.0.primary_key
-  key_name                 = azurerm_iothub.example.shared_access_policy.0.key_name
+  shared_access_key_name   = azurerm_iothub.example.shared_access_policy.0.key_name
   consumer_group_name      = azurerm_iothub_consumer_group.example.name
   event_source_resource_id = azurerm_iothub.example.id
 }
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `event_source_resource_id` - (Required) Specifies the resource id where events will be coming from.
 
-* `key_name` - (Required) Specifies the name of the Shared Access Policy key that grants the Time Series Insights service access to the IotHub.
+* `shared_access_key_name` - (Required) Specifies the name of the Shared Access key that grants the Event Source access to the IotHub.
 
 * `shared_access_key` - (Required) Specifies the value of the Shared Access Policy key that grants the Time Series Insights service read access to the IotHub.
 

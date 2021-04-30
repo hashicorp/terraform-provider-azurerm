@@ -128,12 +128,12 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
 }
 
 resource "azurerm_iot_time_series_insights_event_source_iothub" "test" {
-  name = "acctest_tsiesi%d"
+  name                     = "acctest_tsiesi%d"
   location                 = azurerm_resource_group.test.location
   environment_id           = azurerm_iot_time_series_insights_gen2_environment.test.id
   iothub_name              = azurerm_iothub.test.name
   shared_access_key        = azurerm_iothub.test.shared_access_policy.0.primary_key
-  key_name                 = azurerm_iothub.test.shared_access_policy.0.key_name
+  shared_access_key_name   = azurerm_iothub.test.shared_access_policy.0.key_name
   consumer_group_name      = azurerm_iothub_consumer_group.test.name
   event_source_resource_id = azurerm_iothub.test.id
 }
@@ -194,12 +194,12 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
 }
 
 resource "azurerm_iot_time_series_insights_event_source_iothub" "test" {
-  name = "acctest_tsiesi%d"
+  name                     = "acctest_tsiesi%d"
   location                 = azurerm_resource_group.test.location
   environment_id           = azurerm_iot_time_series_insights_gen2_environment.test.id
   iothub_name              = azurerm_iothub.test.name
   shared_access_key        = azurerm_iothub.test.shared_access_policy.0.primary_key
-  key_name                 = azurerm_iothub.test.shared_access_policy.0.key_name
+  shared_access_key_name   = azurerm_iothub.test.shared_access_policy.0.key_name
   consumer_group_name      = azurerm_iothub_consumer_group.test.name
   event_source_resource_id = azurerm_iothub.test.id
   timestamp_property_name  = "test"

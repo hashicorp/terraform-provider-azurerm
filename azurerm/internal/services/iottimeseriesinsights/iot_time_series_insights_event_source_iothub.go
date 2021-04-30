@@ -75,7 +75,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"key_name": {
+			"shared_access_key_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -138,7 +138,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Resour
 			IotHubName:            utils.String(d.Get("iothub_name").(string)),
 			SharedAccessKey:       utils.String(d.Get("shared_access_key").(string)),
 			ConsumerGroupName:     utils.String(d.Get("consumer_group_name").(string)),
-			KeyName:               utils.String(d.Get("key_name").(string)),
+			KeyName:               utils.String(d.Get("shared_access_key_name").(string)),
 			EventSourceResourceID: utils.String(d.Get("event_source_resource_id").(string)),
 			TimestampPropertyName: utils.String(d.Get("timestamp_property_name").(string)),
 		},
@@ -198,7 +198,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubRead(d *schema.ResourceData, 
 	if props := eventSource.IoTHubEventSourceResourceProperties; props != nil {
 		d.Set("iothub_name", props.IotHubName)
 		d.Set("consumer_group_name", props.ConsumerGroupName)
-		d.Set("key_name", props.KeyName)
+		d.Set("shared_access_key_name", props.KeyName)
 		d.Set("event_source_resource_id", props.EventSourceResourceID)
 		d.Set("timestamp_property_name", props.TimestampPropertyName)
 	}
