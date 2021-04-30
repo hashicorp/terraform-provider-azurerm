@@ -106,10 +106,6 @@ func resourceApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta i
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
 	keyVaultIdentity := d.Get("key_vault_identity_client_id").(string)
 
-	if data == "" && keyVaultSecretId == "" {
-		return fmt.Errorf("either `data` or `key_vault_secret_id` must be set")
-	}
-
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
