@@ -1,95 +1,95 @@
-## 2.57.0 (Unreleased)
+## 2.57.0 (April 30, 2021)
 
 UPGRADE NOTES
 
-* `azurerm_api_management_authorization_server` - due to a bug in the `2020-12-01` version of the API Management API, changes to `resource_owner_username` and `resource_owner_password` in Azure will not be noticed by Terraform [GH-11146]
-* `azurerm_cosmosdb_account` - the `2021-02-01` version of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` [GH-10926]
-* `azurerm_cosmosdb_mongo_collection` - the `_id` index is now required by the new API/MongoDB version [GH-10926]
-* `azurerm_cosmosdb_gremlin_graph` and `azurerm_cosmosdb_sql_container` - the `patition_key_path` property is now required [GH-10926]
+* `azurerm_api_management_authorization_server` - due to a bug in the `2020-12-01` version of the API Management API, changes to `resource_owner_username` and `resource_owner_password` in Azure will not be noticed by Terraform ([#11146](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11146))
+* `azurerm_cosmosdb_account` - the `2021-02-01` version of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` ([#10926](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10926))
+* `azurerm_cosmosdb_mongo_collection` - the `_id` index is now required by the new API/MongoDB version ([#10926](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10926))
+* `azurerm_cosmosdb_gremlin_graph` and `azurerm_cosmosdb_sql_container` - the `patition_key_path` property is now required ([#10926](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10926))
  
 FEATURES:
 
-* **Data Source:** `azurerm_container_registry_scope_map`  [GH-11350]
-* **Data Source:** `azurerm_container_registry_token`  [GH-11350]
-* **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
-* **Data Source:** `azurerm_key_vault_managed_hardware_security_module` [GH-10873]
-* **New Resource:** `azurerm_container_registry_scope_map`  [GH-11350]
-* **New Resource:** `azurerm_container_registry_token`  [GH-11350]
-* **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
-* **New Resource:** `azurerm_healthbot` [GH-11002]
-* **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
-* **New Resource:** `azurerm_media_asset_filter` [GH-11110]
-* **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
-* **New Resource:** `azurerm_mssql_job_credential` [GH-11363]
-* **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
-* **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
-* **New Resource:** `azurerm_spring_cloud_app_cosmosdb_association` [GH-11307]
-* **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
-* **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
-* **New Resource:** `azurerm_vmware_cluster` [GH-10848]
+* **Data Source:** `azurerm_container_registry_scope_map`  ([#11350](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11350))
+* **Data Source:** `azurerm_container_registry_token`  ([#11350](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11350))
+* **Data Source:** `azurerm_postgresql_flexible_server` ([#11081](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11081))
+* **Data Source:** `azurerm_key_vault_managed_hardware_security_module` ([#10873](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10873))
+* **New Resource:** `azurerm_container_registry_scope_map`  ([#11350](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11350))
+* **New Resource:** `azurerm_container_registry_token`  ([#11350](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11350))
+* **New Resource:** `azurerm_data_factory_dataset_snowflake `  ([#11116](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11116))
+* **New Resource:** `azurerm_healthbot` ([#11002](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11002))
+* **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  ([#10873](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10873))
+* **New Resource:** `azurerm_media_asset_filter` ([#11110](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11110))
+* **New Resource:** `azurerm_mssql_job_agent` ([#11248](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11248))
+* **New Resource:** `azurerm_mssql_job_credential` ([#11363](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11363))
+* **New Resource:** `azurerm_mssql_transparent_data_encryption` ([#11148](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11148))
+* **New Resource:** `azurerm_postgresql_flexible_server` ([#11081](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11081))
+* **New Resource:** `azurerm_spring_cloud_app_cosmosdb_association` ([#11307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11307))
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` ([#10669](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10669))
+* **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` ([#11334](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11334))
+* **New Resource:** `azurerm_vmware_cluster` ([#10848](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10848))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
-* dependencies: updating to `v1.17.2` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
-* dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
-* dependencies: updating `keyvault` to API version `v7.1` [GH-10926]
-* Data Source: `azurerm_healthcare_service` - export the `cosmosdb_key_vault_key_versionless_id` attribute [GH-11481]
-* Data Source: `azurerm_key_vault_certificate` - export the `curve` attribute in the `key_properties` block [GH-10867]
-* Data Source: `azurerm_virtual_machine_scale_set` - now exports the `network_interfaces` [GH-10585]
-* `azurerm_app_service` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
-* `azurerm_app_service_slot` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
-* `azurerm_backup_policy_file_share` - support for the `retention_weekly`, `retention_monthly`, and `retention_yearly` blocks [GH-10733]
-* `azurerm_cosmosdb_sql_container` - support for the `conflict_resolution_policy` block [GH-11517]
-* `azurerm_container_group` - support for the `exposed_port` block [GH-10491]
-* `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
-* `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
-* `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
-* `azurerm_databricks_workspace` - switching to using an ID Formatter [GH-11378]
-* `azurerm_databricks_workspace` - fixes propagation of tags to connected resources [GH-11405]
-* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `key_vault_password` property [GH-11436]
-* `azurerm_dedicated_host_group` - support for the `automatic_placement_enabled` property [GH-11428]
-* `azurerm_frontdoor` - sync `MaxItems` on various attributes to match azure docs [GH-11421]
-* `azurerm_frontdoor_custom_https_configuration` - removing secret version validation when using azure key vault as the certificate source [GH-11310]
-* `azurerm_function_app` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
-* `azurerm_function_app` - support the `java_version` property [GH-10495]
-* `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
-* `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
-* `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
-* `azurerm_healthcare_service` - support for the `cosmosdb_key_vault_key_versionless_id` property [GH-11481]
-* `azurerm_kubernetes_cluster` - support for the `ingress_application_gateway` addon [GH-11376]
-* `azurerm_kubernetes_cluster` - support for the `azure_rbac_enabled` property [GH-10441]
-* `azurerm_hpc_cache` - support for the `directory_active_directory`, `directory_flat_file`, and `directory_ldap` blocks [GH-11332]
-* `azurerm_key_vault_certificate` - support additional values for the `key_size` property in the `key_properties` block [GH-10867]
-* `azurerm_key_vault_certificate` - support the `curve` property in the `key_properties` block [GH-10867]
-* `azurerm_key_vault_certificate` - the `key_size` property in the `key_properties` block is now optional [GH-10867]
-* `azurerm_kubernetes_cluster` - support for the `dns_prefix_private_cluster` property [GH-11321]
-* `azurerm_kubernetes_cluster` - support for the `max_node_provisioning_time`, `max_unready_percentage`, and `max_unready_nodes` properties [GH-11406]
-* `azurerm_storage_encryption_scope` - support for the `infrastructure_encryption_required` property [GH-11462]
-* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
-* `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
-* `azurerm_managed_application` - support for the `parameter_values` property [GH-8632]
-* `azurerm_managed_disk` - support for the `network_access_policy` and `disk_access_id` properties [GH-9862]
-* `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
-* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
-* `azurerm_storage_account` -  support for the `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
-* `azurerm_storage_account` - support for the `nfsv3_enabled` property [GH-11387]
-* `azurerm_storage_management_policy` - support for the `version` block [GH-11163]
-* `azurerm_synapse_workspace` - support for the `customer_managed_key_versionless_id` property [GH-11328]
+* dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` ([#11439](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11439))
+* dependencies: updating to `v1.17.2` of `github.com/hashicorp/terraform-plugin-sdk` ([#11431](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11431))
+* dependencies: updating `cosmos-db` to API version `2021-02-01` ([#10926](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10926))
+* dependencies: updating `keyvault` to API version `v7.1` ([#10926](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10926))
+* Data Source: `azurerm_healthcare_service` - export the `cosmosdb_key_vault_key_versionless_id` attribute ([#11481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11481))
+* Data Source: `azurerm_key_vault_certificate` - export the `curve` attribute in the `key_properties` block ([#10867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10867))
+* Data Source: `azurerm_virtual_machine_scale_set` - now exports the `network_interfaces` ([#10585](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10585))
+* `azurerm_app_service` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties ([#11209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11209))
+* `azurerm_app_service_slot` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties ([#11209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11209))
+* `azurerm_backup_policy_file_share` - support for the `retention_weekly`, `retention_monthly`, and `retention_yearly` blocks ([#10733](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10733))
+* `azurerm_cosmosdb_sql_container` - support for the `conflict_resolution_policy` block ([#11517](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11517))
+* `azurerm_container_group` - support for the `exposed_port` block ([#10491](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10491))
+* `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property [#11200](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11200)]
+* `azurerm_database_migration` - switching to using an ID Formatter ([#11378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11378))
+* `azurerm_database_migration_project` - switching to using an ID Formatter ([#11378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11378))
+* `azurerm_databricks_workspace` - switching to using an ID Formatter ([#11378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11378))
+* `azurerm_databricks_workspace` - fixes propagation of tags to connected resources ([#11405](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11405))
+* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `key_vault_password` property ([#11436](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11436))
+* `azurerm_dedicated_host_group` - support for the `automatic_placement_enabled` property ([#11428](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11428))
+* `azurerm_frontdoor` - sync `MaxItems` on various attributes to match azure docs ([#11421](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11421))
+* `azurerm_frontdoor_custom_https_configuration` - removing secret version validation when using azure key vault as the certificate source ([#11310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11310))
+* `azurerm_function_app` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties ([#11209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11209))
+* `azurerm_function_app` - support the `java_version` property ([#10495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10495))
+* `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint ([#11300](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11300))
+* `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint ([#11300](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11300))
+* `azurerm_hdinsight_spark_cluster` - add support for private link endpoint ([#11300](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11300))
+* `azurerm_healthcare_service` - support for the `cosmosdb_key_vault_key_versionless_id` property ([#11481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11481))
+* `azurerm_kubernetes_cluster` - support for the `ingress_application_gateway` addon ([#11376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11376))
+* `azurerm_kubernetes_cluster` - support for the `azure_rbac_enabled` property ([#10441](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10441))
+* `azurerm_hpc_cache` - support for the `directory_active_directory`, `directory_flat_file`, and `directory_ldap` blocks ([#11332](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11332))
+* `azurerm_key_vault_certificate` - support additional values for the `key_size` property in the `key_properties` block ([#10867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10867))
+* `azurerm_key_vault_certificate` - support the `curve` property in the `key_properties` block ([#10867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10867))
+* `azurerm_key_vault_certificate` - the `key_size` property in the `key_properties` block is now optional ([#10867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10867))
+* `azurerm_kubernetes_cluster` - support for the `dns_prefix_private_cluster` property ([#11321](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11321))
+* `azurerm_kubernetes_cluster` - support for the `max_node_provisioning_time`, `max_unready_percentage`, and `max_unready_nodes` properties ([#11406](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11406))
+* `azurerm_storage_encryption_scope` - support for the `infrastructure_encryption_required` property ([#11462](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11462))
+* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #([#11060](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11060))
+* `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property ([#11269](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11269))
+* `azurerm_managed_application` - support for the `parameter_values` property ([#8632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8632))
+* `azurerm_managed_disk` - support for the `network_access_policy` and `disk_access_id` properties ([#9862](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9862))
+* `azurerm_postgresql_server` - wait for replica restarts when needed ([#11458](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11458))
+* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties ([#11203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11203))
+* `azurerm_storage_account` -  support for the `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block ([#11301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11301))
+* `azurerm_storage_account` - support for the `nfsv3_enabled` property ([#11387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11387))
+* `azurerm_storage_management_policy` - support for the `version` block ([#11163](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11163))
+* `azurerm_synapse_workspace` - support for the `customer_managed_key_versionless_id` property ([#11328](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11328))
 
 BUG FIXES:
 
-* `azurerm_api_management` - will no longer panic with an empty `hostname_configuration` [GH-11426]
-* `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks [GH-11402]
-* `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
-* `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
-* `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
-* `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
-* `azurerm_mssql_database ` - return an error when secondary database uses `max_size_gb` [GH-11401]
-* `azurerm_mssql_database` - correctly import the `create_mode` property [GH-11026]
-* `azurerm_netap_volume` - correctly set the `replication_frequency` attribute in the `data_protection_replication` block [GH-11530]
-* `azurerm_postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
-* `azurerm_postgresql_server` - can now correctly disable replication if required when `create_mode` is changed [GH-11467]
+* `azurerm_api_management` - will no longer panic with an empty `hostname_configuration` ([#11426](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11426))
+* `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks ([#11402](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11402))
+* `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` ([#11352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11352))
+* `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue ([#10341](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10341))
+* `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource ([#11362](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11362))
+* `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block ([#11383](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11383))
+* `azurerm_mssql_database ` - return an error when secondary database uses `max_size_gb` ([#11401](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11401))
+* `azurerm_mssql_database` - correctly import the `create_mode` property ([#11026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11026))
+* `azurerm_netap_volume` - correctly set the `replication_frequency` attribute in the `data_protection_replication` block ([#11530](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11530))
+* `azurerm_postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas ([#11465](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11465))
+* `azurerm_postgresql_server` - can now correctly disable replication if required when `create_mode` is changed ([#11467](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11467))
 * `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer forces a new resource to be created [GH- 11433]
 
 ## 2.56.0 (April 15, 2021)
