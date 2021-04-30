@@ -1,3 +1,9 @@
+## 2.58.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating `network-db` to API version `2020-07-01` [GH-10767]
+
 ## 2.57.0 (April 30, 2021)
 
 UPGRADE NOTES
