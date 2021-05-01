@@ -40,6 +40,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_storage_account_customer_managed_key": resourceStorageAccountCustomerManagedKey(),
 		"azurerm_storage_account_network_rules":        resourceStorageAccountNetworkRules(),
 		"azurerm_storage_blob":                         resourceStorageBlob(),
+		"azurerm_storage_blob_inventory_policy":        resourceStorageBlobInventoryPolicy(),
 		"azurerm_storage_container":                    resourceStorageContainer(),
 		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
