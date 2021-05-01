@@ -486,11 +486,13 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface
 	}
 	var identityIds []string
 	if identity.UserAssignedIdentities != nil {
-		userIdentities := make([]string, 0)
 		for key := range identity.UserAssignedIdentities {
-			userIdentities = append(userIdentities, key)
+		        id, err := msiparse.UserAssignedIdentityID(key)
+		        if err != nil {
+		              return nil, err
+		        }
+			identityIds = append(identityIds , id.ID())
 		}
-		identityIds = userIdentities
 	}
 
 	return []interface{}{
