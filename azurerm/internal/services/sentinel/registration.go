@@ -40,6 +40,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection": resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection(),
 		"azurerm_sentinel_data_connector_office_365":                                    resourceSentinelDataConnectorOffice365(),
 		"azurerm_sentinel_data_connector_threat_intelligence":                           resourceSentinelDataConnectorThreatIntelligence(),
-		"azurerm_sentinel_alert_rule_ml_behavior_analytics":                               resourceSentinelAlertRuleMLBehaviorAnalytics(),
+		"azurerm_sentinel_alert_rule_ml_behavior_analytics":                             resourceSentinelAlertRuleMLBehaviorAnalytics(),
 	}
 }
