@@ -16,7 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
-	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	msiParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -79,7 +80,7 @@ func resourceDataFactory() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
+								ValidateFunc: msiValidate.UserAssignedIdentityID,
 							},
 						},
 
@@ -228,20 +229,21 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
-		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
-
-		if len(identityIdsRaw) > 0 && identityType != string(datafactory.UserAssigned) {
-			return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.UserAssigned))
-		}
-
-		identityIds := make(map[string]interface{})
-		for _, v := range identityIdsRaw {
-			identityIds[v.(string)] = make(map[string]string)
-		}
-
 		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type:                   datafactory.FactoryIdentityType(identityType),
-			UserAssignedIdentities: identityIds,
+			Type: datafactory.FactoryIdentityType(identityType),
+		}
+
+		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
+		if len(identityIdsRaw) > 0 {
+			if identityType != string(datafactory.UserAssigned) {
+				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.UserAssigned))
+			}
+
+			identityIds := make(map[string]interface{})
+			for _, v := range identityIdsRaw {
+				identityIds[v.(string)] = make(map[string]string)
+			}
+			dataFactory.Identity.UserAssignedIdentities = identityIds
 		}
 	}
 
@@ -251,7 +253,7 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
-		identityIdsRaw := d.Get("identity.0.identity_ids").(*schema.Set).List()
+		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
 
 		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
 			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
@@ -348,8 +350,12 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenDataFactoryIdentity(resp.Identity)); err != nil {
+	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	if err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`
@@ -471,9 +477,9 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 	return datafactory.TypeFactoryRepoConfiguration, result
 }
 
-func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
+func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interface{}, error) {
 	if identity == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	principalId := ""
@@ -487,11 +493,11 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface
 	var identityIds []string
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-		        id, err := msiparse.UserAssignedIdentityID(key)
-		        if err != nil {
-		              return nil, err
-		        }
-			identityIds = append(identityIds , id.ID())
+			id, err := msiParse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, id.ID())
 		}
 	}
 
@@ -502,5 +508,5 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface
 			"type":         string(identity.Type),
 			"identity_ids": identityIds,
 		},
-	}
+	}, nil
 }
