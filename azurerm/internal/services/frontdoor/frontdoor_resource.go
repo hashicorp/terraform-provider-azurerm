@@ -103,6 +103,12 @@ func resourceFrontDoor() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"build_resource_mapping_table_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"routing_rule": {
 				Type:     schema.TypeList,
 				MaxItems: 500,
@@ -435,32 +441,76 @@ func resourceFrontDoor() *schema.Resource {
 						},
 						// if either of these are set in the main FrontDoor config we need to error out
 						// unfortunately we will need to force end users to use the azurerm_frontdoor_custom_https_configuration
-						"custom_https_provisioning_enabled": {
-							Type:       schema.TypeBool,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
-						},
+						// "custom_https_provisioning_enabled": {
+						// 	Type:       schema.TypeBool,
+						// 	Optional:   true,
+						// 	Computed:   true,
+						// 	Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
+						// },
 						"web_application_firewall_policy_link_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							// TODO: validation that this is a resource id
 						},
-						"custom_https_configuration": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
-							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
-							Elem: &schema.Resource{
-								Schema: schemaCustomHttpsConfiguration(),
+						// "custom_https_configuration": {
+						// 	Type:       schema.TypeList,
+						// 	Optional:   true,
+						// 	Computed:   true,
+						// 	MaxItems:   1,
+						// 	Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
+						// 	Elem: &schema.Resource{
+						// 		Schema: schemaCustomHttpsConfiguration(),
+						// 	},
+						// },
+					},
+				},
+			},
+
+			// Computed values
+			"explicit_resource_order": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"backend_pool_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"frontend_endpoint_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"routing_rule_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"backend_pool_load_balancing_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"backend_pool_health_probe_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
 					},
 				},
 			},
 
-			// Computed values
 			"backend_pool_health_probes": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -553,6 +603,7 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
+	buildResourceMappingTableOnly := d.Get("build_resource_mapping_table_only").(bool)
 	friendlyName := d.Get("friendly_name").(string)
 	routingRules := d.Get("routing_rule").([]interface{})
 	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
@@ -564,90 +615,42 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	enabledState := d.Get("load_balancer_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	// check to see if any custom https setting have been set
-	// if so error out to avoid out of order issue...
-	for _, v := range frontendEndpoints {
-		frontendEndpoint := v.(map[string]interface{})
-		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
-		customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-
-		log.Printf("\n[INFO] customHttpsConfigurationNew:\n%+v\n", customHttpsConfigurationNew)
-
-		if customHttpsProvisioningEnabled {
-			return fmt.Errorf("setting the deprecated 'custom_https_provisioning_enabled' field is no longer supported within the 'azurerm_frontdoor' resource, please use the 'azurerm_frontdoor_custom_https_configuration' resource to set this value.")
+	// the 'buildResourceMappingTableOnly' field is to block unwanted changes from being provisioned to the front door resource
+	// this is only valid for existing front door resources that are showing the out of order plan due to a bug in the resource API
+	// returning the response JSON out of order.
+	if !buildResourceMappingTableOnly {
+		frontDoorParameters := frontdoor.FrontDoor{
+			Location: utils.String(location),
+			Properties: &frontdoor.Properties{
+				FriendlyName:          utils.String(friendlyName),
+				RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
+				BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
+				BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
+				FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
+				HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId),
+				LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId),
+				EnabledState:          expandFrontDoorEnabledState(enabledState),
+			},
+			Tags: tags.Expand(t),
 		}
 
-		if len(customHttpsConfigurationNew) > 0 {
-			return fmt.Errorf("setting the deprecated 'custom_https_configuration' block is no longer supported within the 'azurerm_frontdoor' resource, please use the 'azurerm_frontdoor_custom_https_configuration' resource to set these values.")
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontDoorParameters)
+		if err != nil {
+			return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-	}
-
-	frontDoorParameters := frontdoor.FrontDoor{
-		Location: utils.String(location),
-		Properties: &frontdoor.Properties{
-			FriendlyName:          utils.String(friendlyName),
-			RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
-			BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
-			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
-			FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
-			HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId),
-			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId),
-			EnabledState:          expandFrontDoorEnabledState(enabledState),
-		},
-		Tags: tags.Expand(t),
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontDoorParameters)
-	if err != nil {
-		return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	d.SetId(frontDoorId.ID())
 
-	// Now loop through the FrontendEndpoints and enable/disable Custom Domain HTTPS
-	// on each individual Frontend Endpoint if required
-
-	// What I believe is happening is the feClient is being called twice(once from the frontdoor resource and once from the custom_https_configuration resource) which results in the error:
-	// updating Custom HTTPS configuration for Frontend Endpoint "acctest-FD-default-FE" (Front Door "acctest-FD" / Resource Group "jcline-frontdoor-order"):
-	// unable to enable/update Custom Domain HTTPS for Frontend Endpoint "acctest-FD-default-FE" (Resource Group "jcline-frontdoor-order"): enabling
-	// Custom Domain HTTPS for Frontend Endpoint: frontdoor.FrontendEndpointsClient#EnableHTTPS: Failure sending request: StatusCode=0 --
-	// Original Error: Code="BadRequest" Message="That action isn’t allowed in this profile."
-	// Once that happens the API returns resources out of order...
-
-	// feClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-
-	// for _, v := range frontendEndpoints {
-	// frontendEndpoint := v.(map[string]interface{})
-	// customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
-	// endpointName := frontendEndpoint["name"].(string)
-
-	// Get current state of endpoint from Azure
-	// resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
-	// if err != nil {
-	// return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
-	// }
-
-	// if properties := resp.FrontendEndpointProperties; properties != nil {
-	// frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-	// customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-	// frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
-
-	// input := customHttpsConfigurationUpdateInput{
-	// customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
-	// customHttpsConfigurationNew:     customHttpsConfigurationNew,
-	// customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
-	// frontendEndpointId:              frontendInputId,
-	// provisioningState:               properties.CustomHTTPSProvisioningState,
-	// }
-
-	// if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
-	// return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
-	// }
-	// }
-	// }
+	// When 'build_resource_mapping_table_only' is set to 'true' and you call Apply you will see 'Apply complete! Resources: 0 added, 1 changed, 0 destroyed.'
+	// because it did not update the resource it just built and set the 'explicit_resource_order' map in the state file. Once you build the mapping table
+	// you will need to remove the 'build_resource_mapping_table_only' field from the configuration file or set it to 'false' else the changes in the config file
+	// will never be sent to the front door API.
+	d.Set("build_resource_mapping_table_only", buildResourceMappingTableOnly)
+	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 
 	return resourceFrontDoorRead(d, meta)
 }
@@ -694,6 +697,8 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("load_balancer_enabled", props.EnabledState == frontdoor.EnabledStateEnabled)
 		d.Set("friendly_name", props.FriendlyName)
 
+		explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
+
 		// Need to call frontEndEndpointClient here to get custom(HTTPS)Configuration information from that client
 		// because the information is hidden from the main frontDoorClient "by design"...
 		frontEndEndpointsClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
@@ -717,10 +722,14 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `backend_pool_load_balancing`: %+v", err)
 		}
 
-		flattenedRoutingRules, err := flattenFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"), *id)
+		var flattenedRoutingRules *[]interface{}
+
+		// Force the retuned flattenedRoutingRules into the order defined in the explicit_resource_order mapping table
+		flattenedRoutingRules, err = flattenFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"), *id, explicitResourceOrder)
 		if err != nil {
 			return fmt.Errorf("flattening `routing_rules`: %+v", err)
 		}
+
 		if err := d.Set("routing_rule", flattenedRoutingRules); err != nil {
 			return fmt.Errorf("setting `routing_rules`: %+v", err)
 		}
@@ -1071,12 +1080,11 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 	for _, rr := range input {
 		routingRule := rr.(map[string]interface{})
 
-		id := routingRule["id"].(string)
+		name := routingRule["name"].(string)
 		frontendEndpoints := routingRule["frontend_endpoints"].([]interface{})
 		acceptedProtocols := routingRule["accepted_protocols"].([]interface{})
 		ptm := routingRule["patterns_to_match"].([]interface{})
 		enabled := routingRule["enabled"].(bool)
-		name := routingRule["name"].(string)
 
 		patternsToMatch := make([]string, 0)
 
@@ -1092,8 +1100,10 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 			routingConfiguration = expandFrontDoorForwardingConfiguration(fc, frontDoorId)
 		}
 
+		routingRuleId := parse.NewRoutingRuleID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
+
 		currentRoutingRule := frontdoor.RoutingRule{
-			ID:   utils.String(id),
+			ID:   utils.String(routingRuleId),
 			Name: utils.String(name),
 			RoutingRuleProperties: &frontdoor.RoutingRuleProperties{
 				FrontendEndpoints:  expandFrontDoorFrontEndEndpoints(frontendEndpoints, frontDoorId),
@@ -1243,10 +1253,95 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 	return forwardingConfiguration
 }
 
-func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (*[]interface{}, error) {
+func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings []interface{}, frontDoorId parse.FrontDoorId) *[]interface{} {
+	output := make([]interface{}, 0)
+	var backendPoolOrder []string
+	var frontedEndpointOrder []string
+	var routingRulesOrder []string
+	var backendPoolLoadBalancingOrder []string
+	var backendPoolHealthProbeOrder []string
+
+	if len(backendPools) > 0 {
+		flattenendBackendPools, err := flattenFrontDoorBackendPools(expandFrontDoorBackendPools(backendPools, frontDoorId), frontDoorId)
+
+		if err == nil {
+			for _, ids := range *flattenendBackendPools {
+				backendPool := ids.(map[string]interface{})
+				backendPoolOrder = append(backendPoolOrder, backendPool["id"].(string))
+			}
+		}
+	}
+
+	if len(frontendEndpoints) > 0 {
+		flattenendfrontendEndpoints, err := flattenFrontEndEndpoints(expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId), frontDoorId)
+
+		if err == nil {
+			for _, ids := range *flattenendfrontendEndpoints {
+				frontendEndPoint := ids.(map[string]interface{})
+				frontedEndpointOrder = append(frontedEndpointOrder, frontendEndPoint["id"].(string))
+			}
+		}
+	}
+
+	if len(routingRules) > 0 {
+		var oldBlocks interface{}
+		flattenendRoutingRules, err := flattenFrontDoorRoutingRule(expandFrontDoorRoutingRule(routingRules, frontDoorId), oldBlocks, frontDoorId, make([]interface{}, 0))
+
+		if err == nil {
+			for _, ids := range *flattenendRoutingRules {
+				routingRule := ids.(map[string]interface{})
+				routingRulesOrder = append(routingRulesOrder, routingRule["id"].(string))
+			}
+		}
+	}
+
+	if len(loadBalancingSettings) > 0 {
+		flattenendLoadBalancingSettings := flattenFrontDoorLoadBalancingSettingsModel(expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId), frontDoorId)
+
+		if len(flattenendLoadBalancingSettings) > 0 {
+			for _, ids := range flattenendLoadBalancingSettings {
+				loadBalancingSetting := ids.(map[string]interface{})
+				backendPoolLoadBalancingOrder = append(backendPoolLoadBalancingOrder, loadBalancingSetting["id"].(string))
+			}
+		}
+	}
+
+	if len(healthProbeSettings) > 0 {
+		flattenendHealthProbeSettings := flattenFrontDoorHealthProbeSettingsModel(expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId), frontDoorId)
+
+		if len(flattenendHealthProbeSettings) > 0 {
+			for _, ids := range flattenendHealthProbeSettings {
+				healthProbeSetting := ids.(map[string]interface{})
+				backendPoolHealthProbeOrder = append(backendPoolHealthProbeOrder, healthProbeSetting["id"].(string))
+			}
+		}
+	}
+
+	output = append(output, map[string]interface{}{
+		"backend_pool_ids":                backendPoolOrder,
+		"frontend_endpoint_ids":           frontedEndpointOrder,
+		"routing_rule_ids":                routingRulesOrder,
+		"backend_pool_load_balancing_ids": backendPoolLoadBalancingOrder,
+		"backend_pool_health_probe_ids":   backendPoolHealthProbeOrder,
+	})
+
+	return &output
+}
+
+func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (*[]interface{}, error) { //backEndPoolOrder []string,
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
+
+	// DEBUG
+	// debug := true
+	// for i, backendPoolName := range backEndPoolOrder {
+	// 	log.Printf("%d: %s\n", i, backendPoolName)
+	// }
+
+	// if debug {
+	// 	return nil, fmt.Errorf("[DEBUG]: ORDER\n")
+	// }
 
 	output := make([]interface{}, 0)
 	for _, v := range *input {
@@ -1462,9 +1557,9 @@ func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSett
 		id := ""
 		name := ""
 		if v.Name != nil {
-			// rewrite the ID to ensure it's consistent
-			id = parse.NewHealthProbeID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *v.Name).ID()
 			name = *v.Name
+			// rewrite the ID to ensure it's consistent
+			id = parse.NewHealthProbeID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
 		}
 
 		enabled := false
@@ -1546,62 +1641,93 @@ func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancing
 	return results
 }
 
-func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId) (*[]interface{}, error) {
+func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
 
 	output := make([]interface{}, 0)
-	for _, v := range *input {
-		id := ""
-		name := ""
-		if v.Name != nil {
-			// rewrite the ID to ensure it's consistent
-			id = parse.NewRoutingRuleID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *v.Name).ID()
-			name = *v.Name
+
+	if len(explicitOrder) > 0 {
+
+		for _, orderedRules := range explicitOrder {
+			orderedRule := orderedRules.(map[string]interface{})
+			orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
+
+			for _, v := range orderedRountingRuleIds {
+				for _, routingRule := range *input {
+					if strings.EqualFold(v.(string), *routingRule.ID) {
+						orderedRoutingRule, err := flattenSingleFrontDoorRoutingRule(routingRule, oldBlocks, frontDoorId)
+						if err == nil {
+							output = append(output, orderedRoutingRule)
+						}
+					}
+				}
+			}
+			break
 		}
-
-		acceptedProtocols := make([]string, 0)
-		enabled := false
-		forwardingConfiguration := make([]interface{}, 0)
-		frontEndEndpoints := make([]string, 0)
-		patternsToMatch := make([]string, 0)
-		redirectConfiguration := make([]interface{}, 0)
-		if props := v.RoutingRuleProperties; props != nil {
-			acceptedProtocols = flattenFrontDoorAcceptedProtocol(props.AcceptedProtocols)
-			enabled = props.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled
-
-			forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(props.RouteConfiguration, oldBlocks)
-			if err != nil {
-				return nil, fmt.Errorf("flattening `forward_configuration`: %+v", err)
+	} else {
+		for _, v := range *input {
+			routingRule, err := flattenSingleFrontDoorRoutingRule(v, oldBlocks, frontDoorId)
+			if err == nil {
+				output = append(output, routingRule)
 			}
-			forwardingConfiguration = *forwardConfiguration
-
-			frontendEndpoints, err := flattenFrontDoorFrontendEndpointsSubResources(props.FrontendEndpoints)
-			if err != nil {
-				return nil, fmt.Errorf("flattening `frontend_endpoints`: %+v", err)
-			}
-			frontEndEndpoints = *frontendEndpoints
-
-			if props.PatternsToMatch != nil {
-				patternsToMatch = *props.PatternsToMatch
-			}
-			redirectConfiguration = flattenRoutingRuleRedirectConfiguration(props.RouteConfiguration)
 		}
-
-		output = append(output, map[string]interface{}{
-			"accepted_protocols":       acceptedProtocols,
-			"enabled":                  enabled,
-			"forwarding_configuration": forwardingConfiguration,
-			"frontend_endpoints":       frontEndEndpoints,
-			"id":                       id,
-			"name":                     name,
-			"patterns_to_match":        patternsToMatch,
-			"redirect_configuration":   redirectConfiguration,
-		})
 	}
 
 	return &output, nil
+}
+
+func flattenSingleFrontDoorRoutingRule(input frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
+
+	id := ""
+	name := ""
+	if input.Name != nil {
+		// rewrite the ID to ensure it's consistent
+		id = parse.NewRoutingRuleID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *input.Name).ID()
+		name = *input.Name
+	}
+
+	acceptedProtocols := make([]string, 0)
+	enabled := false
+	forwardingConfiguration := make([]interface{}, 0)
+	frontEndEndpoints := make([]string, 0)
+	patternsToMatch := make([]string, 0)
+	redirectConfiguration := make([]interface{}, 0)
+	if props := input.RoutingRuleProperties; props != nil {
+		acceptedProtocols = flattenFrontDoorAcceptedProtocol(props.AcceptedProtocols)
+		enabled = props.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled
+
+		forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(props.RouteConfiguration, oldBlocks)
+		if err != nil {
+			return nil, fmt.Errorf("flattening `forward_configuration`: %+v", err)
+		}
+		forwardingConfiguration = *forwardConfiguration
+
+		frontendEndpoints, err := flattenFrontDoorFrontendEndpointsSubResources(props.FrontendEndpoints)
+		if err != nil {
+			return nil, fmt.Errorf("flattening `frontend_endpoints`: %+v", err)
+		}
+		frontEndEndpoints = *frontendEndpoints
+
+		if props.PatternsToMatch != nil {
+			patternsToMatch = *props.PatternsToMatch
+		}
+		redirectConfiguration = flattenRoutingRuleRedirectConfiguration(props.RouteConfiguration)
+	}
+
+	output := map[string]interface{}{
+		"accepted_protocols":       acceptedProtocols,
+		"enabled":                  enabled,
+		"forwarding_configuration": forwardingConfiguration,
+		"frontend_endpoints":       frontEndEndpoints,
+		"id":                       id,
+		"name":                     name,
+		"patterns_to_match":        patternsToMatch,
+		"redirect_configuration":   redirectConfiguration,
+	}
+
+	return output, nil
 }
 
 func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfiguration, oldConfig interface{}) (*[]interface{}, error) {
