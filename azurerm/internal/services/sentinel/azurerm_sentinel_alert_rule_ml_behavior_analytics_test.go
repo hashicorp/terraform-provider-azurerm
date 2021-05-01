@@ -153,7 +153,7 @@ data "azurerm_sentinel_alert_rule_template" "test2" {
   display_name               = "(Preview) Anomalous RDP Login Detections"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
 }
-  
+
 resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "test2" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-2-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
