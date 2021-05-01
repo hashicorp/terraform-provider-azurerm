@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -261,7 +263,7 @@ func (r BackendAddressPoolAddressResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r BackendAddressPoolAddressResource) IDValidationFunc() schema.SchemaValidateFunc {
+func (r BackendAddressPoolAddressResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.BackendAddressPoolAddressID
 }
 

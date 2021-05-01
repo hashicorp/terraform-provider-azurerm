@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,9 +28,8 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 		Read:   resourceMonitorScheduledQueryRulesAlertRead,
 		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
 		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -172,7 +174,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 									"threshold": {
 										Type:         schema.TypeFloat,
 										Required:     true,
-										ValidateFunc: validateMonitorScheduledQueryRulesAlertThreshold,
+										ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 									},
 								},
 							},
@@ -189,7 +191,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 						"threshold": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: validateMonitorScheduledQueryRulesAlertThreshold,
+							ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 						},
 					},
 				},

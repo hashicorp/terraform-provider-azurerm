@@ -1,7 +1,7 @@
 package client
 
 import (
-	healthcare "github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis"
+	healthcare "github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

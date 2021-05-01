@@ -360,6 +360,7 @@ func (future *AvailabilityGroupListenersCreateOrUpdateFuture) result(client Avai
 		return
 	}
 	if !done {
+		agl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture")
 		return
 	}
@@ -402,6 +403,7 @@ func (future *AvailabilityGroupListenersDeleteFuture) result(client Availability
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture")
 		return
 	}
@@ -731,6 +733,7 @@ func (future *GroupsCreateOrUpdateFuture) result(client GroupsClient) (g Group, 
 		return
 	}
 	if !done {
+		g.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsCreateOrUpdateFuture")
 		return
 	}
@@ -772,6 +775,7 @@ func (future *GroupsDeleteFuture) result(client GroupsClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsDeleteFuture")
 		return
 	}
@@ -807,6 +811,7 @@ func (future *GroupsUpdateFuture) result(client GroupsClient) (g Group, err erro
 		return
 	}
 	if !done {
+		g.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsUpdateFuture")
 		return
 	}
@@ -1517,6 +1522,7 @@ func (future *SQLVirtualMachinesCreateOrUpdateFutureType) result(client SQLVirtu
 		return
 	}
 	if !done {
+		svm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesCreateOrUpdateFutureType")
 		return
 	}
@@ -1559,6 +1565,7 @@ func (future *SQLVirtualMachinesDeleteFutureType) result(client SQLVirtualMachin
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesDeleteFutureType")
 		return
 	}
@@ -1595,6 +1602,7 @@ func (future *SQLVirtualMachinesUpdateFutureType) result(client SQLVirtualMachin
 		return
 	}
 	if !done {
+		svm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesUpdateFutureType")
 		return
 	}

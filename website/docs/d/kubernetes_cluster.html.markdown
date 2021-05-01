@@ -98,6 +98,8 @@ A `addon_profile` block exports the following:
 
 * `azure_policy` - A `azure_policy` block.
 
+* `ingress_application_gateway` - An `ingress_application_gateway` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -255,6 +257,18 @@ A `kube_dashboard` block supports the following:
 A `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
+
+An `ingress_application_gateway` block supports the following:
+
+* `enabled` -  Is the Application Gateway ingress controller integrated with this Kubernetes Cluster?
+
+* `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
+
+* `gateway_id` - The ID of the Application Gateway integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when gateway_id is specified when configuring the `ingress_application_gateway` addon.
+
+* `subnet_cidr` - The subnet CIDR used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_cidr` is specified when configuring the `ingress_application_gateway` addon.
+
+* `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
 
 ---
 

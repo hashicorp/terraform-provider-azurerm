@@ -12,32 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestValidateStorageAccountName(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"ab", true},
-		{"ABC", true},
-		{"abc", false},
-		{"123456789012345678901234", false},
-		{"1234567890123456789012345", true},
-		{"abc12345", false},
-	}
-
-	for _, test := range testCases {
-		_, es := storage.ValidateStorageAccountName(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
 
 type StorageAccountResource struct{}
 
@@ -293,6 +270,21 @@ func TestAccStorageAccount_isHnsEnabled(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_isNFSv3Enabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.isNFSv3Enabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_blobStorageWithUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -542,6 +534,14 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blobPropertiesUpdated2(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -792,7 +792,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    %s
+            %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1064,6 +1064,51 @@ resource "azurerm_storage_account" "test" {
   is_hns_enabled           = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) isNFSv3Enabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestSubnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Premium"
+  account_kind              = "BlockBlobStorage"
+  account_replication_type  = "LRS"
+  is_hns_enabled            = true
+  nfsv3_enabled             = true
+  enable_https_traffic_only = false
+  network_rules {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
 func (r StorageAccountResource) blobStorage(data acceptance.TestData) string {
@@ -1538,6 +1583,9 @@ resource "azurerm_storage_account" "test" {
       days = 300
     }
 
+    default_service_version  = "2019-07-07"
+    versioning_enabled       = true
+    last_access_time_enabled = true
     container_delete_retention_policy {
       days = 7
     }
@@ -1588,6 +1636,32 @@ resource "azurerm_storage_account" "test" {
 
     container_delete_retention_policy {
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) blobPropertiesUpdated2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    versioning_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

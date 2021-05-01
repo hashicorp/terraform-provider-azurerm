@@ -96,7 +96,9 @@ The following arguments are supported:
 
 * `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
 
-* `max_size_gb` - (Optional) The max size of the database in gigabytes. 
+* `max_size_gb` - (Optional) The max size of the database in gigabytes.
+
+~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-scale#geo-replicated-database).
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for General Purpose Serverless databases.
 

@@ -206,6 +206,8 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
+* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11`.
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
@@ -340,6 +342,8 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+
 ---
 
 A `scm_ip_restriction` block supports the following:
@@ -356,7 +360,22 @@ A `scm_ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
 
-* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.  
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.
+
+* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+
+---
+
+A `headers` block supports the following:
+
+* `x_azure_fdid` - (Optional) A list of allowed Azure FrontDoor IDs in UUID notation with a maximum of 8.
+
+* `x_fd_health_probe` - (Optional) A list to allow the Azure FrontDoor health probe header. Only allowed value is "1".
+
+* `x_forwarded_for` - (Optional) A list of allowed 'X-Forwarded-For' IPs in CIDR notation with a maximum of 8
+
+* `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
+
 
 ---
 

@@ -138,6 +138,7 @@ func (future *AssociationsCreateOrUpdateFuture) result(client AssociationsClient
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsCreateOrUpdateFuture")
 		return
 	}
@@ -180,6 +181,7 @@ func (future *AssociationsDeleteFuture) result(client AssociationsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsDeleteFuture")
 		return
 	}
@@ -375,6 +377,7 @@ func (future *CustomResourceProviderCreateOrUpdateFuture) result(client CustomRe
 		return
 	}
 	if !done {
+		crm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderCreateOrUpdateFuture")
 		return
 	}
@@ -417,6 +420,7 @@ func (future *CustomResourceProviderDeleteFuture) result(client CustomResourcePr
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderDeleteFuture")
 		return
 	}

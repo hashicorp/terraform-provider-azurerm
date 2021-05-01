@@ -6,7 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -27,9 +32,8 @@ func resourcePrivateLinkService() *schema.Resource {
 		Update: resourcePrivateLinkServiceCreateUpdate,
 		Delete: resourcePrivateLinkServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -43,7 +47,7 @@ func resourcePrivateLinkService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: networkValidate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -88,7 +92,7 @@ func resourcePrivateLinkService() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
 							Type:         schema.TypeString,
@@ -138,13 +142,13 @@ func resourcePrivateLinkService() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := ValidatePrivateLinkNatIpConfiguration(d); err != nil {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+			if err := validatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
@@ -457,4 +461,33 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 
 		return res, "Pending", nil
 	}
+}
+func validatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
+
+	for i, item := range ipConfigurations {
+		v := item.(map[string]interface{})
+		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
+		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
+		isPrimary := v["primary"].(bool)
+		in := v["name"].(string)
+
+		if d.HasChange(p) {
+			o, n := d.GetChange(p)
+			if o != "" && n == "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+			}
+		}
+
+		if isPrimary && d.HasChange(s) {
+			o, _ := d.GetChange(s)
+			if o != "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+			}
+		}
+	}
+
+	return nil
 }

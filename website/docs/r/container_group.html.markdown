@@ -82,6 +82,10 @@ The following arguments are supported:
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
+* `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created. 
+
+~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group. 
+
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
 
 ~> **Note:** `dns_name_label`, `identity` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
@@ -136,6 +140,16 @@ A `container` block supports:
 
 ---
 
+A `exposed_port` block supports:
+
+* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+
+* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+
+~> **Note:** Removing all `exposed_port` blocks requires setting `exposed_port = []`.
+
+---
+
 A `diagnostics` block supports:
 
 * `log_analytics` - (Required) A `log_analytics` block as defined below. Changing this forces a new resource to be created.
@@ -169,6 +183,8 @@ A `ports` block supports:
 * `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
 
 * `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+
+~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
 --
 
@@ -218,7 +234,7 @@ The `readiness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the http_get for this container as documented in the `http_get` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
@@ -236,7 +252,7 @@ The `liveness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the http_get for this container as documented in the `http_get` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 

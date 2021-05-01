@@ -48,6 +48,7 @@ func (future *CapacitiesCreateFuture) result(client CapacitiesClient) (dc Dedica
 		return
 	}
 	if !done {
+		dc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesCreateFuture")
 		return
 	}
@@ -90,6 +91,7 @@ func (future *CapacitiesDeleteFuture) result(client CapacitiesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesDeleteFuture")
 		return
 	}
@@ -126,6 +128,7 @@ func (future *CapacitiesResumeFuture) result(client CapacitiesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesResumeFuture")
 		return
 	}
@@ -162,6 +165,7 @@ func (future *CapacitiesSuspendFuture) result(client CapacitiesClient) (ar autor
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesSuspendFuture")
 		return
 	}
@@ -198,6 +202,7 @@ func (future *CapacitiesUpdateFuture) result(client CapacitiesClient) (dc Dedica
 		return
 	}
 	if !done {
+		dc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesUpdateFuture")
 		return
 	}

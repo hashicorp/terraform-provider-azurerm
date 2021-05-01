@@ -7,8 +7,9 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -24,9 +25,8 @@ func resourceApiManagementAuthorizationServer() *schema.Resource {
 		Read:   resourceApiManagementAuthorizationServerRead,
 		Update: resourceApiManagementAuthorizationServerCreateUpdate,
 		Delete: resourceApiManagementAuthorizationServerDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -316,10 +316,12 @@ func resourceApiManagementAuthorizationServerRead(d *schema.ResourceData, meta i
 		d.Set("default_scope", props.DefaultScope)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("resource_owner_password", props.ResourceOwnerPassword)
-		d.Set("resource_owner_username", props.ResourceOwnerUsername)
 		d.Set("support_state", props.SupportState)
 		d.Set("token_endpoint", props.TokenEndpoint)
+
+		// TODO: Read properties from api, https://github.com/Azure/azure-rest-api-specs/issues/14128
+		d.Set("resource_owner_password", d.Get("resource_owner_password").(string))
+		d.Set("resource_owner_username", d.Get("resource_owner_username").(string))
 
 		if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
 			return fmt.Errorf("flattening `authorization_methods`: %+v", err)

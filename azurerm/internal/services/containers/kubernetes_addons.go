@@ -8,7 +8,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	applicationGatewayValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	subnetValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
@@ -16,11 +19,12 @@ import (
 
 const (
 	// note: the casing on these keys is important
-	aciConnectorKey           = "aciConnectorLinux"
-	azurePolicyKey            = "azurepolicy"
-	kubernetesDashboardKey    = "kubeDashboard"
-	httpApplicationRoutingKey = "httpApplicationRouting"
-	omsAgentKey               = "omsagent"
+	aciConnectorKey              = "aciConnectorLinux"
+	azurePolicyKey               = "azurepolicy"
+	kubernetesDashboardKey       = "kubeDashboard"
+	httpApplicationRoutingKey    = "httpApplicationRouting"
+	omsAgentKey                  = "omsagent"
+	ingressApplicationGatewayKey = "ingressApplicationGateway"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -43,6 +47,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOnProfiles() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -154,6 +159,42 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 						},
 					},
 				},
+
+				"ingress_application_gateway": {
+					Type:     schema.TypeList,
+					MaxItems: 1,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"enabled": {
+								Type:     schema.TypeBool,
+								Required: true,
+							},
+							"gateway_id": {
+								Type:          schema.TypeString,
+								Optional:      true,
+								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
+								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
+							},
+							"subnet_cidr": {
+								Type:          schema.TypeString,
+								Optional:      true,
+								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
+								ValidateFunc:  commonValidate.CIDR,
+							},
+							"subnet_id": {
+								Type:          schema.TypeString,
+								Optional:      true,
+								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
+								ValidateFunc:  subnetValidate.SubnetID,
+							},
+							"effective_gateway_id": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -165,14 +206,15 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 	}
 
 	profiles := map[string]*containerservice.ManagedClusterAddonProfile{
-		aciConnectorKey:           &disabled,
-		azurePolicyKey:            &disabled,
-		kubernetesDashboardKey:    &disabled,
-		httpApplicationRoutingKey: &disabled,
-		omsAgentKey:               &disabled,
+		aciConnectorKey:              &disabled,
+		azurePolicyKey:               &disabled,
+		kubernetesDashboardKey:       &disabled,
+		httpApplicationRoutingKey:    &disabled,
+		omsAgentKey:                  &disabled,
+		ingressApplicationGatewayKey: &disabled,
 	}
 
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return filterUnsupportedKubernetesAddOns(profiles, env)
 	}
 
@@ -245,6 +287,30 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			Config: map[string]*string{
 				"version": utils.String("v2"),
 			},
+		}
+	}
+
+	ingressApplicationGateway := profile["ingress_application_gateway"].([]interface{})
+	if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
+		value := ingressApplicationGateway[0].(map[string]interface{})
+		config := make(map[string]*string)
+		enabled := value["enabled"].(bool)
+
+		if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
+			config["applicationGatewayId"] = utils.String(gatewayId.(string))
+		}
+
+		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
+			config["subnetCIDR"] = utils.String(subnetCIDR.(string))
+		}
+
+		if subnetId, ok := value["subnet_id"]; ok && subnetId != "" {
+			config["subnetId"] = utils.String(subnetId.(string))
+		}
+
+		addonProfiles[ingressApplicationGatewayKey] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  config,
 		}
 	}
 
@@ -364,18 +430,55 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		})
 	}
 
+	ingressApplicationGateways := make([]interface{}, 0)
+	if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
+		enabled := false
+		if enabledVal := ingressApplicationGateway.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		gatewayId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
+			gatewayId = *v
+		}
+
+		effectiveGatewayId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
+			effectiveGatewayId = *v
+		}
+
+		subnetCIDR := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
+			subnetCIDR = *v
+		}
+
+		subnetId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
+			subnetId = *v
+		}
+
+		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+			"enabled":              enabled,
+			"gateway_id":           gatewayId,
+			"effective_gateway_id": effectiveGatewayId,
+			"subnet_cidr":          subnetCIDR,
+			"subnet_id":            subnetId,
+		})
+	}
+
 	// this is a UX hack, since if the top level block isn't defined everything should be turned off
-	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 {
+	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"aci_connector_linux":      aciConnectors,
-			"azure_policy":             azurePolicies,
-			"http_application_routing": httpApplicationRoutes,
-			"kube_dashboard":           kubeDashboards,
-			"oms_agent":                omsAgents,
+			"aci_connector_linux":         aciConnectors,
+			"azure_policy":                azurePolicies,
+			"http_application_routing":    httpApplicationRoutes,
+			"kube_dashboard":              kubeDashboards,
+			"oms_agent":                   omsAgents,
+			"ingress_application_gateway": ingressApplicationGateways,
 		},
 	}
 }

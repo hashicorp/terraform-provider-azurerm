@@ -112,6 +112,8 @@ The following arguments are supported:
 
 * `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name`, `account_name` and `pool_name`.
 
+* `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below.
+
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -140,17 +142,17 @@ An `export_policy_rule` block supports the following:
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
-* `allow_root_access` - (Optional) Is root access permitted to this volume?
+* `root_access_enabled` - (Optional) Is root access permitted to this volume?
 
 ---
 
-An `data_protection_replication` is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
+A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
 
 * `endpoint_type` - (Optional) The endpoint type, default value is `dst` for destination.
   
-* `remote_volume_location` - (Required) Primary volume's location.
+* `remote_volume_location` - (Required) Location of the primary volume.
 
-* `remote_volume_resource_id` - (Required) Primary volume's resource id.
+* `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
   
 * `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 

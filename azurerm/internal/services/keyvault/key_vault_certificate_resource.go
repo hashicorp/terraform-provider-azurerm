@@ -11,11 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -108,6 +109,18 @@ func resourceKeyVaultCertificate() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"curve": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.P256),
+											string(keyvault.P256K),
+											string(keyvault.P384),
+											string(keyvault.P521),
+										}, false),
+									},
 									"exportable": {
 										Type:     schema.TypeBool,
 										Required: true,
@@ -115,9 +128,13 @@ func resourceKeyVaultCertificate() *schema.Resource {
 									},
 									"key_size": {
 										Type:     schema.TypeInt,
-										Required: true,
+										Optional: true,
+										Computed: true,
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
+											256,
+											384,
+											521,
 											2048,
 											3072,
 											4096,
@@ -127,6 +144,13 @@ func resourceKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.EC),
+											string(keyvault.ECHSM),
+											string(keyvault.RSA),
+											string(keyvault.RSAHSM),
+											string(keyvault.Oct),
+										}, true),
 									},
 									"reuse_key": {
 										Type:     schema.TypeBool,
@@ -159,6 +183,7 @@ func resourceKeyVaultCertificate() *schema.Resource {
 											},
 										},
 									},
+									//lintignore:XS003
 									"trigger": {
 										Type:     schema.TypeList,
 										Required: true,
@@ -253,6 +278,10 @@ func resourceKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 												"dns_names": {
 													Type:     schema.TypeSet,
@@ -262,6 +291,10 @@ func resourceKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 												"upns": {
 													Type:     schema.TypeSet,
@@ -271,6 +304,10 @@ func resourceKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 											},
 										},
@@ -385,7 +422,10 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-	policy := expandKeyVaultCertificatePolicy(d)
+	policy, err := expandKeyVaultCertificatePolicy(d)
+	if err != nil {
+		return fmt.Errorf("expanding certificate policy: %s", err)
+	}
 
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
@@ -393,7 +433,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		importParameters := keyvault.CertificateImportParameters{
 			Base64EncodedCertificate: utils.String(certificate.CertificateData),
 			Password:                 utils.String(certificate.CertificatePassword),
-			CertificatePolicy:        &policy,
+			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
 		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
@@ -402,7 +442,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	} else {
 		// Generate new
 		parameters := keyvault.CertificateCreateParameters{
-			CertificatePolicy: &policy,
+			CertificatePolicy: policy,
 			Tags:              tags.Expand(t),
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -444,7 +484,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
 		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
 		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
-		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+		if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
 			stateConf.PollInterval = 30 * time.Second
 			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
@@ -651,7 +691,7 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 	return resp.Response, err
 }
 
-func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.CertificatePolicy {
+func expandKeyVaultCertificatePolicy(d *schema.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
 	policyRaw := policies[0].(map[string]interface{})
 	policy := keyvault.CertificatePolicy{}
@@ -664,10 +704,37 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 	properties := policyRaw["key_properties"].([]interface{})
 	props := properties[0].(map[string]interface{})
+
+	curve := props["curve"].(string)
+	keyType := props["key_type"].(string)
+	keySize := props["key_size"].(int)
+
+	if keyType == string(keyvault.EC) || keyType == string(keyvault.ECHSM) {
+		if curve == "" {
+			return nil, fmt.Errorf("`curve` is required when creating an EC key")
+		}
+		// determine key_size if not specified
+		if keySize == 0 {
+			switch curve {
+			case string(keyvault.P256), string(keyvault.P256K):
+				keySize = 256
+			case string(keyvault.P384):
+				keySize = 384
+			case string(keyvault.P521):
+				keySize = 521
+			}
+		}
+	} else if keyType == string(keyvault.RSA) || keyType == string(keyvault.RSAHSM) {
+		if keySize == 0 {
+			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
+		}
+	}
+
 	policy.KeyProperties = &keyvault.KeyProperties{
+		Curve:      keyvault.JSONWebKeyCurveName(curve),
 		Exportable: utils.Bool(props["exportable"].(bool)),
-		KeySize:    utils.Int32(int32(props["key_size"].(int))),
-		KeyType:    utils.String(props["key_type"].(string)),
+		KeySize:    utils.Int32(int32(keySize)),
+		KeyType:    keyvault.JSONWebKeyType(keyType),
 		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
 	}
 
@@ -687,17 +754,19 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 		if v, ok := action["trigger"]; ok {
 			triggers := v.([]interface{})
-			trigger := triggers[0].(map[string]interface{})
-			lifetimeAction.Trigger = &keyvault.Trigger{}
+			if triggers[0] != nil {
+				trigger := triggers[0].(map[string]interface{})
+				lifetimeAction.Trigger = &keyvault.Trigger{}
 
-			d := trigger["days_before_expiry"].(int)
-			if d > 0 {
-				lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
-			}
+				d := trigger["days_before_expiry"].(int)
+				if d > 0 {
+					lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
+				}
 
-			p := trigger["lifetime_percentage"].(int)
-			if p > 0 {
-				lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				p := trigger["lifetime_percentage"].(int)
+				if p > 0 {
+					lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				}
 			}
 		}
 
@@ -757,7 +826,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		}
 	}
 
-	return policy
+	return &policy, nil
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {
@@ -776,9 +845,10 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 	// key properties
 	if props := input.KeyProperties; props != nil {
 		keyProps := make(map[string]interface{})
+		keyProps["curve"] = string(props.Curve)
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
-		keyProps["key_type"] = *props.KeyType
+		keyProps["key_type"] = string(props.KeyType)
 		keyProps["reuse_key"] = *props.ReuseKey
 
 		policy["key_properties"] = []interface{}{keyProps}

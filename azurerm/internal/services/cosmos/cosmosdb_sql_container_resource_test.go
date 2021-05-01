@@ -177,6 +177,21 @@ func TestAccCosmosDbSqlContainer_partition_key_version(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.conflictResolutionPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SqlContainerID(state.ID)
 	if err != nil {
@@ -200,6 +215,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -213,6 +229,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
 }
 `, CosmosSqlDatabaseResource{}.serverless(data), data.RandomInteger)
 }
@@ -353,6 +370,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
 
   indexing_policy {
     indexing_mode = "Consistent"
@@ -407,4 +425,23 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_version = %[3]d
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, version)
+}
+
+func (CosmosSqlContainerResource) conflictResolutionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
+
+  conflict_resolution_policy {
+    mode                          = "Custom"
+    conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
+  }
+}
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }

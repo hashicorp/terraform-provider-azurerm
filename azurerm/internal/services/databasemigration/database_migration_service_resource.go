@@ -5,17 +5,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,7 +28,7 @@ func resourceDatabaseMigrationService() *schema.Resource {
 		Update: resourceDatabaseMigrationServiceUpdate,
 		Delete: resourceDatabaseMigrationServiceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServiceID(id)
 			return err
 		}),
@@ -44,7 +45,7 @@ func resourceDatabaseMigrationService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDatabaseMigrationServiceName,
+				ValidateFunc: validate.ServiceName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -79,21 +80,20 @@ func resourceDatabaseMigrationService() *schema.Resource {
 
 func resourceDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
+	id := parse.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_database_migration_service", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_database_migration_service", id.ID())
 		}
 	}
 
@@ -115,23 +115,15 @@ func resourceDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interfa
 		parameters.Tags = tags.Expand(t.(map[string]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, name)
+	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error creating Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Database Migration Service (Service Name %q / Group Name %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
@@ -148,23 +140,16 @@ func resourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Database Migration Service %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("unexpected empty ID retrieved for Database Migration Service (Service Name %q / Group Name %q)", id.Name, id.ResourceGroup)
-	}
-	d.SetId(*resp.ID)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
 		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}
@@ -191,10 +176,10 @@ func resourceDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta interfa
 
 	future, err := client.Update(ctx, parameters, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error updating Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceDatabaseMigrationServiceRead(d, meta)
@@ -210,19 +195,20 @@ func resourceDatabaseMigrationServiceDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	// Always leave outstanding migration tasks untouched when deleting DMS. This is to avoid unexpectedly delete any tasks managed out of terraform.
+	// TODO: fix this behaviour in 3.0 - Terraform should remove even if there's running tasks
+	// this last param is `delete the resource even if it contains running tasks`
 	toDeleteRunningTasks := false
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, &toDeleteRunningTasks)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 		}
 	}
 

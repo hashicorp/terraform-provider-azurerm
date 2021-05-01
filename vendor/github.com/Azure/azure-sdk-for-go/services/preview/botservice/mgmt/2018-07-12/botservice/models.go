@@ -1588,6 +1588,7 @@ func (future *EnterpriseChannelsCreateFuture) result(client EnterpriseChannelsCl
 		return
 	}
 	if !done {
+		ec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsCreateFuture")
 		return
 	}
@@ -1630,6 +1631,7 @@ func (future *EnterpriseChannelsDeleteFuture) result(client EnterpriseChannelsCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsDeleteFuture")
 		return
 	}
@@ -1666,6 +1668,7 @@ func (future *EnterpriseChannelsUpdateFuture) result(client EnterpriseChannelsCl
 		return
 	}
 	if !done {
+		ec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsUpdateFuture")
 		return
 	}
