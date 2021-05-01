@@ -268,7 +268,6 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 						"virtual_machine_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: computeValidate.VirtualMachineID,
 							Deprecated:   "This property has been renamed to `resource_id` and will be removed in v3.0 of the provider.",
 						},
@@ -663,7 +662,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		if v["resource_id"].(string) != "" && v["virtual_machine_id"].(string) != "" {
+		if v["resource_id"] != nil && v["resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
 			return nil, fmt.Errorf("`resource_id` and `virtual_machine_id` cannot be set together")
 		}
 
@@ -939,40 +938,44 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 			endpointType = string(item.Type)
 		}
 
-		includedAddresses := make([]interface{}, 0)
-		excludedAddresses := make([]interface{}, 0)
-		if scope := item.Scope; scope != nil {
-			if includeScope := scope.Include; includeScope != nil {
-				for _, includedItem := range *includeScope {
-					if includedAddress := includedItem.Address; includedAddress != nil {
-						includedAddresses = append(includedAddresses, includedAddress)
-					}
-				}
-			}
-
-			if excludeScope := scope.Exclude; excludeScope != nil {
-				for _, excludedItem := range *excludeScope {
-					if excludedAddress := excludedItem.Address; excludedAddress != nil {
-						excludedAddresses = append(excludedAddresses, excludedAddress)
-					}
-				}
-			}
-		}
-
 		var resourceId string
 		if item.ResourceID != nil {
 			resourceId = *item.ResourceID
 		}
 
 		v := map[string]interface{}{
-			"name":               name,
-			"address":            address,
-			"coverage_level":     coverageLevel,
-			"excluded_addresses": excludedAddresses,
-			"included_addresses": includedAddresses,
-			"resource_id":        resourceId,
-			"type":               endpointType,
-			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
+			"name":           name,
+			"address":        address,
+			"coverage_level": coverageLevel,
+			"resource_id":    resourceId,
+			"type":           endpointType,
+			"filter":         flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
+		}
+
+		if scope := item.Scope; scope != nil {
+			if includeScope := scope.Include; includeScope != nil {
+				includedAddresses := make([]interface{}, 0)
+
+				for _, includedItem := range *includeScope {
+					if includedAddress := includedItem.Address; includedAddress != nil {
+						includedAddresses = append(includedAddresses, includedAddress)
+					}
+				}
+
+				v["included_addresses"] = includedAddresses
+			}
+
+			if excludeScope := scope.Exclude; excludeScope != nil {
+				excludedAddresses := make([]interface{}, 0)
+
+				for _, excludedItem := range *excludeScope {
+					if excludedAddress := excludedItem.Address; excludedAddress != nil {
+						excludedAddresses = append(excludedAddresses, excludedAddress)
+					}
+				}
+
+				v["excluded_addresses"] = excludedAddresses
+			}
 		}
 
 		results = append(results, v)
