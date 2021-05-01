@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11533]
+* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11484]
+* **New Resource:** `azurerm_storage_blob_inventory_policy` [GH-11533]
 
 ENHANCEMENTS:
 
