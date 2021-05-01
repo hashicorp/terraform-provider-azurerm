@@ -736,7 +736,7 @@ func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) 
 		}
 	}
 
-	return schema.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
@@ -746,7 +746,7 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
 	}
 
-	return schema.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
@@ -757,7 +757,7 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
 	}
 
-	return schema.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
@@ -771,7 +771,7 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 		}
 	}
 
-	return schema.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
@@ -795,7 +795,7 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 		}
 	}
 
-	return schema.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
@@ -828,5 +828,5 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 	}
 
-	return schema.String(buf.String())
+	return schema.HashString(buf.String())
 }
