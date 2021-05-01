@@ -1458,18 +1458,17 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 	}
 	output := make([]interface{}, 0)
 	if len(explicitOrder) > 0 {
-		for _, orderedRules := range explicitOrder {
-			orderedRule := orderedRules.(map[string]interface{})
-			orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
-			for _, v := range orderedRountingRuleIds {
-				for _, routingRule := range *input {
-					if strings.EqualFold(v.(string), *routingRule.ID) {
-						orderedRoutingRule, err := flattenSingleFrontDoorRoutingRule(routingRule, oldBlocks, frontDoorId)
-						if err == nil {
-							output = append(output, orderedRoutingRule)
-						} else {
-							return nil, err
-						}
+		orderedRule := explicitOrder[0].(map[string]interface{})
+		orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
+		for _, v := range orderedRountingRuleIds {
+			for _, routingRule := range *input {
+				if strings.EqualFold(v.(string), *routingRule.ID) {
+					orderedRoutingRule, err := flattenSingleFrontDoorRoutingRule(routingRule, oldBlocks, frontDoorId)
+					if err == nil {
+						output = append(output, orderedRoutingRule)
+						break
+					} else {
+						return nil, err
 					}
 				}
 			}
