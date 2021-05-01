@@ -1641,15 +1641,11 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
-
 	output := make([]interface{}, 0)
-
 	if len(explicitOrder) > 0 {
-
 		for _, orderedRules := range explicitOrder {
 			orderedRule := orderedRules.(map[string]interface{})
 			orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
-
 			for _, v := range orderedRountingRuleIds {
 				for _, routingRule := range *input {
 					if strings.EqualFold(v.(string), *routingRule.ID) {
@@ -1662,7 +1658,6 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 					}
 				}
 			}
-			break
 		}
 	} else {
 		for _, v := range *input {
@@ -1674,7 +1669,6 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 			}
 		}
 	}
-
 	return &output, nil
 }
 
