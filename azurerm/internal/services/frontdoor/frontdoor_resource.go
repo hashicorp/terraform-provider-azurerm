@@ -1328,21 +1328,10 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 	return &output
 }
 
-func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (*[]interface{}, error) { //backEndPoolOrder []string,
+func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
-
-	// DEBUG
-	// debug := true
-	// for i, backendPoolName := range backEndPoolOrder {
-	// 	log.Printf("%d: %s\n", i, backendPoolName)
-	// }
-
-	// if debug {
-	// 	return nil, fmt.Errorf("[DEBUG]: ORDER\n")
-	// }
-
 	output := make([]interface{}, 0)
 	for _, v := range *input {
 		id := ""
@@ -1352,11 +1341,9 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 			id = parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *v.Name).ID()
 			name = *v.Name
 		}
-
 		backend := make([]interface{}, 0)
 		healthProbeName := ""
 		loadBalancingName := ""
-
 		if props := v.BackendPoolProperties; props != nil {
 			backend = flattenFrontDoorBackend(props.Backends)
 
@@ -1365,10 +1352,8 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 				if err != nil {
 					return nil, err
 				}
-
 				healthProbeName = name.HealthProbeSettingName
 			}
-
 			if props.LoadBalancingSettings != nil && props.LoadBalancingSettings.ID != nil {
 				name, err := parse.LoadBalancingIDInsensitively(*props.LoadBalancingSettings.ID)
 				if err != nil {
@@ -1386,7 +1371,6 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 			"name":                name,
 		})
 	}
-
 	return &output, nil
 }
 
