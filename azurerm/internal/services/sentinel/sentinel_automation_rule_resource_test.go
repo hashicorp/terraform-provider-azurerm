@@ -144,10 +144,14 @@ func (r SentinelAutomationRuleResource) complete(data acceptance.TestData) strin
 
 data "azurerm_client_config" "current" {}
 
+data "azuread_service_principal" "securityinsights" {
+  display_name = "Azure Security Insights"
+}
+
 resource "azurerm_role_assignment" "sentinel" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Azure Sentinel Automation Contributor"
-  principal_id         = "df410494-9bdd-4bbe-997f-51bab37e3d91"
+  principal_id         = data.azuread_service_principal.securityinsights.object_id
 }
 
 resource "azurerm_template_deployment" "testconnection" {
