@@ -103,12 +103,6 @@ func resourceFrontDoor() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"build_resource_mapping_table_only": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"routing_rule": {
 				Type:     schema.TypeList,
 				MaxItems: 500,
@@ -599,7 +593,6 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
 		}
 	}
-	buildResourceMappingTableOnly := d.Get("build_resource_mapping_table_only").(bool)
 	friendlyName := d.Get("friendly_name").(string)
 	routingRules := d.Get("routing_rule").([]interface{})
 	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
@@ -610,10 +603,8 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	backendPoolsSendReceiveTimeoutSeconds := int32(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	enabledState := d.Get("load_balancer_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
-	// the 'buildResourceMappingTableOnly' field is to block unwanted changes from being provisioned to the front door resource
-	// this is only valid for existing front door resources that are showing the out of order plan due to a bug in the resource API
-	// returning the response JSON out of order.
-	if !buildResourceMappingTableOnly {
+	explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
+	if len(explicitResourceOrder) > 0 {
 		frontDoorParameters := frontdoor.FrontDoor{
 			Location: utils.String(location),
 			Properties: &frontdoor.Properties{
@@ -642,7 +633,10 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	// because it did not update the resource it just built and set the 'explicit_resource_order' map in the state file. Once you build the mapping table
 	// you will need to remove the 'build_resource_mapping_table_only' field from the configuration file or set it to 'false' else the changes in the config file
 	// will never be sent to the front door API.
-	d.Set("build_resource_mapping_table_only", buildResourceMappingTableOnly)
+	if len(explicitResourceOrder) == 0 {
+		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
+		return fmt.Errorf("Front Door %q (Resource Group %q): Built the Explicit Resource Order table in the state file. Please run 'plan' again.", name, resourceGroup)
+	}
 	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	return resourceFrontDoorRead(d, meta)
 }
@@ -690,7 +684,7 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("retrieving FrontEnd Endpoint Custom HTTPS Information: %+v", err)
 		}
-		frontDoorFrontendEndpoints, err := flattenFrontEndEndpoints(frontEndEndpointInfo, *id)
+		frontDoorFrontendEndpoints, err := flattenFrontEndEndpoints(frontEndEndpointInfo, *id, explicitResourceOrder)
 		if err != nil {
 			return fmt.Errorf("flattening `frontend_endpoint`: %+v", err)
 		}
@@ -1150,7 +1144,7 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 		}
 	}
 	if len(frontendEndpoints) > 0 {
-		flattenendfrontendEndpoints, err := flattenFrontEndEndpoints(expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId), frontDoorId)
+		flattenendfrontendEndpoints, err := flattenFrontEndEndpoints(expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId), frontDoorId, make([]interface{}, 0))
 		if err == nil {
 			for _, ids := range *flattenendfrontendEndpoints {
 				frontendEndPoint := ids.(map[string]interface{})
@@ -1314,59 +1308,88 @@ func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoor.
 	}
 	return &output, nil
 }
-func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId parse.FrontDoorId) (*[]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
+	output := make([]interface{}, 0)
 	if input == nil {
-		return &results, nil
+		return &output, nil
 	}
-	for _, item := range *input {
-		id := ""
-		name := ""
-		if item.Name != nil {
-			// rewrite the ID to ensure it's consistent
-			id = parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *item.Name).ID()
-			name = *item.Name
-		}
-		// customHTTPSConfiguration := make([]interface{}, 0)
-		// customHttpsProvisioningEnabled := false
-		hostName := ""
-		sessionAffinityEnabled := false
-		sessionAffinityTlsSeconds := 0
-		webApplicationFirewallPolicyLinkId := ""
-		if props := item.FrontendEndpointProperties; props != nil {
-			if props.HostName != nil {
-				hostName = *props.HostName
-			}
-			if props.SessionAffinityEnabledState != "" {
-				sessionAffinityEnabled = props.SessionAffinityEnabledState == frontdoor.SessionAffinityEnabledStateEnabled
-			}
-			if props.SessionAffinityTTLSeconds != nil {
-				sessionAffinityTlsSeconds = int(*props.SessionAffinityTTLSeconds)
-			}
-			if waf := props.WebApplicationFirewallPolicyLink; waf != nil && waf.ID != nil {
-				// rewrite the ID to ensure it's consistent
-				parsed, err := parse.WebApplicationFirewallPolicyIDInsensitively(*waf.ID)
-				if err != nil {
-					return nil, err
+	if len(explicitOrder) > 0 {
+		orderedFrontEnd := explicitOrder[0].(map[string]interface{})
+		orderedFrontEndIds := orderedFrontEnd["frontend_endpoint_ids"].([]interface{})
+		for _, v := range orderedFrontEndIds {
+			for _, frontend := range *input {
+				if strings.EqualFold(v.(string), *frontend.ID) {
+					orderedFrontendEndpoint, err := flattenSingleFrontEndEndpoints(frontend, frontDoorId)
+					if err == nil {
+						output = append(output, orderedFrontendEndpoint)
+						break
+					} else {
+						return nil, err
+					}
 				}
-				webApplicationFirewallPolicyLinkId = parsed.ID()
 			}
-			// flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
-			// customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
-			// customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
 		}
-		results = append(results, map[string]interface{}{
-			// "custom_https_configuration":        customHTTPSConfiguration,
-			// "custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
-			"host_name":                    hostName,
-			"id":                           id,
-			"name":                         name,
-			"session_affinity_enabled":     sessionAffinityEnabled,
-			"session_affinity_ttl_seconds": sessionAffinityTlsSeconds,
-			"web_application_firewall_policy_link_id": webApplicationFirewallPolicyLinkId,
-		})
+	} else {
+		for _, v := range *input {
+			frontendEndpoint, err := flattenSingleFrontEndEndpoints(v, frontDoorId)
+			if err == nil {
+				output = append(output, frontendEndpoint)
+			} else {
+				return nil, err
+			}
+		}
 	}
-	return &results, nil
+	return &output, nil
+}
+func flattenSingleFrontEndEndpoints(input frontdoor.FrontendEndpoint, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
+	id := ""
+	name := ""
+	if input.Name != nil {
+		// rewrite the ID to ensure it's consistent
+		id = parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *input.Name).ID()
+		name = *input.Name
+	}
+	// customHTTPSConfiguration := make([]interface{}, 0)
+	// customHttpsProvisioningEnabled := false
+	hostName := ""
+	sessionAffinityEnabled := false
+	sessionAffinityTlsSeconds := 0
+	webApplicationFirewallPolicyLinkId := ""
+	if props := input.FrontendEndpointProperties; props != nil {
+		if props.HostName != nil {
+			hostName = *props.HostName
+		}
+		if props.SessionAffinityEnabledState != "" {
+			sessionAffinityEnabled = props.SessionAffinityEnabledState == frontdoor.SessionAffinityEnabledStateEnabled
+		}
+		if props.SessionAffinityTTLSeconds != nil {
+			sessionAffinityTlsSeconds = int(*props.SessionAffinityTTLSeconds)
+		}
+		if waf := props.WebApplicationFirewallPolicyLink; waf != nil && waf.ID != nil {
+			// rewrite the ID to ensure it's consistent
+			parsed, err := parse.WebApplicationFirewallPolicyIDInsensitively(*waf.ID)
+			if err != nil {
+				return nil, err
+			}
+			webApplicationFirewallPolicyLinkId = parsed.ID()
+		}
+		// flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
+		// customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
+		// customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
+	}
+
+	output := map[string]interface{}{
+		// "custom_https_configuration":        customHTTPSConfiguration,
+		// "custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
+		"host_name":                    hostName,
+		"id":                           id,
+		"name":                         name,
+		"session_affinity_enabled":     sessionAffinityEnabled,
+		"session_affinity_ttl_seconds": sessionAffinityTlsSeconds,
+		"web_application_firewall_policy_link_id": webApplicationFirewallPolicyLinkId,
+	}
+
+	return output, nil
 }
 func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId) []interface{} {
 	results := make([]interface{}, 0)
