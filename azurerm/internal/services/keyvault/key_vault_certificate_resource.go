@@ -144,6 +144,9 @@ func resourceKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ForceNew: true,
+										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+											return old == strings.ToUpper(new)
+										},
 										ValidateFunc: validation.StringInSlice([]string{
 											string(keyvault.EC),
 											string(keyvault.ECHSM),
@@ -706,7 +709,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) (*keyvault.Certific
 	props := properties[0].(map[string]interface{})
 
 	curve := props["curve"].(string)
-	keyType := props["key_type"].(string)
+	keyType := strings.ToUpper(props["key_type"].(string))
 	keySize := props["key_size"].(int)
 
 	if keyType == string(keyvault.EC) || keyType == string(keyvault.ECHSM) {

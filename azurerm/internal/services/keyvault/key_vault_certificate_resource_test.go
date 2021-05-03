@@ -751,7 +751,7 @@ resource "azurerm_key_vault_certificate" "test" {
     key_properties {
       curve      = "P-521"
       exportable = true
-      key_type   = "EC"
+      key_type   = "ec"
       reuse_key  = true
     }
 
