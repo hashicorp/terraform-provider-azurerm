@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
@@ -556,43 +555,10 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	frontDoorId := parse.NewFrontDoorID(subscriptionId, resourceGroup, name)
-
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor", frontDoorId.ID())
-		}
-	}
-	// remove in 3.0
-	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
-	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-	location := "Global"
-	preExists := false
-	cfgLocation, hasLocation := d.GetOk("location")
-	exists, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(exists.Response) {
-			return fmt.Errorf("locating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-	} else {
-		preExists = true
-		location = azure.NormalizeLocation(*exists.Location)
-	}
-	if hasLocation && preExists {
-		if location != azure.NormalizeLocation(cfgLocation) {
-			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
-		}
-	}
 	friendlyName := d.Get("friendly_name").(string)
 	routingRules := d.Get("routing_rule").([]interface{})
 	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
@@ -602,9 +568,35 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	backendPoolsSendReceiveTimeoutSeconds := int32(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	enabledState := d.Get("load_balancer_enabled").(bool)
-	t := d.Get("tags").(map[string]interface{})
 	explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
-	if len(explicitResourceOrder) > 0 {
+	t := d.Get("tags").(map[string]interface{})
+	// If the explicitResourceOrder is empty and it's not a new resource set the mapping table to the state file and return an error.
+	// If the explicitResourceOrder is empty and it is a new resource it will run the CreateOrUpdate as expected
+	// If the explicitResourceOrder is NOT empty and it is NOT a new resource it will run the CreateOrUpdate as expected
+	if len(explicitResourceOrder) == 0 && !d.IsNewResource() {
+		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
+		return fmt.Errorf("Front Door %q (Resource Group %q): Built the Explicit Resource Order table in the state file. Please run 'plan' again.", frontDoorId.Name, frontDoorId.ResourceGroup)
+	} else {
+		// remove in 3.0
+		// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
+		// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
+		location := "Global"
+		preExists := false
+		cfgLocation, hasLocation := d.GetOk("location")
+		exists, err := client.Get(ctx, frontDoorId.ResourceGroup, frontDoorId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(exists.Response) {
+				return fmt.Errorf("locating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
+			}
+		} else {
+			preExists = true
+			location = azure.NormalizeLocation(*exists.Location)
+		}
+		if hasLocation && preExists {
+			if location != azure.NormalizeLocation(cfgLocation) {
+				return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", frontDoorId.Name, frontDoorId.ResourceGroup, location, cfgLocation)
+			}
+		}
 		frontDoorParameters := frontdoor.FrontDoor{
 			Location: utils.String(location),
 			Properties: &frontdoor.Properties{
@@ -619,24 +611,15 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			},
 			Tags: tags.Expand(t),
 		}
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontDoorParameters)
+		future, err := client.CreateOrUpdate(ctx, frontDoorId.ResourceGroup, frontDoorId.Name, frontDoorParameters)
 		if err != nil {
-			return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
 		}
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
 		}
 	}
 	d.SetId(frontDoorId.ID())
-	// When 'build_resource_mapping_table_only' is set to 'true' and you call Apply you will see 'Apply complete! Resources: 0 added, 1 changed, 0 destroyed.'
-	// because it did not update the resource it just built and set the 'explicit_resource_order' map in the state file. Once you build the mapping table
-	// you will need to remove the 'build_resource_mapping_table_only' field from the configuration file or set it to 'false' else the changes in the config file
-	// will never be sent to the front door API.
-	if len(explicitResourceOrder) == 0 {
-		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
-		return fmt.Errorf("Front Door %q (Resource Group %q): Built the Explicit Resource Order table in the state file. Please run 'plan' again.", name, resourceGroup)
-	}
 	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	return resourceFrontDoorRead(d, meta)
 }
@@ -662,7 +645,8 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 	if props := resp.Properties; props != nil {
-		flattenedBackendPools, err := flattenFrontDoorBackendPools(props.BackendPools, *id)
+		explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
+		flattenedBackendPools, err := flattenFrontDoorBackendPools(props.BackendPools, *id, explicitResourceOrder)
 		if err != nil {
 			return fmt.Errorf("flattening `backend_pool`: %+v", err)
 		}
@@ -676,7 +660,6 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("header_frontdoor_id", props.FrontdoorID)
 		d.Set("load_balancer_enabled", props.EnabledState == frontdoor.EnabledStateEnabled)
 		d.Set("friendly_name", props.FriendlyName)
-		explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
 		// Need to call frontEndEndpointClient here to get custom(HTTPS)Configuration information from that client
 		// because the information is hidden from the main frontDoorClient "by design"...
 		frontEndEndpointsClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
@@ -1135,7 +1118,7 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 	var backendPoolLoadBalancingOrder []string
 	var backendPoolHealthProbeOrder []string
 	if len(backendPools) > 0 {
-		flattenendBackendPools, err := flattenFrontDoorBackendPools(expandFrontDoorBackendPools(backendPools, frontDoorId), frontDoorId)
+		flattenendBackendPools, err := flattenFrontDoorBackendPools(expandFrontDoorBackendPools(backendPools, frontDoorId), frontDoorId, make([]interface{}, 0))
 		if err == nil {
 			for _, ids := range *flattenendBackendPools {
 				backendPool := ids.(map[string]interface{})
@@ -1191,48 +1174,80 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 	})
 	return &output
 }
-func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (*[]interface{}, error) {
+func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
 	output := make([]interface{}, 0)
-	for _, v := range *input {
-		id := ""
-		name := ""
-		if v.Name != nil {
-			// rewrite the ID to ensure it's consistent
-			id = parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *v.Name).ID()
-			name = *v.Name
-		}
-		backend := make([]interface{}, 0)
-		healthProbeName := ""
-		loadBalancingName := ""
-		if props := v.BackendPoolProperties; props != nil {
-			backend = flattenFrontDoorBackend(props.Backends)
-			if props.HealthProbeSettings != nil && props.HealthProbeSettings.ID != nil {
-				name, err := parse.HealthProbeIDInsensitively(*props.HealthProbeSettings.ID)
-				if err != nil {
-					return nil, err
+	if len(explicitOrder) > 0 {
+		orderedBackendPools := explicitOrder[0].(map[string]interface{})
+		orderedBackendPoolsIds := orderedBackendPools["backend_pool_ids"].([]interface{})
+		for _, v := range orderedBackendPoolsIds {
+			for _, backend := range *input {
+				if strings.EqualFold(v.(string), *backend.ID) {
+					orderedBackendPool, err := flattenSingleFrontDoorBackendPools(&backend, frontDoorId)
+					if err == nil {
+						output = append(output, orderedBackendPool)
+						break
+					} else {
+						return nil, err
+					}
 				}
-				healthProbeName = name.HealthProbeSettingName
-			}
-			if props.LoadBalancingSettings != nil && props.LoadBalancingSettings.ID != nil {
-				name, err := parse.LoadBalancingIDInsensitively(*props.LoadBalancingSettings.ID)
-				if err != nil {
-					return nil, err
-				}
-				loadBalancingName = name.LoadBalancingSettingName
 			}
 		}
-		output = append(output, map[string]interface{}{
-			"backend":             backend,
-			"health_probe_name":   healthProbeName,
-			"id":                  id,
-			"load_balancing_name": loadBalancingName,
-			"name":                name,
-		})
+	} else {
+		for _, backend := range *input {
+			backendPool, err := flattenSingleFrontDoorBackendPools(&backend, frontDoorId)
+			if err == nil {
+				output = append(output, backendPool)
+			} else {
+				return nil, err
+			}
+		}
 	}
 	return &output, nil
+}
+func flattenSingleFrontDoorBackendPools(input *frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
+	if input == nil {
+		return make(map[string]interface{}, 0), nil
+	}
+
+	id := ""
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+		// rewrite the ID to ensure it's consistent
+		id = parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
+	}
+	backend := make([]interface{}, 0)
+	healthProbeName := ""
+	loadBalancingName := ""
+	if props := input.BackendPoolProperties; props != nil {
+		backend = flattenFrontDoorBackend(props.Backends)
+		if props.HealthProbeSettings != nil && props.HealthProbeSettings.ID != nil {
+			name, err := parse.HealthProbeIDInsensitively(*props.HealthProbeSettings.ID)
+			if err != nil {
+				return nil, err
+			}
+			healthProbeName = name.HealthProbeSettingName
+		}
+		if props.LoadBalancingSettings != nil && props.LoadBalancingSettings.ID != nil {
+			name, err := parse.LoadBalancingIDInsensitively(*props.LoadBalancingSettings.ID)
+			if err != nil {
+				return nil, err
+			}
+			loadBalancingName = name.LoadBalancingSettingName
+		}
+	}
+	output := map[string]interface{}{
+		"backend":             backend,
+		"health_probe_name":   healthProbeName,
+		"id":                  id,
+		"load_balancing_name": loadBalancingName,
+		"name":                name,
+	}
+
+	return output, nil
 }
 
 type flattenedBackendPoolSettings struct {
