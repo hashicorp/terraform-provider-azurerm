@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
@@ -552,6 +553,29 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	enabledState := d.Get("load_balancer_enabled").(bool)
 	explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
+	// remove in 3.0
+	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
+	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
+	location := "Global"
+	preExists := false
+	cfgLocation, hasLocation := d.GetOk("location")
+	exists, err := client.Get(ctx, frontDoorId.ResourceGroup, frontDoorId.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(exists.Response) {
+			return fmt.Errorf("locating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
+		}
+	} else {
+		preExists = true
+		location = azure.NormalizeLocation(*exists.Location)
+	}
+	if hasLocation && preExists {
+		if location != azure.NormalizeLocation(cfgLocation) {
+			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", frontDoorId.Name, frontDoorId.ResourceGroup, location, cfgLocation)
+		}
+	}
+	if exists.ID != nil && *exists.ID != "" {
+		return tf.ImportAsExistsError("azurerm_frontdoor", *exists.ID)
+	}
 	// If the explicitResourceOrder is empty and it's not a new resource set the mapping table to the state file and return an error.
 	// If the explicitResourceOrder is empty and it is a new resource it will run the CreateOrUpdate as expected
 	// If the explicitResourceOrder is NOT empty and it is NOT a new resource it will run the CreateOrUpdate as expected
@@ -559,26 +583,6 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 		return fmt.Errorf("Front Door %q (Resource Group %q): Built the Explicit Resource Order table in the state file. Please run 'plan' again.", frontDoorId.Name, frontDoorId.ResourceGroup)
 	} else {
-		// remove in 3.0
-		// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
-		// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-		location := "Global"
-		preExists := false
-		cfgLocation, hasLocation := d.GetOk("location")
-		exists, err := client.Get(ctx, frontDoorId.ResourceGroup, frontDoorId.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(exists.Response) {
-				return fmt.Errorf("locating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
-			}
-		} else {
-			preExists = true
-			location = azure.NormalizeLocation(*exists.Location)
-		}
-		if hasLocation && preExists {
-			if location != azure.NormalizeLocation(cfgLocation) {
-				return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", frontDoorId.Name, frontDoorId.ResourceGroup, location, cfgLocation)
-			}
-		}
 		frontDoorParameters := frontdoor.FrontDoor{
 			Location: utils.String(location),
 			Properties: &frontdoor.Properties{
