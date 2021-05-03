@@ -11,7 +11,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
@@ -60,9 +59,6 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 					Schema: schemaCustomHttpsConfiguration(),
 				},
 			},
-
-			// TODO: remove in 3.0
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(customizeHttpsConfigurationCustomizeDiff),
@@ -139,7 +135,6 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta 
 	}
 
 	d.Set("frontend_endpoint_id", id.ID())
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	flattenedHttpsConfig := flattenCustomHttpsConfiguration(resp.FrontendEndpointProperties)
 	if err := d.Set("custom_https_configuration", flattenedHttpsConfig.CustomHTTPSConfiguration); err != nil {

@@ -40,14 +40,14 @@ func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 }
 
 func (FrontDoorCustomHttpsConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.FrontendEndpointIDInsensitively(state.ID)
+	id, err := parse.CustomHttpsConfigurationIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Frontdoor.FrontDoorsFrontendClient.Get(ctx, id.ResourceGroup, id.FrontDoorName, id.Name)
+	resp, err := clients.Frontdoor.FrontDoorsFrontendClient.Get(ctx, id.ResourceGroup, id.FrontDoorName, id.CustomHttpsConfigurationName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Frontend Endpoint %q (Front Door %q / Resource Group %q): %v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Frontend Endpoint %q (Front Door %q / Resource Group %q): %v", id.CustomHttpsConfigurationName, id.FrontDoorName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.FrontendEndpointProperties != nil), nil
@@ -59,7 +59,6 @@ func (r FrontDoorCustomHttpsConfigurationResource) CustomHttpsEnabled(data accep
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
   frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
@@ -75,7 +74,6 @@ func (r FrontDoorCustomHttpsConfigurationResource) CustomHttpsDisabled(data acce
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
   frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = false
 }
 `, r.template(data))

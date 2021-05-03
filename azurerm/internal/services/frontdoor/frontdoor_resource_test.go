@@ -54,7 +54,7 @@ func TestAccFrontDoor_global(t *testing.T) {
 			),
 			ExpectNonEmptyPlan: true,
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
