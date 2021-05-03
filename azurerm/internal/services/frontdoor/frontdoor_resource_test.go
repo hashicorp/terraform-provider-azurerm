@@ -279,8 +279,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -344,8 +344,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -409,8 +409,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -458,8 +458,8 @@ resource "azurerm_frontdoor" "import" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, r.basic(data), data.RandomInteger)
@@ -522,8 +522,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -656,8 +656,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -721,8 +721,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -853,8 +853,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -877,8 +877,8 @@ resource "azurerm_frontdoor" "test" {
   enforce_backend_pools_certificate_name_check = false
 
   frontend_endpoint {
-    name                              = "acctest-FD-%[1]d-default-FE"
-    host_name                         = "acctest-FD-%[1]d.azurefd.net"
+    name      = "acctest-FD-%[1]d-default-FE"
+    host_name = "acctest-FD-%[1]d.azurefd.net"
   }
 
   # --- Pool 1
