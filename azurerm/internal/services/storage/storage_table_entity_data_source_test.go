@@ -49,7 +49,7 @@ resource "azurerm_storage_table" "test" {
   name                 = "tabletesttedsc%s"
   storage_account_name = azurerm_storage_account.test.name
 }
-  
+
 resource "azurerm_storage_table_entity" "test" {
   storage_account_name = azurerm_storage_account.test.name
   table_name           = azurerm_storage_table.test.name
