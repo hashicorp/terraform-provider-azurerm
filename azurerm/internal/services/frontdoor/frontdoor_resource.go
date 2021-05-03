@@ -677,7 +677,7 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("backend_pool_health_probe", flattenFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id)); err != nil {
 			return fmt.Errorf("setting `backend_pool_health_probe`: %+v", err)
 		}
-		if err := d.Set("backend_pool_load_balancing", flattenFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id)); err != nil {
+		if err := d.Set("backend_pool_load_balancing", flattenFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id, explicitResourceOrder)); err != nil {
 			return fmt.Errorf("setting `backend_pool_load_balancing`: %+v", err)
 		}
 		var flattenedRoutingRules *[]interface{}
@@ -1146,7 +1146,7 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 		}
 	}
 	if len(loadBalancingSettings) > 0 {
-		flattenendLoadBalancingSettings := flattenFrontDoorLoadBalancingSettingsModel(expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId), frontDoorId)
+		flattenendLoadBalancingSettings := flattenFrontDoorLoadBalancingSettingsModel(expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId), frontDoorId, make([]interface{}, 0))
 
 		if len(flattenendLoadBalancingSettings) > 0 {
 			for _, ids := range flattenendLoadBalancingSettings {
@@ -1453,42 +1453,66 @@ func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSett
 	}
 	return results
 }
-func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId) []interface{} {
-	results := make([]interface{}, 0)
+func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) []interface{} {
 	if input == nil {
-		return results
+		return make([]interface{}, 0)
 	}
-	for _, v := range *input {
-		id := ""
-		name := ""
-		if v.Name != nil {
-			// rewrite the ID to ensure it's consistent
-			id = parse.NewLoadBalancingID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, *v.Name).ID()
-			name = *v.Name
-		}
-		additionalLatencyMilliseconds := 0
-		sampleSize := 0
-		successfulSamplesRequired := 0
-		if properties := v.LoadBalancingSettingsProperties; properties != nil {
-			if properties.AdditionalLatencyMilliseconds != nil {
-				additionalLatencyMilliseconds = int(*properties.AdditionalLatencyMilliseconds)
-			}
-			if properties.SampleSize != nil {
-				sampleSize = int(*properties.SampleSize)
-			}
-			if properties.SuccessfulSamplesRequired != nil {
-				successfulSamplesRequired = int(*properties.SuccessfulSamplesRequired)
+	output := make([]interface{}, 0)
+	if len(explicitOrder) > 0 {
+		orderedRule := explicitOrder[0].(map[string]interface{})
+		orderedLoadBalancingIds := orderedRule["backend_pool_load_balancing_ids"].([]interface{})
+		for _, v := range orderedLoadBalancingIds {
+			for _, loadBalancingSetting := range *input {
+				if strings.EqualFold(v.(string), *loadBalancingSetting.ID) {
+					orderedLoadBalanceSetting := flattenSingleFrontDoorLoadBalancingSettingsModel(&loadBalancingSetting, frontDoorId)
+					output = append(output, orderedLoadBalanceSetting)
+					break
+				}
 			}
 		}
-		results = append(results, map[string]interface{}{
-			"additional_latency_milliseconds": additionalLatencyMilliseconds,
-			"id":                              id,
-			"name":                            name,
-			"sample_size":                     sampleSize,
-			"successful_samples_required":     successfulSamplesRequired,
-		})
+	} else {
+		for _, v := range *input {
+			loadBalanceSetting := flattenSingleFrontDoorLoadBalancingSettingsModel(&v, frontDoorId)
+			output = append(output, loadBalanceSetting)
+		}
 	}
-	return results
+	return output
+}
+func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId) map[string]interface{} {
+	if input == nil {
+		return make(map[string]interface{})
+	}
+
+	id := ""
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+		// rewrite the ID to ensure it's consistent
+		id = parse.NewLoadBalancingID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
+	}
+	additionalLatencyMilliseconds := 0
+	sampleSize := 0
+	successfulSamplesRequired := 0
+	if properties := input.LoadBalancingSettingsProperties; properties != nil {
+		if properties.AdditionalLatencyMilliseconds != nil {
+			additionalLatencyMilliseconds = int(*properties.AdditionalLatencyMilliseconds)
+		}
+		if properties.SampleSize != nil {
+			sampleSize = int(*properties.SampleSize)
+		}
+		if properties.SuccessfulSamplesRequired != nil {
+			successfulSamplesRequired = int(*properties.SuccessfulSamplesRequired)
+		}
+	}
+	output := map[string]interface{}{
+		"additional_latency_milliseconds": additionalLatencyMilliseconds,
+		"id":                              id,
+		"name":                            name,
+		"sample_size":                     sampleSize,
+		"successful_samples_required":     successfulSamplesRequired,
+	}
+
+	return output
 }
 func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
 	if input == nil {
