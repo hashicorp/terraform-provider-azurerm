@@ -402,6 +402,58 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHDInsightSparkCluster_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+	r := HDInsightSparkClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoscale_capacity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.autoscale_schedule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func (t HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
@@ -1550,4 +1602,113 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r HDInsightSparkClusterResource) autoscale_capacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_hdinsight_spark_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    spark = "2.4"
+  }
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_A4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+      autoscale {
+        capacity {
+          min_instance_count = 2
+          max_instance_count = 3
+        }
+      }
+    }
+    zookeeper_node {
+      vm_size  = "Medium"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightSparkClusterResource) autoscale_schedule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_hdinsight_spark_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    spark = "2.4"
+  }
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_A4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+      autoscale {
+        recurrence {
+          timezone = "Pacific Standard Time"
+          schedule {
+            days                  = ["Monday"]
+            time                  = "10:00"
+            target_instance_count = 5
+          }
+          schedule {
+            days                  = ["Saturday", "Sunday"]
+            time                  = "10:00"
+            target_instance_count = 3
+          }
+        }
+      }
+    }
+    zookeeper_node {
+      vm_size  = "Medium"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
