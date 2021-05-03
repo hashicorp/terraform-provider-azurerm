@@ -567,7 +567,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                                    = local.endpoint_name
     host_name                               = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled       = false
     web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
 }
