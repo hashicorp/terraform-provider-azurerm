@@ -674,7 +674,7 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 			return fmt.Errorf("setting `frontend_endpoint`: %+v", err)
 		}
-		if err := d.Set("backend_pool_health_probe", flattenFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id)); err != nil {
+		if err := d.Set("backend_pool_health_probe", flattenFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id, explicitResourceOrder)); err != nil {
 			return fmt.Errorf("setting `backend_pool_health_probe`: %+v", err)
 		}
 		if err := d.Set("backend_pool_load_balancing", flattenFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id, explicitResourceOrder)); err != nil {
@@ -1156,7 +1156,7 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 		}
 	}
 	if len(healthProbeSettings) > 0 {
-		flattenendHealthProbeSettings := flattenFrontDoorHealthProbeSettingsModel(expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId), frontDoorId)
+		flattenendHealthProbeSettings := flattenFrontDoorHealthProbeSettingsModel(expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId), frontDoorId, make([]interface{}, 0))
 
 		if len(flattenendHealthProbeSettings) > 0 {
 			for _, ids := range flattenendHealthProbeSettings {
@@ -1406,52 +1406,77 @@ func flattenSingleFrontEndEndpoints(input frontdoor.FrontendEndpoint, frontDoorI
 
 	return output, nil
 }
-func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId) []interface{} {
-	results := make([]interface{}, 0)
+func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) []interface{} {
+	output := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return output
 	}
-	for _, v := range *input {
-		id := ""
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-			// rewrite the ID to ensure it's consistent
-			id = parse.NewHealthProbeID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
+
+	if len(explicitOrder) > 0 {
+		orderedHealthProbeSetting := explicitOrder[0].(map[string]interface{})
+		orderedHealthProbeSettingIds := orderedHealthProbeSetting["backend_pool_health_probe_ids"].([]interface{})
+		for _, v := range orderedHealthProbeSettingIds {
+			for _, healthProbeSetting := range *input {
+				if strings.EqualFold(v.(string), *healthProbeSetting.ID) {
+					orderedHealthProbeSetting := flattenSingleFrontDoorHealthProbeSettingsModel(&healthProbeSetting, frontDoorId)
+					output = append(output, orderedHealthProbeSetting)
+					break
+				}
+			}
 		}
-		enabled := false
-		intervalInSeconds := 0
-		path := ""
-		probeMethod := ""
-		protocol := ""
-		if properties := v.HealthProbeSettingsProperties; properties != nil {
-			if properties.IntervalInSeconds != nil {
-				intervalInSeconds = int(*properties.IntervalInSeconds)
-			}
-			if properties.Path != nil {
-				path = *properties.Path
-			}
-			if healthProbeMethod := properties.HealthProbeMethod; healthProbeMethod != "" {
-				// I have to upper this as the frontdoor.GET and frontdoor.HEAD types are uppercased
-				// but Azure stores them in the resource as pascal cased (e.g. "Get" and "Head")
-				probeMethod = strings.ToUpper(string(healthProbeMethod))
-			}
-			if properties.EnabledState != "" {
-				enabled = properties.EnabledState == frontdoor.HealthProbeEnabledEnabled
-			}
-			protocol = string(properties.Protocol)
+	} else {
+		for _, v := range *input {
+			healthProbeSetting := flattenSingleFrontDoorHealthProbeSettingsModel(&v, frontDoorId)
+			output = append(output, healthProbeSetting)
 		}
-		results = append(results, map[string]interface{}{
-			"enabled":             enabled,
-			"id":                  id,
-			"name":                name,
-			"protocol":            protocol,
-			"interval_in_seconds": intervalInSeconds,
-			"path":                path,
-			"probe_method":        probeMethod,
-		})
 	}
-	return results
+	return output
+}
+func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId) map[string]interface{} {
+	if input == nil {
+		return make(map[string]interface{})
+	}
+
+	id := ""
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+		// rewrite the ID to ensure it's consistent
+		id = parse.NewHealthProbeID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
+	}
+	enabled := false
+	intervalInSeconds := 0
+	path := ""
+	probeMethod := ""
+	protocol := ""
+	if properties := input.HealthProbeSettingsProperties; properties != nil {
+		if properties.IntervalInSeconds != nil {
+			intervalInSeconds = int(*properties.IntervalInSeconds)
+		}
+		if properties.Path != nil {
+			path = *properties.Path
+		}
+		if healthProbeMethod := properties.HealthProbeMethod; healthProbeMethod != "" {
+			// I have to upper this as the frontdoor.GET and frontdoor.HEAD types are uppercased
+			// but Azure stores them in the resource as sentence cased (e.g. "Get" and "Head")
+			probeMethod = strings.ToUpper(string(healthProbeMethod))
+		}
+		if properties.EnabledState != "" {
+			enabled = properties.EnabledState == frontdoor.HealthProbeEnabledEnabled
+		}
+		protocol = string(properties.Protocol)
+	}
+	output := map[string]interface{}{
+		"enabled":             enabled,
+		"id":                  id,
+		"name":                name,
+		"protocol":            protocol,
+		"interval_in_seconds": intervalInSeconds,
+		"path":                path,
+		"probe_method":        probeMethod,
+	}
+
+	return output
 }
 func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) []interface{} {
 	if input == nil {
