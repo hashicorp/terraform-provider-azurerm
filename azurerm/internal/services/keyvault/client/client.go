@@ -1,17 +1,21 @@
 package client
 
 import (
-	keyvaultmgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
+	keyvaultmgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
+	ManagedHsmClient *keyvault.ManagedHsmsClient
 	ManagementClient *keyvaultmgmt.BaseClient
 	VaultsClient     *keyvault.VaultsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	managedHsmClient := keyvault.NewManagedHsmsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedHsmClient.Client, o.ResourceManagerAuthorizer)
+
 	managementClient := keyvaultmgmt.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
@@ -19,6 +23,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		ManagedHsmClient: &managedHsmClient,
 		ManagementClient: &managementClient,
 		VaultsClient:     &vaultsClient,
 	}

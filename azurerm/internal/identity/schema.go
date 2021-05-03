@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 const none = "None"
@@ -23,5 +23,5 @@ type ExpandedConfig struct {
 type Identity interface {
 	Expand(input []interface{}) (*ExpandedConfig, error)
 	Flatten(input *ExpandedConfig) []interface{}
-	Schema() *schema.Schema
+	Schema() *pluginsdk.Schema
 }

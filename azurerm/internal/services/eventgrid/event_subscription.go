@@ -111,6 +111,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *schema.S
 }
 
 func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:          schema.TypeList,
 		MaxItems:      1,
@@ -142,6 +143,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 }
 
 func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:          schema.TypeList,
 		MaxItems:      1,
@@ -263,16 +265,19 @@ func eventSubscriptionSchemaSubjectFilter() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"subject_begins_with": {
-					Type:     schema.TypeString,
-					Optional: true,
+					Type:         schema.TypeString,
+					Optional:     true,
+					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
 				},
 				"subject_ends_with": {
-					Type:     schema.TypeString,
-					Optional: true,
+					Type:         schema.TypeString,
+					Optional:     true,
+					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
 				},
 				"case_sensitive": {
-					Type:     schema.TypeBool,
-					Optional: true,
+					Type:         schema.TypeBool,
+					Optional:     true,
+					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
 				},
 			},
 		},
@@ -280,6 +285,10 @@ func eventSubscriptionSchemaSubjectFilter() *schema.Schema {
 }
 
 func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
+	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
+		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with",
+		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_in", "advanced_filter.0.string_not_in",
+	}
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -302,6 +311,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_greater_than": {
 					Type:     schema.TypeList,
@@ -319,6 +329,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_greater_than_or_equals": {
 					Type:     schema.TypeList,
@@ -336,6 +347,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_less_than": {
 					Type:     schema.TypeList,
@@ -353,6 +365,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_less_than_or_equals": {
 					Type:     schema.TypeList,
@@ -370,6 +383,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_in": {
 					Type:     schema.TypeList,
@@ -391,6 +405,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_not_in": {
 					Type:     schema.TypeList,
@@ -412,6 +427,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_begins_with": {
 					Type:     schema.TypeList,
@@ -433,6 +449,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_ends_with": {
 					Type:     schema.TypeList,
@@ -454,6 +471,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_contains": {
 					Type:     schema.TypeList,
@@ -475,6 +493,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_in": {
 					Type:     schema.TypeList,
@@ -496,6 +515,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_not_in": {
 					Type:     schema.TypeList,
@@ -517,6 +537,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: atLeastOneOf,
 				},
 			},
 		},
@@ -666,7 +687,11 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *schema.ResourceData
 }
 
 func expandEventGridEventSubscriptionEventhubEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("eventhub_endpoint").([]interface{})[0].(map[string]interface{})
+	ep := d.Get("eventhub_endpoint").([]interface{})
+	if len(ep) == 0 || ep[0] == nil {
+		return eventgrid.EventHubEventSubscriptionDestination{}
+	}
+	props := ep[0].(map[string]interface{})
 	eventHubID := props["eventhub_id"].(string)
 
 	return eventgrid.EventHubEventSubscriptionDestination{
@@ -678,7 +703,11 @@ func expandEventGridEventSubscriptionEventhubEndpoint(d *schema.ResourceData) ev
 }
 
 func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("hybrid_connection_endpoint").([]interface{})[0].(map[string]interface{})
+	ep := d.Get("hybrid_connection_endpoint").([]interface{})
+	if len(ep) == 0 || ep[0] == nil {
+		return eventgrid.HybridConnectionEventSubscriptionDestination{}
+	}
+	props := ep[0].(map[string]interface{})
 	hybridConnectionID := props["hybrid_connection_id"].(string)
 
 	return eventgrid.HybridConnectionEventSubscriptionDestination{

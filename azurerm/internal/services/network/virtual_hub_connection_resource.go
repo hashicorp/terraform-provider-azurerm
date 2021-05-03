@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceVirtualHubConnection() *schema.Resource {
 		Update: resourceVirtualHubConnectionCreateOrUpdate,
 		Delete: resourceVirtualHubConnectionDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -40,7 +40,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVirtualHubConnectionName,
+				ValidateFunc: validate.VirtualHubConnectionName,
 			},
 
 			"virtual_hub_id": {
@@ -90,6 +90,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.HubRouteTableID,
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
 						"propagated_route_table": {
@@ -107,6 +108,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 
 									"route_table_ids": {
@@ -117,11 +119,14 @@ func resourceVirtualHubConnection() *schema.Resource {
 											Type:         schema.TypeString,
 											ValidateFunc: validate.HubRouteTableID,
 										},
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
+						//lintignore:XS003
 						"static_vnet_route": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -149,6 +154,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 					},
 				},
@@ -342,6 +348,10 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.Vne
 	results := make([]network.StaticRoute, 0)
 
 	for _, item := range input {
+		if item == nil {
+			continue
+		}
+
 		v := item.(map[string]interface{})
 
 		result := network.StaticRoute{}

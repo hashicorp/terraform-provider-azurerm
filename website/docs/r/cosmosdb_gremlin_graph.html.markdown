@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the Cosmos DB Graph Database in which the Cosmos DB Gremlin Graph is created. Changing this forces a new resource to be created.
 
-* `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
+* `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
 
 * `throughput` - (Optional) The throughput of the Gremlin graph (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below. Changing this forces a new resource to be created.
 
-* `conflict_resolution_policy` - (Required) The conflict resolution policy for the graph. One or more `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
+* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
 * `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 

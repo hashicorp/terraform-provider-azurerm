@@ -6,6 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -20,18 +23,13 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resou
 		Create: resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
 		Read:   resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
 		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NetworkInterfaceApplicationSecurityGroupAssociationV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

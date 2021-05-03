@@ -161,6 +161,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -168,11 +169,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
@@ -187,17 +183,13 @@ resource "azurerm_cosmosdb_gremlin_graph" "import" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = azurerm_cosmosdb_gremlin_graph.test.partition_key_path
 
   index_policy {
     automatic      = true
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, r.basic(data))
@@ -212,6 +204,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -238,6 +231,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -273,11 +267,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     excluded_paths = ["/\"_etag\"/?"]
   }
 
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
-  }
-
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -305,11 +294,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)

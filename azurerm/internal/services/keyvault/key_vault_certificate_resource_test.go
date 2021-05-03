@@ -184,6 +184,52 @@ func TestAccKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultCertificate_basicGenerateEllipticCurve(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicGenerateEllipticCurve(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("secret_id").Exists(),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
+				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.curve").HasValue("P-256K"),
+				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_type").HasValue("EC"),
+				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_size").HasValue("256"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultCertificate_basicGenerateEllipticCurveAutoKeySize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicGenerateEllipticCurveAutoKeySize(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("secret_id").Exists(),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
+				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.curve").HasValue("P-521"),
+				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_type").HasValue("EC"),
+				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_size").HasValue("521"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateResource{}
@@ -628,6 +674,109 @@ resource "azurerm_key_vault_certificate" "test" {
 
   tags = {
     "hello" = "world"
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) basicGenerateEllipticCurve(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      curve      = "P-256K"
+      exportable = true
+      key_size   = 256
+      key_type   = "EC"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "digitalSignature",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) basicGenerateEllipticCurveAutoKeySize(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      curve      = "P-521"
+      exportable = true
+      key_type   = "EC"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "digitalSignature",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
   }
 }
 `, r.template(data), data.RandomString)

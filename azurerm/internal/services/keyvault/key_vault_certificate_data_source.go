@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -68,6 +68,10 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"curve": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 									"exportable": {
 										Type:     schema.TypeBool,
 										Computed: true,
@@ -90,7 +94,7 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 
 						"lifetime_action": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
@@ -127,7 +131,7 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 
 						"secret_properties": {
 							Type:     schema.TypeList,
-							Required: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"content_type": {
@@ -323,9 +327,10 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
+		var curve, keyType string
 		var exportable, reuseKey bool
 		var keySize int
-		var keyType string
+		curve = string(props.Curve)
 		if props.Exportable != nil {
 			exportable = *props.Exportable
 		}
@@ -335,12 +340,13 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 		if props.KeySize != nil {
 			keySize = int(*props.KeySize)
 		}
-		if props.KeyType != nil {
-			keyType = *props.KeyType
+		if props.KeyType != "" {
+			keyType = string(props.KeyType)
 		}
 
 		policy["key_properties"] = []interface{}{
 			map[string]interface{}{
+				"curve":      curve,
 				"exportable": exportable,
 				"key_size":   keySize,
 				"key_type":   keyType,

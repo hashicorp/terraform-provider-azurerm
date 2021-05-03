@@ -73,7 +73,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "example" {
 
 ## Example Usage (with Function App)
 ```hcl
-esource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }

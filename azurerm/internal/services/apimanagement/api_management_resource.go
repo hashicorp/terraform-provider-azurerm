@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -23,6 +22,7 @@ import (
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -54,9 +54,8 @@ func resourceApiManagementService() *schema.Resource {
 		Update: resourceApiManagementServiceCreateUpdate,
 		Delete: resourceApiManagementServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -372,6 +371,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"portal": {
 							Type:     schema.TypeList,
@@ -379,6 +379,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"developer_portal": {
 							Type:     schema.TypeList,
@@ -386,6 +387,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"proxy": {
 							Type:     schema.TypeList,
@@ -393,6 +395,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameProxySchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"scm": {
 							Type:     schema.TypeList,
@@ -400,11 +403,13 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 					},
 				},
 			},
 
+			//lintignore:XS003
 			"policy": {
 				Type:       schema.TypeList,
 				Optional:   true,
@@ -563,14 +568,14 @@ func resourceApiManagementService() *schema.Resource {
 		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("virtual_network_type", func(old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("virtual_network_type", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(old.(string) == string(apimanagement.VirtualNetworkTypeNone) &&
 					(new.(string) == string(apimanagement.VirtualNetworkTypeInternal) ||
 						new.(string) == string(apimanagement.VirtualNetworkTypeExternal)))
 			}),
 
-			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
 			}),
 		),
@@ -739,7 +744,7 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, ""); err != nil {
+		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, "access", ""); err != nil {
 			return fmt.Errorf(" updating tenant access settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -868,7 +873,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
-		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name, "access")
 		if err != nil {
 			return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -941,6 +946,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
+		// hostnameRawVal is guaranteed to be non-nil as there is AtLeastOneOf constraint on its containing properties.
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
@@ -1670,7 +1676,7 @@ func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.
 	}
 }
 
-func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
+func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationSecretsContract) []interface{} {
 	result := make(map[string]interface{})
 
 	result["enabled"] = *input.Enabled

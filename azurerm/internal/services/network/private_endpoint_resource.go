@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -20,7 +20,7 @@ import (
 	privateDnsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +31,7 @@ func resourcePrivateEndpoint() *schema.Resource {
 		Read:   resourcePrivateEndpointRead,
 		Update: resourcePrivateEndpointUpdate,
 		Delete: resourcePrivateEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PrivateEndpointID(id)
 			return err
 		}),
@@ -48,7 +48,7 @@ func resourcePrivateEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: validate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -75,7 +75,7 @@ func resourcePrivateEndpoint() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: validate.PrivateLinkName,
 						},
 						"private_dns_zone_ids": {
 							Type:     schema.TypeList,
@@ -99,7 +99,7 @@ func resourcePrivateEndpoint() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: validate.PrivateLinkName,
 						},
 						"is_manual_connection": {
 							Type:     schema.TypeBool,
@@ -126,7 +126,7 @@ func resourcePrivateEndpoint() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: ValidatePrivateLinkSubResourceName,
+								ValidateFunc: validate.PrivateLinkSubResourceName,
 							},
 						},
 						"request_message": {
@@ -228,7 +228,7 @@ func resourcePrivateEndpointCreate(d *schema.ResourceData, meta interface{}) err
 
 	id := parse.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if err := ValidatePrivateEndpointSettings(d); err != nil {
+	if err := validatePrivateEndpointSettings(d); err != nil {
 		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -298,7 +298,7 @@ func resourcePrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if err := ValidatePrivateEndpointSettings(d); err != nil {
+	if err := validatePrivateEndpointSettings(d); err != nil {
 		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -830,4 +830,25 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]network.RecordSet) []interfac
 	}
 
 	return output
+}
+
+func validatePrivateEndpointSettings(d *schema.ResourceData) error {
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+
+	for _, psc := range privateServiceConnections {
+		privateServiceConnection := psc.(map[string]interface{})
+		name := privateServiceConnection["name"].(string)
+
+		// If this is not a manual connection and the message is set return an error since this does not make sense.
+		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
+			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+		}
+
+		// If this is a manual connection and the message isn't set return an error.
+		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
+		}
+	}
+
+	return nil
 }

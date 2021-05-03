@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,7 +34,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LiveEventID(id)
 			return err
 		}),
@@ -42,7 +44,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateLiveEventName,
+				ValidateFunc: validate.LiveEventName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -51,7 +53,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateMediaServicesAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"auto_start_enabled": {
@@ -68,6 +70,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -90,6 +93,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"access_token": {
@@ -98,6 +104,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"endpoint": {
@@ -121,6 +130,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"streaming_protocol": {
@@ -131,6 +143,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 								string(media.RTMP),
 								string(media.FragmentedMP4),
 							}, false),
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 					},
 				},
@@ -146,12 +161,14 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 
 						"cross_domain_policy": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 					},
 				},
@@ -222,6 +239,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -244,12 +262,18 @@ func resourceMediaLiveEvent() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"alternative_media_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"endpoint": {
@@ -275,6 +299,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"streaming_policy_name": {
@@ -283,6 +310,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 					},
 				},
@@ -552,8 +582,11 @@ func expandIPRanges(input []interface{}) []media.IPRange {
 		return nil
 	}
 
-	ipRanges := make([]media.IPRange, len(input))
-	for index, ipAllow := range input {
+	ipRanges := make([]media.IPRange, 0)
+	for _, ipAllow := range input {
+		if ipAllow == nil {
+			continue
+		}
 		allow := ipAllow.(map[string]interface{})
 		address := allow["address"].(string)
 		name := allow["name"].(string)
@@ -566,7 +599,7 @@ func expandIPRanges(input []interface{}) []media.IPRange {
 		if subnetPrefixLengthRaw != "" {
 			ipRange.SubnetPrefixLength = utils.Int32(int32(subnetPrefixLengthRaw.(int)))
 		}
-		ipRanges[index] = ipRange
+		ipRanges = append(ipRanges, ipRange)
 	}
 
 	return ipRanges

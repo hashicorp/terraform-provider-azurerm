@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -61,7 +61,7 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) 
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
 				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
 				check.That(data.ResourceName).Key("routing_weight").HasValue("20"),
-				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DHGroup14)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DhGroupDHGroup14)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.AES256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(network.IkeIntegritySHA256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(network.IpsecEncryptionAES256)),

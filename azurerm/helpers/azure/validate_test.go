@@ -1,6 +1,10 @@
-package azure
+package azure_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 func TestHelper_AzureResourceID(t *testing.T) {
 	cases := []struct {
@@ -51,7 +55,7 @@ func TestHelper_AzureResourceID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.ID, func(t *testing.T) {
-			_, errors := ValidateResourceID(tc.ID, "test")
+			_, errors := azure.ValidateResourceID(tc.ID, "test")
 
 			if len(errors) < tc.Errors {
 				t.Fatalf("Expected ValidateResourceID to have %d not %d errors for %q", tc.Errors, len(errors), tc.ID)
@@ -82,7 +86,7 @@ func TestAzureResourceIDOrEmpty(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.ID, func(t *testing.T) {
-			_, errors := ValidateResourceIDOrEmpty(tc.ID, "test")
+			_, errors := azure.ValidateResourceIDOrEmpty(tc.ID, "test")
 
 			if len(errors) < tc.Errors {
 				t.Fatalf("Expected TestAzureResourceIdOrEmpty to have %d not %d errors for %q", tc.Errors, len(errors), tc.ID)

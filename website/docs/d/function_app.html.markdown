@@ -122,6 +122,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
+* `java_version` - Java version hosted by the function app in Azure.
+
 * `pre_warmed_instance_count` - The number of pre-warmed instances for this function app. Only applicable to apps on the Premium plan.
 
 * `scm_use_main_ip_restriction` - IP security restrictions for scm to use main.  
