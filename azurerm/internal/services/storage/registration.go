@@ -30,6 +30,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
 		"azurerm_storage_sync":                       dataSourceStorageSync(),
 		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
+		"azurerm_storage_table_entity":               dataSourceStorageTableEntity(),
 	}
 }
 
