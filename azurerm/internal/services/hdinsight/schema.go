@@ -945,7 +945,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 }
 
 func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Autoscale {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -976,7 +976,7 @@ func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Auto
 }
 
 func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *hdinsight.AutoscaleCapacity {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -989,7 +989,7 @@ func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *hdinsight.
 }
 
 func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *hdinsight.AutoscaleRecurrence {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
