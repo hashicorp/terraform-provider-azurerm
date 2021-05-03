@@ -1209,7 +1209,7 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 }
 func flattenSingleFrontDoorBackendPools(input *frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
 	if input == nil {
-		return make(map[string]interface{}, 0), nil
+		return make(map[string]interface{}), nil
 	}
 
 	id := ""
