@@ -32,6 +32,8 @@ var hdInsightSparkClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
+	CanAutoScaleByCapacity:  true,
+	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
