@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
 )
@@ -35,14 +35,14 @@ func dataSourceStorageTableEntity() *schema.Resource {
 			},
 
 			"partition_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"row_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -89,7 +89,7 @@ func dataSourceStorageTableEntityRead(d *schema.ResourceData, meta interface{}) 
 		RowKey:        rowKey,
 		MetaDataLevel: entities.NoMetaData,
 	}
-	
+
 	result, err := client.Get(ctx, storageAccountName, tableName, input)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, storageAccountName, account.ResourceGroup, err)
