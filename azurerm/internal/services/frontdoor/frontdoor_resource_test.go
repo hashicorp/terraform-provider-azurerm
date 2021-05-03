@@ -281,7 +281,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -347,7 +346,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -413,7 +411,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -463,7 +460,6 @@ resource "azurerm_frontdoor" "import" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, r.basic(data), data.RandomInteger)
@@ -528,7 +524,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -663,7 +658,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -729,7 +723,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -862,7 +855,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = local.endpoint_name
     host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -887,7 +879,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                              = "acctest-FD-%[1]d-default-FE"
     host_name                         = "acctest-FD-%[1]d.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 
   # --- Pool 1

@@ -432,29 +432,11 @@ func resourceFrontDoor() *schema.Resource {
 							Optional: true,
 							Default:  0,
 						},
-						// if either of these are set in the main FrontDoor config we need to error out
-						// unfortunately we will need to force end users to use the azurerm_frontdoor_custom_https_configuration
-						// "custom_https_provisioning_enabled": {
-						// 	Type:       schema.TypeBool,
-						// 	Optional:   true,
-						// 	Computed:   true,
-						// 	Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
-						// },
 						"web_application_firewall_policy_link_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							// TODO: validation that this is a resource id
 						},
-						// "custom_https_configuration": {
-						// 	Type:       schema.TypeList,
-						// 	Optional:   true,
-						// 	Computed:   true,
-						// 	MaxItems:   1,
-						// 	Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
-						// 	Elem: &schema.Resource{
-						// 		Schema: schemaCustomHttpsConfiguration(),
-						// 	},
-						// },
 					},
 				},
 			},
@@ -660,13 +642,14 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("header_frontdoor_id", props.FrontdoorID)
 		d.Set("load_balancer_enabled", props.EnabledState == frontdoor.EnabledStateEnabled)
 		d.Set("friendly_name", props.FriendlyName)
-		// Need to call frontEndEndpointClient here to get custom(HTTPS)Configuration information from that client
+		// Need to call frontEndEndpointClient here to get the frontEndEndpoint information from that client
 		// because the information is hidden from the main frontDoorClient "by design"...
 		frontEndEndpointsClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 		frontEndEndpointInfo, err := retrieveFrontEndEndpointInformation(ctx, frontEndEndpointsClient, *id, props.FrontendEndpoints)
 		if err != nil {
-			return fmt.Errorf("retrieving FrontEnd Endpoint Custom HTTPS Information: %+v", err)
+			return fmt.Errorf("retrieving FrontEnd Endpoint Information: %+v", err)
 		}
+		// Force the returned flattenFrontEndEndpoints into the order defined in the explicit_resource_order mapping table
 		frontDoorFrontendEndpoints, err := flattenFrontEndEndpoints(frontEndEndpointInfo, *id, explicitResourceOrder)
 		if err != nil {
 			return fmt.Errorf("flattening `frontend_endpoint`: %+v", err)
@@ -674,14 +657,16 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 			return fmt.Errorf("setting `frontend_endpoint`: %+v", err)
 		}
+		// Force the returned flattenFrontDoorHealthProbeSettingsModel into the order defined in the explicit_resource_order mapping table
 		if err := d.Set("backend_pool_health_probe", flattenFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id, explicitResourceOrder)); err != nil {
 			return fmt.Errorf("setting `backend_pool_health_probe`: %+v", err)
 		}
+		// Force the returned flattenFrontDoorLoadBalancingSettingsModel into the order defined in the explicit_resource_order mapping table
 		if err := d.Set("backend_pool_load_balancing", flattenFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id, explicitResourceOrder)); err != nil {
 			return fmt.Errorf("setting `backend_pool_load_balancing`: %+v", err)
 		}
 		var flattenedRoutingRules *[]interface{}
-		// Force the retuned flattenedRoutingRules into the order defined in the explicit_resource_order mapping table
+		// Force the returned flattenedRoutingRules into the order defined in the explicit_resource_order mapping table
 		flattenedRoutingRules, err = flattenFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"), *id, explicitResourceOrder)
 		if err != nil {
 			return fmt.Errorf("flattening `routing_rules`: %+v", err)
