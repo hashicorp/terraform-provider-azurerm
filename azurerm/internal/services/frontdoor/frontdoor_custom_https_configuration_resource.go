@@ -84,7 +84,7 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 		return err
 	}
 
-	customHttpsConfigurationId := parse.NewCustomHttpsConfigurationID(frontendEndpointId.SubscriptionId, frontendEndpointId.ResourceGroup, frontendEndpointId.FrontDoorName, frontendEndpointId.Name, frontendEndpointId.Name)
+	customHttpsConfigurationId := parse.NewCustomHttpsConfigurationID(frontendEndpointId.SubscriptionId, frontendEndpointId.ResourceGroup, frontendEndpointId.FrontDoorName, frontendEndpointId.Name)
 
 	// TODO: Requires Import support
 

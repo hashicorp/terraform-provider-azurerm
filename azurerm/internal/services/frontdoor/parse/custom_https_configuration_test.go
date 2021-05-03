@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = CustomHttpsConfigurationId{}
 
 func TestCustomHttpsConfigurationIDFormatter(t *testing.T) {
-	actual := NewCustomHttpsConfigurationID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "endpoint1", "endpoint1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1/customHttpsConfiguration/endpoint1"
+	actual := NewCustomHttpsConfigurationID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "endpoint1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/endpoint1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,44 +68,31 @@ func TestCustomHttpsConfigurationID(t *testing.T) {
 		},
 
 		{
-			// missing FrontendEndpointName
+			// missing CustomHttpsConfigurationName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/",
 			Error: true,
 		},
 
 		{
-			// missing value for FrontendEndpointName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/",
-			Error: true,
-		},
-
-		{
-			// missing CustomHttpsConfigurationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1/",
-			Error: true,
-		},
-
-		{
 			// missing value for CustomHttpsConfigurationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1/customHttpsConfiguration/endpoint1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/endpoint1",
 			Expected: &CustomHttpsConfigurationId{
 				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                "resGroup1",
 				FrontDoorName:                "frontdoor1",
-				FrontendEndpointName:         "endpoint1",
 				CustomHttpsConfigurationName: "endpoint1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORS/FRONTDOOR1/FRONTENDENDPOINTS/ENDPOINT1/CUSTOMHTTPSCONFIGURATION/ENDPOINT1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORS/FRONTDOOR1/CUSTOMHTTPSCONFIGURATION/ENDPOINT1",
 			Error: true,
 		},
 	}
@@ -133,9 +120,6 @@ func TestCustomHttpsConfigurationID(t *testing.T) {
 		}
 		if actual.FrontDoorName != v.Expected.FrontDoorName {
 			t.Fatalf("Expected %q but got %q for FrontDoorName", v.Expected.FrontDoorName, actual.FrontDoorName)
-		}
-		if actual.FrontendEndpointName != v.Expected.FrontendEndpointName {
-			t.Fatalf("Expected %q but got %q for FrontendEndpointName", v.Expected.FrontendEndpointName, actual.FrontendEndpointName)
 		}
 		if actual.CustomHttpsConfigurationName != v.Expected.CustomHttpsConfigurationName {
 			t.Fatalf("Expected %q but got %q for CustomHttpsConfigurationName", v.Expected.CustomHttpsConfigurationName, actual.CustomHttpsConfigurationName)
@@ -193,73 +177,57 @@ func TestCustomHttpsConfigurationIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing FrontendEndpointName
+			// missing CustomHttpsConfigurationName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/",
 			Error: true,
 		},
 
 		{
-			// missing value for FrontendEndpointName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/",
-			Error: true,
-		},
-
-		{
-			// missing CustomHttpsConfigurationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1/",
-			Error: true,
-		},
-
-		{
 			// missing value for CustomHttpsConfigurationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1/customHttpsConfiguration/endpoint1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/endpoint1",
 			Expected: &CustomHttpsConfigurationId{
 				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                "resGroup1",
 				FrontDoorName:                "frontdoor1",
-				FrontendEndpointName:         "endpoint1",
 				CustomHttpsConfigurationName: "endpoint1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendendpoints/endpoint1/customhttpsconfiguration/endpoint1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/customhttpsconfiguration/endpoint1",
 			Expected: &CustomHttpsConfigurationId{
 				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                "resGroup1",
 				FrontDoorName:                "frontdoor1",
-				FrontendEndpointName:         "endpoint1",
 				CustomHttpsConfigurationName: "endpoint1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FRONTDOORS/frontdoor1/FRONTENDENDPOINTS/endpoint1/CUSTOMHTTPSCONFIGURATION/endpoint1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FRONTDOORS/frontdoor1/CUSTOMHTTPSCONFIGURATION/endpoint1",
 			Expected: &CustomHttpsConfigurationId{
 				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                "resGroup1",
 				FrontDoorName:                "frontdoor1",
-				FrontendEndpointName:         "endpoint1",
 				CustomHttpsConfigurationName: "endpoint1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrOnTdOoRs/frontdoor1/FrOnTeNdEnDpOiNtS/endpoint1/CuStOmHtTpScOnFiGuRaTiOn/endpoint1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrOnTdOoRs/frontdoor1/CuStOmHtTpScOnFiGuRaTiOn/endpoint1",
 			Expected: &CustomHttpsConfigurationId{
 				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                "resGroup1",
 				FrontDoorName:                "frontdoor1",
-				FrontendEndpointName:         "endpoint1",
 				CustomHttpsConfigurationName: "endpoint1",
 			},
 		},
@@ -288,9 +256,6 @@ func TestCustomHttpsConfigurationIDInsensitively(t *testing.T) {
 		}
 		if actual.FrontDoorName != v.Expected.FrontDoorName {
 			t.Fatalf("Expected %q but got %q for FrontDoorName", v.Expected.FrontDoorName, actual.FrontDoorName)
-		}
-		if actual.FrontendEndpointName != v.Expected.FrontendEndpointName {
-			t.Fatalf("Expected %q but got %q for FrontendEndpointName", v.Expected.FrontendEndpointName, actual.FrontendEndpointName)
 		}
 		if actual.CustomHttpsConfigurationName != v.Expected.CustomHttpsConfigurationName {
 			t.Fatalf("Expected %q but got %q for CustomHttpsConfigurationName", v.Expected.CustomHttpsConfigurationName, actual.CustomHttpsConfigurationName)

@@ -13,16 +13,14 @@ type CustomHttpsConfigurationId struct {
 	SubscriptionId               string
 	ResourceGroup                string
 	FrontDoorName                string
-	FrontendEndpointName         string
 	CustomHttpsConfigurationName string
 }
 
-func NewCustomHttpsConfigurationID(subscriptionId, resourceGroup, frontDoorName, frontendEndpointName, customHttpsConfigurationName string) CustomHttpsConfigurationId {
+func NewCustomHttpsConfigurationID(subscriptionId, resourceGroup, frontDoorName, customHttpsConfigurationName string) CustomHttpsConfigurationId {
 	return CustomHttpsConfigurationId{
 		SubscriptionId:               subscriptionId,
 		ResourceGroup:                resourceGroup,
 		FrontDoorName:                frontDoorName,
-		FrontendEndpointName:         frontendEndpointName,
 		CustomHttpsConfigurationName: customHttpsConfigurationName,
 	}
 }
@@ -30,7 +28,6 @@ func NewCustomHttpsConfigurationID(subscriptionId, resourceGroup, frontDoorName,
 func (id CustomHttpsConfigurationId) String() string {
 	segments := []string{
 		fmt.Sprintf("Custom Https Configuration Name %q", id.CustomHttpsConfigurationName),
-		fmt.Sprintf("Frontend Endpoint Name %q", id.FrontendEndpointName),
 		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -39,8 +36,8 @@ func (id CustomHttpsConfigurationId) String() string {
 }
 
 func (id CustomHttpsConfigurationId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/frontendEndpoints/%s/customHttpsConfiguration/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.FrontendEndpointName, id.CustomHttpsConfigurationName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/customHttpsConfiguration/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.CustomHttpsConfigurationName)
 }
 
 // CustomHttpsConfigurationID parses a CustomHttpsConfiguration ID into an CustomHttpsConfigurationId struct
@@ -64,9 +61,6 @@ func CustomHttpsConfigurationID(input string) (*CustomHttpsConfigurationId, erro
 	}
 
 	if resourceId.FrontDoorName, err = id.PopSegment("frontDoors"); err != nil {
-		return nil, err
-	}
-	if resourceId.FrontendEndpointName, err = id.PopSegment("frontendEndpoints"); err != nil {
 		return nil, err
 	}
 	if resourceId.CustomHttpsConfigurationName, err = id.PopSegment("customHttpsConfiguration"); err != nil {
@@ -114,18 +108,6 @@ func CustomHttpsConfigurationIDInsensitively(input string) (*CustomHttpsConfigur
 		}
 	}
 	if resourceId.FrontDoorName, err = id.PopSegment(frontDoorsKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'frontendEndpoints' segment
-	frontendEndpointsKey := "frontendEndpoints"
-	for key := range id.Path {
-		if strings.EqualFold(key, frontendEndpointsKey) {
-			frontendEndpointsKey = key
-			break
-		}
-	}
-	if resourceId.FrontendEndpointName, err = id.PopSegment(frontendEndpointsKey); err != nil {
 		return nil, err
 	}
 
