@@ -37,7 +37,7 @@ func TestAccFrontDoor_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("HEAD"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -83,21 +83,21 @@ func TestAccFrontDoor_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -115,8 +115,7 @@ func TestAccFrontDoor_multiplePools(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.#").HasValue("2"),
 			),
 		},
-		// @favoretti: Do not import for now, since order changes
-		// data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -130,7 +129,7 @@ func TestAccFrontDoor_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -144,7 +143,7 @@ func TestAccFrontDoor_waf(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -179,7 +178,7 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
