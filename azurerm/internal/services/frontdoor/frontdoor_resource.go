@@ -538,10 +538,47 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	frontDoorId := parse.NewFrontDoorID(subscriptionId, resourceGroup, name)
+
+	if d.IsNewResource() {
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("checking for present of existing Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_frontdoor", frontDoorId.ID())
+		}
+	}
+
+	// remove in 3.0
+	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
+	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
+	location := "Global"
+	preExists := false
+	cfgLocation, hasLocation := d.GetOk("location")
+
+	exists, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(exists.Response) {
+			return fmt.Errorf("locating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	} else {
+		preExists = true
+		location = azure.NormalizeLocation(*exists.Location)
+	}
+
+	if hasLocation && preExists {
+		if location != azure.NormalizeLocation(cfgLocation) {
+			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
+		}
+	}
+
 	friendlyName := d.Get("friendly_name").(string)
 	routingRules := d.Get("routing_rule").([]interface{})
 	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
@@ -553,58 +590,38 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	enabledState := d.Get("load_balancer_enabled").(bool)
 	explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
+
 	// If the explicitResourceOrder is empty and it's not a new resource set the mapping table to the state file and return an error.
 	// If the explicitResourceOrder is empty and it is a new resource it will run the CreateOrUpdate as expected
 	// If the explicitResourceOrder is NOT empty and it is NOT a new resource it will run the CreateOrUpdate as expected
 	if len(explicitResourceOrder) == 0 && !d.IsNewResource() {
 		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 		return fmt.Errorf("Front Door %q (Resource Group %q): Built the Explicit Resource Order table in the state file. Please run 'plan' again.", frontDoorId.Name, frontDoorId.ResourceGroup)
-	} else {
-		// remove in 3.0
-		// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
-		// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-		location := "Global"
-		preExists := false
-		cfgLocation, hasLocation := d.GetOk("location")
-		exists, err := client.Get(ctx, frontDoorId.ResourceGroup, frontDoorId.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(exists.Response) {
-				return fmt.Errorf("locating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
-			}
-		} else {
-			preExists = true
-			location = azure.NormalizeLocation(*exists.Location)
-		}
-		if hasLocation && preExists {
-			if location != azure.NormalizeLocation(cfgLocation) {
-				return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", frontDoorId.Name, frontDoorId.ResourceGroup, location, cfgLocation)
-			}
-		}
-		if exists.ID != nil && *exists.ID != "" {
-			return tf.ImportAsExistsError("azurerm_frontdoor", *exists.ID)
-		}
-		frontDoorParameters := frontdoor.FrontDoor{
-			Location: utils.String(location),
-			Properties: &frontdoor.Properties{
-				FriendlyName:          utils.String(friendlyName),
-				RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
-				BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
-				BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
-				FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
-				HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId),
-				LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId),
-				EnabledState:          expandFrontDoorEnabledState(enabledState),
-			},
-			Tags: tags.Expand(t),
-		}
-		future, err := client.CreateOrUpdate(ctx, frontDoorId.ResourceGroup, frontDoorId.Name, frontDoorParameters)
-		if err != nil {
-			return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
-		}
 	}
+
+	frontDoorParameters := frontdoor.FrontDoor{
+		Location: utils.String(location),
+		Properties: &frontdoor.Properties{
+			FriendlyName:          utils.String(friendlyName),
+			RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
+			BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
+			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
+			FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
+			HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId),
+			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId),
+			EnabledState:          expandFrontDoorEnabledState(enabledState),
+		},
+		Tags: tags.Expand(t),
+	}
+
+	future, err := client.CreateOrUpdate(ctx, frontDoorId.ResourceGroup, frontDoorId.Name, frontDoorParameters)
+	if err != nil {
+		return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
+	}
+
 	d.SetId(frontDoorId.ID())
 	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	return resourceFrontDoorRead(d, meta)
