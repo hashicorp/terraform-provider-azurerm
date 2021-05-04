@@ -48,8 +48,9 @@ resource "azurerm_subnet" "outbound" {
 }
 
 resource "azurerm_app_service_environment_v3" "example" {
-  name      = "example-ase"
-  subnet_id = azurerm_subnet.inbound.id
+  name                = "example-asev3"
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.outbound.id
 
   cluster_setting {
     name  = "DisableTls1.0"
@@ -85,7 +86,7 @@ resource "azurerm_app_service_environment_v3" "example" {
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
 
-~> **NOTE:** This is the "inbound" Subnet which must not have`enforce_private_link_endpoint_network_policies` enabled. Additionally, an "outbound" subnet is required in the Virtual Network which is required to have a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above.  
+~> **NOTE:** This is the "outbound" Subnet which is required to have a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above. Additionally, an "inbound" subnet is required in the Virtual Network which must not have `enforce_private_link_endpoint_network_policies` enabled.   
 
 * `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
 
