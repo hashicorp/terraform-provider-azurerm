@@ -107,8 +107,8 @@ resource "azurerm_network_connection_monitor" "example" {
   location             = azurerm_network_watcher.example.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.example.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.example.id
 
     filter {
       item {
@@ -195,7 +195,7 @@ A `endpoint` block supports the following:
 
 * `type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
 
-* `virtual_machine_id` - (Optional / **Deprecated**) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor. This property is deprecated in favour of `resource_id`.
+* `virtual_machine_id` - (Optional / **Deprecated**) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor. This property is deprecated in favour of `target_resource_id`.
 
 ---
 
