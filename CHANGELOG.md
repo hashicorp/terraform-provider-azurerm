@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - support for the `access_key_metadata_writes_enabled`, `mongo_server_version`, and `network_acl_bypass` properties [GH-11486]
 * `azurerm_data_factory` - support for the `customer_managed_key_id` property [GH-10502]
 * `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 [GH-11547]
+* `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` [GH-11581]
 
 ## 2.57.0 (April 30, 2021)
 
