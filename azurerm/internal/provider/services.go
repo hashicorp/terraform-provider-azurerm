@@ -102,6 +102,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventhub.Registration{},
 		loadbalancer.Registration{},
 		resource.Registration{},
+		web.Registration{},
 	}
 }
 
