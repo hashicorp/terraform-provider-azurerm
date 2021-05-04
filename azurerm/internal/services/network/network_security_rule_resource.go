@@ -62,6 +62,8 @@ func resourceNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
 					string(network.SecurityRuleProtocolIcmp),
+					string(network.SecurityRuleProtocolAh),
+					string(network.SecurityRuleProtocolEsp),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
