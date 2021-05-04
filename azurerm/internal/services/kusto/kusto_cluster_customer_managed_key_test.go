@@ -106,28 +106,6 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 	return utils.Bool(true), nil
 }
 
-func (r KustoClusterCustomerManagedKeyResource) clusterIsNotUsingCustomerManagedKey(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-	id, err := parse.ClusterID(state.ID)
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %v", id.String(), err)
-	}
-
-	if resp.ClusterProperties == nil {
-		return fmt.Errorf("properties nil for %s", id.String())
-	}
-
-	if resp.ClusterProperties.KeyVaultProperties != nil {
-		return fmt.Errorf("keyVaultProperties was non-nil")
-	}
-
-	return nil
-}
-
 func (KustoClusterCustomerManagedKeyResource) basic(data acceptance.TestData) string {
 	template := KustoClusterCustomerManagedKeyResource{}.template(data)
 	return fmt.Sprintf(`
