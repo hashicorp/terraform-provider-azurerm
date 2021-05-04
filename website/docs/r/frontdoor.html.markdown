@@ -78,8 +78,8 @@ resource "azurerm_frontdoor" "example" {
   }
 
   frontend_endpoint {
-    name                              = "exampleFrontendEndpoint1"
-    host_name                         = "example-FrontDoor.azurefd.net"
+    name      = "exampleFrontendEndpoint1"
+    host_name = "example-FrontDoor.azurefd.net"
   }
 }
 ```
