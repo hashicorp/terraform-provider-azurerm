@@ -9,7 +9,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `network-db` to API version `2020-07-01` [GH-10767]
-* `azurerm_hdinsight_*_cluster` - Support for autoscale  #8104 [GH-11547]
+* `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 [GH-11547]
+* `azurerm_data_factory` - support for the `customer_managed_key_id` property [GH-10502]
 
 ## 2.57.0 (April 30, 2021)
 
