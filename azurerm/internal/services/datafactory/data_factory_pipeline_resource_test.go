@@ -220,7 +220,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   annotations         = ["test1", "test2"]
   description         = "test description2"
   folder              = "test-folder"
-  
+
   parameters = {
     test  = "testparameter"
     test2 = "testparameter2"
