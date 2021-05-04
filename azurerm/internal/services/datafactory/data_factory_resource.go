@@ -14,6 +14,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	msiParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -67,12 +71,24 @@ func resourceDataFactory() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.SystemAssigned),
+								string(datafactory.UserAssigned),
 							}, false),
 						},
+
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: msiValidate.UserAssignedIdentityID,
+							},
+						},
+
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -164,6 +180,13 @@ func resourceDataFactory() *schema.Resource {
 				Default:  true,
 			},
 
+			"customer_managed_key_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+				RequiredWith: []string{"identity.0.identity_ids"},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -208,6 +231,37 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		identityType := v.(string)
 		dataFactory.Identity = &datafactory.FactoryIdentity{
 			Type: datafactory.FactoryIdentityType(identityType),
+		}
+
+		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
+		if len(identityIdsRaw) > 0 {
+			if identityType != string(datafactory.UserAssigned) {
+				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.UserAssigned))
+			}
+
+			identityIds := make(map[string]interface{})
+			for _, v := range identityIdsRaw {
+				identityIds[v.(string)] = make(map[string]string)
+			}
+			dataFactory.Identity.UserAssignedIdentities = identityIds
+		}
+	}
+
+	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyID.(string))
+		if err != nil {
+			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+		}
+
+		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
+
+		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
+			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
+			KeyName:      &keyVaultKey.Name,
+			KeyVersion:   &keyVaultKey.Version,
+			Identity: &datafactory.CMKIdentityDefinition{
+				UserAssignedIdentity: utils.String(identityIdsRaw[0].(string)),
+			},
 		}
 	}
 
@@ -267,6 +321,17 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if factoryProps := resp.FactoryProperties; factoryProps != nil {
+		if enc := factoryProps.Encryption; enc != nil {
+			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
+				versionedKey := fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
+				if err := d.Set("customer_managed_key_id", versionedKey); err != nil {
+					return fmt.Errorf("Error setting `customer_managed_key_id`: %+v", err)
+				}
+			}
+		}
+	}
+
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
@@ -285,8 +350,12 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenDataFactoryIdentity(resp.Identity)); err != nil {
+	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	if err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`
@@ -408,9 +477,9 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 	return datafactory.TypeFactoryRepoConfiguration, result
 }
 
-func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
+func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interface{}, error) {
 	if identity == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	principalId := ""
@@ -421,12 +490,23 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface
 	if identity.TenantID != nil {
 		tenantId = identity.TenantID.String()
 	}
+	var identityIds []string
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			id, err := msiParse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, id.ID())
+		}
+	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
+			"identity_ids": identityIds,
 		},
-	}
+	}, nil
 }
