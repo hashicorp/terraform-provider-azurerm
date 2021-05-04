@@ -3,7 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_storage_table_entity` [GH-11562]
-* * **New Resource:** `azurerm_app_service_environment_v3` [GH-11174]
+* **New Resource:** `azurerm_app_service_environment_v3` [GH-11174]
 * **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11484]
 * **New Resource:** `azurerm_storage_blob_inventory_policy` [GH-11533]
 
@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating `network-db` to API version `2020-07-01` [GH-10767]
 * `azurerm_cosmosdb_account` - support for the `access_key_metadata_writes_enabled`, `mongo_server_version`, and `network_acl_bypass` properties [GH-11486]
 * `azurerm_data_factory` - support for the `customer_managed_key_id` property [GH-10502]
+* `azurerm_data_factory_pipeline` - support for the `folder` property [GH-11575]
 * `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 [GH-11547]
 * `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` [GH-11581]
 
