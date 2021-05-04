@@ -423,8 +423,8 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
@@ -470,8 +470,8 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
 
     filter {
       item {
@@ -535,13 +535,13 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
-    name        = "destination"
-    resource_id = azurerm_virtual_machine.dest.id
+    name               = "destination"
+    target_resource_id = azurerm_virtual_machine.dest.id
   }
 
   test_configuration {
@@ -575,14 +575,14 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
-    name        = "destination"
-    resource_id = azurerm_virtual_machine.dest.id
-    address     = azurerm_network_interface.dest.private_ip_address
+    name               = "destination"
+    target_resource_id = azurerm_virtual_machine.dest.id
+    address            = azurerm_network_interface.dest.private_ip_address
   }
 
   test_configuration {
@@ -616,8 +616,8 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
 
     filter {
       item {
@@ -630,8 +630,8 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   endpoint {
-    name        = "destination"
-    resource_id = azurerm_virtual_machine.dest.id
+    name               = "destination"
+    target_resource_id = azurerm_virtual_machine.dest.id
   }
 
   test_configuration {
@@ -671,8 +671,8 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   test_configuration {
@@ -706,13 +706,13 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
-    name        = "destination"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "destination"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   test_configuration {
@@ -746,8 +746,8 @@ resource "azurerm_network_connection_monitor" "import" {
   location           = azurerm_network_connection_monitor.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
@@ -786,8 +786,8 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
@@ -835,8 +835,8 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    resource_id = azurerm_virtual_machine.src.id
+    name               = "source"
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
@@ -883,10 +883,10 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name        = "source"
-    type        = "MMAWorkspaceMachine"
-    address     = "test.internal.domain.com"
-    resource_id = azurerm_log_analytics_workspace.test.id
+    name               = "source"
+    type               = "MMAWorkspaceMachine"
+    address            = "test.internal.domain.com"
+    target_resource_id = azurerm_log_analytics_workspace.test.id
   }
 
   endpoint {

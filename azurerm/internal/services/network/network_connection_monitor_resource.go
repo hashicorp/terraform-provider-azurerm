@@ -172,7 +172,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							}, false),
 						},
 
-						"excluded_addresses": {
+						"excluded_ip_addresses": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -226,7 +226,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"included_addresses": {
+						"included_ip_addresses": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -239,7 +239,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"resource_id": {
+						"target_resource_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -269,7 +269,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: computeValidate.VirtualMachineID,
-							Deprecated:   "This property has been renamed to `resource_id` and will be removed in v3.0 of the provider.",
+							Deprecated:   "This property has been renamed to `target_resource_id` and will be removed in v3.0 of the provider.",
 						},
 					},
 				},
@@ -662,8 +662,8 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		if v["resource_id"] != nil && v["resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
-			return nil, fmt.Errorf("`resource_id` and `virtual_machine_id` cannot be set together")
+		if v["target_resource_id"] != nil && v["target_resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
+			return nil, fmt.Errorf("`target_resource_id` and `virtual_machine_id` cannot be set together")
 		}
 
 		result := network.ConnectionMonitorEndpoint{
@@ -679,8 +679,8 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 			result.CoverageLevel = network.CoverageLevel(coverageLevel.(string))
 		}
 
-		excludedItems := v["excluded_addresses"].(*schema.Set).List()
-		includedItems := v["included_addresses"].(*schema.Set).List()
+		excludedItems := v["excluded_ip_addresses"].(*schema.Set).List()
+		includedItems := v["included_ip_addresses"].(*schema.Set).List()
 		if len(excludedItems) != 0 || len(includedItems) != 0 {
 			result.Scope = &network.ConnectionMonitorEndpointScope{}
 
@@ -705,7 +705,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 			}
 		}
 
-		if resourceId := v["resource_id"]; resourceId != "" {
+		if resourceId := v["target_resource_id"]; resourceId != "" {
 			result.ResourceID = utils.String(resourceId.(string))
 		}
 
@@ -944,12 +944,12 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 		}
 
 		v := map[string]interface{}{
-			"name":           name,
-			"address":        address,
-			"coverage_level": coverageLevel,
-			"resource_id":    resourceId,
-			"type":           endpointType,
-			"filter":         flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
+			"name":               name,
+			"address":            address,
+			"coverage_level":     coverageLevel,
+			"target_resource_id": resourceId,
+			"type":               endpointType,
+			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
 		}
 
 		if scope := item.Scope; scope != nil {
@@ -962,7 +962,7 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 					}
 				}
 
-				v["included_addresses"] = includedAddresses
+				v["included_ip_addresses"] = includedAddresses
 			}
 
 			if excludeScope := scope.Exclude; excludeScope != nil {
@@ -974,7 +974,7 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 					}
 				}
 
-				v["excluded_addresses"] = excludedAddresses
+				v["excluded_ip_addresses"] = excludedAddresses
 			}
 		}
 

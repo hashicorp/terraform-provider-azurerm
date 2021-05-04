@@ -185,11 +185,11 @@ A `endpoint` block supports the following:
 
 * `coverage_level` - (Optional) The test coverage for the Network Connection Monitor endpoint. Possible values are `AboveAverage`, `Average`, `BelowAverage`, `Default`, `Full` and `Low`.
 
-* `excluded_addresses` - (Optional) A list of IPv4/IPv6 subnet masks or IPv4/IPv6 IP addresses to be excluded to the Network Connection Monitor endpoint.
+* `excluded_ip_addresses` - (Optional) A list of IPv4/IPv6 subnet masks or IPv4/IPv6 IP addresses to be excluded to the Network Connection Monitor endpoint.
 
-* `included_addresses` - (Optional) A list of IPv4/IPv6 subnet masks or IPv4/IPv6 IP addresses to be included to the Network Connection Monitor endpoint.
+* `included_ip_addresses` - (Optional) A list of IPv4/IPv6 subnet masks or IPv4/IPv6 IP addresses to be included to the Network Connection Monitor endpoint.
 
-* `resource_id` - (Optional) The resource ID which is used as the endpoint by the Network Connection Monitor.
+* `target_resource_id` - (Optional) The resource ID which is used as the endpoint by the Network Connection Monitor.
 
 * `filter` - (Optional) A `filter` block as defined below.
 
