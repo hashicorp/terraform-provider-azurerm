@@ -39,7 +39,7 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				// Then ensure the encryption settings on the Kusto cluster
 				// have been reverted to their default state
-				data.CheckWithClient(r.clusterIsNotUsingCustomerManagedKey),
+				check.That("azurerm_kusto_cluster.test").DoesNotExistInAzure(r),
 			),
 		},
 	})
@@ -100,7 +100,7 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 	}
 
 	if resp.ClusterProperties == nil || resp.ClusterProperties.KeyVaultProperties == nil {
-		return nil, fmt.Errorf("properties nil for %s", id.String())
+		return utils.Bool(false), nil
 	}
 
 	return utils.Bool(true), nil
