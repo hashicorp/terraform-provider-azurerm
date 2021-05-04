@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_storage_table_entity` [GH-11562]
+* * **New Resource:** `azurerm_app_service_environment_v3` [GH-11174]
 * **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11484]
 * **New Resource:** `azurerm_storage_blob_inventory_policy` [GH-11533]
 
