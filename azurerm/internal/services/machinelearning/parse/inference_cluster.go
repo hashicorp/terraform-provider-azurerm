@@ -7,7 +7,7 @@ import (
 )
 
 type InferenceClusterId struct {
-	Name                 string
+	WorkspaceName        string
 	ResourceGroup        string
 	InferenceClusterName string
 }
@@ -26,7 +26,7 @@ func InferenceClusterID(input string) (*InferenceClusterId, error) {
 		return nil, err
 	}
 
-	if inference_cluster.Name, err = id.PopSegment("workspaces"); err != nil {
+	if inference_cluster.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 

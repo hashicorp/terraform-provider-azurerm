@@ -53,28 +53,18 @@ func resourceAksInferenceCluster() *schema.Resource {
 				ValidateFunc: validate.InferenceClusterName,
 			},
 
-			"workspace_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"kubernetes_cluster_name": {
+			"machine_learning_workspace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"kubernetes_cluster_rg": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.KubernetesClusterResourceGroupName,
+			"location": azure.SchemaLocation(),
+
+			"kubernetes_cluster_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"cluster_purpose": {
@@ -118,14 +108,7 @@ func resourceAksInferenceCluster() *schema.Resource {
 				},
 			},
 
-			"ssl_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
-			},
-
-			"ssl_certificate_custom": {
+			"ssl": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
@@ -156,11 +139,6 @@ func resourceAksInferenceCluster() *schema.Resource {
 				Optional: true,
 			},
 
-			"resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"sku_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -173,18 +151,28 @@ func resourceAksInferenceCluster() *schema.Resource {
 }
 
 func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	machine_learning_workspaces_client := meta.(*clients.Client).MachineLearning.WorkspacesClient
-	machine_learning_compute_client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
-	kubernetes_clusters_client := meta.(*clients.Client).Containers.KubernetesClustersClient
-	node_pools_client := meta.(*clients.Client).Containers.AgentPoolsClient
+	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.WorkspacesClient
+	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
+	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// Define Inference Cluster Name
 	name := d.Get("name").(string)
-	workspace_name := d.Get("workspace_name").(string)
-	resource_group_name := d.Get("resource_group_name").(string)
 
-	existing, err := machine_learning_compute_client.Get(ctx, resource_group_name, workspace_name, name)
+	// Get Machine Learning Workspace Name and Resource Group from ID
+	ml_workspace_id := d.Get("machine_learning_workspace_id").(string)
+	ws_id, err := parse.WorkspaceID(ml_workspace_id)
+	if err != nil {
+		return err
+	}
+
+	workspace_name := ws_id.Name
+	resource_group_name := ws_id.ResourceGroup
+
+	// Check if Inference Cluster already exists
+	existing, err := mlComputeClient.Get(ctx, resource_group_name, workspace_name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("error checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspace_name, resource_group_name, err)
@@ -195,24 +183,38 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	// Get SKU from Workspace
-	aml_ws, _ := machine_learning_workspaces_client.Get(ctx, resource_group_name, workspace_name)
-
+	aml_ws, err := mlWorkspacesClient.Get(ctx, resource_group_name, workspace_name)
+	if err != nil {
+		return err
+	}
 	sku := aml_ws.Sku
 
-	kubernetes_cluster_name := d.Get("kubernetes_cluster_name").(string)
-	kubernetes_cluster_rg := d.Get("kubernetes_cluster_rg").(string)
+	// Get Kubernetes Cluster Name and Resource Group from ID
+	aks_id := d.Get("kubernetes_cluster_id").(string)
+	aks_id_details, err := parse.KubernetesClusterID(aks_id)
+	if err != nil {
+		return err
+	}
+	kubernetes_cluster_name := aks_id_details.ManagedClusterName
+	kubernetes_cluster_rg := aks_id_details.ResourceGroup
 
 	// Get Existing AKS
-	aks_cluster, _ := kubernetes_clusters_client.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name)
+	aks_cluster, err := aksClient.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name)
+	if err != nil {
+		return err
+	}
 
 	pool_name := d.Get("node_pool_name").(string)
-	node_pool, _ := node_pools_client.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name, pool_name)
+	node_pool, err := poolsClient.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name, pool_name)
+	if err != nil {
+		return err
+	}
 
 	t := d.Get("tags").(map[string]interface{})
 
-	identity := d.Get("identity")
+	identity := d.Get("identity").([]interface{})
+	ssl := expandSSLConfig(d)
 
-	ssl_config := expandSSLConfig(d)
 	cluster_purpose := d.Get("cluster_purpose").(string)
 	var map_cluster_purpose = map[string]string{
 		"Dev":  "DevTest",
@@ -220,13 +222,12 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 		"Prod": "FastProd",
 	}
 	aks_cluster_purpose := machinelearningservices.ClusterPurpose(map_cluster_purpose[cluster_purpose])
-	aks_properties := expandAksProperties(&aks_cluster, &node_pool, ssl_config, aks_cluster_purpose)
 
+	aks_properties := expandAksProperties(&aks_cluster, &node_pool, ssl, aks_cluster_purpose)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
 	aks_compute_properties := expandAksComputeProperties(aks_properties, &aks_cluster, &node_pool, location, description)
 	compute_properties, is_aks := (machinelearningservices.BasicCompute).AsAKS(aks_compute_properties)
-
 	if !is_aks {
 		return fmt.Errorf("error: No AKS cluster")
 	}
@@ -237,7 +238,7 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 		// ID - READ-ONLY; Specifies the resource ID.
 		// Name - READ-ONLY; Specifies the name of the resource.
 		// Identity - The identity of the resource.
-		Identity: expandMachineLearningComputeClusterIdentity(identity.([]interface{})),
+		Identity: expandAksInferenceClusterIdentity(identity),
 		// Location - Specifies the location of the resource.
 		Location: &location,
 		// Type - READ-ONLY; Specifies the type of the resource.
@@ -251,16 +252,16 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 		aks_compute_properties.Description = utils.String(v.(string))
 	}
 
-	future, ml_err := machine_learning_compute_client.CreateOrUpdate(ctx, resource_group_name, workspace_name, name, inference_cluster_parameters)
-	if ml_err != nil {
-		return fmt.Errorf("error creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, ml_err)
+	future, err := mlComputeClient.CreateOrUpdate(ctx, resource_group_name, workspace_name, name, inference_cluster_parameters)
+	if err != nil {
+		return fmt.Errorf("error creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, machine_learning_compute_client.Client); err != nil {
+	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
 		return fmt.Errorf("error waiting for creation of Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, err)
 	}
-	resp, ml_get_err := machine_learning_compute_client.Get(ctx, resource_group_name, workspace_name, name)
-	if ml_get_err != nil {
-		return fmt.Errorf("error retrieving Inference Cluster Compute %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, ml_get_err)
+	resp, err := mlComputeClient.Get(ctx, resource_group_name, workspace_name, name)
+	if err != nil {
+		return fmt.Errorf("error retrieving Inference Cluster Compute %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, err)
 	}
 
 	if resp.ID == nil {
@@ -273,9 +274,10 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) error {
-	machine_learning_compute_client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
-	kubernetes_clusters_client := meta.(*clients.Client).Containers.KubernetesClustersClient
-	node_pools_client := meta.(*clients.Client).Containers.AgentPoolsClient
+	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.WorkspacesClient
+	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
+	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -284,49 +286,68 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error parsing Inference Cluster ID `%q`: %+v", d.Id(), err)
 	}
 
-	resp, err := machine_learning_compute_client.Get(ctx, id.ResourceGroup, id.Name, id.InferenceClusterName)
+	d.Set("name", id.InferenceClusterName)
+
+	// Check that Inference Cluster Response can be read
+	resp, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.InferenceClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error making Read request on Inference Cluster %q in Workspace %q (Resource Group %q): %+v", id.InferenceClusterName, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("error making Read request on Inference Cluster %q in Workspace %q (Resource Group %q): %+v",
+			id.InferenceClusterName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("workspace_name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("name", id.InferenceClusterName)
+	// Retrieve Machine Learning Workspace ID
+	ws_resp, err := mlWorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+	if err != nil {
+		return err
+	}
+	d.Set("machine_learning_workspace_id", *ws_resp.ID)
 
-	aks_resp, _ := kubernetes_clusters_client.ListByResourceGroup(ctx, id.ResourceGroup)
-	kubernetes_cluster_name := aks_resp.Values()[0].Name
-	resource_id := aks_resp.Values()[0].ID
+	// Retrieve AKS Cluster ID
+	aks_resp, err := aksClient.ListByResourceGroup(ctx, id.ResourceGroup)
+	if err != nil {
+		return err
+	}
 
-	// get SSL configuration from ak1 below by getting an aks to pass to AsAKS by using the methods in create function... =
-	node_pool_list, _ := node_pools_client.List(ctx, id.ResourceGroup, *kubernetes_cluster_name)
+	aks_id := *(aks_resp.Values()[0].ID)
+
+	// Retrieve AKS Cluster name and Node pool name from ID
+	aks_id_details, err := parse.KubernetesClusterID(aks_id)
+	if err != nil {
+		return err
+	}
+
+	kubernetes_cluster_name := aks_id_details.ManagedClusterName
+	node_pool_list, _ := poolsClient.List(ctx, id.ResourceGroup, kubernetes_cluster_name)
 	pool_name := node_pool_list.Values()[0].Name
 
-	d.Set("kubernetes_cluster_name", kubernetes_cluster_name)
-	d.Set("kubernetes_cluster_rg", id.ResourceGroup)
-	d.Set("resource_id", resource_id)
+	d.Set("kubernetes_cluster_id", aks_id)
 	d.Set("node_pool_name", pool_name)
 
+	// Retrieve location
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	// Retrieve Sku
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
 
+	// Retrieve Identity
 	if err := d.Set("identity", flattenAksInferenceClusterIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("error flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("error flattening identity on Workspace %q (Resource Group %q): %+v",
+			id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	machine_learning_compute_client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.InferenceClusterID(d.Id())
@@ -334,60 +355,50 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error parsing Inference Cluster ID `%q`: %+v", d.Id(), err)
 	}
 	underlying_resource_action := machinelearningservices.Detach
-	future, err := machine_learning_compute_client.Delete(ctx, id.ResourceGroup, id.Name, id.InferenceClusterName, underlying_resource_action)
+	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.InferenceClusterName, underlying_resource_action)
 	if err != nil {
-		return fmt.Errorf("error deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v", id.InferenceClusterName, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("error deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
+			id.InferenceClusterName, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, machine_learning_compute_client.Client); err != nil {
-		return fmt.Errorf("error waiting for deletion of Inference Cluster %q in workspace %q (Resource Group %q): %+v", id.InferenceClusterName, id.Name, id.ResourceGroup, err)
+	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
+		return fmt.Errorf("error waiting for deletion of Inference Cluster %q in workspace %q (Resource Group %q): %+v",
+			id.InferenceClusterName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	return nil
 }
 
 func expandSSLConfig(d *schema.ResourceData) *machinelearningservices.SslConfiguration {
-	// Documentation: https://docs.microsoft.com/en-us/azure/machine-learning/how-to-secure-web-service
-	var map_ssl_enabled = map[bool]string{
-		true:  "Enabled",
-		false: "Disabled",
+	// SSL Certificate default values
+	ssl_status := "Disabled"
+	cert := ""
+	key := ""
+	cname := ""
+
+	// SSL Custom Certificate settings
+	ssl := d.Get("ssl").(*schema.Set).List()
+
+	if len(ssl) > 0 && ssl[0] != nil {
+		ssl_map := ssl[0].(map[string]interface{})
+		cert = ssl_map["cert"].(string)
+		key = ssl_map["key"].(string)
+		cname = ssl_map["cname"].(string)
 	}
 
-	// --- SSL Configurations ---
-	ssl_enabled := map_ssl_enabled[d.Get("ssl_enabled").(bool)]
+	if !(cert == "" && key == "" && cname == "") {
+		ssl_status = "Enabled"
+	}
 
-	// SSL Certificate default values
-	cert_file := ""
-	key_file := ""
-	cname := ""
+	// Microsoft Certs do not work unfortunately, so just default values for now
 	leaf_domain_label := ""
 	overwrite_existing_domain := false
 
-	// SSL Custom Certificate settings
-	ssl_certificate_custom_refs := d.Get("ssl_certificate_custom").(*schema.Set).List()
-
-	if len(ssl_certificate_custom_refs) > 0 && ssl_certificate_custom_refs[0] != nil {
-		ssl_certificate_custom_ref := ssl_certificate_custom_refs[0].(map[string]interface{})
-		cert_file = ssl_certificate_custom_ref["cert"].(string)
-		key_file = ssl_certificate_custom_ref["key"].(string)
-		cname = ssl_certificate_custom_ref["cname"].(string)
-	}
-
 	return &machinelearningservices.SslConfiguration{
-		Status:                  machinelearningservices.Status1(ssl_enabled),
-		Cert:                    utils.String(cert_file),
-		Key:                     utils.String(key_file),
+		Status:                  machinelearningservices.Status1(ssl_status),
+		Cert:                    utils.String(cert),
+		Key:                     utils.String(key),
 		Cname:                   utils.String(cname),
 		LeafDomainLabel:         utils.String(leaf_domain_label),
 		OverwriteExistingDomain: utils.Bool(overwrite_existing_domain)}
-}
-
-func flattenCustomSSLConfig(ssl_config *machinelearningservices.SslConfiguration) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"cert":  *(ssl_config.Cert),
-			"key":   *(ssl_config.Key),
-			"cname": *(ssl_config.Cname),
-		},
-	}
 }
 
 func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node_pool *containerservice.AgentPool) *machinelearningservices.AksNetworkingConfiguration {
@@ -404,7 +415,7 @@ func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node
 }
 
 func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool *containerservice.AgentPool,
-	ssl_config *machinelearningservices.SslConfiguration, cluster_purpose machinelearningservices.ClusterPurpose) *machinelearningservices.AKSProperties {
+	ssl *machinelearningservices.SslConfiguration, cluster_purpose machinelearningservices.ClusterPurpose) *machinelearningservices.AKSProperties {
 	// https://github.com/Azure/azure-sdk-for-go/blob/v53.1.0/services/containerservice/mgmt/2020-12-01/containerservice/models.go#L1865
 	fqdn := *(aks_cluster.ManagedClusterProperties.Fqdn)
 	agent_count := *(node_pool.ManagedClusterAgentPoolProfileProperties).Count
@@ -425,7 +436,7 @@ func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool
 		// AgentVMSize - Agent virtual machine size
 		AgentVMSize: utils.String(agent_vmsize),
 		// SslConfiguration - SSL configuration
-		SslConfiguration: ssl_config,
+		SslConfiguration: ssl,
 		// AksNetworkingConfiguration - AKS networking configuration for vnet
 		AksNetworkingConfiguration: expandAksNetworkingConfiguration(aks_cluster, node_pool),
 		// ClusterPurpose - Possible values include: 'FastProd', 'DenseProd', 'DevTest'
@@ -455,20 +466,16 @@ func expandAksComputeProperties(aks_properties *machinelearningservices.AKSPrope
 	}
 }
 
-func expandMachineLearningComputeClusterIdentity(input []interface{}) *machinelearningservices.Identity {
+func expandAksInferenceClusterIdentity(input []interface{}) *machinelearningservices.Identity {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	identityType := machinelearningservices.ResourceIdentityType(v["type"].(string))
-
-	identity := machinelearningservices.Identity{
-		Type: identityType,
+	return &machinelearningservices.Identity{
+		Type: machinelearningservices.ResourceIdentityType(v["type"].(string)),
 	}
-
-	return &identity
 }
 
 func flattenAksInferenceClusterIdentity(identity *machinelearningservices.Identity) []interface{} {

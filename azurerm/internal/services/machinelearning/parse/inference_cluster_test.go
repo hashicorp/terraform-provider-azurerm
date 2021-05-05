@@ -49,7 +49,7 @@ func TestInferenceClusterID(t *testing.T) {
 			Error: false,
 			Expect: &InferenceClusterId{
 				ResourceGroup:        "resGroup1",
-				Name:                 "workspace1",
+				WorkspaceName:        "workspace1",
 				InferenceClusterName: "cluster1",
 			},
 		},
@@ -67,8 +67,8 @@ func TestInferenceClusterID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %+v", err)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.WorkspaceName != v.Expect.WorkspaceName {
+			t.Fatalf("Expected %q but got %q for Workspace Name", v.Expect.WorkspaceName, actual.WorkspaceName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
