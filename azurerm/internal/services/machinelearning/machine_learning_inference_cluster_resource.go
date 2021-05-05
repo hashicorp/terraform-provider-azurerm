@@ -226,7 +226,7 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	aks_properties := expandAksProperties(&aks_cluster, &node_pool, ssl, aks_cluster_purpose)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
-	aks_compute_properties := expandAksComputeProperties(aks_properties, &aks_cluster, &node_pool, location, description)
+	aks_compute_properties := expandAksComputeProperties(aks_properties, &aks_cluster, location, description)
 	compute_properties, is_aks := (machinelearningservices.BasicCompute).AsAKS(aks_compute_properties)
 	if !is_aks {
 		return fmt.Errorf("error: No AKS cluster")
@@ -402,7 +402,7 @@ func expandSSLConfig(d *schema.ResourceData) *machinelearningservices.SslConfigu
 }
 
 func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node_pool *containerservice.AgentPool) *machinelearningservices.AksNetworkingConfiguration {
-	subnet_id := *(node_pool.ManagedClusterAgentPoolProfileProperties).VnetSubnetID //d.Get("subnet_id").(string)
+	subnet_id := *(node_pool.ManagedClusterAgentPoolProfileProperties).VnetSubnetID 
 	service_cidr := *(aks.NetworkProfile.ServiceCidr)
 	dns_service_ip := *(aks.NetworkProfile.DNSServiceIP)
 	docker_bridge_cidr := *(aks.NetworkProfile.DockerBridgeCidr)
@@ -416,7 +416,6 @@ func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node
 
 func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool *containerservice.AgentPool,
 	ssl *machinelearningservices.SslConfiguration, cluster_purpose machinelearningservices.ClusterPurpose) *machinelearningservices.AKSProperties {
-	// https://github.com/Azure/azure-sdk-for-go/blob/v53.1.0/services/containerservice/mgmt/2020-12-01/containerservice/models.go#L1865
 	fqdn := *(aks_cluster.ManagedClusterProperties.Fqdn)
 	agent_count := *(node_pool.ManagedClusterAgentPoolProfileProperties).Count
 	agent_vmsize := string(node_pool.ManagedClusterAgentPoolProfileProperties.VMSize)
@@ -444,8 +443,7 @@ func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool
 	}
 }
 
-func expandAksComputeProperties(aks_properties *machinelearningservices.AKSProperties, aks_cluster *containerservice.ManagedCluster,
-	node_pool *containerservice.AgentPool, location string, description string) machinelearningservices.AKS {
+func expandAksComputeProperties(aks_properties *machinelearningservices.AKSProperties, aks_cluster *containerservice.ManagedCluster, location string, description string) machinelearningservices.AKS {
 
 	return machinelearningservices.AKS{
 		// Properties - AKS properties
