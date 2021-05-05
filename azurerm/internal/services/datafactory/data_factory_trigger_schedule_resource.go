@@ -78,13 +78,13 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 			"frequency": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(datafactory.Minute),
+				Default:  string(datafactory.RecurrenceFrequencyMinute),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.Minute),
-					string(datafactory.Hour),
-					string(datafactory.Day),
-					string(datafactory.Week),
-					string(datafactory.Month),
+					string(datafactory.RecurrenceFrequencyMinute),
+					string(datafactory.RecurrenceFrequencyHour),
+					string(datafactory.RecurrenceFrequencyDay),
+					string(datafactory.RecurrenceFrequencyWeek),
+					string(datafactory.RecurrenceFrequencyMonth),
 				}, false),
 			},
 
@@ -234,7 +234,7 @@ func resourceDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interfa
 
 	scheduleTriggerProps, ok := resp.Properties.AsScheduleTrigger()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeScheduleTrigger, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
 	if scheduleTriggerProps != nil {

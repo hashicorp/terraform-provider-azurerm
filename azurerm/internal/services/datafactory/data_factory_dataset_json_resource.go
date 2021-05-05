@@ -272,7 +272,7 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta int
 		jsonTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeJSON)
+	datasetType := string(datafactory.TypeBasicDatasetTypeJSON)
 	dataset := datafactory.DatasetResource{
 		Properties: &jsonTableset,
 		Type:       &datasetType,
@@ -325,7 +325,7 @@ func resourceDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interface{}
 
 	jsonTable, ok := resp.Properties.AsJSONDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeJSON, *resp.Type)
 	}
 
 	d.Set("additional_properties", jsonTable.AdditionalProperties)

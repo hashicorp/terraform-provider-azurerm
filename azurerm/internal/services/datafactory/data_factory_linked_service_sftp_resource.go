@@ -152,7 +152,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 
 	passwordSecureString := datafactory.SecureString{
 		Value: &password,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
@@ -168,7 +168,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 	sftpLinkedService := &datafactory.SftpServerLinkedService{
 		Description:                           &description,
 		SftpServerLinkedServiceTypeProperties: sftpProperties,
-		Type:                                  datafactory.TypeSftp,
+		Type:                                  datafactory.TypeBasicLinkedServiceTypeSftp,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -239,7 +239,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta inter
 
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSftp, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, *resp.Type)
 	}
 
 	d.Set("authentication_type", sftp.AuthenticationType)

@@ -208,7 +208,7 @@ func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, me
 		postgresqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypePostgreSQLTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &postgresqlTableset,
 		Type:       &datasetType,
@@ -261,7 +261,7 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta inter
 
 	postgresqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypePostgreSQLTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresqlTable.AdditionalProperties)

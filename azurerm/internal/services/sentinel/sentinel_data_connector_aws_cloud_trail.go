@@ -92,7 +92,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 			AwsRoleArn: utils.String(d.Get("aws_role_arn").(string)),
 			DataTypes: &securityinsight.AwsCloudTrailDataConnectorDataTypes{
 				Logs: &securityinsight.AwsCloudTrailDataConnectorDataTypesLogs{
-					State: securityinsight.Enabled,
+					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
 		},

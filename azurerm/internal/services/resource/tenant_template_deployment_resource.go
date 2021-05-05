@@ -120,7 +120,7 @@ func tenantTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interfa
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -192,7 +192,7 @@ func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interfa
 		Location: template.Location,
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: template.Properties.DebugSetting,
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: template.Tags,
 	}

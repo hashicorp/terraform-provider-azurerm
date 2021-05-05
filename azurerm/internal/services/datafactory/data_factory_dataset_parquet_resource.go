@@ -291,7 +291,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *schema.ResourceData, meta 
 		parquetTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeParquet)
+	datasetType := string(datafactory.TypeBasicDatasetTypeParquet)
 	dataset := datafactory.DatasetResource{
 		Properties: &parquetTableset,
 		Type:       &datasetType,
@@ -332,7 +332,7 @@ func resourceDataFactoryDatasetParquetRead(d *schema.ResourceData, meta interfac
 
 	parquetTable, ok := resp.Properties.AsParquetDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeParquet, *resp.Type)
 	}
 
 	d.Set("additional_properties", parquetTable.AdditionalProperties)

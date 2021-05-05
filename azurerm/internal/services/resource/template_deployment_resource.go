@@ -74,8 +74,8 @@ func resourceTemplateDeployment() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(resources.Complete),
-					string(resources.Incremental),
+					string(resources.DeploymentModeComplete),
+					string(resources.DeploymentModeIncremental),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
