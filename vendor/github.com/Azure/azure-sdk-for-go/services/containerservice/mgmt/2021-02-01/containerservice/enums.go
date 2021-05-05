@@ -385,11 +385,13 @@ const (
 	UpgradeChannelRapid UpgradeChannel = "rapid"
 	// UpgradeChannelStable ...
 	UpgradeChannelStable UpgradeChannel = "stable"
+	// UpgradeChannelStable ...
+	UpgradeChannelNodeImage UpgradeChannel = "node-image"
 )
 
 // PossibleUpgradeChannelValues returns an array of possible values for the UpgradeChannel const type.
 func PossibleUpgradeChannelValues() []UpgradeChannel {
-	return []UpgradeChannel{UpgradeChannelNone, UpgradeChannelPatch, UpgradeChannelRapid, UpgradeChannelStable}
+	return []UpgradeChannel{UpgradeChannelNone, UpgradeChannelPatch, UpgradeChannelRapid, UpgradeChannelStable, UpgradeChannelNodeImage}
 }
 
 // VMSizeTypes enumerates the values for vm size types.
