@@ -14,17 +14,15 @@ Manages a Machine Learning Inference Cluster.
 
 ```hcl
 resource "azurerm_machine_learning_inference_cluster" "example" {
-  name = "cluster-name"
-  resource_group_name = "cluster-rg"
-  location = "West Europe"
-  workspace_name = "aml-ws"
+  name                  = "example"
+  location              = "West Europe"
+  kubernetes_cluster_id = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1"
 
   identity {
-    type = "SystemAssigned"    
+    type = "SystemAssigned"
   }
-  kubernetes_cluster_name = "k8s-cluster-name"
-  node_pool_name = "default"
-  kubernetes_cluster_rg = "k8s-cluster-rg"
+  machine_learning_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1"
+  node_pool_name                = "example"
 }
 ```
 
@@ -34,19 +32,15 @@ The following arguments are supported:
 
 * `identity` - (Required) A `identity` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 
-* `kubernetes_cluster_name` - (Required) The name of the Kubernetes Cluster resource to which to attach the inference cluster to. Changing this forces a new Machine Learning Inference Cluster to be created.
-
-* `kubernetes_cluster_rg` - (Required) The name of the resource group in which the Kubernetes Cluster resides. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `location` - (Required) The Azure Region where the Machine Learning Inference Cluster should exist. Changing this forces a new Machine Learning Inference Cluster to be created.
+
+* `machine_learning_workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `name` - (Required) The name which should be used for this Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `node_pool_name` - (Required) The name of the Kubernetes Cluster's node pool. Changing this forces a new Machine Learning Inference Cluster to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Machine Learning Inference Cluster should exist. Changing this forces a new Machine Learning Inference Cluster to be created.
-
-* `workspace_name` - (Required) The name of the Azure Machine Learning Workspace where the Machine Learning Inference Cluster should exist. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ---
 
@@ -54,9 +48,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Machine Learning compute.
 
-* `ssl_certificate_custom` - (Optional) One or more `ssl_certificate_custom` blocks as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
-
-* `ssl_enabled` - (Optional) Should the SSL Configuration be enabled?
+* `ssl` - (Optional) A `ssl` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Inference Cluster.
 
@@ -68,21 +60,19 @@ A `identity` block supports the following:
 
 ---
 
-A `ssl_certificate_custom` block (maximally *one*) supports the following:
+A `ssl` block supports the following:
 
-* `cert` - (Optional) The content of the custom SSL certificate.
+* `cert` - (Optional) The certificate for the ssl configuration.
 
-* `cname` - (Optional) The Cname of the custom SSL certificate.
+* `cname` - (Optional) The cname of the ssl configuration.
 
-* `key` - (Optional) The content of the key file.
+* `key` - (Optional) The key content for the ssl configuration.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Machine Learning Inference Cluster.
-
-* `resource_id` - The ID of the Machine Learning Inference Cluster.
 
 * `sku_name` - The type of SKU.
 
