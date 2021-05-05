@@ -1135,12 +1135,6 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "Internet"
   }
 
-  route {
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.northeurope"
-    address_prefix = "EventHub.northeurope"
-    next_hop_type  = "Internet"
-  }
-
   depends_on = [
     azurerm_subnet.test,
   ]
