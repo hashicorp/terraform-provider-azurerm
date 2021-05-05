@@ -21,15 +21,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 
 !> **Breaking Provider Change:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the v2.58.0 provider due to changes made by the service team. If you wish to enable the custom https configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
 
-!> **Breaking Behavior Change:** With the release of the v2.58.0 provider, if you run the `apply` command against an existing Front Door resource you will receive the following error: 
-
-```
-Error: Front Door "example-FrontDoor" (Resource Group "FrontDoorExampleResourceGroup"): Built the Explicit Resource Order table in the state file. Please run 'plan' again.
-
-  on main.tf line 75, in resource "azurerm_frontdoor" "example":
-  75: resource "azurerm_frontdoor" "example" {
-```
-**NOTE:** This will only happen once with existing Front Door's only and will not happen with newly provisioned Front Door resources. This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource provider by Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned.
+!> **Breaking Behavior Change:** With the release of the v2.58.0 provider, if you run the `apply` command against an existing Front Door resource the changes will not be applied. This will only happen once with preexisting Front Door instances and will not affect newly provisioned Front Door resources. This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource provider by Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned. This will only happen one time, to avoid unwanted changes from being provisioned, once the `explicit_resource_order` mapping structure has been persisted to the state file the resource will resume functioning normally.
 
 ## Example Usage
 

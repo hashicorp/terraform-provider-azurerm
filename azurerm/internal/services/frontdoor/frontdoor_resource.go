@@ -596,34 +596,34 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	// If the explicitResourceOrder is NOT empty and it is NOT a new resource it will run the CreateOrUpdate as expected
 	if len(explicitResourceOrder) == 0 && !d.IsNewResource() {
 		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
-		return fmt.Errorf("Front Door %q (Resource Group %q): Built the Explicit Resource Order table in the state file. Please run 'plan' again.", frontDoorId.Name, frontDoorId.ResourceGroup)
+	} else {
+		frontDoorParameters := frontdoor.FrontDoor{
+			Location: utils.String(location),
+			Properties: &frontdoor.Properties{
+				FriendlyName:          utils.String(friendlyName),
+				RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
+				BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
+				BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
+				FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
+				HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId),
+				LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId),
+				EnabledState:          expandFrontDoorEnabledState(enabledState),
+			},
+			Tags: tags.Expand(t),
+		}
+
+		future, err := client.CreateOrUpdate(ctx, frontDoorId.ResourceGroup, frontDoorId.Name, frontDoorParameters)
+		if err != nil {
+			return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
+		}
+
+		d.SetId(frontDoorId.ID())
+		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	}
 
-	frontDoorParameters := frontdoor.FrontDoor{
-		Location: utils.String(location),
-		Properties: &frontdoor.Properties{
-			FriendlyName:          utils.String(friendlyName),
-			RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
-			BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
-			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
-			FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
-			HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId),
-			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId),
-			EnabledState:          expandFrontDoorEnabledState(enabledState),
-		},
-		Tags: tags.Expand(t),
-	}
-
-	future, err := client.CreateOrUpdate(ctx, frontDoorId.ResourceGroup, frontDoorId.Name, frontDoorParameters)
-	if err != nil {
-		return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
-	}
-
-	d.SetId(frontDoorId.ID())
-	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	return resourceFrontDoorRead(d, meta)
 }
 
