@@ -796,6 +796,7 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
+
 func resourceFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -821,6 +822,7 @@ func resourceFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return nil
 }
+
 func expandFrontDoorBackendPools(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.BackendPool {
 	if len(input) == 0 {
 		return &[]frontdoor.BackendPool{}
@@ -857,6 +859,7 @@ func expandFrontDoorBackendPools(input []interface{}, frontDoorId parse.FrontDoo
 
 	return &output
 }
+
 func expandFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
 	if len(input) == 0 {
 		return &[]frontdoor.Backend{}
@@ -888,12 +891,14 @@ func expandFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
 
 	return &output
 }
+
 func expandFrontDoorBackendEnabledState(isEnabled bool) frontdoor.BackendEnabledState {
 	if isEnabled {
 		return frontdoor.Enabled
 	}
 	return frontdoor.Disabled
 }
+
 func expandFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, backendPoolsSendReceiveTimeoutSeconds int32) *frontdoor.BackendPoolsSettings {
 	enforceCheck := frontdoor.EnforceCertificateNameCheckEnabledStateDisabled
 
@@ -908,6 +913,7 @@ func expandFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, backe
 
 	return &result
 }
+
 func expandFrontDoorFrontendEndpoint(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.FrontendEndpoint {
 	if len(input) == 0 {
 		return &[]frontdoor.FrontendEndpoint{}
@@ -949,6 +955,7 @@ func expandFrontDoorFrontendEndpoint(input []interface{}, frontDoorId parse.Fron
 
 	return &output
 }
+
 func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.HealthProbeSettingsModel {
 	if len(input) == 0 {
 		return &[]frontdoor.HealthProbeSettingsModel{}
@@ -987,6 +994,7 @@ func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId pa
 
 	return &output
 }
+
 func expandFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.LoadBalancingSettingsModel {
 	if len(input) == 0 {
 		return &[]frontdoor.LoadBalancingSettingsModel{}
@@ -1016,6 +1024,7 @@ func expandFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId 
 
 	return &output
 }
+
 func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.RoutingRule {
 	if len(input) == 0 {
 		return nil
@@ -1060,6 +1069,7 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 
 	return &output
 }
+
 func expandFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Protocol {
 	if len(input) == 0 {
 		return &[]frontdoor.Protocol{}
@@ -1077,6 +1087,7 @@ func expandFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Protocol
 
 	return &output
 }
+
 func expandFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.SubResource {
 	if len(input) == 0 {
 		return &[]frontdoor.SubResource{}
@@ -1094,12 +1105,14 @@ func expandFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId parse.Fro
 
 	return &output
 }
+
 func expandFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
 	if enabled {
 		return frontdoor.EnabledStateEnabled
 	}
 	return frontdoor.EnabledStateDisabled
 }
+
 func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoor.RedirectConfiguration {
 	if len(input) == 0 {
 		return frontdoor.RedirectConfiguration{}
@@ -1135,6 +1148,7 @@ func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redirec
 	}
 	return redirectConfiguration
 }
+
 func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId parse.FrontDoorId) frontdoor.ForwardingConfiguration {
 	if len(input) == 0 {
 		return frontdoor.ForwardingConfiguration{}
@@ -1182,6 +1196,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 
 	return forwardingConfiguration
 }
+
 func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings []interface{}, frontDoorId parse.FrontDoorId) *[]interface{} {
 	output := make([]interface{}, 0)
 	var backendPoolOrder []string
@@ -1248,6 +1263,49 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 
 	return &output
 }
+
+func combineBackendPools(allPools []frontdoor.BackendPool, orderedIds []interface{}, frontDoorId parse.FrontDoorId) ([]interface{}, error) {
+	output := make([]interface{}, 0)
+	found := false
+
+	// first find all of the ones in the ordered mapping list and add them in the correct order
+	for _, v := range orderedIds {
+		for _, backend := range allPools {
+			if strings.EqualFold(v.(string), *backend.ID) {
+				orderedBackendPool, err := flattenSingleFrontDoorBackendPools(&backend, frontDoorId)
+				if err == nil {
+					output = append(output, orderedBackendPool)
+					break
+				} else {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	// Now check to see if items were added to the resource via the portal and add them to the state file
+	for _, backend := range allPools {
+		found = false
+		for _, orderedId := range orderedIds {
+			if strings.EqualFold(orderedId.(string), *backend.ID) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			newBackendPool, err := flattenSingleFrontDoorBackendPools(&backend, frontDoorId)
+			if err == nil {
+				output = append(output, newBackendPool)
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	return output, nil
+}
+
 func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
@@ -1258,19 +1316,11 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 	if len(explicitOrder) > 0 {
 		orderedBackendPools := explicitOrder[0].(map[string]interface{})
 		orderedBackendPoolsIds := orderedBackendPools["backend_pool_ids"].([]interface{})
-
-		for _, v := range orderedBackendPoolsIds {
-			for _, backend := range *input {
-				if strings.EqualFold(v.(string), *backend.ID) {
-					orderedBackendPool, err := flattenSingleFrontDoorBackendPools(&backend, frontDoorId)
-					if err == nil {
-						output = append(output, orderedBackendPool)
-						break
-					} else {
-						return nil, err
-					}
-				}
-			}
+		combinedBackendPools, err := combineBackendPools(*input, orderedBackendPoolsIds, frontDoorId)
+		if err == nil {
+			output = combinedBackendPools
+		} else {
+			return nil, err
 		}
 	} else {
 		for _, backend := range *input {
@@ -1285,6 +1335,7 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 
 	return &output, nil
 }
+
 func flattenSingleFrontDoorBackendPools(input *frontdoor.BackendPool, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
 	if input == nil {
 		return make(map[string]interface{}), nil
@@ -1358,6 +1409,7 @@ func flattenFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings)
 		backendPoolsSendReceiveTimeoutSeconds:   sendReceiveTimeoutSeconds,
 	}
 }
+
 func flattenFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -1389,6 +1441,7 @@ func flattenFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 
 	return output
 }
+
 func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoor.FrontendEndpointsClient, frontDoorId parse.FrontDoorId, endpoints *[]frontdoor.FrontendEndpoint) (*[]frontdoor.FrontendEndpoint, error) {
 	output := make([]frontdoor.FrontendEndpoint, 0)
 	if endpoints == nil {
@@ -1410,6 +1463,49 @@ func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoor.
 
 	return &output, nil
 }
+
+func combineFrontEndEndpoints(allEndpoints []frontdoor.FrontendEndpoint, orderedIds []interface{}, frontDoorId parse.FrontDoorId) ([]interface{}, error) {
+	output := make([]interface{}, 0)
+	found := false
+
+	// first find all of the ones in the ordered mapping list and add them in the correct order
+	for _, v := range orderedIds {
+		for _, frontendEndpoint := range allEndpoints {
+			if strings.EqualFold(v.(string), *frontendEndpoint.ID) {
+				orderedFrontendEndpoint, err := flattenSingleFrontEndEndpoints(frontendEndpoint, frontDoorId)
+				if err == nil {
+					output = append(output, orderedFrontendEndpoint)
+					break
+				} else {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	// Now check to see if items were added to the resource via the portal and add them to the state file
+	for _, frontendEndpoint := range allEndpoints {
+		found = false
+		for _, orderedId := range orderedIds {
+			if strings.EqualFold(orderedId.(string), *frontendEndpoint.ID) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			newFrontendEndpoint, err := flattenSingleFrontEndEndpoints(frontendEndpoint, frontDoorId)
+			if err == nil {
+				output = append(output, newFrontendEndpoint)
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	return output, nil
+}
+
 func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
 	output := make([]interface{}, 0)
 	if input == nil {
@@ -1419,18 +1515,11 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 	if len(explicitOrder) > 0 {
 		orderedFrontEnd := explicitOrder[0].(map[string]interface{})
 		orderedFrontEndIds := orderedFrontEnd["frontend_endpoint_ids"].([]interface{})
-		for _, v := range orderedFrontEndIds {
-			for _, frontend := range *input {
-				if strings.EqualFold(v.(string), *frontend.ID) {
-					orderedFrontendEndpoint, err := flattenSingleFrontEndEndpoints(frontend, frontDoorId)
-					if err == nil {
-						output = append(output, orderedFrontendEndpoint)
-						break
-					} else {
-						return nil, err
-					}
-				}
-			}
+		combinedFrontEndEndpoints, err := combineFrontEndEndpoints(*input, orderedFrontEndIds, frontDoorId)
+		if err == nil {
+			output = combinedFrontEndEndpoints
+		} else {
+			return nil, err
 		}
 	} else {
 		for _, v := range *input {
@@ -1445,6 +1534,7 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 
 	return &output, nil
 }
+
 func flattenSingleFrontEndEndpoints(input frontdoor.FrontendEndpoint, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
 	id := ""
 	name := ""
@@ -1497,6 +1587,41 @@ func flattenSingleFrontEndEndpoints(input frontdoor.FrontendEndpoint, frontDoorI
 
 	return output, nil
 }
+
+func combineHealthProbeSettingsModel(allHealthProbeSettings []frontdoor.HealthProbeSettingsModel, orderedIds []interface{}, frontDoorId parse.FrontDoorId) []interface{} {
+	output := make([]interface{}, 0)
+	found := false
+
+	// first find all of the ones in the ordered mapping list and add them in the correct order
+	for _, v := range orderedIds {
+		for _, healthProbeSetting := range allHealthProbeSettings {
+			if strings.EqualFold(v.(string), *healthProbeSetting.ID) {
+				orderedHealthProbeSetting := flattenSingleFrontDoorHealthProbeSettingsModel(&healthProbeSetting, frontDoorId)
+				output = append(output, orderedHealthProbeSetting)
+				break
+			}
+		}
+	}
+
+	// Now check to see if items were added to the resource via the portal and add them to the state file
+	for _, healthProbeSetting := range allHealthProbeSettings {
+		found = false
+		for _, orderedId := range orderedIds {
+			if strings.EqualFold(orderedId.(string), *healthProbeSetting.ID) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			newHealthProbeSetting := flattenSingleFrontDoorHealthProbeSettingsModel(&healthProbeSetting, frontDoorId)
+			output = append(output, newHealthProbeSetting)
+		}
+	}
+
+	return output
+}
+
 func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) []interface{} {
 	output := make([]interface{}, 0)
 	if input == nil {
@@ -1506,15 +1631,7 @@ func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSett
 	if len(explicitOrder) > 0 {
 		orderedHealthProbeSetting := explicitOrder[0].(map[string]interface{})
 		orderedHealthProbeSettingIds := orderedHealthProbeSetting["backend_pool_health_probe_ids"].([]interface{})
-		for _, v := range orderedHealthProbeSettingIds {
-			for _, healthProbeSetting := range *input {
-				if strings.EqualFold(v.(string), *healthProbeSetting.ID) {
-					orderedHealthProbeSetting := flattenSingleFrontDoorHealthProbeSettingsModel(&healthProbeSetting, frontDoorId)
-					output = append(output, orderedHealthProbeSetting)
-					break
-				}
-			}
-		}
+		output = combineHealthProbeSettingsModel(*input, orderedHealthProbeSettingIds, frontDoorId)
 	} else {
 		for _, v := range *input {
 			healthProbeSetting := flattenSingleFrontDoorHealthProbeSettingsModel(&v, frontDoorId)
@@ -1524,6 +1641,7 @@ func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSett
 
 	return output
 }
+
 func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId) map[string]interface{} {
 	if input == nil {
 		return make(map[string]interface{})
@@ -1573,6 +1691,41 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoor.HealthProbe
 
 	return output
 }
+
+func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoor.LoadBalancingSettingsModel, orderedIds []interface{}, frontDoorId parse.FrontDoorId) []interface{} {
+	output := make([]interface{}, 0)
+	found := false
+
+	// first find all of the ones in the ordered mapping list and add them in the correct order
+	for _, v := range orderedIds {
+		for _, loadBalancingSetting := range allLoadBalancingSettings {
+			if strings.EqualFold(v.(string), *loadBalancingSetting.ID) {
+				orderedLoadBalanceSetting := flattenSingleFrontDoorLoadBalancingSettingsModel(&loadBalancingSetting, frontDoorId)
+				output = append(output, orderedLoadBalanceSetting)
+				break
+			}
+		}
+	}
+
+	// Now check to see if items were added to the resource via the portal and add them to the state file
+	for _, loadBalanceSetting := range allLoadBalancingSettings {
+		found = false
+		for _, orderedId := range orderedIds {
+			if strings.EqualFold(orderedId.(string), *loadBalanceSetting.ID) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			newLoadBalanceSetting := flattenSingleFrontDoorLoadBalancingSettingsModel(&loadBalanceSetting, frontDoorId)
+			output = append(output, newLoadBalanceSetting)
+		}
+	}
+
+	return output
+}
+
 func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -1581,17 +1734,9 @@ func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancing
 	output := make([]interface{}, 0)
 
 	if len(explicitOrder) > 0 {
-		orderedRule := explicitOrder[0].(map[string]interface{})
-		orderedLoadBalancingIds := orderedRule["backend_pool_load_balancing_ids"].([]interface{})
-		for _, v := range orderedLoadBalancingIds {
-			for _, loadBalancingSetting := range *input {
-				if strings.EqualFold(v.(string), *loadBalancingSetting.ID) {
-					orderedLoadBalanceSetting := flattenSingleFrontDoorLoadBalancingSettingsModel(&loadBalancingSetting, frontDoorId)
-					output = append(output, orderedLoadBalanceSetting)
-					break
-				}
-			}
-		}
+		orderedLoadBalancingSettings := explicitOrder[0].(map[string]interface{})
+		orderedLoadBalancingIds := orderedLoadBalancingSettings["backend_pool_load_balancing_ids"].([]interface{})
+		output = combineLoadBalancingSettingsModel(*input, orderedLoadBalancingIds, frontDoorId)
 	} else {
 		for _, v := range *input {
 			loadBalanceSetting := flattenSingleFrontDoorLoadBalancingSettingsModel(&v, frontDoorId)
@@ -1601,6 +1746,7 @@ func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancing
 
 	return output
 }
+
 func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId) map[string]interface{} {
 	if input == nil {
 		return make(map[string]interface{})
@@ -1639,6 +1785,49 @@ func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoor.LoadBalan
 
 	return output
 }
+
+func combineRoutingRules(allRoutingRules []frontdoor.RoutingRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorId parse.FrontDoorId) ([]interface{}, error) {
+	output := make([]interface{}, 0)
+	found := false
+
+	// first find all of the ones in the ordered mapping list and add them in the correct order
+	for _, v := range orderedIds {
+		for _, routingRule := range allRoutingRules {
+			if strings.EqualFold(v.(string), *routingRule.ID) {
+				orderedRoutingRule, err := flattenSingleFrontDoorRoutingRule(routingRule, oldBlocks, frontDoorId)
+				if err == nil {
+					output = append(output, orderedRoutingRule)
+					break
+				} else {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	// Now check to see if items were added to the resource via the portal and add them to the state file
+	for _, routingRule := range allRoutingRules {
+		found = false
+		for _, orderedId := range orderedIds {
+			if strings.EqualFold(orderedId.(string), *routingRule.ID) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			newRoutingRule, err := flattenSingleFrontDoorRoutingRule(routingRule, oldBlocks, frontDoorId)
+			if err == nil {
+				output = append(output, newRoutingRule)
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	return output, nil
+}
+
 func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId, explicitOrder []interface{}) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
@@ -1649,19 +1838,11 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 	if len(explicitOrder) > 0 {
 		orderedRule := explicitOrder[0].(map[string]interface{})
 		orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
-		for _, v := range orderedRountingRuleIds {
-			for _, routingRule := range *input {
-				if strings.EqualFold(v.(string), *routingRule.ID) {
-					orderedRoutingRule, err := flattenSingleFrontDoorRoutingRule(routingRule, oldBlocks, frontDoorId)
-					if err == nil {
-						output = append(output, orderedRoutingRule)
-						break
-					} else {
-						return nil, err
-					}
-				}
-			}
+		combinedRoutingRules, err := combineRoutingRules(*input, oldBlocks, orderedRountingRuleIds, frontDoorId)
+		if err != nil {
+			return nil, err
 		}
+		output = combinedRoutingRules
 	} else {
 		for _, v := range *input {
 			routingRule, err := flattenSingleFrontDoorRoutingRule(v, oldBlocks, frontDoorId)
@@ -1675,6 +1856,7 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 
 	return &output, nil
 }
+
 func flattenSingleFrontDoorRoutingRule(input frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId) (map[string]interface{}, error) {
 	id := ""
 	name := ""
@@ -1726,6 +1908,7 @@ func flattenSingleFrontDoorRoutingRule(input frontdoor.RoutingRule, oldBlocks in
 
 	return output, nil
 }
+
 func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfiguration, oldConfig interface{}) (*[]interface{}, error) {
 	v, ok := config.(frontdoor.ForwardingConfiguration)
 	if !ok {
@@ -1789,6 +1972,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 		},
 	}, nil
 }
+
 func flattenRoutingRuleRedirectConfiguration(config frontdoor.BasicRouteConfiguration) []interface{} {
 	v, ok := config.(frontdoor.RedirectConfiguration)
 	if !ok {
@@ -1823,6 +2007,7 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoor.BasicRouteConfigur
 		},
 	}
 }
+
 func flattenFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 	if input == nil {
 		return make([]string, 0)
@@ -1836,6 +2021,7 @@ func flattenFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 
 	return output
 }
+
 func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) (*[]string, error) {
 	output := make([]string, 0)
 	if input == nil {
