@@ -212,44 +212,7 @@ resource "azurerm_route_table" "test" {
   resource_group_name           = "${azurerm_resource_group.test.name}"
   disable_bgp_route_propagation = false
   
-  depends_on = [
-    azurerm_subnet.test,
-  ]
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-	subnet_id      = "${azurerm_subnet.test.id}"
-	route_table_id = "${azurerm_route_table.test.id}"
-}
- 
-resource "azurerm_sql_managed_instance" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = "${azurerm_subnet.test.id}"
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.test,
-    azurerm_subnet_route_table_association.test,
-  ]
-
-  tags = {
-	environment = "staging"
-	database    = "test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-/* Figure out if we really need this or if route table having computed routes is enough
-
-route {
+  route {
     name           = "subnet-to-vnetlocal"
     address_prefix = "10.0.0.0/24"
     next_hop_type  = "VnetLocal"
@@ -1099,4 +1062,116 @@ route {
     address_prefix = "204.79.180.0/24"
     next_hop_type  = "Internet"
   }
-*/
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage"
+    address_prefix = "Storage"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-SqlManagement"
+    address_prefix = "SqlManagement"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureMonitor"
+    address_prefix = "AzureMonitor"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-CorpNetSaw"
+    address_prefix = "CorpNetSaw"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-CorpNetPublic"
+    address_prefix = "CorpNetPublic"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureActiveDirectory"
+    address_prefix = "AzureActiveDirectory"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westeurope"
+    address_prefix = "AzureCloud.westeurope"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.northeurope"
+    address_prefix = "AzureCloud.northeurope"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westeurope"
+    address_prefix = "Storage.westeurope"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.northeurope"
+    address_prefix = "Storage.northeurope"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westeurope"
+    address_prefix = "EventHub.westeurope"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.northeurope"
+    address_prefix = "EventHub.northeurope"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.northeurope"
+    address_prefix = "EventHub.northeurope"
+    next_hop_type  = "Internet"
+  }
+
+  depends_on = [
+    azurerm_subnet.test,
+  ]
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+	subnet_id      = "${azurerm_subnet.test.id}"
+	route_table_id = "${azurerm_route_table.test.id}"
+}
+ 
+resource "azurerm_sql_managed_instance" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type				   = "BasePrice"
+  subnet_id					   = "${azurerm_subnet.test.id}"
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+	environment = "staging"
+	database    = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}

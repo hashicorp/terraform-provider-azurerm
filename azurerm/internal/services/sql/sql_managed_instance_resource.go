@@ -11,9 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,6 +27,10 @@ func resourceArmSqlMiServer() *schema.Resource {
 		Read:   resourceArmSqlMiServerRead,
 		Update: resourceArmSqlMiServerCreateUpdate,
 		Delete: resourceArmSqlMiServerDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ManagedInstanceID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(24 * time.Hour),
@@ -112,6 +119,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 
 func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,6 +130,21 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	licenseType := d.Get("license_type").(string)
 	subnetId := d.Get("subnet_id").(string)
 	metadata := tags.Expand(d.Get("tags").(map[string]interface{}))
+
+	id := parse.NewManagedInstanceID(subscriptionId, resGroup, name)
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Managed Instance %q: %s", id.ID(), err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_managed_instance", *existing.ID)
+		}
+	}
 
 	sku, err := expandManagedInstanceSkuName(d.Get("sku_name").(string))
 	if err != nil {
@@ -159,12 +182,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceArmSqlMiServerRead(d, meta)
 }
@@ -174,27 +192,24 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ManagedInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
+			log.Printf("[INFO] Error reading SQL Managed Instance %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
+		return fmt.Errorf("reading SQL Managed Instance %q: %v", id.ID(), err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -215,17 +230,14 @@ func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ManagedInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
-
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
+		return fmt.Errorf("deleting SQL Managed Instance %q: %+v", id.ID(), err)
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
