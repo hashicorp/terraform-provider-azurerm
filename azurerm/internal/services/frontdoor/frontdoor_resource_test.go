@@ -116,7 +116,7 @@ func TestAccFrontDoor_multiplePools(t *testing.T) {
 			),
 		},
 		// I am ignoring the returned values here because the ImportStep does not respect my state file reording code,
-		// and the API is currently returning these value intermentently out of order causing false positive faliures
+		// and the API is currently returning these value intermentently out of order causing false positive failures
 		// of the test case.
 		data.ImportStep("explicit_resource_order", "routing_rule", "backend_pool_load_balancing", "backend_pool_health_probe", "backend_pool"),
 	})
