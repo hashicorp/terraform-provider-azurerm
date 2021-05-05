@@ -157,12 +157,12 @@ func (r InferenceClusterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                    		= "AIC-%d"
+  name                          = "AIC-%d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                		= azurerm_resource_group.test.location
-  kubernetes_cluster_id 		= azurerm_kubernetes_cluster.test.id
-  cluster_purpose         		= "Dev"
-  node_pool_name          		= azurerm_kubernetes_cluster.test.default_node_pool[0].name
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "Dev"
+  node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
 
   identity {
     type = "SystemAssigned"
@@ -177,19 +177,19 @@ func (r InferenceClusterResource) basicUpdate(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                    		= "AIC-%d"
+  name                          = "AIC-%d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                		= azurerm_resource_group.test.location
-  kubernetes_cluster_id 		= azurerm_kubernetes_cluster.test.id
-  cluster_purpose         		= "Dev"
-  node_pool_name          		= azurerm_kubernetes_cluster.test.default_node_pool[0].name
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "Dev"
+  node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
 
   identity {
     type = "SystemAssigned"
   }
 
   tags = {
-	  ENV = "Test"
+    ENV = "Test"
   }
 }
 `, template, data.RandomIntOfLength(8))
@@ -201,16 +201,16 @@ func (r InferenceClusterResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                    		= "AIC-%d"
+  name                          = "AIC-%d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                		= azurerm_resource_group.test.location
-  kubernetes_cluster_id 		= azurerm_kubernetes_cluster.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "Test"
   node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
   ssl {
-     cert = file("testdata/cert.pem")
-	 key = file("testdata/key.pem")
-	 cname = "www.contoso.com"
+    cert  = file("testdata/cert.pem")
+    key   = file("testdata/key.pem")
+    cname = "www.contoso.com"
   }
 
   identity {
@@ -227,16 +227,16 @@ func (r InferenceClusterResource) completeUpdate(data acceptance.TestData) strin
 %s
 
 resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                    		= "AIC-%d"
+  name                          = "AIC-%d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                		= azurerm_resource_group.test.location
-  kubernetes_cluster_id 		= azurerm_kubernetes_cluster.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "Test"
   node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
   ssl {
-     cert = file("testdata/cert.pem")
-	 key = file("testdata/key.pem")
-	 cname = "www.contoso.com"
+    cert  = file("testdata/cert.pem")
+    key   = file("testdata/key.pem")
+    cname = "www.contoso.com"
   }
 
   identity {
@@ -244,7 +244,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   }
 
   tags = {
-	  ENV = "Test"
+    ENV = "Test"
   }
 
 }
@@ -257,19 +257,19 @@ func (r InferenceClusterResource) requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_machine_learning_inference_cluster" "import" {
-	name                    	  = azurerm_machine_learning_inference_cluster.test.name
-	machine_learning_workspace_id = azurerm_machine_learning_inference_cluster.test.machine_learning_workspace_id
-	location                	  = azurerm_machine_learning_inference_cluster.test.location
-	kubernetes_cluster_id 		  = azurerm_machine_learning_inference_cluster.test.kubernetes_cluster_id
-	node_pool_name                = azurerm_machine_learning_inference_cluster.test.node_pool_name
-	cluster_purpose               = azurerm_machine_learning_inference_cluster.test.cluster_purpose
-  
-	identity {
-	  type = "SystemAssigned"
-	}
-  
-	tags = azurerm_machine_learning_inference_cluster.test.tags
+  name                          = azurerm_machine_learning_inference_cluster.test.name
+  machine_learning_workspace_id = azurerm_machine_learning_inference_cluster.test.machine_learning_workspace_id
+  location                      = azurerm_machine_learning_inference_cluster.test.location
+  kubernetes_cluster_id         = azurerm_machine_learning_inference_cluster.test.kubernetes_cluster_id
+  node_pool_name                = azurerm_machine_learning_inference_cluster.test.node_pool_name
+  cluster_purpose               = azurerm_machine_learning_inference_cluster.test.cluster_purpose
+
+  identity {
+    type = "SystemAssigned"
   }
+
+  tags = azurerm_machine_learning_inference_cluster.test.tags
+}
 `, template)
 }
 
@@ -285,7 +285,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ml-%[1]d"
   location = "%[2]s"
   tags = {
-	"stage" = "test"
+    "stage" = "test"
   }
 }
 
@@ -316,49 +316,49 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-	name                    = "acctest-MLW%[5]d"
-	location                = azurerm_resource_group.test.location
-	resource_group_name     = azurerm_resource_group.test.name
-	application_insights_id = azurerm_application_insights.test.id
-	key_vault_id            = azurerm_key_vault.test.id
-	storage_account_id      = azurerm_storage_account.test.id
-  
-	identity {
-	  type = "SystemAssigned"
-	}
+  name                    = "acctest-MLW%[5]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_virtual_network" "test" {
-	name                = "acctestvirtnet%[6]d"
-	address_space       = ["10.1.0.0/16"]
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%[6]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
-  
+
 resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%[7]d"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefix       = "10.1.0.0/24"
+  name                 = "acctestsubnet%[7]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-	name                = "acctestaks%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	dns_prefix          = join("", ["acctestaks", azurerm_resource_group.test.location])
-	node_resource_group = "acctestRGAKS-%d"
-  
-	default_node_pool {
-	  name       = "default"
-	  node_count = 3
-	  vm_size    = "Standard_D11_v2"
-	  vnet_subnet_id = azurerm_subnet.test.id
-	}
-  
-	identity {
-	  type = "SystemAssigned"
-	}
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = join("", ["acctestaks", azurerm_resource_group.test.location])
+  node_resource_group = "acctestRGAKS-%d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 3
+    vm_size        = "Standard_D11_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
