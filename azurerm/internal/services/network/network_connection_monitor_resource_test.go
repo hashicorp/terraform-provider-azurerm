@@ -172,7 +172,7 @@ func testAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config:      r.missingDestinationConfig(data),
-			ExpectError: regexp.MustCompile("must have at least 2 endpoints"),
+			ExpectError: regexp.MustCompile("should have at least one destination"),
 		},
 	})
 }
@@ -791,8 +791,8 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   endpoint {
-    name    = "destination"
-    address = "terraform.io"
+    name               = "destination"
+    target_resource_id = azurerm_virtual_machine.dest.id
   }
 
   test_configuration {
@@ -822,7 +822,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, r.baseConfig(data), data.RandomInteger)
+`, r.baseWithDestConfig(data), data.RandomInteger)
 }
 
 func (r NetworkConnectionMonitorResource) icmpConfigurationConfig(data acceptance.TestData) string {
