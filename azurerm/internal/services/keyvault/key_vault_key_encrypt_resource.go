@@ -20,7 +20,6 @@ func resourceArmKeyVaultKeyEncrypt() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmKeyVaultKeyEncryptCreate,
 		Read:   schema.Noop,
-		Delete: schema.Noop,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			return fmt.Errorf("resource `azurerm_key_vault_key_encrypt` does not support `import` operation")
@@ -28,6 +27,8 @@ func resourceArmKeyVaultKeyEncrypt() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
+			// avoid TestResourcesSupportCustomTimeouts fail
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
