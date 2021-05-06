@@ -619,6 +619,57 @@ func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_backupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupPolicyPeriodic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupPolicyPeriodicUpdate(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_backupPolicyContinuous(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWithBackupPolicyContinuous(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_networkBypass(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1658,6 +1709,112 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicWithBackupPolicyPeriodic(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup_policy {
+    type                = "Periodic"
+    interval_in_minutes = 120
+    retention_in_hours  = 10
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicWithBackupPolicyPeriodicUpdate(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup_policy {
+    type                = "Periodic"
+    interval_in_minutes = 61
+    retention_in_hours  = 9
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicWithBackupPolicyContinuous(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup_policy {
+    type = "Continuous"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) basicWithNetworkBypassTemplate(data acceptance.TestData) string {

@@ -310,6 +310,41 @@ func resourceCosmosDbAccount() *schema.Resource {
 				},
 			},
 
+			"backup_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  string(documentdb.TypePeriodic),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(documentdb.TypeContinuous),
+								string(documentdb.TypePeriodic),
+							}, false),
+						},
+
+						"interval_in_minutes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(60, 1440),
+						},
+
+						"retention_in_hours": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(8, 720),
+						},
+					},
+				},
+			},
+
 			// computed
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -487,6 +522,14 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
+	if v, ok := d.GetOk("backup_policy"); ok {
+		policy, err := expandCosmosdbAccountBackupPolicy(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `backup_policy`: %+v", err)
+		}
+		account.DatabaseAccountCreateUpdateProperties.BackupPolicy = policy
+	}
+
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
@@ -609,6 +652,14 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+	}
+
+	if v, ok := d.GetOk("backup_policy"); ok {
+		policy, err := expandCosmosdbAccountBackupPolicy(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `backup_policy`: %+v", err)
+		}
+		account.DatabaseAccountCreateUpdateProperties.BackupPolicy = policy
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
@@ -740,6 +791,15 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 		}
 		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
+
+		policy, err := flattenCosmosdbAccountBackupPolicy(props.BackupPolicy)
+		if err != nil {
+			return err
+		}
+
+		if err = d.Set("backup_policy", policy); err != nil {
+			return fmt.Errorf("setting `backup_policy`: %+v", err)
+		}
 	}
 
 	readEndpoints := make([]string, 0)
@@ -1151,4 +1211,78 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 	}
 
 	return schema.HashString(buf.String())
+}
+
+func expandCosmosdbAccountBackupPolicy(input []interface{}) (documentdb.BasicBackupPolicy, error) {
+	if len(input) == 0 || input[0] == nil {
+		return documentdb.BackupPolicy{
+			Type: documentdb.TypeBackupPolicy,
+		}, nil
+	}
+	attr := input[0].(map[string]interface{})
+
+	switch attr["type"].(string) {
+	case string(documentdb.TypeContinuous):
+		if v := attr["interval_in_minutes"].(int); v != 0 {
+			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in`backup_policy` is `Continuous` ")
+		}
+		if v := attr["retention_in_hours"].(int); v != 0 {
+			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in`backup_policy` is `Continuous` ")
+		}
+		return documentdb.ContinuousModeBackupPolicy{
+			Type: documentdb.TypeContinuous,
+		}, nil
+
+	case string(documentdb.TypePeriodic):
+		return documentdb.PeriodicModeBackupPolicy{
+			Type: documentdb.TypePeriodic,
+			PeriodicModeProperties: &documentdb.PeriodicModeProperties{
+				BackupIntervalInMinutes:        utils.Int32(int32(attr["interval_in_minutes"].(int))),
+				BackupRetentionIntervalInHours: utils.Int32(int32(attr["retention_in_hours"].(int))),
+			},
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("unknown `type` in `backup_policy`:%+v", attr["type"].(string))
+
+	}
+}
+
+func flattenCosmosdbAccountBackupPolicy(input documentdb.BasicBackupPolicy) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	switch input.(type) {
+	case documentdb.ContinuousModeBackupPolicy:
+		return []interface{}{
+			map[string]interface{}{
+				"type": string(documentdb.TypeContinuous),
+			},
+		}, nil
+
+	case documentdb.PeriodicModeBackupPolicy:
+		policy, ok := input.AsPeriodicModeBackupPolicy()
+		if !ok {
+			return nil, fmt.Errorf("can not transit %+v into `backup_policy` of `type` `Periodic`", input)
+		}
+
+		res := map[string]interface{}{
+			"type": string(documentdb.TypePeriodic),
+		}
+		if v := policy.PeriodicModeProperties.BackupIntervalInMinutes; v != nil {
+			res["interval_in_minutes"] = int(*v)
+		}
+		if v := policy.PeriodicModeProperties.BackupRetentionIntervalInHours; v != nil {
+			res["retention_in_hours"] = int(*v)
+		}
+		return []interface{}{res}, nil
+
+	case documentdb.BackupPolicy:
+		return []interface{}{}, nil
+
+	default:
+		return nil, fmt.Errorf("unknown `type` in `backup_policy`: %+v", input)
+
+	}
 }
