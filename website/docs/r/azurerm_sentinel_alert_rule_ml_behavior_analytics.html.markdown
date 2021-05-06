@@ -38,28 +38,28 @@ resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+* `name` - (Required) The name which should be used for this Sentinel ML Behavior Analytics Alert Rule. Changing this forces a new Sentinel ML Behavior Analytics Alert Rule to be created.
 
-* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace this Sentinel Fusion Alert Rule belongs to. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace this Sentinel ML Behavior Analytics Alert Rule belongs to. Changing this forces a new Sentinel ML Behavior Analytics Alert Rule to be created.
 
-* `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+* `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel ML Behavior Analytics Alert Rule. Changing this forces a new Sentinel ML Behavior Analytics Alert Rule to be created.
 
-* `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
+* `enabled` - (Optional) Should this Sentinel ML Behavior Analytics Alert Rule be enabled? Defaults to `true`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Sentinel Fusion Alert Rule.
+* `id` - The ID of the Sentinel ML Behavior Analytics Alert Rule.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Sentinel Fusion Alert Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Fusion Alert Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Sentinel Fusion Alert Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Sentinel Fusion Alert Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the Sentinel ML Behavior Analytics Alert Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel ML Behavior Analytics Alert Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Sentinel ML Behavior Analytics Alert Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Sentinel ML Behavior Analytics Alert Rule.
 
 ## Import
 
