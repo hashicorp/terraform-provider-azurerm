@@ -31,17 +31,6 @@ resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "example" {
   alert_rule_template_guid   = "737a2ce1-70a3-4968-9e90-3e6aca836abf"
 }
 
-data "azurerm_sentinel_alert_rule_template" "example" {
-  display_name               = "(Preview) Anomalous SSH Login Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-}
-
-resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "examplefromtemplate" {
-  name                       = "example-ml-alert-rule-from-template"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.example.name
-  enabled                    = false
-}
 
 ```
 
