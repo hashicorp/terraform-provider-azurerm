@@ -1244,7 +1244,6 @@ func expandCosmosdbAccountBackupPolicy(input []interface{}) (documentdb.BasicBac
 
 	default:
 		return nil, fmt.Errorf("unknown `type` in `backup_policy`:%+v", attr["type"].(string))
-
 	}
 }
 
@@ -1283,6 +1282,5 @@ func flattenCosmosdbAccountBackupPolicy(input documentdb.BasicBackupPolicy) ([]i
 
 	default:
 		return nil, fmt.Errorf("unknown `type` in `backup_policy`: %+v", input)
-
 	}
 }
