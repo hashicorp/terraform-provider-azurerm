@@ -109,7 +109,7 @@ func resourceAksInferenceCluster() *schema.Resource {
 			},
 
 			"ssl": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -142,7 +142,6 @@ func resourceAksInferenceCluster() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"tags": tags.Schema(),
@@ -213,7 +212,8 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	t := d.Get("tags").(map[string]interface{})
 
 	identity := d.Get("identity").([]interface{})
-	ssl := expandSSLConfig(d)
+	ssl_interface := d.Get("ssl").([]interface{})
+	ssl := expandSSLConfig(ssl_interface)
 
 	cluster_purpose := d.Get("cluster_purpose").(string)
 	var map_cluster_purpose = map[string]string{
@@ -304,7 +304,7 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	d.Set("machine_learning_workspace_id", *ws_resp.ID)
+	d.Set("machine_learning_workspace_id", ws_resp.ID)
 
 	// Retrieve AKS Cluster ID
 	aks_resp, err := aksClient.ListByResourceGroup(ctx, id.ResourceGroup)
@@ -367,42 +367,31 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandSSLConfig(d *schema.ResourceData) *machinelearningservices.SslConfiguration {
-	// SSL Certificate default values
-	ssl_status := "Disabled"
-	cert := ""
-	key := ""
-	cname := ""
-
-	// SSL Custom Certificate settings
-	ssl := d.Get("ssl").(*schema.Set).List()
-
-	if len(ssl) > 0 && ssl[0] != nil {
-		ssl_map := ssl[0].(map[string]interface{})
-		cert = ssl_map["cert"].(string)
-		key = ssl_map["key"].(string)
-		cname = ssl_map["cname"].(string)
+func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfiguration {
+	if len(input) == 0 {
+		return nil
 	}
 
-	if !(cert == "" && key == "" && cname == "") {
+	v := input[0].(map[string]interface{})
+
+	// SSL Certificate default values
+	ssl_status := "Disabled"
+
+	if !(v["cert"] == "" && v["key"] == "" && v["cname"] == "") {
 		ssl_status = "Enabled"
 	}
 
-	// Microsoft Certs do not work unfortunately, so just default values for now
-	leaf_domain_label := ""
-	overwrite_existing_domain := false
-
 	return &machinelearningservices.SslConfiguration{
 		Status:                  machinelearningservices.Status1(ssl_status),
-		Cert:                    utils.String(cert),
-		Key:                     utils.String(key),
-		Cname:                   utils.String(cname),
-		LeafDomainLabel:         utils.String(leaf_domain_label),
-		OverwriteExistingDomain: utils.Bool(overwrite_existing_domain)}
+		Cert:                    utils.String(v["cert"].(string)),
+		Key:                     utils.String(v["key"].(string)),
+		Cname:                   utils.String(v["cname"].(string)),
+		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
+		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool))}
 }
 
 func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node_pool *containerservice.AgentPool) *machinelearningservices.AksNetworkingConfiguration {
-	subnet_id := *(node_pool.ManagedClusterAgentPoolProfileProperties).VnetSubnetID 
+	subnet_id := *(node_pool.ManagedClusterAgentPoolProfileProperties).VnetSubnetID
 	service_cidr := *(aks.NetworkProfile.ServiceCidr)
 	dns_service_ip := *(aks.NetworkProfile.DNSServiceIP)
 	docker_bridge_cidr := *(aks.NetworkProfile.DockerBridgeCidr)
@@ -444,7 +433,6 @@ func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool
 }
 
 func expandAksComputeProperties(aks_properties *machinelearningservices.AKSProperties, aks_cluster *containerservice.ManagedCluster, location string, description string) machinelearningservices.AKS {
-
 	return machinelearningservices.AKS{
 		// Properties - AKS properties
 		Properties: aks_properties,
