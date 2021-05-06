@@ -117,13 +117,13 @@ func resourceStorageAccount() *schema.Resource {
 				}, true),
 			},
 
-			"azure_files_identity_based_authentication": {
+			"azure_files_authentication": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"directory_service_options": {
+						"directory_type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -138,7 +138,7 @@ func resourceStorageAccount() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"azure_storage_sid": {
+									"storage_sid": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -168,7 +168,7 @@ func resourceStorageAccount() *schema.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"net_bios_domain_name": {
+									"netbios_domain_name": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -477,7 +477,7 @@ func resourceStorageAccount() *schema.Resource {
 				},
 			},
 
-			"routing_preference": {
+			"routing": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -496,7 +496,7 @@ func resourceStorageAccount() *schema.Resource {
 							Default:  false,
 						},
 
-						"routing_choice": {
+						"choice": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -805,10 +805,10 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.Identity = storageAccountIdentity
 	}
 
-	if v, ok := d.GetOk("azure_files_identity_based_authentication"); ok {
+	if v, ok := d.GetOk("azure_files_authentication"); ok {
 		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(v.([]interface{}))
 		if err != nil {
-			return fmt.Errorf("parsing `azure_files_identity_based_authentication`: %v", err)
+			return fmt.Errorf("parsing `azure_files_authentication`: %v", err)
 		}
 		parameters.AzureFilesIdentityBasedAuthentication = expandAADFilesAuthentication
 	}
@@ -866,7 +866,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if v, ok := d.GetOk("routing_preference"); ok {
+	if v, ok := d.GetOk("routing"); ok {
 		parameters.RoutingPreference = expandArmStorageAccountRoutingPreference(v.([]interface{}))
 	}
 
@@ -1151,22 +1151,22 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("routing_preference") {
+	if d.HasChange("routing") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				RoutingPreference: expandArmStorageAccountRoutingPreference(d.Get("routing_preference").([]interface{})),
+				RoutingPreference: expandArmStorageAccountRoutingPreference(d.Get("routing").([]interface{})),
 			},
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account routing_preference %q: %+v", storageAccountName, err)
+			return fmt.Errorf("updating Azure Storage Account routing %q: %+v", storageAccountName, err)
 		}
 	}
 
-	// azure_files_identity_based_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
-	if d.HasChange("azure_files_identity_based_authentication") {
+	// azure_files_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
+	if d.HasChange("azure_files_authentication") {
 		// due to service issue: https://github.com/Azure/azure-rest-api-specs/issues/12473, we need to update to None before changing its DirectoryServiceOptions
-		old, new := d.GetChange("azure_files_identity_based_authentication.0.directory_service_options")
+		old, new := d.GetChange("azure_files_authentication.0.directory_type")
 		if old != new && new != string(storage.DirectoryServiceOptionsNone) {
 			log.Print("[DEBUG] Disabling AzureFilesIdentityBasedAuthentication prior to changing DirectoryServiceOptions")
 			dsNone := storage.AccountUpdateParameters{
@@ -1177,11 +1177,11 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 				},
 			}
 			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, dsNone); err != nil {
-				return fmt.Errorf("updating Azure Storage Account azure_files_identity_based_authentication %q: %+v", storageAccountName, err)
+				return fmt.Errorf("updating Azure Storage Account azure_files_authentication %q: %+v", storageAccountName, err)
 			}
 		}
 
-		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(d.Get("azure_files_identity_based_authentication").([]interface{}))
+		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(d.Get("azure_files_authentication").([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1192,7 +1192,7 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account azure_files_identity_based_authentication %q: %+v", storageAccountName, err)
+			return fmt.Errorf("updating Azure Storage Account azure_files_authentication %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1326,11 +1326,11 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
-		if err := d.Set("azure_files_identity_based_authentication", flattenArmStorageAccountAzureFilesIdentityBasedAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
-			return fmt.Errorf("setting `azure_files_identity_based_authentication`: %+v", err)
+		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesIdentityBasedAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
-		if err := d.Set("routing_preference", flattenArmStorageAccountRoutingPreference(props.RoutingPreference)); err != nil {
-			return fmt.Errorf("setting `routing_preference`: %+v", err)
+		if err := d.Set("routing", flattenArmStorageAccountRoutingPreference(props.RoutingPreference)); err != nil {
+			return fmt.Errorf("setting `routing`: %+v", err)
 		}
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
@@ -1608,9 +1608,9 @@ func expandArmStorageAccountAzureFilesIdentityBasedAuthentication(input []interf
 
 	v := input[0].(map[string]interface{})
 
-	directoryOption := storage.DirectoryServiceOptions(v["directory_service_options"].(string))
+	directoryOption := storage.DirectoryServiceOptions(v["directory_type"].(string))
 	if _, ok := v["active_directory"]; directoryOption == storage.DirectoryServiceOptionsAD && !ok {
-		return nil, fmt.Errorf("`active_directory` is required when `directory_service_options` is `AD`")
+		return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
 	}
 
 	return &storage.AzureFilesIdentityBasedAuthentication{
@@ -1625,12 +1625,12 @@ func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *stor
 	}
 	v := input[0].(map[string]interface{})
 	return &storage.ActiveDirectoryProperties{
-		AzureStorageSid:   utils.String(v["azure_storage_sid"].(string)),
+		AzureStorageSid:   utils.String(v["storage_sid"].(string)),
 		DomainGUID:        utils.String(v["domain_guid"].(string)),
 		DomainName:        utils.String(v["domain_name"].(string)),
 		DomainSid:         utils.String(v["domain_sid"].(string)),
 		ForestName:        utils.String(v["forest_name"].(string)),
-		NetBiosDomainName: utils.String(v["net_bios_domain_name"].(string)),
+		NetBiosDomainName: utils.String(v["netbios_domain_name"].(string)),
 	}
 }
 
@@ -1640,7 +1640,7 @@ func expandArmStorageAccountRoutingPreference(input []interface{}) *storage.Rout
 	}
 	v := input[0].(map[string]interface{})
 	return &storage.RoutingPreference{
-		RoutingChoice:             storage.RoutingChoice(v["routing_choice"].(string)),
+		RoutingChoice:             storage.RoutingChoice(v["choice"].(string)),
 		PublishMicrosoftEndpoints: utils.Bool(v["publish_microsoft_endpoints"].(bool)),
 		PublishInternetEndpoints:  utils.Bool(v["publish_internet_endpoints"].(bool)),
 	}
@@ -1955,8 +1955,8 @@ func flattenArmStorageAccountAzureFilesIdentityBasedAuthentication(input *storag
 
 	return []interface{}{
 		map[string]interface{}{
-			"directory_service_options": input.DirectoryServiceOptions,
-			"active_directory":          flattenArmStorageAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+			"directory_type":   input.DirectoryServiceOptions,
+			"active_directory": flattenArmStorageAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
 		},
 	}
 }
@@ -1992,12 +1992,12 @@ func flattenArmStorageAccountActiveDirectoryProperties(input *storage.ActiveDire
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"azure_storage_sid":    azureStorageSid,
-			"domain_guid":          domainGuid,
-			"domain_name":          domainName,
-			"domain_sid":           domainSid,
-			"forest_name":          forestName,
-			"net_bios_domain_name": netBiosDomainName,
+			"storage_sid":         azureStorageSid,
+			"domain_guid":         domainGuid,
+			"domain_name":         domainName,
+			"domain_sid":          domainSid,
+			"forest_name":         forestName,
+			"netbios_domain_name": netBiosDomainName,
 		},
 	}
 }
@@ -2020,7 +2020,7 @@ func flattenArmStorageAccountRoutingPreference(input *storage.RoutingPreference)
 		map[string]interface{}{
 			"publish_internet_endpoints":  publishInternetEndpoints,
 			"publish_microsoft_endpoints": publishMicrosoftEndpoints,
-			"routing_choice":              input.RoutingChoice,
+			"choice":                      input.RoutingChoice,
 		},
 	}
 }

@@ -131,9 +131,9 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
-* `azure_files_identity_based_authentication` - (Optional) A `azure_files_identity_based_authentication` block as defined below.
+* `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
-* `routing_preference` - (Optional) A `routing_preference` block as defined below.
+* `routing` - (Optional) A `routing` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -253,17 +253,17 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ---
 
-A `azure_files_identity_based_authentication` block supports the following:
+A `azure_files_authentication` block supports the following:
 
-* `directory_service_options` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
+* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
 
-* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_service_options` is `AD`.
+* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
 
 ---
 
 A `active_directory` block supports the following:
 
-* `azure_storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
+* `storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
 
 * `domain_name` - (Required) Specifies the primary domain that the AD DNS server is authoritative for.
 
@@ -273,17 +273,17 @@ A `active_directory` block supports the following:
 
 * `forest_name` - (Required) Specifies the Active Directory forest.
 
-* `net_bios_domain_name` - (Required) Specifies the NetBIOS domain name.
+* `netbios_domain_name` - (Required) Specifies the NetBIOS domain name.
 
 ---
 
-A `routing_preference` block supports the following:
+A `routing` block supports the following:
 
 * `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
 
 * `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
 
-* `routing_choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
+* `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 
 ---
 

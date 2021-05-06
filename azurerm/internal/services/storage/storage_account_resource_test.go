@@ -715,7 +715,7 @@ func TestAccStorageAccount_hnsWithPremiumStorage(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_azureFilesIdentityBasedAuthentication(t *testing.T) {
+func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -728,14 +728,14 @@ func TestAccAzureRMStorageAccount_azureFilesIdentityBasedAuthentication(t *testi
 		},
 		data.ImportStep(),
 		{
-			Config: r.azureFilesIdentityBasedAuthenticationAD(data),
+			Config: r.azureFilesAuthenticationAD(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.azureFilesIdentityBasedAuthenticationADUpdate(data),
+			Config: r.azureFilesAuthenticationADUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -751,7 +751,7 @@ func TestAccAzureRMStorageAccount_azureFilesIdentityBasedAuthentication(t *testi
 	})
 }
 
-func TestAccAzureRMStorageAccount_routingPreference(t *testing.T) {
+func TestAccAzureRMStorageAccount_routing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -764,14 +764,14 @@ func TestAccAzureRMStorageAccount_routingPreference(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.routingPreference(data),
+			Config: r.routing(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.routingPreferenceUpdate(data),
+			Config: r.routingUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2109,7 +2109,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) azureFilesIdentityBasedAuthenticationAD(data acceptance.TestData) string {
+func (r StorageAccountResource) azureFilesAuthenticationAD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2127,15 +2127,15 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  azure_files_identity_based_authentication {
-    directory_service_options = "AD"
+  azure_files_authentication {
+    directory_type = "AD"
     active_directory {
-      azure_storage_sid    = "S-1-5-21-2400535526-2334094090-2402026252-0012"
-      domain_name          = "adtest.com"
-      domain_sid           = "S-1-5-21-2400535526-2334094090-2402026252-0012"
-      domain_guid          = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
-      forest_name          = "adtest.com"
-      net_bios_domain_name = "adtest.com"
+      storage_sid         = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_name         = "adtest.com"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_guid         = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
+      forest_name         = "adtest.com"
+      netbios_domain_name = "adtest.com"
     }
   }
 
@@ -2146,7 +2146,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) azureFilesIdentityBasedAuthenticationADUpdate(data acceptance.TestData) string {
+func (r StorageAccountResource) azureFilesAuthenticationADUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2164,15 +2164,15 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  azure_files_identity_based_authentication {
-    directory_service_options = "AD"
+  azure_files_authentication {
+    directory_type = "AD"
     active_directory {
-      azure_storage_sid    = "S-1-5-21-2400535526-2334094090-2402026252-1112"
-      domain_name          = "adtest2.com"
-      domain_sid           = "S-1-5-21-2400535526-2334094090-2402026252-1112"
-      domain_guid          = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
-      forest_name          = "adtest2.com"
-      net_bios_domain_name = "adtest2.com"
+      storage_sid         = "S-1-5-21-2400535526-2334094090-2402026252-1112"
+      domain_name         = "adtest2.com"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-1112"
+      domain_guid         = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
+      forest_name         = "adtest2.com"
+      netbios_domain_name = "adtest2.com"
     }
   }
 
@@ -2183,7 +2183,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) routingPreference(data acceptance.TestData) string {
+func (r StorageAccountResource) routing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2200,8 +2200,8 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  routing_preference {
-    routing_choice              = "InternetRouting"
+  routing {
+    choice                      = "InternetRouting"
     publish_microsoft_endpoints = true
   }
   tags = {
@@ -2211,7 +2211,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) routingPreferenceUpdate(data acceptance.TestData) string {
+func (r StorageAccountResource) routingUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2229,8 +2229,8 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  routing_preference {
-    routing_choice             = "MicrosoftRouting"
+  routing {
+    choice                     = "MicrosoftRouting"
     publish_internet_endpoints = true
   }
 
