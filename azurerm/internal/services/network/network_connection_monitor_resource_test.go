@@ -263,6 +263,28 @@ func testAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
 	})
 }
 
+func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.endpointIPAddressAndCoverageLevel(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateEndpointIPAddressAndCoverageLevel(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConnectionMonitorID(state.ID)
 	if err != nil {
@@ -305,7 +327,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "src" {
@@ -892,6 +914,101 @@ resource "azurerm_network_connection_monitor" "test" {
   endpoint {
     name    = "destination"
     address = "terraform.io"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetworkConnectionMonitorResource) endpointIPAddressAndCoverageLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name                  = "source"
+    type                  = "AzureVNet"
+    target_resource_id    = azurerm_virtual_network.test.id
+    included_ip_addresses = azurerm_subnet.test.address_prefixes
+    excluded_ip_addresses = ["10.0.2.2", "10.0.2.3"]
+    coverage_level        = "Default"
+  }
+
+  endpoint {
+    address = "terraform.io"
+    name    = "destination"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, r.baseConfig(data), data.RandomInteger)
+}
+
+func (r NetworkConnectionMonitorResource) updateEndpointIPAddressAndCoverageLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test2" {
+  name                 = "accttest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
+}
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name                  = "source"
+    type                  = "AzureVNet"
+    target_resource_id    = azurerm_virtual_network.test.id
+    included_ip_addresses = azurerm_subnet.test2.address_prefixes
+    excluded_ip_addresses = ["10.0.3.2"]
+    coverage_level        = "Average"
+  }
+
+  endpoint {
+    address = "terraform.io"
+    name    = "destination"
   }
 
   test_configuration {
