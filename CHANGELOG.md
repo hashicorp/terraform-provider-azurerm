@@ -2,8 +2,8 @@
 
 UPGRADE NOTES
 
-* `azurerm_frontdoor` - The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been deprecated and has been removed as they are nolonger supported. [GH-11456]
-* `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` has been deprecated and has been removed as it is nolonger supported. [GH-11456]
+* `azurerm_frontdoor` - The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been deprecated and has been removed as they are no longer supported. [GH-11456]
+* `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` has been deprecated and has been removed as it is no longer supported. [GH-11456]
 
 FEATURES:
 
