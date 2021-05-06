@@ -1,14 +1,16 @@
 package keyvault
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,11 +31,18 @@ func resourceArmKeyVaultKeyEncrypt() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildId,
+				ValidateFunc: validate.NestedItemId,
 			},
 
 			"plaintext": {
@@ -67,9 +76,10 @@ func resourceArmKeyVaultKeyEncryptCreate(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	name := d.Get("name").(string)
 	plaintext := d.Get("plaintext").(string)
 	keyVaultKeyIdRaw := d.Get("key_vault_key_id").(string)
-	keyVaultKeyId, err := azure.ParseKeyVaultChildID(keyVaultKeyIdRaw)
+	keyVaultKeyId, err := parse.ParseNestedItemID(keyVaultKeyIdRaw)
 	if err != nil {
 		return err
 	}
@@ -83,7 +93,9 @@ func resourceArmKeyVaultKeyEncryptCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("failed to encrypt '%s' using key %s: %+v", plaintext, keyVaultKeyIdRaw, err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	id := fmt.Sprintf("azurerm_keyvault_encrypted_data/%s/%s", name, sha1.Sum([]byte(plaintext)))
+	d.SetId(id)
+
 	d.Set("key_vault_key_id", result.Kid)
 	d.Set("cipher_text", result.Result)
 

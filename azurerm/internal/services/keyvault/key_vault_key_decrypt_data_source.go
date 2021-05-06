@@ -4,18 +4,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVaultKeyDecrypt() *schema.Resource {
+func dataSourceKeyVaultKeyDecrypt() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultKeyDecryptRead,
+		Read: dataSourceKeyVaultKeyDecryptRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,7 +26,7 @@ func dataSourceArmKeyVaultKeyDecrypt() *schema.Resource {
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildId,
+				ValidateFunc: validate.NestedItemId,
 			},
 
 			"payload": {
@@ -51,14 +52,14 @@ func dataSourceArmKeyVaultKeyDecrypt() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultKeyDecryptRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultKeyDecryptRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	payload := d.Get("payload").(string)
 	keyVaultKeyIdRaw := d.Get("key_vault_key_id").(string)
-	keyVaultKeyId, err := azure.ParseKeyVaultChildID(keyVaultKeyIdRaw)
+	keyVaultKeyId, err := parse.ParseNestedItemID(keyVaultKeyIdRaw)
 	if err != nil {
 		return err
 	}

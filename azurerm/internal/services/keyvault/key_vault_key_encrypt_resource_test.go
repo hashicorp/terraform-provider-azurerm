@@ -1,49 +1,64 @@
-package tests
+package keyvault_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-func TestAccAzureRMKeyVaultKeyEncrypt_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key_encrypt", "test")
+func TestAccKeyVaultKeyEncrypt_basic(t *testing.T) {
 	plaintext := "testData"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key_encrypt", "test")
+
+	testCase := resource.TestCase{
+		PreCheck: func() { acceptance.PreCheck(t) },
+		ProviderFactories: map[string]terraform.ResourceProviderFactory{
+			"azurerm": func() (terraform.ResourceProvider, error) {
+				azurerm := provider.TestAzureProvider()
+				return azurerm, nil
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVaultKeyEncrypt_basic(data, plaintext),
+				Config: testAccKeyVaultKeyEncrypt_basic(data, plaintext),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "cipher_text"),
 				),
 			},
 		},
-	})
+	}
+
+	resource.ParallelTest(t, testCase)
 }
 
-func testAccAzureRMKeyVaultKeyEncrypt_basic(data acceptance.TestData, plaintext string) string {
-	t := testAccAzureRMKeyVaultKeyEncrypt_template(data)
+func testAccKeyVaultKeyEncrypt_basic(data acceptance.TestData, plaintext string) string {
+	t := testAccKeyVaultKeyEncrypt_template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_key_vault_key_encrypt" "test" {
+  name             = "acctest_encrypt%d"
   key_vault_key_id = azurerm_key_vault_key.test.id
   algorithm        = "RSA1_5"
   plaintext        = "%s"
 }
-`, t, plaintext)
+`, t, data.RandomInteger, plaintext)
 }
 
-func testAccAzureRMKeyVaultKeyEncrypt_template(data acceptance.TestData) string {
+func testAccKeyVaultKeyEncrypt_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_client_config" "current" {
 }
 

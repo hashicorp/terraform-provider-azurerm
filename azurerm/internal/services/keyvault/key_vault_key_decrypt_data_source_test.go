@@ -1,19 +1,27 @@
-package tests
+package keyvault_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-func TestAccDataSourceAzureRMKeyVaultKeyDecrypt_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_key_decrypt", "test")
+func TestAccDataSourceKeyVaultKeyDecrypt_basic(t *testing.T) {
 	plaintext := "testData"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_key_decrypt", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck: func() { acceptance.PreCheck(t) },
+		ProviderFactories: map[string]terraform.ResourceProviderFactory{
+			"azurerm": func() (terraform.ResourceProvider, error) {
+				azurerm := provider.TestAzureProvider()
+				return azurerm, nil
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultKeyDecrypt_basic(data, plaintext),
@@ -26,7 +34,7 @@ func TestAccDataSourceAzureRMKeyVaultKeyDecrypt_basic(t *testing.T) {
 }
 
 func testAccDataSourceKeyVaultKeyDecrypt_basic(data acceptance.TestData, plaintext string) string {
-	t := testAccAzureRMKeyVaultKeyEncrypt_basic(data, plaintext)
+	t := testAccKeyVaultKeyEncrypt_basic(data, plaintext)
 	return fmt.Sprintf(`
 %s
 

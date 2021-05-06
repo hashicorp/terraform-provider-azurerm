@@ -3,13 +3,13 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key_decrypt"
 description: |-
-  Decrypt data encrypted with the Key Vault Key.
+  Decrypt data encrypted with a Key Vault Key.
 
 ---
 
 # Data Source: azurerm_key_vault_key_decrypt
 
-Use this data source to decrypt data encrypted with the Key Vault Key.
+Use this data source to decrypt data encrypted with a Key Vault Key.
 
 ## Example Usage
 

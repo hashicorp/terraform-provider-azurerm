@@ -3,18 +3,19 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key_encrypt"
 description: |-
-  Encrypt data with the Key Vault Key.
+  Encrypt data with a Key Vault Key.
 
 ---
 
 # azurerm_key_vault_key_encrypt
 
-Use this resource to encrypt data with the Key Vault Key.
+Use this resource to encrypt data with a Key Vault Key.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_key_vault_key_encrypt" "example" {
+  name             = "example_encrypt"
   key_vault_key_id = azurerm_key_vault_key.example.id
   plaintext        = "testData"
   algorithm        = "RSA1_5"
@@ -28,6 +29,8 @@ output "encrypted_data" {
 ## Argument Reference
 
 The following arguments are supported:
+
+* `name` - (Required) Specifies the name of this resource. Changing this forces a new resource to be created.
 
 * `key_vault_key_id` - (Required) Specifies the ID of the Key Vault key which is used to encrypt. Changing this forces a new resource to be created.
 
