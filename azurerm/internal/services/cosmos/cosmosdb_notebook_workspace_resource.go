@@ -54,7 +54,7 @@ func resourceCosmosDbNotebookWorkspace() *schema.Resource {
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
-			"notebook_server_endpoint": {
+			"server_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -120,7 +120,7 @@ func resourceCosmosDbNotebookWorkspaceRead(d *schema.ResourceData, meta interfac
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
 	if props := resp.NotebookWorkspaceProperties; props != nil {
-		d.Set("notebook_server_endpoint", props.NotebookServerEndpoint)
+		d.Set("server_endpoint", props.NotebookServerEndpoint)
 	}
 	return nil
 }

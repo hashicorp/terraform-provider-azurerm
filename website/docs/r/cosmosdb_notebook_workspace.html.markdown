@@ -57,7 +57,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the SQL Notebook Workspace.
 
-* `notebook_server_endpoint` - Specifies the endpoint of Notebook server.
+* `server_endpoint` - Specifies the endpoint of Notebook server.
 
 ## Timeouts
 
