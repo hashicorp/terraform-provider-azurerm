@@ -3,12 +3,12 @@ subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster_pod_identity"
 description: |-
-  Manages pod identity of Azure Kubernetes Cluster.
+  Manages pod identities within a Azure Kubernetes Cluster.
 ---
 
 # azurerm_kubernetes_cluster_pod_identity
 
-Manages pod identity of Azure Kubernetes Cluster.
+Manages pod identities within a Azure Kubernetes Cluster.
 
 ## Example Usage
 
@@ -66,7 +66,7 @@ resource "azurerm_kubernetes_cluster_pod_identity" "example" {
 
 The following arguments are supported:
 
-* `cluster_id` - (Required) The ID of the Managed Kubernetes Cluster in which to create the pod identity. Changing this forces a new resource to be created.
+* `cluster_id` - (Required) The ID of the Managed Kubernetes Cluster in which to create the Pod Identity. Changing this forces a new resource to be created.
 
 * `pod_identity` - (Optional) One or more `pod_identity` blocks as defined below. At least one of `pod_identity` and `exception` should be specified.
 
@@ -90,7 +90,7 @@ An `exception` block supports the following:
 
 * `namespace` - (Required) The namespace where the Pod Identity Exception should be created.
 
-* `pod_labels` - (Required) A map of Pod labels to match that Pod Identity Exception will take effect.
+* `pod_labels` - (Required) A map of Pod labels, the Pod Identity Exception will take effect only if Pod labels match.
 
 ## Timeouts
 
@@ -103,7 +103,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Managed Kubernetes Clusters Pod Identity can be imported using the `resource id`, e.g.
+Kubernetes Clusters Pod Identity can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_kubernetes_cluster_pod_identity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1

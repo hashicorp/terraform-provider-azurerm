@@ -81,6 +81,13 @@ func TestAccKubernetesClusterPodIdentity_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.onlyPodException(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -98,7 +105,7 @@ func (t KubernetesClusterPodIdentityResource) Exists(ctx context.Context, client
 
 	resp, err := clients.Containers.KubernetesClustersClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	if resp.ManagedClusterProperties == nil ||
@@ -152,6 +159,32 @@ resource "azurerm_kubernetes_cluster_pod_identity" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r KubernetesClusterPodIdentityResource) onlyPodException(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_pod_identity" "test" {
+  cluster_id = azurerm_kubernetes_cluster.test.id
+
+  exception {
+    name      = "exception1"
+    namespace = "exception-ns1"
+    pod_labels = {
+      "env" : "test"
+    }
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
+}
+`, r.template(data))
 }
 
 func (r KubernetesClusterPodIdentityResource) complete(data acceptance.TestData) string {
