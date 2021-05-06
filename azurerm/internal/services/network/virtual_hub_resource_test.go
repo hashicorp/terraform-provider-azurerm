@@ -73,6 +73,28 @@ func TestAccVirtualHub_routes(t *testing.T) {
 	})
 }
 
+func TestAccVirtualHub_defaultRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.defaultRouteTable(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultRouteTableUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualHub_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
 	r := VirtualHubResource{}
@@ -166,6 +188,84 @@ resource "azurerm_virtual_hub" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubResource) defaultRouteTable(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  default_route_table {
+	labels         = ["default"]
+
+	route {
+	  name              = "acctestdefaultroute"
+	  destinations_type = "CIDR"
+	  destinations      = ["10.0.2.0/25"]
+	  next_hop_type     = "ResourceId"
+	  next_hop          = azurerm_virtual_hub_connection.test.id
+	}
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.2.0/24"]
+}
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctestvhubconn"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r VirtualHubResource) defaultRouteTableUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  default_route_table {
+	labels         = ["default"]
+
+	route {
+	  name              = "acctestdefaultroute"
+	  destinations_type = "CIDR"
+	  destinations      = ["10.0.2.128/25"]
+	  next_hop_type     = "ResourceId"
+	  next_hop          = azurerm_virtual_hub_connection.test.id
+	}
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.2.0/24"]
+}
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctestvhubconn"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r VirtualHubResource) tags(data acceptance.TestData) string {
