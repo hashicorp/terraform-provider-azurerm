@@ -806,7 +806,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("azure_files_authentication"); ok {
-		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(v.([]interface{}))
+		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesAuthentication(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("parsing `azure_files_authentication`: %v", err)
 		}
@@ -867,7 +867,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
-		parameters.RoutingPreference = expandArmStorageAccountRoutingPreference(v.([]interface{}))
+		parameters.RoutingPreference = expandArmStorageAccountRouting(v.([]interface{}))
 	}
 
 	// Create
@@ -1154,7 +1154,7 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("routing") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				RoutingPreference: expandArmStorageAccountRoutingPreference(d.Get("routing").([]interface{})),
+				RoutingPreference: expandArmStorageAccountRouting(d.Get("routing").([]interface{})),
 			},
 		}
 
@@ -1181,7 +1181,7 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 			}
 		}
 
-		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(d.Get("azure_files_authentication").([]interface{}))
+		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesAuthentication(d.Get("azure_files_authentication").([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1326,10 +1326,10 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
-		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesIdentityBasedAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
-		if err := d.Set("routing", flattenArmStorageAccountRoutingPreference(props.RoutingPreference)); err != nil {
+		if err := d.Set("routing", flattenArmStorageAccountRouting(props.RoutingPreference)); err != nil {
 			return fmt.Errorf("setting `routing`: %+v", err)
 		}
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
@@ -1599,7 +1599,7 @@ func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{
 	return []interface{}{domain}
 }
 
-func expandArmStorageAccountAzureFilesIdentityBasedAuthentication(input []interface{}) (*storage.AzureFilesIdentityBasedAuthentication, error) {
+func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*storage.AzureFilesIdentityBasedAuthentication, error) {
 	if len(input) == 0 {
 		return &storage.AzureFilesIdentityBasedAuthentication{
 			DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
@@ -1634,7 +1634,7 @@ func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *stor
 	}
 }
 
-func expandArmStorageAccountRoutingPreference(input []interface{}) *storage.RoutingPreference {
+func expandArmStorageAccountRouting(input []interface{}) *storage.RoutingPreference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1948,7 +1948,7 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 	return properties
 }
 
-func flattenArmStorageAccountAzureFilesIdentityBasedAuthentication(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
+func flattenArmStorageAccountAzureFilesAuthentication(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
 	if input == nil || input.DirectoryServiceOptions == storage.DirectoryServiceOptionsNone {
 		return make([]interface{}, 0)
 	}
@@ -2002,7 +2002,7 @@ func flattenArmStorageAccountActiveDirectoryProperties(input *storage.ActiveDire
 	}
 }
 
-func flattenArmStorageAccountRoutingPreference(input *storage.RoutingPreference) []interface{} {
+func flattenArmStorageAccountRouting(input *storage.RoutingPreference) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
