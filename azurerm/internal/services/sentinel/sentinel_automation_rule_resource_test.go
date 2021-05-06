@@ -123,11 +123,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "acctest-SentinelAutoRule-%d"
   order                      = 1
-  condition {
-    property = "IncidentTitle"
-    operator = "Contains"
-    values   = ["a", "b"]
-  }
 
   action_incident {
     order  = 1
@@ -268,6 +263,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
+  enabled                    = false
   condition {
     property = "IncidentTitle"
     operator = "Contains"

@@ -73,6 +73,12 @@ func resourceSentinelAutomationRule() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"condition": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -298,7 +304,7 @@ func resourceSentinelAutomationRuleCreateUpdate(d *schema.ResourceData, meta int
 			DisplayName: utils.String(d.Get("display_name").(string)),
 			Order:       utils.Int32(int32(d.Get("order").(int))),
 			TriggeringLogic: &securityinsight.AutomationRuleTriggeringLogic{
-				IsEnabled:    utils.Bool(true),
+				IsEnabled:    utils.Bool(d.Get("enabled").(bool)),
 				TriggersOn:   utils.String("Incidents"), // This is the only supported enum for now. The reason why there is no enum in SDK, see: https://github.com/Azure/azure-sdk-for-go/issues/14589
 				TriggersWhen: utils.String("Created"),   // This is the only supported enum for now. The reason why there is no enum in SDK, see: https://github.com/Azure/azure-sdk-for-go/issues/14589
 				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
@@ -350,6 +356,12 @@ func resourceSentinelAutomationRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("order", order)
 
 		if tl := prop.TriggeringLogic; tl != nil {
+			var enabled bool
+			if tl.IsEnabled != nil {
+				enabled = *tl.IsEnabled
+			}
+			d.Set("enabled", enabled)
+
 			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
 				return fmt.Errorf("setting `condition`: %v", err)
 			}

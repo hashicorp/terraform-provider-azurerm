@@ -42,30 +42,11 @@ resource "azurerm_log_analytics_solution" "sentinel" {
   }
 }
 
-resource "azurerm_sentinel_alert_rule_scheduled" "example" {
-  name                       = "alert_rule1"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
-  display_name               = "Some Rule"
-  severity                   = "High"
-  query                      = <<QUERY
-AzureActivity |
-  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
-  where ActivityStatus == "Succeeded" |
-  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
-QUERY
-}
-
 resource "azurerm_sentinel_automation_rule" "example" {
   name                       = "56094f72-ac3f-40e7-a0c0-47bd95f70336"
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "automation_rule1"
   order                      = 1
-  condition {
-    property = "IncidentTitle"
-    operator = "Contains"
-    values   = ["a", "b"]
-  }
-
   action_incident {
     order  = 1
     status = "Active"
@@ -91,7 +72,11 @@ The following arguments are supported:
 
 * `action_playbook` - (Optional) One or more `action_playbook` blocks as defined below.
 
+~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
+
 * `condition` - (Optional) One or more `condition` blocks as defined below.
+
+* `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
 ---
 
