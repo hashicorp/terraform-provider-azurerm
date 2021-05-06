@@ -1,5 +1,10 @@
 ## 2.58.0 (Unreleased)
 
+UPGRADE NOTES
+
+* `azurerm_frontdoor` - The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been deprecated and has been removed as they are nolonger supported. [GH-11456]
+* `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` has been deprecated and has been removed as it is nolonger supported. [GH-11456]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_storage_table_entity` [GH-11562]
@@ -13,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - support for the `access_key_metadata_writes_enabled`, `mongo_server_version`, and `network_acl_bypass` properties [GH-11486]
 * `azurerm_data_factory` - support for the `customer_managed_key_id` property [GH-10502]
 * `azurerm_data_factory_pipeline` - support for the `folder` property [GH-11575]
+* `azurerm_frontdoor` - Fix for Frontdoor resource elements being returned out of order. [GH-11456]
 * `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 [GH-11547]
 * `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` [GH-11581]
 
