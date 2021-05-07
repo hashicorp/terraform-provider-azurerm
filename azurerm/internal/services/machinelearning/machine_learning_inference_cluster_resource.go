@@ -47,9 +47,9 @@ func resourceAksInferenceCluster() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"machine_learning_workspace_id": {
@@ -61,23 +61,24 @@ func resourceAksInferenceCluster() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"kubernetes_cluster_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.KubernetesClusterID,
 			},
 
 			"cluster_purpose": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      "Dev",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "Dev",
 			},
 
-			"node_pool_name": {
+			"node_pool_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				ValidateFunc: validate.NodePoolID,
 			},
 
 			"identity": {
@@ -201,7 +202,12 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	pool_name := d.Get("node_pool_name").(string)
+	pool_id := d.Get("node_pool_id").(string)
+	pool_id_details, err := parse.NodePoolID(pool_id)
+	if err != nil {
+		return err
+	}
+	pool_name := pool_id_details.AgentPoolName
 	node_pool, err := poolsClient.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name, pool_name)
 	if err != nil {
 		return err
@@ -322,7 +328,12 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	kubernetes_cluster_name := aks_id_details.ManagedClusterName
 	node_pool_list, _ := poolsClient.List(ctx, id.ResourceGroup, kubernetes_cluster_name)
-	pool_name := node_pool_list.Values()[0].Name
+	pool_id := *(node_pool_list.Values()[0].ID)
+	pool_id_details, err := parse.NodePoolID(pool_id)
+	if err != nil {
+		return err
+	}
+	pool_name := pool_id_details.AgentPoolName
 
 	d.Set("kubernetes_cluster_id", aks_id)
 	d.Set("node_pool_name", pool_name)

@@ -162,7 +162,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "Dev"
-  node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
+  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
 
   identity {
     type = "SystemAssigned"
@@ -182,7 +182,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "Dev"
-  node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
+  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
 
   identity {
     type = "SystemAssigned"
@@ -206,7 +206,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "Test"
-  node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
+  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
@@ -232,7 +232,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "Test"
-  node_pool_name                = azurerm_kubernetes_cluster.test.default_node_pool[0].name
+  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
@@ -261,7 +261,7 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
   machine_learning_workspace_id = azurerm_machine_learning_inference_cluster.test.machine_learning_workspace_id
   location                      = azurerm_machine_learning_inference_cluster.test.location
   kubernetes_cluster_id         = azurerm_machine_learning_inference_cluster.test.kubernetes_cluster_id
-  node_pool_name                = azurerm_machine_learning_inference_cluster.test.node_pool_name
+  node_pool_id                  = azurerm_machine_learning_inference_cluster.test.node_pool_id
   cluster_purpose               = azurerm_machine_learning_inference_cluster.test.cluster_purpose
 
   identity {

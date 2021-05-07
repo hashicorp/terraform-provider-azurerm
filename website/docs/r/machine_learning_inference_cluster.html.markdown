@@ -16,13 +16,13 @@ Manages a Machine Learning Inference Cluster.
 resource "azurerm_machine_learning_inference_cluster" "example" {
   name                  = "example"
   location              = "West Europe"
-  kubernetes_cluster_id = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1"
+  kubernetes_cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1"
 
   identity {
     type = "SystemAssigned"
   }
   machine_learning_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1"
-  node_pool_name                = "example"
+  node_pool_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1"
 }
 ```
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
-* `node_pool_name` - (Required) The name of the Kubernetes Cluster's node pool. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `node_pool_id` - (Required) The ID of the Kubernetes Cluster's node pool. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ---
 
