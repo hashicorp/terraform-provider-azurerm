@@ -97,7 +97,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *schema.Resou
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.TIDataConnectorDataTypes{
 				Indicators: &securityinsight.TIDataConnectorDataTypesIndicators{
-					State: securityinsight.Enabled,
+					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
 		},

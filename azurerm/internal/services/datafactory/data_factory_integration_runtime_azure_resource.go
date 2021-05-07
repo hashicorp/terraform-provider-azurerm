@@ -63,11 +63,11 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 			"compute_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(datafactory.General),
+				Default:  string(datafactory.DataFlowComputeTypeGeneral),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.General),
-					string(datafactory.ComputeOptimized),
-					string(datafactory.MemoryOptimized),
+					string(datafactory.DataFlowComputeTypeGeneral),
+					string(datafactory.DataFlowComputeTypeComputeOptimized),
+					string(datafactory.DataFlowComputeTypeMemoryOptimized),
 				}, false),
 			},
 
@@ -116,7 +116,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *schema.ResourceDa
 
 	managedIntegrationRuntime := datafactory.ManagedIntegrationRuntime{
 		Description: &description,
-		Type:        datafactory.TypeManaged,
+		Type:        datafactory.TypeBasicIntegrationRuntimeTypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
 			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureComputeProperties(d),
 		},

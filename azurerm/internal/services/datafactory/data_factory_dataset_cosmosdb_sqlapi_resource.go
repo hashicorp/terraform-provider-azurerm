@@ -210,7 +210,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceData
 		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypeRelationalTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &cosmosDbTableset,
 		Type:       &datasetType,
@@ -263,7 +263,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, meta i
 
 	cosmosDbTable, ok := resp.Properties.AsCosmosDbSQLAPICollectionDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", cosmosDbTable.AdditionalProperties)

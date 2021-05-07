@@ -132,10 +132,10 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *schema.Resourc
 			FunctionAppURL: d.Get("url").(string),
 			FunctionKey: &datafactory.SecureString{
 				Value: utils.String(d.Get("key").(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		},
-		Type: datafactory.TypeAzureFunction,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureFunction,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -206,7 +206,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *schema.ResourceData, m
 
 	azureFunction, ok := resp.Properties.AsAzureFunctionLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
 	}
 
 	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)

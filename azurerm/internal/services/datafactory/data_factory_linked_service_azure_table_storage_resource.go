@@ -125,10 +125,10 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *schema.Resource
 		AzureStorageLinkedServiceTypeProperties: &datafactory.AzureStorageLinkedServiceTypeProperties{
 			ConnectionString: &datafactory.SecureString{
 				Value: utils.String(d.Get("connection_string").(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		},
-		Type: datafactory.TypeAzureTableStorage,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureTableStorage,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -199,7 +199,7 @@ func resourceDataFactoryLinkedServiceTableStorageRead(d *schema.ResourceData, me
 
 	tableStorage, ok := resp.Properties.AsAzureTableStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureTableStorage, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureTableStorage, *resp.Type)
 	}
 
 	d.Set("additional_properties", tableStorage.AdditionalProperties)

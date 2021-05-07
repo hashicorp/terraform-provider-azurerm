@@ -117,7 +117,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *schema.Resou
 
 	selfHostedIntegrationRuntime := datafactory.SelfHostedIntegrationRuntime{
 		Description: &description,
-		Type:        datafactory.TypeSelfHosted,
+		Type:        datafactory.TypeBasicIntegrationRuntimeTypeSelfHosted,
 	}
 
 	properties := expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d)
@@ -246,7 +246,7 @@ func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d *schem
 		linkedInfo := &datafactory.SelfHostedIntegrationRuntimeTypeProperties{
 			LinkedInfo: &datafactory.LinkedIntegrationRuntimeRbacAuthorization{
 				ResourceID:        &rbac,
-				AuthorizationType: datafactory.AuthorizationTypeRBAC,
+				AuthorizationType: datafactory.AuthorizationTypeAuthorizationTypeRBAC,
 			},
 		}
 		return linkedInfo

@@ -353,7 +353,7 @@ func (client ExtensionsClient) EnableMonitoringResponder(resp *http.Response) (r
 // resourceGroupName - the name of the resource group.
 // clusterName - the name of the cluster.
 // extensionName - the name of the cluster extension.
-func (client ExtensionsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, extensionName string) (result Extension, err error) {
+func (client ExtensionsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, extensionName string) (result ClusterMonitoringResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.Get")
 		defer func() {
@@ -416,7 +416,87 @@ func (client ExtensionsClient) GetSender(req *http.Request) (*http.Response, err
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ExtensionsClient) GetResponder(resp *http.Response) (result Extension, err error) {
+func (client ExtensionsClient) GetResponder(resp *http.Response) (result ClusterMonitoringResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAzureAsyncOperationStatus gets the async operation status.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// extensionName - the name of the cluster extension.
+// operationID - the long running operation id.
+func (client ExtensionsClient) GetAzureAsyncOperationStatus(ctx context.Context, resourceGroupName string, clusterName string, extensionName string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.GetAzureAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAzureAsyncOperationStatusPreparer(ctx, resourceGroupName, clusterName, extensionName, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAzureAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAzureAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAzureAsyncOperationStatusPreparer prepares the GetAzureAsyncOperationStatus request.
+func (client ExtensionsClient) GetAzureAsyncOperationStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string, extensionName string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"extensionName":     autorest.Encode("path", extensionName),
+		"operationId":       autorest.Encode("path", operationID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/extensions/{extensionName}/azureAsyncOperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAzureAsyncOperationStatusSender sends the GetAzureAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtensionsClient) GetAzureAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAzureAsyncOperationStatusResponder handles the response to the GetAzureAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client ExtensionsClient) GetAzureAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

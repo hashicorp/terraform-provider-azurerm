@@ -39,8 +39,8 @@ func SchemaHDInsightTier() *schema.Schema {
 		Required: true,
 		ForceNew: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(hdinsight.Standard),
-			string(hdinsight.Premium),
+			string(hdinsight.TierStandard),
+			string(hdinsight.TierPremium),
 		}, true),
 		// TODO: file a bug about this
 		DiffSuppressFunc: location.DiffSuppressFunc,
@@ -221,10 +221,10 @@ func SchemaHDInsightsNetwork() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Default:  string(hdinsight.Inbound),
+					Default:  string(hdinsight.ResourceProviderConnectionInbound),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(hdinsight.Inbound),
-						string(hdinsight.Outbound),
+						string(hdinsight.ResourceProviderConnectionInbound),
+						string(hdinsight.ResourceProviderConnectionOutbound),
 					}, false),
 				},
 
@@ -355,14 +355,14 @@ func ExpandHDInsightsNetwork(input []interface{}) *hdinsight.NetworkProperties {
 
 	vs := input[0].(map[string]interface{})
 
-	connDir := hdinsight.Outbound
-	if v, exists := vs["connection_direction"]; exists && v != string(hdinsight.Outbound) {
-		connDir = hdinsight.Inbound
+	connDir := hdinsight.ResourceProviderConnectionOutbound
+	if v, exists := vs["connection_direction"]; exists && v != string(hdinsight.ResourceProviderConnectionOutbound) {
+		connDir = hdinsight.ResourceProviderConnectionInbound
 	}
 
-	privateLink := hdinsight.Disabled
+	privateLink := hdinsight.PrivateLinkDisabled
 	if v, exists := vs["private_link_enabled"]; exists && v != false {
-		privateLink = hdinsight.Enabled
+		privateLink = hdinsight.PrivateLinkEnabled
 	}
 
 	return &hdinsight.NetworkProperties{
@@ -376,14 +376,14 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 		return nil
 	}
 
-	connDir := string(hdinsight.Outbound)
+	connDir := string(hdinsight.ResourceProviderConnectionOutbound)
 	if v := input.ResourceProviderConnection; v != "" {
 		connDir = string(v)
 	}
 
 	privateLink := false
 	if v := input.PrivateLink; v != "" {
-		privateLink = (v == hdinsight.Enabled)
+		privateLink = (v == hdinsight.PrivateLinkEnabled)
 	}
 
 	return []interface{}{
@@ -630,7 +630,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		if clusterIndentity == nil {
 			clusterIndentity = &hdinsight.ClusterIdentity{
-				Type:                   hdinsight.UserAssigned,
+				Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
 				UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
 			}
 		}
@@ -796,13 +796,13 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 											Elem: &schema.Schema{
 												Type: schema.TypeString,
 												ValidateFunc: validation.StringInSlice([]string{
-													string(hdinsight.Monday),
-													string(hdinsight.Tuesday),
-													string(hdinsight.Wednesday),
-													string(hdinsight.Thursday),
-													string(hdinsight.Friday),
-													string(hdinsight.Saturday),
-													string(hdinsight.Sunday),
+													string(hdinsight.DaysOfWeekMonday),
+													string(hdinsight.DaysOfWeekTuesday),
+													string(hdinsight.DaysOfWeekWednesday),
+													string(hdinsight.DaysOfWeekThursday),
+													string(hdinsight.DaysOfWeekFriday),
+													string(hdinsight.DaysOfWeekSaturday),
+													string(hdinsight.DaysOfWeekSunday),
 												}, false),
 											},
 										},

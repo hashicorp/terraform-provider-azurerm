@@ -169,7 +169,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.Reso
 	fileStorageProperties := &datafactory.AzureFileStorageLinkedServiceTypeProperties{
 		ConnectionString: &datafactory.SecureString{
 			Value: utils.String(d.Get("connection_string").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		},
 		FileShare: d.Get("file_share").(string),
 		Host:      d.Get("host").(string),
@@ -180,14 +180,14 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.Reso
 	if password != "" {
 		fileStorageProperties.Password = &datafactory.SecureString{
 			Value: utils.String(d.Get("password").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
 	fileStorageLinkedService := &datafactory.AzureFileStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureFileStorageLinkedServiceTypeProperties: fileStorageProperties,
-		Type: datafactory.TypeAzureFileStorage,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureFileStorage,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -263,7 +263,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData
 
 	fileStorage, ok := resp.Properties.AsAzureFileStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFileStorage, *resp.Type)
 	}
 
 	d.Set("additional_properties", fileStorage.AdditionalProperties)

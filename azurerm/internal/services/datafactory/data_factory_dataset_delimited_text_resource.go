@@ -346,7 +346,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData,
 		delimited_textTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeDelimitedText)
+	datasetType := string(datafactory.TypeBasicDatasetTypeDelimitedText)
 	dataset := datafactory.DatasetResource{
 		Properties: &delimited_textTableset,
 		Type:       &datasetType,
@@ -396,7 +396,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta in
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)

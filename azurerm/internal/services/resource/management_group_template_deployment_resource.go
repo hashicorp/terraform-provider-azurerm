@@ -134,7 +134,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, met
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -206,7 +206,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, met
 		Location: template.Location,
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: template.Properties.DebugSetting,
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: template.Tags,
 	}

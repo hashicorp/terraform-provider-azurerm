@@ -97,7 +97,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreat
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.AlertsDataTypeOfDataConnector{
 				Alerts: &securityinsight.AlertsDataTypeOfDataConnectorAlerts{
-					State: securityinsight.Enabled,
+					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
 		},

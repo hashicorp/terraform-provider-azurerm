@@ -83,8 +83,8 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.AlertPerResult),
-								string(securityinsight.SingleAlert),
+								string(securityinsight.EventGroupingAggregationKindAlertPerResult),
+								string(securityinsight.EventGroupingAggregationKindSingleAlert),
 							}, false),
 						},
 					},
@@ -97,18 +97,18 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(securityinsight.Collection),
-						string(securityinsight.CommandAndControl),
-						string(securityinsight.CredentialAccess),
-						string(securityinsight.DefenseEvasion),
-						string(securityinsight.Discovery),
-						string(securityinsight.Execution),
-						string(securityinsight.Exfiltration),
-						string(securityinsight.Impact),
-						string(securityinsight.InitialAccess),
-						string(securityinsight.LateralMovement),
-						string(securityinsight.Persistence),
-						string(securityinsight.PrivilegeEscalation),
+						string(securityinsight.AttackTacticCollection),
+						string(securityinsight.AttackTacticCommandAndControl),
+						string(securityinsight.AttackTacticCredentialAccess),
+						string(securityinsight.AttackTacticDefenseEvasion),
+						string(securityinsight.AttackTacticDiscovery),
+						string(securityinsight.AttackTacticExecution),
+						string(securityinsight.AttackTacticExfiltration),
+						string(securityinsight.AttackTacticImpact),
+						string(securityinsight.AttackTacticInitialAccess),
+						string(securityinsight.AttackTacticLateralMovement),
+						string(securityinsight.AttackTacticPersistence),
+						string(securityinsight.AttackTacticPrivilegeEscalation),
 					}, false),
 				},
 			},
@@ -151,11 +151,11 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 									"entity_matching_method": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  securityinsight.None,
+										Default:  securityinsight.EntitiesMatchingMethodNone,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(securityinsight.All),
-											string(securityinsight.Custom),
-											string(securityinsight.None),
+											string(securityinsight.EntitiesMatchingMethodAll),
+											string(securityinsight.EntitiesMatchingMethodCustom),
+											string(securityinsight.EntitiesMatchingMethodNone),
 										}, false),
 									},
 									"group_by": {
@@ -164,10 +164,10 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(securityinsight.Account),
-												string(securityinsight.Host),
-												string(securityinsight.IP),
-												string(securityinsight.URL),
+												string(securityinsight.GroupingEntityTypeAccount),
+												string(securityinsight.GroupingEntityTypeHost),
+												string(securityinsight.GroupingEntityTypeIP),
+												string(securityinsight.GroupingEntityTypeURL),
 											}, false),
 										},
 									},
@@ -182,10 +182,10 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.High),
-					string(securityinsight.Medium),
-					string(securityinsight.Low),
-					string(securityinsight.Informational),
+					string(securityinsight.AlertSeverityHigh),
+					string(securityinsight.AlertSeverityMedium),
+					string(securityinsight.AlertSeverityLow),
+					string(securityinsight.AlertSeverityInformational),
 				}, false),
 			},
 
@@ -218,12 +218,12 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 			"trigger_operator": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(securityinsight.GreaterThan),
+				Default:  string(securityinsight.TriggerOperatorGreaterThan),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.GreaterThan),
-					string(securityinsight.LessThan),
-					string(securityinsight.Equal),
-					string(securityinsight.NotEqual),
+					string(securityinsight.TriggerOperatorGreaterThan),
+					string(securityinsight.TriggerOperatorLessThan),
+					string(securityinsight.TriggerOperatorEqual),
+					string(securityinsight.TriggerOperatorNotEqual),
 				}, false),
 			},
 
@@ -298,7 +298,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	param := securityinsight.ScheduledAlertRule{
-		Kind: securityinsight.KindScheduled,
+		Kind: securityinsight.KindBasicAlertRuleKindScheduled,
 		ScheduledAlertRuleProperties: &securityinsight.ScheduledAlertRuleProperties{
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           utils.String(d.Get("display_name").(string)),
