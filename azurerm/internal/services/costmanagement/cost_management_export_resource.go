@@ -173,7 +173,7 @@ func resourceCostManagementExportCreateUpdate(d *schema.ResourceData, meta inter
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cost_management_export_resource_group", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_cost_management_export", *existing.ID)
 		}
 	}
 

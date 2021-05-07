@@ -33,6 +33,17 @@ func TestAccCostManagementExport_basic(t *testing.T) {
 	})
 }
 
+func TestAccCostManagementExport_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_export", "test")
+	r := CostManagementExportResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
 func TestAccCostManagementExport_subscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export", "test")
 	r := CostManagementExportResource{}
@@ -139,6 +150,31 @@ resource "azurerm_cost_management_export" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, start, end)
+}
+
+func (r CostManagementExportResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cost_management_export" "import" {
+  name                    = azurerm_cost_management_export.test.name
+  scope                   = azurerm_cost_management_export.test.scope
+  recurrence_type         = azurerm_cost_management_export.test.recurrence_type
+  recurrence_period_start = azurerm_cost_management_export.test.recurrence_period_start
+  recurrence_period_end   = azurerm_cost_management_export.test.recurrence_period_end
+
+  delivery_info {
+    storage_account_id = azurerm_storage_account.test.id
+    container_name     = "acctestcontainer"
+    root_folder_path   = "/root"
+  }
+
+  query {
+    type       = "Usage"
+    time_frame = "TheLastMonth"
+  }
+}
+`, r.basic(data))
 }
 
 func (r CostManagementExportResource) subscription(data acceptance.TestData) string {
