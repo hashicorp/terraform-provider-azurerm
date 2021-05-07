@@ -110,7 +110,6 @@ func resourceKubernetesClusterPodIdentity() *pluginsdk.Resource {
 func resourceKubernetesClusterPodIdentityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	userAssignedIdentitiesClient := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -121,21 +120,20 @@ func resourceKubernetesClusterPodIdentityCreateUpdate(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	id := parse.NewClusterID(subscriptionId, clusterId.ResourceGroup, clusterId.ManagedClusterName)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
+	existing, err := client.Get(ctx, clusterId.ResourceGroup, clusterId.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		return fmt.Errorf("checking for presence of existing %s: %s", clusterId, err)
 	}
 
 	if existing.ManagedClusterProperties == nil {
-		return fmt.Errorf("`ManagedClusterProperties` is nil for %s: %s", id, err)
+		return fmt.Errorf("`ManagedClusterProperties` is nil for %s: %s", clusterId, err)
 	}
 
 	if d.IsNewResource() {
 		if existing.ManagedClusterProperties.PodIdentityProfile != nil &&
 			existing.ManagedClusterProperties.PodIdentityProfile.Enabled != nil &&
 			*existing.ManagedClusterProperties.PodIdentityProfile.Enabled {
-			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_pod_identity", id.ID())
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_pod_identity", clusterId.ID())
 		}
 	}
 
@@ -153,16 +151,16 @@ func resourceKubernetesClusterPodIdentityCreateUpdate(d *pluginsdk.ResourceData,
 		existing.ManagedClusterProperties.PodIdentityProfile.AllowNetworkPluginKubenet = utils.Bool(true)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
+	future, err := client.CreateOrUpdate(ctx, clusterId.ResourceGroup, clusterId.ManagedClusterName, existing)
 	if err != nil {
-		return fmt.Errorf("creating/updating Pod Identity within %s: %+v", id, err)
+		return fmt.Errorf("creating/updating Pod Identity within %s: %+v", clusterId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/updation of Pod Identity within %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation/updation of Pod Identity within %s: %+v", clusterId, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(clusterId.ID())
 
 	return resourceKubernetesClusterPodIdentityRead(d, meta)
 }
@@ -251,6 +249,11 @@ func expandKubernetesPodIdentities(ctx context.Context, userAssignedIdentitiesCl
 	result := make([]containerservice.ManagedClusterPodIdentity, 0)
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
+		name := v["name"].(string)
+		namespace := v["namespace"].(string)
+		if name == "" || namespace == "" {
+			continue
+		}
 
 		identityId, err := msiParse.UserAssignedIdentityID(v["identity_id"].(string))
 		if err != nil {
@@ -266,8 +269,8 @@ func expandKubernetesPodIdentities(ctx context.Context, userAssignedIdentitiesCl
 			return nil, fmt.Errorf("clientId or principalId is nil for %s", identityId)
 		}
 		result = append(result, containerservice.ManagedClusterPodIdentity{
-			Name:      utils.String(v["name"].(string)),
-			Namespace: utils.String(v["namespace"].(string)),
+			Name:      utils.String(name),
+			Namespace: utils.String(namespace),
 			Identity: &containerservice.UserAssignedIdentity{
 				ResourceID: utils.String(identityId.ID()),
 				ClientID:   utils.String(resp.UserAssignedIdentityProperties.ClientID.String()),
@@ -285,9 +288,15 @@ func expandKubernetesPodIdentityExceptions(input []interface{}) *[]containerserv
 	result := make([]containerservice.ManagedClusterPodIdentityException, 0)
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
+		name := v["name"].(string)
+		namespace := v["namespace"].(string)
+		if name == "" || namespace == "" {
+			continue
+		}
+
 		result = append(result, containerservice.ManagedClusterPodIdentityException{
-			Name:      utils.String(v["name"].(string)),
-			Namespace: utils.String(v["namespace"].(string)),
+			Name:      utils.String(name),
+			Namespace: utils.String(namespace),
 			PodLabels: utils.ExpandMapStringPtrString(v["pod_labels"].(map[string]interface{})),
 		})
 	}
