@@ -12,6 +12,7 @@ type Client struct {
 	MongoDbClient           *documentdb.MongoDBResourcesClient
 	NotebookWorkspaceClient *documentdb.NotebookWorkspacesClient
 	SqlClient               *documentdb.SQLResourcesClient
+	SqlResourceClient       *documentdb.SQLResourcesClient
 	TableClient             *documentdb.TableResourcesClient
 }
 
@@ -34,6 +35,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlClient := documentdb.NewSQLResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlResourceClient := documentdb.NewSQLResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlResourceClient.Client, o.ResourceManagerAuthorizer)
+
 	tableClient := documentdb.NewTableResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tableClient.Client, o.ResourceManagerAuthorizer)
 
@@ -44,6 +48,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		MongoDbClient:           &mongoDbClient,
 		NotebookWorkspaceClient: &notebookWorkspaceClient,
 		SqlClient:               &sqlClient,
+		SqlResourceClient:       &sqlResourceClient,
 		TableClient:             &tableClient,
 	}
 }
