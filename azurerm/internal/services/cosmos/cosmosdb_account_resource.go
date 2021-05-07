@@ -172,7 +172,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 							Optional:         true,
 							Computed:         true,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
-							ValidateFunc:     validation.IntBetween(10, 1000000), // single region values
+							ValidateFunc:     validation.IntBetween(10, 2147483647), // single region values
 						},
 					},
 				},

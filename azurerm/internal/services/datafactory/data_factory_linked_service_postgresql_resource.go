@@ -123,7 +123,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceDa
 	connectionString := d.Get("connection_string").(string)
 	secureString := datafactory.SecureString{
 		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	postgresqlProperties := &datafactory.PostgreSQLLinkedServiceTypeProperties{
@@ -135,7 +135,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceDa
 	postgresqlLinkedService := &datafactory.PostgreSQLLinkedService{
 		Description:                           &description,
 		PostgreSQLLinkedServiceTypeProperties: postgresqlProperties,
-		Type:                                  datafactory.TypePostgreSQL,
+		Type:                                  datafactory.TypeBasicLinkedServiceTypePostgreSQL,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -206,7 +206,7 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, meta
 
 	postgresql, ok := resp.Properties.AsPostgreSQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeMySQL, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypePostgreSQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresql.AdditionalProperties)

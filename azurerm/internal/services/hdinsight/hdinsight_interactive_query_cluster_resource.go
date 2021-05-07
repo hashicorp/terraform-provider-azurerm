@@ -194,7 +194,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,

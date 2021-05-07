@@ -123,7 +123,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, m
 	connectionString := d.Get("connection_string").(string)
 	secureString := datafactory.SecureString{
 		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	mysqlProperties := &datafactory.MySQLLinkedServiceTypeProperties{
@@ -135,7 +135,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, m
 	mysqlLinkedService := &datafactory.MySQLLinkedService{
 		Description:                      &description,
 		MySQLLinkedServiceTypeProperties: mysqlProperties,
-		Type:                             datafactory.TypeMySQL,
+		Type:                             datafactory.TypeBasicLinkedServiceTypeMySQL,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -206,7 +206,7 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta inte
 
 	mysql, ok := resp.Properties.AsMySQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeMySQL, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeMySQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysql.AdditionalProperties)

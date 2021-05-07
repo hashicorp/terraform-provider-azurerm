@@ -70,8 +70,8 @@ func resourceDataFactory() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(datafactory.SystemAssigned),
-								string(datafactory.UserAssigned),
+								string(datafactory.FactoryIdentityTypeSystemAssigned),
+								string(datafactory.FactoryIdentityTypeUserAssigned),
 							}, false),
 						},
 
@@ -235,8 +235,8 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
 		if len(identityIdsRaw) > 0 {
-			if identityType != string(datafactory.UserAssigned) {
-				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.UserAssigned))
+			if identityType != string(datafactory.FactoryIdentityTypeUserAssigned) {
+				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.FactoryIdentityTypeUserAssigned))
 			}
 
 			identityIds := make(map[string]interface{})
@@ -335,17 +335,17 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeFactoryVSTSConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryGitHubConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryRepoConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
 		d.Set("github_configuration", repo)
 	}
@@ -449,7 +449,7 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 				if config.RootFolder != nil {
 					settings["root_folder"] = *config.RootFolder
 				}
-				return datafactory.TypeFactoryGitHubConfiguration, append(result, settings)
+				return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration, append(result, settings)
 			}
 			if config, test := repo.AsFactoryVSTSConfiguration(); test {
 				if config.AccountName != nil {
@@ -470,11 +470,11 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 				if config.TenantID != nil {
 					settings["tenant_id"] = *config.TenantID
 				}
-				return datafactory.TypeFactoryVSTSConfiguration, append(result, settings)
+				return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration, append(result, settings)
 			}
 		}
 	}
-	return datafactory.TypeFactoryRepoConfiguration, result
+	return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration, result
 }
 
 func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interface{}, error) {

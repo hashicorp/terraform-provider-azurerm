@@ -113,14 +113,14 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
 	}
 
-	alertState := securityinsight.Enabled
+	alertState := securityinsight.DataTypeStateEnabled
 	if !alertsEnabled {
-		alertState = securityinsight.Disabled
+		alertState = securityinsight.DataTypeStateDisabled
 	}
 
-	discoveryLogsState := securityinsight.Enabled
+	discoveryLogsState := securityinsight.DataTypeStateEnabled
 	if !discoveryLogsEnabled {
-		discoveryLogsState = securityinsight.Disabled
+		discoveryLogsState = securityinsight.DataTypeStateDisabled
 	}
 
 	param := securityinsight.MCASDataConnector{
@@ -201,11 +201,11 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	)
 	if dt := dc.DataTypes; dt != nil {
 		if alert := dt.Alerts; alert != nil {
-			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.Enabled))
+			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.DataTypeStateEnabled))
 		}
 
 		if discoveryLogs := dt.DiscoveryLogs; discoveryLogs != nil {
-			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.Enabled))
+			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.DataTypeStateEnabled))
 		}
 	}
 	d.Set("discovery_logs_enabled", discoveryLogsEnabled)
