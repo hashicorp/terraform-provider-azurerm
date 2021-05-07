@@ -1,11 +1,9 @@
 package consumption
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -33,9 +31,7 @@ func resourceArmConsumptionBudgetResourceGroup() *schema.Resource {
 }
 
 func resourceArmConsumptionBudgetResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := d.Get("subscription_id").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	scope := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionId, resourceGroup)
+	scope := d.Get("resource_group_id").(string)
 
 	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetResourceGroupName, scope)
 	if err != nil {
@@ -57,14 +53,8 @@ func resourceArmConsumptionBudgetResourceGroupRead(d *schema.ResourceData, meta 
 		return err
 	}
 
-	// Parse the scope to get the subscription ID
-	resourceId, err := azure.ParseAzureResourceID(consumptionBudgetId.Scope)
-	if err != nil {
-		return err
-	}
-
-	d.Set("subscription_id", resourceId.SubscriptionID)
-	d.Set("resource_group_name", resourceId.ResourceGroup)
+	// The scope of a Resource Group consumption budget is the Resource Group ID
+	d.Set("resource_group_id", consumptionBudgetId.Scope)
 
 	return nil
 }

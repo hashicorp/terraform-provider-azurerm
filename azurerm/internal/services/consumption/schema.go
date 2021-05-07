@@ -10,10 +10,10 @@ import (
 
 func SchemaConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
 	resourceGroupNameSchema := map[string]*schema.Schema{
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_id": azure.SchemaResourceGroupName(),
 	}
 
-	return azure.MergeSchema(SchemaConsumptionBudgetSubscriptionResource(), resourceGroupNameSchema)
+	return azure.MergeSchema(SchemaConsumptionBudgetCommonResource(), resourceGroupNameSchema)
 }
 
 func SchemaConsumptionBudgetSubscriptionResource() map[string]*schema.Schema {
