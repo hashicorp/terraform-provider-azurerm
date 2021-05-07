@@ -48,11 +48,12 @@ func ExpandConsumptionBudgetTimePeriod(i []interface{}) (*consumption.BudgetTime
 }
 
 func FlattenConsumptionBudgetTimePeriod(input *consumption.BudgetTimePeriod) []interface{} {
+	timePeriod := make([]interface{}, 0)
+
 	if input == nil {
-		return nil
+		return timePeriod
 	}
 
-	timePeriod := make([]interface{}, 0)
 	timePeriodBlock := make(map[string]interface{})
 
 	timePeriodBlock["start_date"] = input.StartDate.String()
@@ -90,11 +91,11 @@ func ExpandConsumptionBudgetNotifications(input []interface{}) map[string]*consu
 }
 
 func FlattenConsumptionBudgetNotifications(input map[string]*consumption.Notification) []interface{} {
-	if input == nil {
-		return nil
-	}
-
 	notifications := make([]interface{}, 0)
+
+	if input == nil {
+		return notifications
+	}
 
 	for _, v := range input {
 		notificationBlock := make(map[string]interface{})
@@ -222,7 +223,7 @@ func FlattenConsumptionBudgetFilter(input *consumption.BudgetFilter) []interface
 	filter := make([]interface{}, 0)
 
 	if input == nil {
-		return nil
+		return filter
 	}
 
 	dimensions := make([]interface{}, 0)
