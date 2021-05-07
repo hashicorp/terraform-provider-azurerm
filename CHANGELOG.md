@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v54.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11593]
 * `azurerm_cosmosdb_account` - support for the `backup` property [GH-11597]
 * `azurerm_storage_account` - support for the `azure_files_identity_based_authentication` and `routing_preference` blocks [GH-11485]
 
