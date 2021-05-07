@@ -619,7 +619,7 @@ func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_backupPolicy(t *testing.T) {
+func TestAccCosmosDBAccount_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -628,40 +628,39 @@ func TestAccCosmosDBAccount_backupPolicy(t *testing.T) {
 			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("240"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("8"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupPolicyPeriodic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithBackupPeriodic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupPolicyPeriodicUpdate(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithBackupPeriodicUpdate(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("240"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("8"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccCosmosDBAccount_backupPolicyContinuous(t *testing.T) {
+func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicWithBackupPolicyContinuous(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithBackupContinuous(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1711,7 +1710,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupPolicyPeriodic(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupPeriodic(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1738,7 +1737,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-  backup_policy {
+  backup {
     type                = "Periodic"
     interval_in_minutes = 120
     retention_in_hours  = 10
@@ -1747,7 +1746,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupPolicyPeriodicUpdate(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupPeriodicUpdate(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1774,16 +1773,14 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-  backup_policy {
-    type                = "Periodic"
-    interval_in_minutes = 61
-    retention_in_hours  = 9
+  backup {
+    type = "Periodic"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupPolicyContinuous(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1810,7 +1807,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-  backup_policy {
+  backup {
     type = "Continuous"
   }
 }

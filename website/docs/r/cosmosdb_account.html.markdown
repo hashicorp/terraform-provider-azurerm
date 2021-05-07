@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
-* `backup_policy` - (Optional) A `backup_policy` block as defined below.
+* `backup` - (Optional) A `backup` block as defined below.
 
 ---
 
@@ -152,13 +152,13 @@ The following arguments are supported:
 
 ---
 
-A `backup_policy` block supports the following:
+A `backup` block supports the following:
 
-* `type` - (Optional) The type of the `backup_policy`. Possible values are `Continuous` and `Periodic`. Defaults to `Periodic`.
+* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Defaults to `Periodic`.
 
-* `interval_in_minutes` - (Optional) The interval in minutes between two backups. Possible values are between 60 and 1440.
+* `interval_in_minutes` - (Optional) The interval in minutes between two backups. This is configurable only when `type` is `Periodic`. Possible values are between 60 and 1440.
 
-* `retention_in_hours` - (Optional) The time in hours that each backup is retained. Possible values are between 8 and 720.
+* `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
 
 ## Attributes Reference
 
