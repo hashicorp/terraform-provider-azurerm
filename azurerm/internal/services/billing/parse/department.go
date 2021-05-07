@@ -1,7 +1,5 @@
 package parse
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 	"strings"
@@ -37,7 +35,7 @@ func (id DepartmentId) ID() string {
 
 // DepartmentID parses a Department ID into an DepartmentId struct
 func DepartmentID(input string) (*DepartmentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {
 		return nil, err
 	}
