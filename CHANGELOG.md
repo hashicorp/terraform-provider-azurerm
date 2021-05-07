@@ -1,30 +1,30 @@
-## 2.58.0 (Unreleased)
+## 2.58.0 (May 07, 2021)
 
 UPGRADE NOTES
 
-* `azurerm_frontdoor` - The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been deprecated and has been removed as they are no longer supported. [GH-11456]
-* `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` has been deprecated and has been removed as it is no longer supported. [GH-11456]
+* `azurerm_frontdoor` - The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been deprecated and has been removed as they are no longer supported. ([#11456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11456))
+* `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` has been deprecated and has been removed as it is no longer supported. ([#11456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11456))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_storage_table_entity` [GH-11562]
-* **New Resource:** `azurerm_app_service_environment_v3` [GH-11174]
-* **New Resource:** `azurerm_cosmosdb_notebook_workspace` [GH-11536]
-* **New Resource:** `azurerm_cosmosdb_sql_trigger` [GH-11535]
-* **New Resource:** `azurerm_cosmosdb_sql_user_defined_function` [GH-11537]
-* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11484]
-* **New Resource:** `azurerm_storage_blob_inventory_policy` [GH-11533]
+* **New Data Source:** `azurerm_storage_table_entity` ([#11562](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11562))
+* **New Resource:** `azurerm_app_service_environment_v3` ([#11174](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11174))
+* **New Resource:** `azurerm_cosmosdb_notebook_workspace` ([#11536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11536))
+* **New Resource:** `azurerm_cosmosdb_sql_trigger` ([#11535](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11535))
+* **New Resource:** `azurerm_cosmosdb_sql_user_defined_function` ([#11537](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11537))
+* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` ([#11484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11484))
+* **New Resource:** `azurerm_storage_blob_inventory_policy` ([#11533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11533))
 
 ENHANCEMENTS:
 
-* dependencies: updating `network-db` to API version `2020-07-01` [GH-10767]
-* `azurerm_cosmosdb_account` - support for the `access_key_metadata_writes_enabled`, `mongo_server_version`, and `network_acl_bypass` properties [GH-11486]
-* `azurerm_data_factory` - support for the `customer_managed_key_id` property [GH-10502]
-* `azurerm_data_factory_pipeline` - support for the `folder` property [GH-11575]
-* `azurerm_frontdoor` - Fix for Frontdoor resource elements being returned out of order. [GH-11456]
-* `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 [GH-11547]
-* `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` [GH-11581]
-* `azurerm_network_connection_monitor` - support for the `coverage_level`, `excluded_ip_addresses`, `included_ip_addresses`, `target_resource_id`, and `resource_type` propeties [GH-11540]
+* dependencies: updating `network-db` to API version `2020-07-01` ([#10767](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10767))
+* `azurerm_cosmosdb_account` - support for the `access_key_metadata_writes_enabled`, `mongo_server_version`, and `network_acl_bypass` properties ([#11486](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11486))
+* `azurerm_data_factory` - support for the `customer_managed_key_id` property ([#10502](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10502))
+* `azurerm_data_factory_pipeline` - support for the `folder` property ([#11575](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11575))
+* `azurerm_frontdoor` - Fix for Frontdoor resource elements being returned out of order. ([#11456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11456))
+* `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 ([#11547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11547))
+* `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` ([#11581](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11581))
+* `azurerm_network_connection_monitor` - support for the `coverage_level`, `excluded_ip_addresses`, `included_ip_addresses`, `target_resource_id`, and `resource_type` propeties ([#11540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11540))
 
 ## 2.57.0 (April 30, 2021)
 
