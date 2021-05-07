@@ -193,7 +193,7 @@ A `endpoint` block supports the following:
 
 * `filter` - (Optional) A `filter` block as defined below.
 
-* `type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
+* `target_resource_type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
 
 * `virtual_machine_id` - (Optional / **Deprecated**) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor. This property is deprecated in favour of `target_resource_id`.
 

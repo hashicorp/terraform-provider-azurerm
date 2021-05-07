@@ -251,7 +251,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							),
 						},
 
-						"type": {
+						"target_resource_type": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -709,7 +709,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 			result.ResourceID = utils.String(resourceId.(string))
 		}
 
-		if endpointType := v["type"]; endpointType != "" {
+		if endpointType := v["target_resource_type"]; endpointType != "" {
 			result.Type = network.EndpointType(endpointType.(string))
 		}
 
@@ -944,12 +944,12 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 		}
 
 		v := map[string]interface{}{
-			"name":               name,
-			"address":            address,
-			"coverage_level":     coverageLevel,
-			"target_resource_id": resourceId,
-			"type":               endpointType,
-			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
+			"name":                 name,
+			"address":              address,
+			"coverage_level":       coverageLevel,
+			"target_resource_id":   resourceId,
+			"target_resource_type": endpointType,
+			"filter":               flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
 		}
 
 		if scope := item.Scope; scope != nil {

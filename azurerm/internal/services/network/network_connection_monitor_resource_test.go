@@ -905,10 +905,10 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name               = "source"
-    type               = "MMAWorkspaceMachine"
-    address            = "test.internal.domain.com"
-    target_resource_id = azurerm_log_analytics_workspace.test.id
+    name                 = "source"
+    target_resource_type = "MMAWorkspaceMachine"
+    address              = "test.internal.domain.com"
+    target_resource_id   = azurerm_log_analytics_workspace.test.id
   }
 
   endpoint {
@@ -948,7 +948,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name                  = "source"
-    type                  = "AzureVNet"
+    target_resource_type  = "AzureVNet"
     target_resource_id    = azurerm_virtual_network.test.id
     included_ip_addresses = azurerm_subnet.test.address_prefixes
     excluded_ip_addresses = ["10.0.2.2", "10.0.2.3"]
@@ -999,7 +999,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name                  = "source"
-    type                  = "AzureVNet"
+    target_resource_type  = "AzureVNet"
     target_resource_id    = azurerm_virtual_network.test.id
     included_ip_addresses = azurerm_subnet.test2.address_prefixes
     excluded_ip_addresses = ["10.0.3.2"]
