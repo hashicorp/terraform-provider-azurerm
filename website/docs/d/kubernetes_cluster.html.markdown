@@ -272,6 +272,12 @@ An `ingress_application_gateway` block supports the following:
 
 * `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
 
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.  
+
+---
+
+The `ingress_application_gateway_identity` block exports the following:
+
 * `client_id` - The Client ID of the user-defined Managed Identity used by the Application Gateway.
 
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
