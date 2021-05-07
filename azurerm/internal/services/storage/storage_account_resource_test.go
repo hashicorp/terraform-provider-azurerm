@@ -715,6 +715,78 @@ func TestAccStorageAccount_hnsWithPremiumStorage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.azureFilesAuthenticationAD(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.azureFilesAuthenticationADUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageAccount_routing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.routing(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.routingUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.StorageAccountID(state.ID)
 	if err != nil {
@@ -2033,6 +2105,138 @@ resource "azurerm_storage_account" "test" {
   is_hns_enabled            = true
   min_tls_version           = "TLS1_2"
   enable_https_traffic_only = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) azureFilesAuthenticationAD(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AD"
+    active_directory {
+      storage_sid         = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_name         = "adtest.com"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_guid         = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
+      forest_name         = "adtest.com"
+      netbios_domain_name = "adtest.com"
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) azureFilesAuthenticationADUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AD"
+    active_directory {
+      storage_sid         = "S-1-5-21-2400535526-2334094090-2402026252-1112"
+      domain_name         = "adtest2.com"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-1112"
+      domain_guid         = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
+      forest_name         = "adtest2.com"
+      netbios_domain_name = "adtest2.com"
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) routing(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  routing {
+    choice                      = "InternetRouting"
+    publish_microsoft_endpoints = true
+  }
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) routingUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  routing {
+    choice                     = "MicrosoftRouting"
+    publish_internet_endpoints = true
+  }
+
+  tags = {
+    environment = "production"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -117,6 +117,69 @@ func resourceStorageAccount() *schema.Resource {
 				}, true),
 			},
 
+			"azure_files_authentication": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"directory_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.DirectoryServiceOptionsAADDS),
+								string(storage.DirectoryServiceOptionsAD),
+							}, false),
+						},
+
+						"active_directory": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"storage_sid": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"domain_guid": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsUUID,
+									},
+
+									"domain_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"domain_sid": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"forest_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"netbios_domain_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -409,6 +472,38 @@ func resourceStorageAccount() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"routing": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"publish_internet_endpoints": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"publish_microsoft_endpoints": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"choice": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.MicrosoftRouting),
+								string(storage.InternetRouting),
+							}, false),
+							Default: string(storage.MicrosoftRouting),
 						},
 					},
 				},
@@ -710,6 +805,14 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.Identity = storageAccountIdentity
 	}
 
+	if v, ok := d.GetOk("azure_files_authentication"); ok {
+		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesAuthentication(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("parsing `azure_files_authentication`: %v", err)
+		}
+		parameters.AzureFilesIdentityBasedAuthentication = expandAADFilesAuthentication
+	}
+
 	if _, ok := d.GetOk("custom_domain"); ok {
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
@@ -761,6 +864,10 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		if v.(bool) {
 			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
 		}
+	}
+
+	if v, ok := d.GetOk("routing"); ok {
+		parameters.RoutingPreference = expandArmStorageAccountRouting(v.([]interface{}))
 	}
 
 	// Create
@@ -1044,6 +1151,51 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("routing") {
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				RoutingPreference: expandArmStorageAccountRouting(d.Get("routing").([]interface{})),
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account routing %q: %+v", storageAccountName, err)
+		}
+	}
+
+	// azure_files_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
+	if d.HasChange("azure_files_authentication") {
+		// due to service issue: https://github.com/Azure/azure-rest-api-specs/issues/12473, we need to update to None before changing its DirectoryServiceOptions
+		old, new := d.GetChange("azure_files_authentication.0.directory_type")
+		if old != new && new != string(storage.DirectoryServiceOptionsNone) {
+			log.Print("[DEBUG] Disabling AzureFilesIdentityBasedAuthentication prior to changing DirectoryServiceOptions")
+			dsNone := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					AzureFilesIdentityBasedAuthentication: &storage.AzureFilesIdentityBasedAuthentication{
+						DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
+					},
+				},
+			}
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, dsNone); err != nil {
+				return fmt.Errorf("updating Azure Storage Account azure_files_authentication %q: %+v", storageAccountName, err)
+			}
+		}
+
+		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesAuthentication(d.Get("azure_files_authentication").([]interface{}))
+		if err != nil {
+			return err
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				AzureFilesIdentityBasedAuthentication: expandAADFilesAuthentication,
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account azure_files_authentication %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
@@ -1174,6 +1326,12 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
+		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
+		}
+		if err := d.Set("routing", flattenArmStorageAccountRouting(props.RoutingPreference)); err != nil {
+			return fmt.Errorf("setting `routing`: %+v", err)
+		}
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
@@ -1439,6 +1597,53 @@ func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{
 
 	// use_subdomain isn't returned
 	return []interface{}{domain}
+}
+
+func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*storage.AzureFilesIdentityBasedAuthentication, error) {
+	if len(input) == 0 {
+		return &storage.AzureFilesIdentityBasedAuthentication{
+			DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
+		}, nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	directoryOption := storage.DirectoryServiceOptions(v["directory_type"].(string))
+	if _, ok := v["active_directory"]; directoryOption == storage.DirectoryServiceOptionsAD && !ok {
+		return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
+	}
+
+	return &storage.AzureFilesIdentityBasedAuthentication{
+		DirectoryServiceOptions:   directoryOption,
+		ActiveDirectoryProperties: expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{})),
+	}, nil
+}
+
+func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *storage.ActiveDirectoryProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &storage.ActiveDirectoryProperties{
+		AzureStorageSid:   utils.String(v["storage_sid"].(string)),
+		DomainGUID:        utils.String(v["domain_guid"].(string)),
+		DomainName:        utils.String(v["domain_name"].(string)),
+		DomainSid:         utils.String(v["domain_sid"].(string)),
+		ForestName:        utils.String(v["forest_name"].(string)),
+		NetBiosDomainName: utils.String(v["netbios_domain_name"].(string)),
+	}
+}
+
+func expandArmStorageAccountRouting(input []interface{}) *storage.RoutingPreference {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &storage.RoutingPreference{
+		RoutingChoice:             storage.RoutingChoice(v["choice"].(string)),
+		PublishMicrosoftEndpoints: utils.Bool(v["publish_microsoft_endpoints"].(bool)),
+		PublishInternetEndpoints:  utils.Bool(v["publish_internet_endpoints"].(bool)),
+	}
 }
 
 func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
@@ -1741,6 +1946,83 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 	}
 
 	return properties
+}
+
+func flattenArmStorageAccountAzureFilesAuthentication(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
+	if input == nil || input.DirectoryServiceOptions == storage.DirectoryServiceOptionsNone {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"directory_type":   input.DirectoryServiceOptions,
+			"active_directory": flattenArmStorageAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+		},
+	}
+}
+
+func flattenArmStorageAccountActiveDirectoryProperties(input *storage.ActiveDirectoryProperties) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var azureStorageSid string
+	if input.AzureStorageSid != nil {
+		azureStorageSid = *input.AzureStorageSid
+	}
+	var domainGuid string
+	if input.DomainGUID != nil {
+		domainGuid = *input.DomainGUID
+	}
+	var domainName string
+	if input.DomainName != nil {
+		domainName = *input.DomainName
+	}
+	var domainSid string
+	if input.DomainSid != nil {
+		domainSid = *input.DomainSid
+	}
+	var forestName string
+	if input.ForestName != nil {
+		forestName = *input.ForestName
+	}
+	var netBiosDomainName string
+	if input.NetBiosDomainName != nil {
+		netBiosDomainName = *input.NetBiosDomainName
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"storage_sid":         azureStorageSid,
+			"domain_guid":         domainGuid,
+			"domain_name":         domainName,
+			"domain_sid":          domainSid,
+			"forest_name":         forestName,
+			"netbios_domain_name": netBiosDomainName,
+		},
+	}
+}
+
+func flattenArmStorageAccountRouting(input *storage.RoutingPreference) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var publishInternetEndpoints bool
+	if input.PublishInternetEndpoints != nil {
+		publishInternetEndpoints = *input.PublishInternetEndpoints
+	}
+	var publishMicrosoftEndpoints bool
+	if input.PublishMicrosoftEndpoints != nil {
+		publishMicrosoftEndpoints = *input.PublishMicrosoftEndpoints
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"publish_internet_endpoints":  publishInternetEndpoints,
+			"publish_microsoft_endpoints": publishMicrosoftEndpoints,
+			"choice":                      input.RoutingChoice,
+		},
+	}
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
