@@ -19,7 +19,7 @@ import (
 type SentinelAlertRuleMLBehaviorAnalyticsResource struct{}
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ml_behavior_analytics", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
 	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -34,7 +34,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_basic(t *testing.T) {
 }
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ml_behavior_analytics", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
 	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -49,7 +49,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_complete(t *testing.T) {
 }
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ml_behavior_analytics", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
 	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -78,7 +78,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_update(t *testing.T) {
 }
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ml_behavior_analytics", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
 	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -125,7 +125,7 @@ data "azurerm_sentinel_alert_rule_template" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
 }
 
-resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "test" {
+resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
@@ -142,7 +142,7 @@ data "azurerm_sentinel_alert_rule_template" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
 }
 
-resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "test" {
+resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
@@ -154,7 +154,7 @@ data "azurerm_sentinel_alert_rule_template" "test2" {
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
 }
 
-resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "test2" {
+resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test2" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-2-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test2.name
@@ -168,10 +168,10 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) requiresImport(data accept
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "import" {
-  name                       = azurerm_sentinel_alert_rule_ml_behavior_analytics.test.name
-  log_analytics_workspace_id = azurerm_sentinel_alert_rule_ml_behavior_analytics.test.log_analytics_workspace_id
-  alert_rule_template_guid   = azurerm_sentinel_alert_rule_ml_behavior_analytics.test.alert_rule_template_guid
+resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "import" {
+  name                       = azurerm_sentinel_alert_rule_machine_learning_behavior_analytics.test.name
+  log_analytics_workspace_id = azurerm_sentinel_alert_rule_machine_learning_behavior_analytics.test.log_analytics_workspace_id
+  alert_rule_template_guid   = azurerm_sentinel_alert_rule_machine_learning_behavior_analytics.test.alert_rule_template_guid
 }
 `, r.basic(data))
 }

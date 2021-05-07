@@ -91,7 +91,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *schema.Resource
 
 		id := alertRuleID(resp.Value)
 		if id != nil && *id != "" {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ml_behavior_analytics", *id)
+			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", *id)
 		}
 	}
 

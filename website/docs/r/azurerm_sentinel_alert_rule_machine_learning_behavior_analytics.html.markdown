@@ -1,12 +1,12 @@
 ---
 subcategory: "Sentinel"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sentinel_alert_rule_ml_behavior_analytics"
+page_title: "Azure Resource Manager: azurerm_sentinel_alert_rule_machine_learning_behavior_analytics"
 description: |-
   Manages a Sentinel Machine Learning Behavior Analytics Rule.
 ---
 
-# azurerm_sentinel_alert_rule_ml_behavior_analytics
+# azurerm_sentinel_alert_rule_machine_learning_behavior_analytics
 
 Manages a Sentinel Machine Learning Behavior Analytics Alert Rule.
 
@@ -25,7 +25,7 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "pergb2018"
 }
 
-resource "azurerm_sentinel_alert_rule_ml_behavior_analytics" "example" {
+resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "example" {
   name                       = "example-ml-alert-rule"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
   alert_rule_template_guid   = "737a2ce1-70a3-4968-9e90-3e6aca836abf"
@@ -66,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Sentinel Machine Learning Behavior Analytics Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_alert_rule_ml_behavior_analytics.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/alertRules/rule1
+terraform import azurerm_sentinel_alert_rule_machine_learning_behavior_analytics.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/alertRules/rule1
 ```
