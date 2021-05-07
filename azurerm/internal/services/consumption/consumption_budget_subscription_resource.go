@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 func resourceArmConsumptionBudgetSubscription() *schema.Resource {
@@ -15,9 +16,10 @@ func resourceArmConsumptionBudgetSubscription() *schema.Resource {
 		Read:   resourceArmConsumptionBudgetSubscriptionRead,
 		Update: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
 		Delete: resourceArmConsumptionBudgetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ConsumptionBudgetID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
