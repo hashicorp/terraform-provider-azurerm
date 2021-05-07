@@ -94,7 +94,7 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 	amount := decimal.NewFromFloat(d.Get("amount").(float64))
 	timePeriod, err := ExpandConsumptionBudgetTimePeriod(d.Get("time_period").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("error in expanding`time_period`: %+v", err)
+		return fmt.Errorf("error expanding `time_period`: %+v", err)
 	}
 
 	parameters := consumption.Budget{
