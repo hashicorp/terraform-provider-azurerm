@@ -141,14 +141,47 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	description := d.Get("description").(string)
-
 	odataLinkedService := &datafactory.ODataLinkedService{
-		Description: &description,
-		Type:        datafactory.TypeOData,
+		Description:                      utils.String(d.Get("description").(string)),
+		Type:                             datafactory.TypeOData,
+		ODataLinkedServiceTypeProperties: authenticationProperties(d),
 	}
 
-	odataLinkedService.ODataLinkedServiceTypeProperties = authenticationProperties(d)
+	if v, ok := d.GetOk("parameters"); ok {
+		odataLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("integration_runtime_name"); ok {
+		odataLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+	}
+
+	if v, ok := d.GetOk("additional_properties"); ok {
+		odataLinkedService.AdditionalProperties = v.(map[string]interface{})
+	}
+
+	if v, ok := d.GetOk("annotations"); ok {
+		annotations := v.([]interface{})
+		odataLinkedService.Annotations = &annotations
+	}
+
+	linkedService := datafactory.LinkedServiceResource{
+		Properties: odataLinkedService,
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
+		return fmt.Errorf("Error creating/updating Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceArmDataFactoryLinkedServiceODataRead(d, meta)
 }
@@ -241,23 +274,18 @@ func resourceArmDataFactoryLinkedServiceODataDelete(d *schema.ResourceData, meta
 }
 
 func authenticationProperties(d *schema.ResourceData) *datafactory.ODataLinkedServiceTypeProperties {
-
 	url := d.Get("url").(string)
-
 	basic_authentication := d.Get("basic_authentication").([]interface{})
 	if basic_authentication != nil {
 		raw := basic_authentication[0].(map[string]interface{})
-		username := raw["username"].(string)
-		password := raw["password"].(string)
-		passwordSecureString := datafactory.SecureString{
-			Value: &password,
-			Type:  datafactory.TypeSecureString,
-		}
 		return &datafactory.ODataLinkedServiceTypeProperties{
 			AuthenticationType: datafactory.ODataAuthenticationType(datafactory.ODataAuthenticationTypeBasic),
 			URL:                utils.String(url),
-			UserName:           username,
-			Password:           &passwordSecureString,
+			UserName:           raw["username"].(string),
+			Password: datafactory.SecureString{
+				Value: utils.String(raw["password"].(string)),
+				Type:  datafactory.TypeSecureString,
+			},
 		}
 	}
 

@@ -49,8 +49,7 @@ resource "azurerm_data_factory_linked_service_odata" "basic_auth" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service OData. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service OData. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service OData. Changing this forces a new resource
 
