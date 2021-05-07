@@ -124,7 +124,6 @@ func resourceResourceGroupDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	// @favoretti: This is currently the only supported added value, do we want to add it as an optional parameter to the schema?
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
