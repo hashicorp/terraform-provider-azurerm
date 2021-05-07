@@ -70,21 +70,23 @@ func ExpandConsumptionBudgetNotifications(input []interface{}) map[string]*consu
 	notifications := make(map[string]*consumption.Notification)
 
 	for _, v := range input {
-		notificationRaw := v.(map[string]interface{})
-		notification := consumption.Notification{}
+		if v != nil {
+			notificationRaw := v.(map[string]interface{})
+			notification := consumption.Notification{}
 
-		notification.Enabled = utils.Bool(notificationRaw["enabled"].(bool))
-		notification.Operator = consumption.OperatorType(notificationRaw["operator"].(string))
+			notification.Enabled = utils.Bool(notificationRaw["enabled"].(bool))
+			notification.Operator = consumption.OperatorType(notificationRaw["operator"].(string))
 
-		thresholdDecimal := decimal.NewFromInt(int64(notificationRaw["threshold"].(int)))
-		notification.Threshold = &thresholdDecimal
+			thresholdDecimal := decimal.NewFromInt(int64(notificationRaw["threshold"].(int)))
+			notification.Threshold = &thresholdDecimal
 
-		notification.ContactEmails = utils.ExpandStringSlice(notificationRaw["contact_emails"].([]interface{}))
-		notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
-		notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
+			notification.ContactEmails = utils.ExpandStringSlice(notificationRaw["contact_emails"].([]interface{}))
+			notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
+			notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
 
-		notificationKey := fmt.Sprintf("actual_%s_%s_Percent", string(notification.Operator), notification.Threshold.StringFixed(0))
-		notifications[notificationKey] = &notification
+			notificationKey := fmt.Sprintf("actual_%s_%s_Percent", string(notification.Operator), notification.Threshold.StringFixed(0))
+			notifications[notificationKey] = &notification
+		}
 	}
 
 	return notifications
@@ -98,23 +100,29 @@ func FlattenConsumptionBudgetNotifications(input map[string]*consumption.Notific
 	}
 
 	for _, v := range input {
-		notificationBlock := make(map[string]interface{})
+		if v != nil {
+			notificationBlock := make(map[string]interface{})
 
-		notificationBlock["enabled"] = *v.Enabled
-		notificationBlock["operator"] = string(v.Operator)
-		threshold, _ := v.Threshold.Float64()
-		notificationBlock["threshold"] = int(threshold)
-		notificationBlock["contact_emails"] = utils.FlattenStringSlice(v.ContactEmails)
-		notificationBlock["contact_roles"] = utils.FlattenStringSlice(v.ContactRoles)
-		notificationBlock["contact_groups"] = utils.FlattenStringSlice(v.ContactGroups)
+			notificationBlock["enabled"] = *v.Enabled
+			notificationBlock["operator"] = string(v.Operator)
+			threshold, _ := v.Threshold.Float64()
+			notificationBlock["threshold"] = int(threshold)
+			notificationBlock["contact_emails"] = utils.FlattenStringSlice(v.ContactEmails)
+			notificationBlock["contact_roles"] = utils.FlattenStringSlice(v.ContactRoles)
+			notificationBlock["contact_groups"] = utils.FlattenStringSlice(v.ContactGroups)
 
-		notifications = append(notifications, notificationBlock)
+			notifications = append(notifications, notificationBlock)
+		}
 	}
 
 	return notifications
 }
 
 func ExpandConsumptionBudgetComparisonExpression(input interface{}) *consumption.BudgetComparisonExpression {
+	if input == nil {
+		return nil
+	}
+
 	v := input.(map[string]interface{})
 
 	return &consumption.BudgetComparisonExpression{
