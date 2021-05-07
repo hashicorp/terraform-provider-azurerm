@@ -441,7 +441,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			}
 		}
 
-		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
+		omsagentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"enabled":                    enabled,
@@ -477,7 +477,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			subnetId = *v
 		}
 
-		ingressApplicationGatewayIdentity := flattenKubernetesClusterIngressApplicationGatewayIdentityProfile(ingressApplicationGateway.Identity)
+		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
 
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
 			"enabled":                              enabled,
@@ -506,37 +506,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 }
 
-func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
-	if profile == nil {
-		return []interface{}{}
-	}
-
-	identity := make([]interface{}, 0)
-	clientID := ""
-	if clientid := profile.ClientID; clientid != nil {
-		clientID = *clientid
-	}
-
-	objectID := ""
-	if objectid := profile.ObjectID; objectid != nil {
-		objectID = *objectid
-	}
-
-	userAssignedIdentityID := ""
-	if resourceid := profile.ResourceID; resourceid != nil {
-		userAssignedIdentityID = *resourceid
-	}
-
-	identity = append(identity, map[string]interface{}{
-		"client_id":                 clientID,
-		"object_id":                 objectID,
-		"user_assigned_identity_id": userAssignedIdentityID,
-	})
-
-	return identity
-}
-
-func flattenKubernetesClusterIngressApplicationGatewayIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+func flattenKubernetesClusterAddOnIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
