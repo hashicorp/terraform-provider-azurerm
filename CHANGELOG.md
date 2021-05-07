@@ -1,5 +1,9 @@
 ## 2.59.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_sentinel_alert_rule_machine_learning_behavior_analytics` [GH-11552]
+
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_account` - support for the `backup` property [GH-11597]
