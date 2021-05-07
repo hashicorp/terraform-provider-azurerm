@@ -35,7 +35,6 @@ func CostManagementExportID(input string) (*CostManagementExportId, error) {
 		if err := id.ValidateNoEmptySegments(input); err != nil {
 			return nil, err
 		}
-
 	} else {
 		id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 
