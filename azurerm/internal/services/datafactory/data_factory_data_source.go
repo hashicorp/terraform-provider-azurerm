@@ -160,17 +160,17 @@ func dataSourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeFactoryVSTSConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryGitHubConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryRepoConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
 		d.Set("github_configuration", repo)
 	}

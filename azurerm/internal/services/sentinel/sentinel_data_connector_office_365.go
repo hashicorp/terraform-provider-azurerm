@@ -121,19 +121,19 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("one of `exchange_enabled`, `sharepoint_enabled` and `teams_enabled` should be `true`")
 	}
 
-	exchangeState := securityinsight.Enabled
+	exchangeState := securityinsight.DataTypeStateEnabled
 	if !exchangeEnabled {
-		exchangeState = securityinsight.Disabled
+		exchangeState = securityinsight.DataTypeStateDisabled
 	}
 
-	sharePointState := securityinsight.Enabled
+	sharePointState := securityinsight.DataTypeStateEnabled
 	if !sharePointEnabled {
-		sharePointState = securityinsight.Disabled
+		sharePointState = securityinsight.DataTypeStateDisabled
 	}
 
-	teamsState := securityinsight.Enabled
+	teamsState := securityinsight.DataTypeStateEnabled
 	if !teamsEnabled {
-		teamsState = securityinsight.Disabled
+		teamsState = securityinsight.DataTypeStateDisabled
 	}
 
 	param := securityinsight.OfficeDataConnector{
@@ -215,19 +215,19 @@ func resourceSentinelDataConnectorOffice365Read(d *schema.ResourceData, meta int
 	if dt := dc.DataTypes; dt != nil {
 		exchangeEnabled := false
 		if exchange := dt.Exchange; exchange != nil {
-			exchangeEnabled = strings.EqualFold(string(exchange.State), string(securityinsight.Enabled))
+			exchangeEnabled = strings.EqualFold(string(exchange.State), string(securityinsight.DataTypeStateEnabled))
 		}
 		d.Set("exchange_enabled", exchangeEnabled)
 
 		sharePointEnabled := false
 		if sharePoint := dt.SharePoint; sharePoint != nil {
-			sharePointEnabled = strings.EqualFold(string(sharePoint.State), string(securityinsight.Enabled))
+			sharePointEnabled = strings.EqualFold(string(sharePoint.State), string(securityinsight.DataTypeStateEnabled))
 		}
 		d.Set("sharepoint_enabled", sharePointEnabled)
 
 		teamsEnabled := false
 		if teams := dt.Teams; teams != nil {
-			teamsEnabled = strings.EqualFold(string(teams.State), string(securityinsight.Enabled))
+			teamsEnabled = strings.EqualFold(string(teams.State), string(securityinsight.DataTypeStateEnabled))
 		}
 		d.Set("teams_enabled", teamsEnabled)
 	}

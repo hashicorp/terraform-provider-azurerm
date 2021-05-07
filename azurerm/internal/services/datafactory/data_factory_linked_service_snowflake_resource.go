@@ -154,7 +154,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *schema.ResourceDat
 			ConnectionString: d.Get("connection_string").(string),
 			Password:         expandAzureKeyVaultPassword(password),
 		},
-		Type: datafactory.TypeSnowflake,
+		Type: datafactory.TypeBasicLinkedServiceTypeSnowflake,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -222,7 +222,7 @@ func resourceDataFactoryLinkedServiceSnowflakeRead(d *schema.ResourceData, meta 
 
 	snowflake, ok := resp.Properties.AsSnowflakeLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeSnowflake, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSnowflake, *resp.Type)
 	}
 
 	d.Set("additional_properties", snowflake.AdditionalProperties)

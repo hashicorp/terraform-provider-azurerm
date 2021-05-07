@@ -216,7 +216,7 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, met
 		azureBlobTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeAzureBlob)
+	datasetType := string(datafactory.TypeBasicDatasetTypeAzureBlob)
 	dataset := datafactory.DatasetResource{
 		Properties: &azureBlobTableset,
 		Type:       &datasetType,
@@ -269,7 +269,7 @@ func resourceDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interf
 
 	azureBlobTable, ok := resp.Properties.AsAzureBlobDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeAzureBlob, *resp.Type)
 	}
 
 	d.Set("additional_properties", azureBlobTable.AdditionalProperties)

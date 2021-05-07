@@ -124,7 +124,7 @@ func resourceResourceGroupDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup)
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil

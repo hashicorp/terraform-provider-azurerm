@@ -31,6 +31,84 @@ func NewVirtualMachinesClientWithBaseURI(baseURI string, subscriptionID string) 
 	return VirtualMachinesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// GetAsyncOperationStatus gets the async operation status.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// operationID - the long running operation id.
+func (client VirtualMachinesClient) GetAsyncOperationStatus(ctx context.Context, resourceGroupName string, clusterName string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachinesClient.GetAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAsyncOperationStatusPreparer(ctx, resourceGroupName, clusterName, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "GetAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "GetAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "GetAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAsyncOperationStatusPreparer prepares the GetAsyncOperationStatus request.
+func (client VirtualMachinesClient) GetAsyncOperationStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"operationId":       autorest.Encode("path", operationID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/restartHosts/azureasyncoperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAsyncOperationStatusSender sends the GetAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachinesClient) GetAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAsyncOperationStatusResponder handles the response to the GetAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client VirtualMachinesClient) GetAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ListHosts lists the HDInsight clusters hosts
 // Parameters:
 // resourceGroupName - the name of the resource group.

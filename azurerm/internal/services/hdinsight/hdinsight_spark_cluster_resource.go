@@ -194,7 +194,7 @@ func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
