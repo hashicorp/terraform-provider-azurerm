@@ -49,7 +49,7 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"scope": {
 				Type:     schema.TypeString,
@@ -155,7 +155,7 @@ func resourceArmMaintenanceConfigurationDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("failure deleting MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }
