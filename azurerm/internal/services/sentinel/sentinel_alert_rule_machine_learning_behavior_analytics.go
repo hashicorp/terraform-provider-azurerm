@@ -96,7 +96,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *schema.Resource
 	}
 
 	params := securityinsight.MLBehaviorAnalyticsAlertRule{
-		Kind: securityinsight.KindMLBehaviorAnalytics,
+		Kind: securityinsight.KindBasicAlertRuleKindMLBehaviorAnalytics,
 		MLBehaviorAnalyticsAlertRuleProperties: &securityinsight.MLBehaviorAnalyticsAlertRuleProperties{
 			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_guid").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),
