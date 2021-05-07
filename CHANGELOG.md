@@ -7,7 +7,12 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_account` - support for the `backup` property [GH-11597]
-* `azurerm_storage_account` - support for the `forazure_files_identity_based_authentication` and `routing_preference` blocks [GH-11485]
+* `azurerm_storage_account` - support for the `azure_files_identity_based_authentication` and `routing_preference` blocks [GH-11485]
+
+BUG FIXES
+
+* Data Source: `azurerm_container_registry_token` - updating the validation for the `name` field [GH-11607]
+* `azurerm_container_registry_token` - updating the validation for the `name` field [GH-11607]
 
 ## 2.58.0 (May 07, 2021)
 
