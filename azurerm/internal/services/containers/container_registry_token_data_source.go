@@ -25,7 +25,7 @@ func dataSourceContainerRegistryToken() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryTokenName,
 			},
 
 			"container_registry_name": {

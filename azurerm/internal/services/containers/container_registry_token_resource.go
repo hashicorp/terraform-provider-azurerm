@@ -39,7 +39,7 @@ func resourceContainerRegistryToken() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryTokenName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
