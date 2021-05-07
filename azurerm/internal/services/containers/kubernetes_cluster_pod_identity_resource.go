@@ -249,11 +249,6 @@ func expandKubernetesPodIdentities(ctx context.Context, userAssignedIdentitiesCl
 	result := make([]containerservice.ManagedClusterPodIdentity, 0)
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
-		name := v["name"].(string)
-		namespace := v["namespace"].(string)
-		if name == "" || namespace == "" {
-			continue
-		}
 
 		identityId, err := msiParse.UserAssignedIdentityID(v["identity_id"].(string))
 		if err != nil {
@@ -269,8 +264,8 @@ func expandKubernetesPodIdentities(ctx context.Context, userAssignedIdentitiesCl
 			return nil, fmt.Errorf("clientId or principalId is nil for %s", identityId)
 		}
 		result = append(result, containerservice.ManagedClusterPodIdentity{
-			Name:      utils.String(name),
-			Namespace: utils.String(namespace),
+			Name:      utils.String(v["name"].(string)),
+			Namespace: utils.String(v["namespace"].(string)),
 			Identity: &containerservice.UserAssignedIdentity{
 				ResourceID: utils.String(identityId.ID()),
 				ClientID:   utils.String(resp.UserAssignedIdentityProperties.ClientID.String()),
@@ -288,6 +283,9 @@ func expandKubernetesPodIdentityExceptions(input []interface{}) *[]containerserv
 	result := make([]containerservice.ManagedClusterPodIdentityException, 0)
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
+
+		// issue https://github.com/hashicorp/terraform-plugin-sdk/issues/588
+		// once it's resolved, we could remove the check empty logic
 		name := v["name"].(string)
 		namespace := v["namespace"].(string)
 		if name == "" || namespace == "" {
