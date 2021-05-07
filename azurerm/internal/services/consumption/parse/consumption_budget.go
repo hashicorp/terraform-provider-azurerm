@@ -33,6 +33,11 @@ func (id ConsumptionBudgetId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Consumption Budget", segmentsStr)
 }
 
+func (id ConsumptionBudgetId) ID() string {
+	fmtString := "%s/%s/%s"
+	return fmt.Sprintf(fmtString, id.Scope, consumptionBudgetIDSeparator, id.Name)
+}
+
 func ConsumptionBudgetID(input string) (*ConsumptionBudgetId, error) {
 	if !strings.Contains(input, consumptionBudgetIDSeparator) {
 		return nil, fmt.Errorf("the provided ID %q does not contain the expected resource provider %s", input, consumptionBudgetIDSeparator)
