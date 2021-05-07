@@ -34,8 +34,10 @@ func (id ConsumptionBudgetId) String() string {
 }
 
 func (id ConsumptionBudgetId) ID() string {
-	fmtString := "%s/%s/%s"
-	return fmt.Sprintf(fmtString, id.Scope, consumptionBudgetIDSeparator, id.Name)
+	// Given the scope is a valid resource ID and consumptionBudgetIDSeparator has leading and trailing slashes
+	// the scope, consumptionBudgetIDSeparator, and name are concatenated without a separator to form the valid resource
+	// ID for a Consumption Budget.
+	return strings.Join([]string{id.Scope, consumptionBudgetIDSeparator, id.Name}, "")
 }
 
 func ConsumptionBudgetID(input string) (*ConsumptionBudgetId, error) {
