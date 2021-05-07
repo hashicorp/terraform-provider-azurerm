@@ -383,6 +383,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "update" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -390,11 +391,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "update" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 
@@ -661,6 +657,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -668,11 +665,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
