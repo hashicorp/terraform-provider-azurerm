@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_frontdoor` - Fix for Frontdoor resource elements being returned out of order. [GH-11456]
 * `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 [GH-11547]
 * `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` [GH-11581]
+* `azurerm_network_connection_monitor` - support for the `coverage_level`, `excluded_ip_addresses`, `included_ip_addresses`, `target_resource_id`, and `resource_type` propeties [GH-11540]
 
 ## 2.57.0 (April 30, 2021)
 
