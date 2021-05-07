@@ -28,7 +28,7 @@ github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/con
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb
-github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
+github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2019-08-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
@@ -433,6 +433,9 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit
 github.com/sergi/go-diff/diffmatchpatch
+# github.com/shopspring/decimal v1.2.0
+## explicit
+github.com/shopspring/decimal
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem

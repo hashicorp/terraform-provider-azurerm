@@ -34,10 +34,9 @@ func NewExportsClientWithBaseURI(baseURI string, subscriptionID string) ExportsC
 // CreateOrUpdate the operation to create or update a export. Update operation requires latest eTag to be set in the
 // request. You may obtain the latest eTag by performing a get operation. Create operation does not require eTag.
 // Parameters:
-// scope - the scope associated with query and export operations. This includes
-// '/subscriptions/{subscriptionId}/' for subscription scope,
-// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
+// scope - the scope associated with export operations. This includes '/subscriptions/{subscriptionId}/' for
+// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
+// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
 // scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
@@ -45,12 +44,10 @@ func NewExportsClientWithBaseURI(baseURI string, subscriptionID string) ExportsC
 // Management Group scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
-// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
-// consolidated account
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
 // exportName - export Name.
 // parameters - parameters supplied to the CreateOrUpdate Export operation.
 func (client ExportsClient) CreateOrUpdate(ctx context.Context, scope string, exportName string, parameters Export) (result Export, err error) {
@@ -104,7 +101,7 @@ func (client ExportsClient) CreateOrUpdatePreparer(ctx context.Context, scope st
 		"scope":      scope,
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -139,10 +136,9 @@ func (client ExportsClient) CreateOrUpdateResponder(resp *http.Response) (result
 
 // Delete the operation to delete a export.
 // Parameters:
-// scope - the scope associated with query and export operations. This includes
-// '/subscriptions/{subscriptionId}/' for subscription scope,
-// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
+// scope - the scope associated with export operations. This includes '/subscriptions/{subscriptionId}/' for
+// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
+// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
 // scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
@@ -150,12 +146,10 @@ func (client ExportsClient) CreateOrUpdateResponder(resp *http.Response) (result
 // Management Group scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
-// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
-// consolidated account
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
 // exportName - export Name.
 func (client ExportsClient) Delete(ctx context.Context, scope string, exportName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -197,7 +191,7 @@ func (client ExportsClient) DeletePreparer(ctx context.Context, scope string, ex
 		"scope":      scope,
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -227,12 +221,11 @@ func (client ExportsClient) DeleteResponder(resp *http.Response) (result autores
 	return
 }
 
-// Execute the operation to execute a export.
+// Execute the operation to execute an export.
 // Parameters:
-// scope - the scope associated with query and export operations. This includes
-// '/subscriptions/{subscriptionId}/' for subscription scope,
-// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
+// scope - the scope associated with export operations. This includes '/subscriptions/{subscriptionId}/' for
+// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
+// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
 // scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
@@ -240,12 +233,10 @@ func (client ExportsClient) DeleteResponder(resp *http.Response) (result autores
 // Management Group scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
-// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
-// consolidated account
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
 // exportName - export Name.
 func (client ExportsClient) Execute(ctx context.Context, scope string, exportName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -287,7 +278,7 @@ func (client ExportsClient) ExecutePreparer(ctx context.Context, scope string, e
 		"scope":      scope,
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -319,10 +310,9 @@ func (client ExportsClient) ExecuteResponder(resp *http.Response) (result autore
 
 // Get the operation to get the export for the defined scope by export name.
 // Parameters:
-// scope - the scope associated with query and export operations. This includes
-// '/subscriptions/{subscriptionId}/' for subscription scope,
-// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
+// scope - the scope associated with export operations. This includes '/subscriptions/{subscriptionId}/' for
+// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
+// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
 // scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
@@ -330,14 +320,14 @@ func (client ExportsClient) ExecuteResponder(resp *http.Response) (result autore
 // Management Group scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
-// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
-// consolidated account
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
 // exportName - export Name.
-func (client ExportsClient) Get(ctx context.Context, scope string, exportName string) (result Export, err error) {
+// expand - may be used to expand the properties within an export. Currently only 'runHistory' is supported and
+// will return information for the last 10 executions of the export.
+func (client ExportsClient) Get(ctx context.Context, scope string, exportName string, expand string) (result Export, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExportsClient.Get")
 		defer func() {
@@ -348,7 +338,7 @@ func (client ExportsClient) Get(ctx context.Context, scope string, exportName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, scope, exportName)
+	req, err := client.GetPreparer(ctx, scope, exportName, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "Get", nil, "Failure preparing request")
 		return
@@ -371,15 +361,18 @@ func (client ExportsClient) Get(ctx context.Context, scope string, exportName st
 }
 
 // GetPreparer prepares the Get request.
-func (client ExportsClient) GetPreparer(ctx context.Context, scope string, exportName string) (*http.Request, error) {
+func (client ExportsClient) GetPreparer(ctx context.Context, scope string, exportName string, expand string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"exportName": autorest.Encode("path", exportName),
 		"scope":      scope,
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -408,12 +401,11 @@ func (client ExportsClient) GetResponder(resp *http.Response) (result Export, er
 	return
 }
 
-// GetExecutionHistory the operation to get the execution history of an export for the defined scope by export name.
+// GetExecutionHistory the operation to get the execution history of an export for the defined scope and export name.
 // Parameters:
-// scope - the scope associated with query and export operations. This includes
-// '/subscriptions/{subscriptionId}/' for subscription scope,
-// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
+// scope - the scope associated with export operations. This includes '/subscriptions/{subscriptionId}/' for
+// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
+// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
 // scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
@@ -421,12 +413,10 @@ func (client ExportsClient) GetResponder(resp *http.Response) (result Export, er
 // Management Group scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
-// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
-// consolidated account
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
 // exportName - export Name.
 func (client ExportsClient) GetExecutionHistory(ctx context.Context, scope string, exportName string) (result ExportExecutionListResult, err error) {
 	if tracing.IsEnabled() {
@@ -468,7 +458,7 @@ func (client ExportsClient) GetExecutionHistoryPreparer(ctx context.Context, sco
 		"scope":      scope,
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -501,10 +491,9 @@ func (client ExportsClient) GetExecutionHistoryResponder(resp *http.Response) (r
 
 // List the operation to list all exports at the given scope.
 // Parameters:
-// scope - the scope associated with query and export operations. This includes
-// '/subscriptions/{subscriptionId}/' for subscription scope,
-// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
+// scope - the scope associated with export operations. This includes '/subscriptions/{subscriptionId}/' for
+// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
+// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope and
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
 // scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
@@ -512,13 +501,13 @@ func (client ExportsClient) GetExecutionHistoryResponder(resp *http.Response) (r
 // Management Group scope,
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope,
-// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
-// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
-// consolidated account
-func (client ExportsClient) List(ctx context.Context, scope string) (result ExportListResult, err error) {
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
+// expand - may be used to expand the properties within an export. Currently only 'runHistory' is supported and
+// will return information for the last execution of each export.
+func (client ExportsClient) List(ctx context.Context, scope string, expand string) (result ExportListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExportsClient.List")
 		defer func() {
@@ -529,7 +518,7 @@ func (client ExportsClient) List(ctx context.Context, scope string) (result Expo
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListPreparer(ctx, scope)
+	req, err := client.ListPreparer(ctx, scope, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "List", nil, "Failure preparing request")
 		return
@@ -552,14 +541,17 @@ func (client ExportsClient) List(ctx context.Context, scope string) (result Expo
 }
 
 // ListPreparer prepares the List request.
-func (client ExportsClient) ListPreparer(ctx context.Context, scope string) (*http.Request, error) {
+func (client ExportsClient) ListPreparer(ctx context.Context, scope string, expand string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"scope": scope,
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
 	}
 
 	preparer := autorest.CreatePreparer(
