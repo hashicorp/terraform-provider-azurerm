@@ -552,22 +552,6 @@ The `kubelet_identity` block exports the following:
 
 ---
 
-The `oms_agent` block exports the following: 
-
-* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
-
----
-
-The `oms_agent_identity` block exports the following:
-
-* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
-
-* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
-
-* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
-
----
-
 The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
@@ -601,11 +585,41 @@ The `addon_profile` block exports the following:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
+* `oms_agent` - An `oms_agent` block as defined below.
+
 ---
 
 The `ingress_application_gateway` block exports the following:
 
 * `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
+
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `ingress_application_gateway_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Application Gateway.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Application Gateway.
+
+---
+
+The `oms_agent` block exports the following: 
+
+* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `oms_agent_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
 
 ## Timeouts
 
