@@ -192,6 +192,26 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
+							"ingress_application_gateway_identity": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"client_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"object_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"user_assigned_identity_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -457,12 +477,15 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			subnetId = *v
 		}
 
+		ingressApplicationGatewayIdentity := flattenKubernetesClusterIngressApplicationGatewayIdentityProfile(ingressApplicationGateway.Identity)
+
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
-			"enabled":              enabled,
-			"gateway_id":           gatewayId,
-			"effective_gateway_id": effectiveGatewayId,
-			"subnet_cidr":          subnetCIDR,
-			"subnet_id":            subnetId,
+			"enabled":                              enabled,
+			"gateway_id":                           gatewayId,
+			"effective_gateway_id":                 effectiveGatewayId,
+			"subnet_cidr":                          subnetCIDR,
+			"subnet_id":                            subnetId,
+			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
 		})
 	}
 
@@ -484,6 +507,36 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 }
 
 func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	identity := make([]interface{}, 0)
+	clientID := ""
+	if clientid := profile.ClientID; clientid != nil {
+		clientID = *clientid
+	}
+
+	objectID := ""
+	if objectid := profile.ObjectID; objectid != nil {
+		objectID = *objectid
+	}
+
+	userAssignedIdentityID := ""
+	if resourceid := profile.ResourceID; resourceid != nil {
+		userAssignedIdentityID = *resourceid
+	}
+
+	identity = append(identity, map[string]interface{}{
+		"client_id":                 clientID,
+		"object_id":                 objectID,
+		"user_assigned_identity_id": userAssignedIdentityID,
+	})
+
+	return identity
+}
+
+func flattenKubernetesClusterIngressApplicationGatewayIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
