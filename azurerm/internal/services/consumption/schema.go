@@ -6,11 +6,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/validate"
+	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 )
 
 func SchemaConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
 	resourceGroupNameSchema := map[string]*schema.Schema{
-		"resource_group_id": azure.SchemaResourceGroupName(),
+		"resource_group_id": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: resourceValidate.ResourceGroupID,
+		},
 	}
 
 	return azure.MergeSchema(SchemaConsumptionBudgetCommonResource(), resourceGroupNameSchema)
