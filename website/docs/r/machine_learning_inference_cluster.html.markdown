@@ -22,7 +22,7 @@ resource "azurerm_machine_learning_inference_cluster" "example" {
     type = "SystemAssigned"
   }
   machine_learning_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1"
-  node_pool_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1"
+  node_pool_id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1"
 }
 ```
 
