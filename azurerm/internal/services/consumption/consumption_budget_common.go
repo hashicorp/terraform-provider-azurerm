@@ -116,8 +116,7 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 	if read.ID == nil {
 		return fmt.Errorf("cannot read Azure Consumption Budget %q for scope %q", name, scope)
 	}
-
-	d.SetId(*read.ID)
+	d.SetId(parse.NewConsumptionBudgetID(name, scope).ID())
 
 	return nil
 }
