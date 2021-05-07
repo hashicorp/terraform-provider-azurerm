@@ -40,6 +40,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(1, defaultStartHour),
 
+        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones
+        "netapp" to testConfiguration(10, defaultStartHour),
+
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
         "servicebus" to testConfiguration(10, defaultStartHour),
