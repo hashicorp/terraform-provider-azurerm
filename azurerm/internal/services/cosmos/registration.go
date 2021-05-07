@@ -39,6 +39,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_cosmosdb_sql_container":        resourceCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":         resourceCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_sql_stored_procedure": resourceCosmosDbSQLStoredProcedure(),
+		"azurerm_cosmosdb_sql_trigger":          resourceCosmosDbSQLTrigger(),
 		"azurerm_cosmosdb_table":                resourceCosmosDbTable(),
 	}
 }
