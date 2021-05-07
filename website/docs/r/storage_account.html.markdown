@@ -131,6 +131,10 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
+
+* `routing` - (Optional) A `routing` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -246,6 +250,40 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
+---
+
+A `azure_files_authentication` block supports the following:
+
+* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
+
+* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
+
+---
+
+A `active_directory` block supports the following:
+
+* `storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
+
+* `domain_name` - (Required) Specifies the primary domain that the AD DNS server is authoritative for.
+
+* `domain_sid` - (Required) Specifies the security identifier (SID).
+
+* `domain_guid` - (Required) Specifies the domain GUID.
+
+* `forest_name` - (Required) Specifies the Active Directory forest.
+
+* `netbios_domain_name` - (Required) Specifies the NetBIOS domain name.
+
+---
+
+A `routing` block supports the following:
+
+* `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
+
+* `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
+
+* `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 
 ---
 
