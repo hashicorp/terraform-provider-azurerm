@@ -66,7 +66,7 @@ func resourceArmKeyVaultKeyEncrypt() *schema.Resource {
 				}, false),
 			},
 
-			"cipher_text": {
+			"encrypted_data_in_base64url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -100,7 +100,7 @@ func resourceArmKeyVaultKeyEncryptCreate(d *schema.ResourceData, meta interface{
 	d.SetId(id)
 
 	d.Set("key_vault_key_id", result.Kid)
-	d.Set("cipher_text", result.Result)
+	d.Set("encrypted_data_in_base64url", result.Result)
 
 	return nil
 }

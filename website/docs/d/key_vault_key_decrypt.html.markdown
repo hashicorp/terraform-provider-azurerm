@@ -15,9 +15,9 @@ Use this data source to decrypt data encrypted with a Key Vault Key.
 
 ```hcl
 data "azurerm_key_vault_key_decrypt" "example" {
-  key_vault_key_id = azurerm_key_vault_key.example.id
-  payload          = var.payload
-  algorithm        = "RSA1_5"
+  key_vault_key_id         = azurerm_key_vault_key.example.id
+  encrypted_base64url_data = var.encrypted_base64url_data
+  algorithm                = "RSA1_5"
 }
 
 output "decrypted_data" {
@@ -33,9 +33,9 @@ The following arguments are supported:
 
 * `algorithm` - (Required) Specifies the Algorithm which is used to decrypt. Possible values are `RSA1_5`, `RSA-OAEP` and `RSA-OAEP-256`.
 
-* `payload` - (Required) Specifies the payload to be decrypted.
+* `encrypted_base64url_data` - (Required) Specifies the data to be decrypted.
 
-**NOTE:** The format of `payload` is `base64url`, please refer to RFC: https://tools.ietf.org/html/rfc4648#section-5
+**NOTE:** The format of `encrypted_base64url_data` is `base64url`, please refer to RFC: https://tools.ietf.org/html/rfc4648#section-5
 
 ## Attributes Reference
 
@@ -49,4 +49,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Key decrypted data.

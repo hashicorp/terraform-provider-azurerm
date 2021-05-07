@@ -39,9 +39,9 @@ func testAccDataSourceKeyVaultKeyDecrypt_basic(data acceptance.TestData, plainte
 %s
 
 data "azurerm_key_vault_key_decrypt" "test" {
-  key_vault_key_id = azurerm_key_vault_key_encrypt.test.key_vault_key_id
-  payload          = azurerm_key_vault_key_encrypt.test.cipher_text
-  algorithm        = azurerm_key_vault_key_encrypt.test.algorithm
+  key_vault_key_id         = azurerm_key_vault_key_encrypt.test.key_vault_key_id
+  encrypted_base64url_data = azurerm_key_vault_key_encrypt.test.encrypted_data_in_base64url
+  algorithm                = azurerm_key_vault_key_encrypt.test.algorithm
 }
 `, t)
 }

@@ -22,7 +22,7 @@ resource "azurerm_key_vault_key_encrypt" "example" {
 }
 
 output "encrypted_data" {
-  value = azurerm_key_vault_key_encrypt.example.cipher_text
+  value = azurerm_key_vault_key_encrypt.example.encrypted_data_in_base64url
 }
 ```
 
@@ -44,15 +44,15 @@ The following attributes are exported:
 
 * `id` - The ID of the data encrypted.
 
-* `cipher_text` - The encrypted data.
+* `encrypted_data_in_base64url` - The encrypted data.
 
-**NOTE:** The format of `cipher_text` is `base64url`, please refer to RFC: https://tools.ietf.org/html/rfc4648#section-5
+**NOTE:** The format of `encrypted_data_in_base64url` is `base64url`, please refer to RFC: https://tools.ietf.org/html/rfc4648#section-5
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 5 minutes) Used when encrypting data using the Key Vault Key .
+* `create` - (Defaults to 5 minutes) Used when encrypting data using the Key Vault Key.
 
 ## Import
 

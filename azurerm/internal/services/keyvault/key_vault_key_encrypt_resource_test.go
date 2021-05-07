@@ -26,7 +26,7 @@ func TestAccKeyVaultKeyEncrypt_basic(t *testing.T) {
 			{
 				Config: testAccKeyVaultKeyEncrypt_basic(data, plaintext),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "cipher_text"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "encrypted_data_in_base64url"),
 				),
 			},
 		},
