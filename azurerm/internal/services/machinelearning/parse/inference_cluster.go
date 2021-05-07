@@ -1,80 +1,53 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type InferenceClusterId struct {
-	WorkspaceName        string
-	ResourceGroup        string
-	InferenceClusterName string
+	SubscriptionId string
+	ResourceGroup  string
+	WorkspaceName  string
+	ComputeName    string
 }
 
+func NewInferenceClusterID(subscriptionId, resourceGroup, workspaceName, computeName string) InferenceClusterId {
+	return InferenceClusterId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		WorkspaceName:  workspaceName,
+		ComputeName:    computeName,
+	}
+}
+
+func (id InferenceClusterId) String() string {
+	segments := []string{
+		fmt.Sprintf("Compute Name %q", id.ComputeName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Inference Cluster", segmentsStr)
+}
+
+func (id InferenceClusterId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.MachineLearningServices/workspaces/%s/computes/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+}
+
+// InferenceClusterID parses a InferenceCluster ID into an InferenceClusterId struct
 func InferenceClusterID(input string) (*InferenceClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	inference_cluster := InferenceClusterId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if inference_cluster.InferenceClusterName, err = id.PopSegment("computes"); err != nil {
-		return nil, err
-	}
-
-	if inference_cluster.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("Debug: id = %q", id)
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &inference_cluster, nil
-}
-
-type KubernetesClusterId struct {
-	SubscriptionId     string
-	ResourceGroup      string
-	ManagedClusterName string
-}
-
-func NewClusterID(subscriptionId, resourceGroup, managedClusterName string) KubernetesClusterId {
-	return KubernetesClusterId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroup:      resourceGroup,
-		ManagedClusterName: managedClusterName,
-	}
-}
-
-func (id KubernetesClusterId) String() string {
-	segments := []string{
-		fmt.Sprintf("Managed Cluster Name %q", id.ManagedClusterName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Cluster", segmentsStr)
-}
-
-func (id KubernetesClusterId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName)
-}
-
-// KubernetesClusterId parses a Cluster ID into an KubernetesClusterId struct
-func KubernetesClusterID(input string) (*KubernetesClusterId, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
-	}
-
-	resourceId := KubernetesClusterId{
+	resourceId := InferenceClusterId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -87,7 +60,10 @@ func KubernetesClusterID(input string) (*KubernetesClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {
+	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
+		return nil, err
+	}
+	if resourceId.ComputeName, err = id.PopSegment("computes"); err != nil {
 		return nil, err
 	}
 

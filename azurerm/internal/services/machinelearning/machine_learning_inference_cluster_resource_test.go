@@ -140,7 +140,7 @@ func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Cl
 		return nil, err
 	}
 
-	resp, err := inferenceClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.InferenceClusterName)
+	resp, err := inferenceClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

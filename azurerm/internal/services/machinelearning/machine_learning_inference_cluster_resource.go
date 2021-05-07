@@ -50,7 +50,6 @@ func resourceAksInferenceCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.InferenceClusterName,
 			},
 
 			"machine_learning_workspace_id": {
@@ -65,6 +64,7 @@ func resourceAksInferenceCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validate.KubernetesClusterID,
 			},
 
 			"cluster_purpose": {
@@ -72,14 +72,12 @@ func resourceAksInferenceCluster() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "Dev",
-				ValidateFunc: validate.ClusterPurpose,
 			},
 
 			"node_pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NodePoolName,
 			},
 
 			"identity": {
@@ -268,7 +266,9 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("cannot read Inference Cluster ID %q in workspace %q (Resource Group %q) ID", name, workspace_name, resource_group_name)
 	}
 
-	d.SetId(*resp.ID)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewInferenceClusterID(subscriptionId, resource_group_name, workspace_name, name)
+	d.SetId(id.ID())
 
 	return resourceAksInferenceClusterRead(d, meta)
 }
@@ -283,20 +283,20 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	id, err := parse.InferenceClusterID(d.Id())
 	if err != nil {
-		return fmt.Errorf("error parsing Inference Cluster ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
-	d.Set("name", id.InferenceClusterName)
+	d.Set("name", id.ComputeName)
 
 	// Check that Inference Cluster Response can be read
-	resp, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.InferenceClusterName)
+	resp, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("error making Read request on Inference Cluster %q in Workspace %q (Resource Group %q): %+v",
-			id.InferenceClusterName, id.WorkspaceName, id.ResourceGroup, err)
+			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	// Retrieve Machine Learning Workspace ID
@@ -352,17 +352,17 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 	defer cancel()
 	id, err := parse.InferenceClusterID(d.Id())
 	if err != nil {
-		return fmt.Errorf("error parsing Inference Cluster ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 	underlying_resource_action := machinelearningservices.Detach
-	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.InferenceClusterName, underlying_resource_action)
+	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, underlying_resource_action)
 	if err != nil {
 		return fmt.Errorf("error deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
-			id.InferenceClusterName, id.WorkspaceName, id.ResourceGroup, err)
+			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
 		return fmt.Errorf("error waiting for deletion of Inference Cluster %q in workspace %q (Resource Group %q): %+v",
-			id.InferenceClusterName, id.WorkspaceName, id.ResourceGroup, err)
+			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	return nil
 }
