@@ -31,7 +31,7 @@ func TestAccSubscriptionResource_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
-		data.ImportStep("billing_account", "enrollment_account"),
+		data.ImportStep(),
 	})
 }
 
