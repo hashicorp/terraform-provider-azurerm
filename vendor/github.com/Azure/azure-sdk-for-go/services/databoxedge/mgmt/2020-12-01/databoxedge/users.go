@@ -10,35 +10,37 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
-// RolesClient is the client for the Roles methods of the Databoxedge service.
-type RolesClient struct {
+// UsersClient is the client for the Users methods of the Databoxedge service.
+type UsersClient struct {
 	BaseClient
 }
 
-// NewRolesClient creates an instance of the RolesClient client.
-func NewRolesClient(subscriptionID string) RolesClient {
-	return NewRolesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewUsersClient creates an instance of the UsersClient client.
+func NewUsersClient(subscriptionID string) UsersClient {
+	return NewUsersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRolesClientWithBaseURI creates an instance of the RolesClient client using a custom endpoint.  Use this when
+// NewUsersClientWithBaseURI creates an instance of the UsersClient client using a custom endpoint.  Use this when
 // interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewRolesClientWithBaseURI(baseURI string, subscriptionID string) RolesClient {
-	return RolesClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewUsersClientWithBaseURI(baseURI string, subscriptionID string) UsersClient {
+	return UsersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update a role.
+// CreateOrUpdate creates a new user or updates an existing user's information on a Data Box Edge/Data Box Gateway
+// device.
 // Parameters:
 // deviceName - the device name.
-// name - the role name.
-// role - the role properties.
+// name - the user name.
+// userParameter - the user details.
 // resourceGroupName - the resource group name.
-func (client RolesClient) CreateOrUpdate(ctx context.Context, deviceName string, name string, role BasicRole, resourceGroupName string) (result RolesCreateOrUpdateFuture, err error) {
+func (client UsersClient) CreateOrUpdate(ctx context.Context, deviceName string, name string, userParameter User, resourceGroupName string) (result UsersCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RolesClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/UsersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -47,15 +49,24 @@ func (client RolesClient) CreateOrUpdate(ctx context.Context, deviceName string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, deviceName, name, role, resourceGroupName)
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: userParameter,
+			Constraints: []validation.Constraint{{Target: "userParameter.UserProperties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "userParameter.UserProperties.EncryptedPassword", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "userParameter.UserProperties.EncryptedPassword.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+				}}}}}); err != nil {
+		return result, validation.NewError("databoxedge.UsersClient", "CreateOrUpdate", err.Error())
+	}
+
+	req, err := client.CreateOrUpdatePreparer(ctx, deviceName, name, userParameter, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -63,7 +74,7 @@ func (client RolesClient) CreateOrUpdate(ctx context.Context, deviceName string,
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client RolesClient) CreateOrUpdatePreparer(ctx context.Context, deviceName string, name string, role BasicRole, resourceGroupName string) (*http.Request, error) {
+func (client UsersClient) CreateOrUpdatePreparer(ctx context.Context, deviceName string, name string, userParameter User, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceName":        autorest.Encode("path", deviceName),
 		"name":              autorest.Encode("path", name),
@@ -71,7 +82,7 @@ func (client RolesClient) CreateOrUpdatePreparer(ctx context.Context, deviceName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -80,15 +91,15 @@ func (client RolesClient) CreateOrUpdatePreparer(ctx context.Context, deviceName
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/roles/{name}", pathParameters),
-		autorest.WithJSON(role),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/users/{name}", pathParameters),
+		autorest.WithJSON(userParameter),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client RolesClient) CreateOrUpdateSender(req *http.Request) (future RolesCreateOrUpdateFuture, err error) {
+func (client UsersClient) CreateOrUpdateSender(req *http.Request) (future UsersCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -103,7 +114,7 @@ func (client RolesClient) CreateOrUpdateSender(req *http.Request) (future RolesC
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client RolesClient) CreateOrUpdateResponder(resp *http.Response) (result RoleModel, err error) {
+func (client UsersClient) CreateOrUpdateResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
@@ -113,14 +124,14 @@ func (client RolesClient) CreateOrUpdateResponder(resp *http.Response) (result R
 	return
 }
 
-// Delete deletes the role on the device.
+// Delete deletes the user on a databox edge/gateway device.
 // Parameters:
 // deviceName - the device name.
-// name - the role name.
+// name - the user name.
 // resourceGroupName - the resource group name.
-func (client RolesClient) Delete(ctx context.Context, deviceName string, name string, resourceGroupName string) (result RolesDeleteFuture, err error) {
+func (client UsersClient) Delete(ctx context.Context, deviceName string, name string, resourceGroupName string) (result UsersDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RolesClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/UsersClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -131,13 +142,13 @@ func (client RolesClient) Delete(ctx context.Context, deviceName string, name st
 	}
 	req, err := client.DeletePreparer(ctx, deviceName, name, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -145,7 +156,7 @@ func (client RolesClient) Delete(ctx context.Context, deviceName string, name st
 }
 
 // DeletePreparer prepares the Delete request.
-func (client RolesClient) DeletePreparer(ctx context.Context, deviceName string, name string, resourceGroupName string) (*http.Request, error) {
+func (client UsersClient) DeletePreparer(ctx context.Context, deviceName string, name string, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceName":        autorest.Encode("path", deviceName),
 		"name":              autorest.Encode("path", name),
@@ -153,7 +164,7 @@ func (client RolesClient) DeletePreparer(ctx context.Context, deviceName string,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,14 +172,14 @@ func (client RolesClient) DeletePreparer(ctx context.Context, deviceName string,
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/roles/{name}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/users/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client RolesClient) DeleteSender(req *http.Request) (future RolesDeleteFuture, err error) {
+func (client UsersClient) DeleteSender(req *http.Request) (future UsersDeleteFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -183,7 +194,7 @@ func (client RolesClient) DeleteSender(req *http.Request) (future RolesDeleteFut
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client RolesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client UsersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -192,14 +203,14 @@ func (client RolesClient) DeleteResponder(resp *http.Response) (result autorest.
 	return
 }
 
-// Get gets a specific role by name.
+// Get gets the properties of the specified user.
 // Parameters:
 // deviceName - the device name.
-// name - the role name.
+// name - the user name.
 // resourceGroupName - the resource group name.
-func (client RolesClient) Get(ctx context.Context, deviceName string, name string, resourceGroupName string) (result RoleModel, err error) {
+func (client UsersClient) Get(ctx context.Context, deviceName string, name string, resourceGroupName string) (result User, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RolesClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/UsersClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -210,20 +221,20 @@ func (client RolesClient) Get(ctx context.Context, deviceName string, name strin
 	}
 	req, err := client.GetPreparer(ctx, deviceName, name, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -231,7 +242,7 @@ func (client RolesClient) Get(ctx context.Context, deviceName string, name strin
 }
 
 // GetPreparer prepares the Get request.
-func (client RolesClient) GetPreparer(ctx context.Context, deviceName string, name string, resourceGroupName string) (*http.Request, error) {
+func (client UsersClient) GetPreparer(ctx context.Context, deviceName string, name string, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceName":        autorest.Encode("path", deviceName),
 		"name":              autorest.Encode("path", name),
@@ -239,7 +250,7 @@ func (client RolesClient) GetPreparer(ctx context.Context, deviceName string, na
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -247,20 +258,20 @@ func (client RolesClient) GetPreparer(ctx context.Context, deviceName string, na
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/roles/{name}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/users/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client RolesClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client UsersClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client RolesClient) GetResponder(resp *http.Response) (result RoleModel, err error) {
+func (client UsersClient) GetResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -270,41 +281,42 @@ func (client RolesClient) GetResponder(resp *http.Response) (result RoleModel, e
 	return
 }
 
-// ListByDataBoxEdgeDevice lists all the roles configured in a Data Box Edge/Data Box Gateway device.
+// ListByDataBoxEdgeDevice gets all the users registered on a Data Box Edge/Data Box Gateway device.
 // Parameters:
 // deviceName - the device name.
 // resourceGroupName - the resource group name.
-func (client RolesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceName string, resourceGroupName string) (result RoleListPage, err error) {
+// filter - specify $filter='Type eq <type>' to filter on user type property.
+func (client UsersClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceName string, resourceGroupName string, filter string) (result UserListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RolesClient.ListByDataBoxEdgeDevice")
+		ctx = tracing.StartSpan(ctx, fqdn+"/UsersClient.ListByDataBoxEdgeDevice")
 		defer func() {
 			sc := -1
-			if result.rl.Response.Response != nil {
-				sc = result.rl.Response.Response.StatusCode
+			if result.ul.Response.Response != nil {
+				sc = result.ul.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
 	result.fn = client.listByDataBoxEdgeDeviceNextResults
-	req, err := client.ListByDataBoxEdgeDevicePreparer(ctx, deviceName, resourceGroupName)
+	req, err := client.ListByDataBoxEdgeDevicePreparer(ctx, deviceName, resourceGroupName, filter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "ListByDataBoxEdgeDevice", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "ListByDataBoxEdgeDevice", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByDataBoxEdgeDeviceSender(req)
 	if err != nil {
-		result.rl.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "ListByDataBoxEdgeDevice", resp, "Failure sending request")
+		result.ul.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "ListByDataBoxEdgeDevice", resp, "Failure sending request")
 		return
 	}
 
-	result.rl, err = client.ListByDataBoxEdgeDeviceResponder(resp)
+	result.ul, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "ListByDataBoxEdgeDevice", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "ListByDataBoxEdgeDevice", resp, "Failure responding to request")
 		return
 	}
-	if result.rl.hasNextLink() && result.rl.IsEmpty() {
+	if result.ul.hasNextLink() && result.ul.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -313,35 +325,38 @@ func (client RolesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceNam
 }
 
 // ListByDataBoxEdgeDevicePreparer prepares the ListByDataBoxEdgeDevice request.
-func (client RolesClient) ListByDataBoxEdgeDevicePreparer(ctx context.Context, deviceName string, resourceGroupName string) (*http.Request, error) {
+func (client UsersClient) ListByDataBoxEdgeDevicePreparer(ctx context.Context, deviceName string, resourceGroupName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceName":        autorest.Encode("path", deviceName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/roles", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/users", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListByDataBoxEdgeDeviceSender sends the ListByDataBoxEdgeDevice request. The method will close the
 // http.Response Body if it receives an error.
-func (client RolesClient) ListByDataBoxEdgeDeviceSender(req *http.Request) (*http.Response, error) {
+func (client UsersClient) ListByDataBoxEdgeDeviceSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDataBoxEdgeDeviceResponder handles the response to the ListByDataBoxEdgeDevice request. The method always
 // closes the http.Response Body.
-func (client RolesClient) ListByDataBoxEdgeDeviceResponder(resp *http.Response) (result RoleList, err error) {
+func (client UsersClient) ListByDataBoxEdgeDeviceResponder(resp *http.Response) (result UserList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -352,10 +367,10 @@ func (client RolesClient) ListByDataBoxEdgeDeviceResponder(resp *http.Response) 
 }
 
 // listByDataBoxEdgeDeviceNextResults retrieves the next set of results, if any.
-func (client RolesClient) listByDataBoxEdgeDeviceNextResults(ctx context.Context, lastResults RoleList) (result RoleList, err error) {
-	req, err := lastResults.roleListPreparer(ctx)
+func (client UsersClient) listByDataBoxEdgeDeviceNextResults(ctx context.Context, lastResults UserList) (result UserList, err error) {
+	req, err := lastResults.userListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "databoxedge.RolesClient", "listByDataBoxEdgeDeviceNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "databoxedge.UsersClient", "listByDataBoxEdgeDeviceNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -363,19 +378,19 @@ func (client RolesClient) listByDataBoxEdgeDeviceNextResults(ctx context.Context
 	resp, err := client.ListByDataBoxEdgeDeviceSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "databoxedge.RolesClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "databoxedge.UsersClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListByDataBoxEdgeDeviceComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RolesClient) ListByDataBoxEdgeDeviceComplete(ctx context.Context, deviceName string, resourceGroupName string) (result RoleListIterator, err error) {
+func (client UsersClient) ListByDataBoxEdgeDeviceComplete(ctx context.Context, deviceName string, resourceGroupName string, filter string) (result UserListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RolesClient.ListByDataBoxEdgeDevice")
+		ctx = tracing.StartSpan(ctx, fqdn+"/UsersClient.ListByDataBoxEdgeDevice")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -384,6 +399,6 @@ func (client RolesClient) ListByDataBoxEdgeDeviceComplete(ctx context.Context, d
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByDataBoxEdgeDevice(ctx, deviceName, resourceGroupName)
+	result.page, err = client.ListByDataBoxEdgeDevice(ctx, deviceName, resourceGroupName, filter)
 	return
 }

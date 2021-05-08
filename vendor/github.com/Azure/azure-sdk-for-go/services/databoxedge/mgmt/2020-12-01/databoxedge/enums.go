@@ -21,6 +21,31 @@ func PossibleAccountTypeValues() []AccountType {
 	return []AccountType{BlobStorage, GeneralPurposeStorage}
 }
 
+// AddonState enumerates the values for addon state.
+type AddonState string
+
+const (
+	// Created ...
+	Created AddonState = "Created"
+	// Creating ...
+	Creating AddonState = "Creating"
+	// Deleting ...
+	Deleting AddonState = "Deleting"
+	// Failed ...
+	Failed AddonState = "Failed"
+	// Invalid ...
+	Invalid AddonState = "Invalid"
+	// Reconfiguring ...
+	Reconfiguring AddonState = "Reconfiguring"
+	// Updating ...
+	Updating AddonState = "Updating"
+)
+
+// PossibleAddonStateValues returns an array of possible values for the AddonState const type.
+func PossibleAddonStateValues() []AddonState {
+	return []AddonState{Created, Creating, Deleting, Failed, Invalid, Reconfiguring, Updating}
+}
+
 // AlertSeverity enumerates the values for alert severity.
 type AlertSeverity string
 
@@ -42,15 +67,15 @@ func PossibleAlertSeverityValues() []AlertSeverity {
 type AuthenticationType string
 
 const (
-	// AzureActiveDirectory ...
-	AzureActiveDirectory AuthenticationType = "AzureActiveDirectory"
-	// Invalid ...
-	Invalid AuthenticationType = "Invalid"
+	// AuthenticationTypeAzureActiveDirectory ...
+	AuthenticationTypeAzureActiveDirectory AuthenticationType = "AzureActiveDirectory"
+	// AuthenticationTypeInvalid ...
+	AuthenticationTypeInvalid AuthenticationType = "Invalid"
 )
 
 // PossibleAuthenticationTypeValues returns an array of possible values for the AuthenticationType const type.
 func PossibleAuthenticationTypeValues() []AuthenticationType {
-	return []AuthenticationType{AzureActiveDirectory, Invalid}
+	return []AuthenticationType{AuthenticationTypeAzureActiveDirectory, AuthenticationTypeInvalid}
 }
 
 // AzureContainerDataFormat enumerates the values for azure container data format.
@@ -91,21 +116,40 @@ func PossibleClientPermissionTypeValues() []ClientPermissionType {
 type ContainerStatus string
 
 const (
-	// NeedsAttention ...
-	NeedsAttention ContainerStatus = "NeedsAttention"
-	// Offline ...
-	Offline ContainerStatus = "Offline"
-	// OK ...
-	OK ContainerStatus = "OK"
-	// Unknown ...
-	Unknown ContainerStatus = "Unknown"
-	// Updating ...
-	Updating ContainerStatus = "Updating"
+	// ContainerStatusNeedsAttention ...
+	ContainerStatusNeedsAttention ContainerStatus = "NeedsAttention"
+	// ContainerStatusOffline ...
+	ContainerStatusOffline ContainerStatus = "Offline"
+	// ContainerStatusOK ...
+	ContainerStatusOK ContainerStatus = "OK"
+	// ContainerStatusUnknown ...
+	ContainerStatusUnknown ContainerStatus = "Unknown"
+	// ContainerStatusUpdating ...
+	ContainerStatusUpdating ContainerStatus = "Updating"
 )
 
 // PossibleContainerStatusValues returns an array of possible values for the ContainerStatus const type.
 func PossibleContainerStatusValues() []ContainerStatus {
-	return []ContainerStatus{NeedsAttention, Offline, OK, Unknown, Updating}
+	return []ContainerStatus{ContainerStatusNeedsAttention, ContainerStatusOffline, ContainerStatusOK, ContainerStatusUnknown, ContainerStatusUpdating}
+}
+
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
+
+const (
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
+)
+
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
 // DataPolicy enumerates the values for data policy.
@@ -148,29 +192,48 @@ func PossibleDayOfWeekValues() []DayOfWeek {
 	return []DayOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
 }
 
+// DeviceKind enumerates the values for device kind.
+type DeviceKind string
+
+const (
+	// AzureDataBoxGateway ...
+	AzureDataBoxGateway DeviceKind = "AzureDataBoxGateway"
+	// AzureModularDataCentre ...
+	AzureModularDataCentre DeviceKind = "AzureModularDataCentre"
+	// AzureStackEdge ...
+	AzureStackEdge DeviceKind = "AzureStackEdge"
+	// AzureStackHub ...
+	AzureStackHub DeviceKind = "AzureStackHub"
+)
+
+// PossibleDeviceKindValues returns an array of possible values for the DeviceKind const type.
+func PossibleDeviceKindValues() []DeviceKind {
+	return []DeviceKind{AzureDataBoxGateway, AzureModularDataCentre, AzureStackEdge, AzureStackHub}
+}
+
 // DeviceStatus enumerates the values for device status.
 type DeviceStatus string
 
 const (
-	// DeviceStatusDisconnected ...
-	DeviceStatusDisconnected DeviceStatus = "Disconnected"
-	// DeviceStatusMaintenance ...
-	DeviceStatusMaintenance DeviceStatus = "Maintenance"
-	// DeviceStatusNeedsAttention ...
-	DeviceStatusNeedsAttention DeviceStatus = "NeedsAttention"
-	// DeviceStatusOffline ...
-	DeviceStatusOffline DeviceStatus = "Offline"
-	// DeviceStatusOnline ...
-	DeviceStatusOnline DeviceStatus = "Online"
-	// DeviceStatusPartiallyDisconnected ...
-	DeviceStatusPartiallyDisconnected DeviceStatus = "PartiallyDisconnected"
-	// DeviceStatusReadyToSetup ...
-	DeviceStatusReadyToSetup DeviceStatus = "ReadyToSetup"
+	// Disconnected ...
+	Disconnected DeviceStatus = "Disconnected"
+	// Maintenance ...
+	Maintenance DeviceStatus = "Maintenance"
+	// NeedsAttention ...
+	NeedsAttention DeviceStatus = "NeedsAttention"
+	// Offline ...
+	Offline DeviceStatus = "Offline"
+	// Online ...
+	Online DeviceStatus = "Online"
+	// PartiallyDisconnected ...
+	PartiallyDisconnected DeviceStatus = "PartiallyDisconnected"
+	// ReadyToSetup ...
+	ReadyToSetup DeviceStatus = "ReadyToSetup"
 )
 
 // PossibleDeviceStatusValues returns an array of possible values for the DeviceStatus const type.
 func PossibleDeviceStatusValues() []DeviceStatus {
-	return []DeviceStatus{DeviceStatusDisconnected, DeviceStatusMaintenance, DeviceStatusNeedsAttention, DeviceStatusOffline, DeviceStatusOnline, DeviceStatusPartiallyDisconnected, DeviceStatusReadyToSetup}
+	return []DeviceStatus{Disconnected, Maintenance, NeedsAttention, Offline, Online, PartiallyDisconnected, ReadyToSetup}
 }
 
 // DeviceType enumerates the values for device type.
@@ -190,19 +253,19 @@ func PossibleDeviceTypeValues() []DeviceType {
 type DownloadPhase string
 
 const (
-	// DownloadPhaseDownloading ...
-	DownloadPhaseDownloading DownloadPhase = "Downloading"
-	// DownloadPhaseInitializing ...
-	DownloadPhaseInitializing DownloadPhase = "Initializing"
-	// DownloadPhaseUnknown ...
-	DownloadPhaseUnknown DownloadPhase = "Unknown"
-	// DownloadPhaseVerifying ...
-	DownloadPhaseVerifying DownloadPhase = "Verifying"
+	// Downloading ...
+	Downloading DownloadPhase = "Downloading"
+	// Initializing ...
+	Initializing DownloadPhase = "Initializing"
+	// Unknown ...
+	Unknown DownloadPhase = "Unknown"
+	// Verifying ...
+	Verifying DownloadPhase = "Verifying"
 )
 
 // PossibleDownloadPhaseValues returns an array of possible values for the DownloadPhase const type.
 func PossibleDownloadPhaseValues() []DownloadPhase {
-	return []DownloadPhase{DownloadPhaseDownloading, DownloadPhaseInitializing, DownloadPhaseUnknown, DownloadPhaseVerifying}
+	return []DownloadPhase{Downloading, Initializing, Unknown, Verifying}
 }
 
 // EncryptionAlgorithm enumerates the values for encryption algorithm.
@@ -220,6 +283,21 @@ const (
 // PossibleEncryptionAlgorithmValues returns an array of possible values for the EncryptionAlgorithm const type.
 func PossibleEncryptionAlgorithmValues() []EncryptionAlgorithm {
 	return []EncryptionAlgorithm{AES256, None, RSAESPKCS1V15}
+}
+
+// HostPlatformType enumerates the values for host platform type.
+type HostPlatformType string
+
+const (
+	// KubernetesCluster ...
+	KubernetesCluster HostPlatformType = "KubernetesCluster"
+	// LinuxVM ...
+	LinuxVM HostPlatformType = "LinuxVM"
+)
+
+// PossibleHostPlatformTypeValues returns an array of possible values for the HostPlatformType const type.
+func PossibleHostPlatformTypeValues() []HostPlatformType {
+	return []HostPlatformType{KubernetesCluster, LinuxVM}
 }
 
 // InstallRebootBehavior enumerates the values for install reboot behavior.
@@ -268,6 +346,8 @@ func PossibleJobStatusValues() []JobStatus {
 type JobType string
 
 const (
+	// JobTypeBackup ...
+	JobTypeBackup JobType = "Backup"
 	// JobTypeDownloadUpdates ...
 	JobTypeDownloadUpdates JobType = "DownloadUpdates"
 	// JobTypeInstallUpdates ...
@@ -278,28 +358,76 @@ const (
 	JobTypeRefreshContainer JobType = "RefreshContainer"
 	// JobTypeRefreshShare ...
 	JobTypeRefreshShare JobType = "RefreshShare"
+	// JobTypeRestore ...
+	JobTypeRestore JobType = "Restore"
 	// JobTypeScanForUpdates ...
 	JobTypeScanForUpdates JobType = "ScanForUpdates"
+	// JobTypeTriggerSupportPackage ...
+	JobTypeTriggerSupportPackage JobType = "TriggerSupportPackage"
 )
 
 // PossibleJobTypeValues returns an array of possible values for the JobType const type.
 func PossibleJobTypeValues() []JobType {
-	return []JobType{JobTypeDownloadUpdates, JobTypeInstallUpdates, JobTypeInvalid, JobTypeRefreshContainer, JobTypeRefreshShare, JobTypeScanForUpdates}
+	return []JobType{JobTypeBackup, JobTypeDownloadUpdates, JobTypeInstallUpdates, JobTypeInvalid, JobTypeRefreshContainer, JobTypeRefreshShare, JobTypeRestore, JobTypeScanForUpdates, JobTypeTriggerSupportPackage}
+}
+
+// KeyVaultSyncStatus enumerates the values for key vault sync status.
+type KeyVaultSyncStatus string
+
+const (
+	// KeyVaultNotConfigured ...
+	KeyVaultNotConfigured KeyVaultSyncStatus = "KeyVaultNotConfigured"
+	// KeyVaultSynced ...
+	KeyVaultSynced KeyVaultSyncStatus = "KeyVaultSynced"
+	// KeyVaultSyncFailed ...
+	KeyVaultSyncFailed KeyVaultSyncStatus = "KeyVaultSyncFailed"
+	// KeyVaultSyncing ...
+	KeyVaultSyncing KeyVaultSyncStatus = "KeyVaultSyncing"
+	// KeyVaultSyncPending ...
+	KeyVaultSyncPending KeyVaultSyncStatus = "KeyVaultSyncPending"
+)
+
+// PossibleKeyVaultSyncStatusValues returns an array of possible values for the KeyVaultSyncStatus const type.
+func PossibleKeyVaultSyncStatusValues() []KeyVaultSyncStatus {
+	return []KeyVaultSyncStatus{KeyVaultNotConfigured, KeyVaultSynced, KeyVaultSyncFailed, KeyVaultSyncing, KeyVaultSyncPending}
 }
 
 // Kind enumerates the values for kind.
 type Kind string
 
 const (
-	// KindIOT ...
-	KindIOT Kind = "IOT"
-	// KindRole ...
-	KindRole Kind = "Role"
+	// KindAddon ...
+	KindAddon Kind = "Addon"
+	// KindArcForKubernetes ...
+	KindArcForKubernetes Kind = "ArcForKubernetes"
+	// KindIotEdge ...
+	KindIotEdge Kind = "IotEdge"
 )
 
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
-	return []Kind{KindIOT, KindRole}
+	return []Kind{KindAddon, KindArcForKubernetes, KindIotEdge}
+}
+
+// KindBasicRole enumerates the values for kind basic role.
+type KindBasicRole string
+
+const (
+	// KindCloudEdgeManagement ...
+	KindCloudEdgeManagement KindBasicRole = "CloudEdgeManagement"
+	// KindIOT ...
+	KindIOT KindBasicRole = "IOT"
+	// KindKubernetes ...
+	KindKubernetes KindBasicRole = "Kubernetes"
+	// KindMEC ...
+	KindMEC KindBasicRole = "MEC"
+	// KindRole ...
+	KindRole KindBasicRole = "Role"
+)
+
+// PossibleKindBasicRoleValues returns an array of possible values for the KindBasicRole const type.
+func PossibleKindBasicRoleValues() []KindBasicRole {
+	return []KindBasicRole{KindCloudEdgeManagement, KindIOT, KindKubernetes, KindMEC, KindRole}
 }
 
 // KindBasicTrigger enumerates the values for kind basic trigger.
@@ -317,6 +445,48 @@ const (
 // PossibleKindBasicTriggerValues returns an array of possible values for the KindBasicTrigger const type.
 func PossibleKindBasicTriggerValues() []KindBasicTrigger {
 	return []KindBasicTrigger{KindFileEvent, KindPeriodicTimerEvent, KindTrigger}
+}
+
+// KubernetesNodeType enumerates the values for kubernetes node type.
+type KubernetesNodeType string
+
+const (
+	// KubernetesNodeTypeInvalid ...
+	KubernetesNodeTypeInvalid KubernetesNodeType = "Invalid"
+	// KubernetesNodeTypeMaster ...
+	KubernetesNodeTypeMaster KubernetesNodeType = "Master"
+	// KubernetesNodeTypeWorker ...
+	KubernetesNodeTypeWorker KubernetesNodeType = "Worker"
+)
+
+// PossibleKubernetesNodeTypeValues returns an array of possible values for the KubernetesNodeType const type.
+func PossibleKubernetesNodeTypeValues() []KubernetesNodeType {
+	return []KubernetesNodeType{KubernetesNodeTypeInvalid, KubernetesNodeTypeMaster, KubernetesNodeTypeWorker}
+}
+
+// KubernetesState enumerates the values for kubernetes state.
+type KubernetesState string
+
+const (
+	// KubernetesStateCreated ...
+	KubernetesStateCreated KubernetesState = "Created"
+	// KubernetesStateCreating ...
+	KubernetesStateCreating KubernetesState = "Creating"
+	// KubernetesStateDeleting ...
+	KubernetesStateDeleting KubernetesState = "Deleting"
+	// KubernetesStateFailed ...
+	KubernetesStateFailed KubernetesState = "Failed"
+	// KubernetesStateInvalid ...
+	KubernetesStateInvalid KubernetesState = "Invalid"
+	// KubernetesStateReconfiguring ...
+	KubernetesStateReconfiguring KubernetesState = "Reconfiguring"
+	// KubernetesStateUpdating ...
+	KubernetesStateUpdating KubernetesState = "Updating"
+)
+
+// PossibleKubernetesStateValues returns an array of possible values for the KubernetesState const type.
+func PossibleKubernetesStateValues() []KubernetesState {
+	return []KubernetesState{KubernetesStateCreated, KubernetesStateCreating, KubernetesStateDeleting, KubernetesStateFailed, KubernetesStateInvalid, KubernetesStateReconfiguring, KubernetesStateUpdating}
 }
 
 // MetricAggregationType enumerates the values for metric aggregation type.
@@ -399,6 +569,38 @@ const (
 // PossibleMonitoringStatusValues returns an array of possible values for the MonitoringStatus const type.
 func PossibleMonitoringStatusValues() []MonitoringStatus {
 	return []MonitoringStatus{Disabled, Enabled}
+}
+
+// MountType enumerates the values for mount type.
+type MountType string
+
+const (
+	// HostPath ...
+	HostPath MountType = "HostPath"
+	// Volume ...
+	Volume MountType = "Volume"
+)
+
+// PossibleMountTypeValues returns an array of possible values for the MountType const type.
+func PossibleMountTypeValues() []MountType {
+	return []MountType{HostPath, Volume}
+}
+
+// MsiIdentityType enumerates the values for msi identity type.
+type MsiIdentityType string
+
+const (
+	// MsiIdentityTypeNone ...
+	MsiIdentityTypeNone MsiIdentityType = "None"
+	// MsiIdentityTypeSystemAssigned ...
+	MsiIdentityTypeSystemAssigned MsiIdentityType = "SystemAssigned"
+	// MsiIdentityTypeUserAssigned ...
+	MsiIdentityTypeUserAssigned MsiIdentityType = "UserAssigned"
+)
+
+// PossibleMsiIdentityTypeValues returns an array of possible values for the MsiIdentityType const type.
+func PossibleMsiIdentityTypeValues() []MsiIdentityType {
+	return []MsiIdentityType{MsiIdentityTypeNone, MsiIdentityTypeSystemAssigned, MsiIdentityTypeUserAssigned}
 }
 
 // NetworkAdapterDHCPStatus enumerates the values for network adapter dhcp status.
@@ -490,8 +692,12 @@ type OrderState string
 const (
 	// Arriving ...
 	Arriving OrderState = "Arriving"
+	// AwaitingDrop ...
+	AwaitingDrop OrderState = "AwaitingDrop"
 	// AwaitingFulfilment ...
 	AwaitingFulfilment OrderState = "AwaitingFulfilment"
+	// AwaitingPickup ...
+	AwaitingPickup OrderState = "AwaitingPickup"
 	// AwaitingPreparation ...
 	AwaitingPreparation OrderState = "AwaitingPreparation"
 	// AwaitingReturnShipment ...
@@ -506,6 +712,8 @@ const (
 	Delivered OrderState = "Delivered"
 	// LostDevice ...
 	LostDevice OrderState = "LostDevice"
+	// PickupCompleted ...
+	PickupCompleted OrderState = "PickupCompleted"
 	// ReplacementRequested ...
 	ReplacementRequested OrderState = "ReplacementRequested"
 	// ReturnInitiated ...
@@ -520,7 +728,7 @@ const (
 
 // PossibleOrderStateValues returns an array of possible values for the OrderState const type.
 func PossibleOrderStateValues() []OrderState {
-	return []OrderState{Arriving, AwaitingFulfilment, AwaitingPreparation, AwaitingReturnShipment, AwaitingShipment, CollectedAtMicrosoft, Declined, Delivered, LostDevice, ReplacementRequested, ReturnInitiated, Shipped, ShippedBack, Untracked}
+	return []OrderState{Arriving, AwaitingDrop, AwaitingFulfilment, AwaitingPickup, AwaitingPreparation, AwaitingReturnShipment, AwaitingShipment, CollectedAtMicrosoft, Declined, Delivered, LostDevice, PickupCompleted, ReplacementRequested, ReturnInitiated, Shipped, ShippedBack, Untracked}
 }
 
 // PlatformType enumerates the values for platform type.
@@ -536,6 +744,40 @@ const (
 // PossiblePlatformTypeValues returns an array of possible values for the PlatformType const type.
 func PossiblePlatformTypeValues() []PlatformType {
 	return []PlatformType{Linux, Windows}
+}
+
+// PosixComplianceStatus enumerates the values for posix compliance status.
+type PosixComplianceStatus string
+
+const (
+	// PosixComplianceStatusDisabled ...
+	PosixComplianceStatusDisabled PosixComplianceStatus = "Disabled"
+	// PosixComplianceStatusEnabled ...
+	PosixComplianceStatusEnabled PosixComplianceStatus = "Enabled"
+	// PosixComplianceStatusInvalid ...
+	PosixComplianceStatusInvalid PosixComplianceStatus = "Invalid"
+)
+
+// PossiblePosixComplianceStatusValues returns an array of possible values for the PosixComplianceStatus const type.
+func PossiblePosixComplianceStatusValues() []PosixComplianceStatus {
+	return []PosixComplianceStatus{PosixComplianceStatusDisabled, PosixComplianceStatusEnabled, PosixComplianceStatusInvalid}
+}
+
+// ResourceMoveStatus enumerates the values for resource move status.
+type ResourceMoveStatus string
+
+const (
+	// ResourceMoveStatusNone ...
+	ResourceMoveStatusNone ResourceMoveStatus = "None"
+	// ResourceMoveStatusResourceMoveFailed ...
+	ResourceMoveStatusResourceMoveFailed ResourceMoveStatus = "ResourceMoveFailed"
+	// ResourceMoveStatusResourceMoveInProgress ...
+	ResourceMoveStatusResourceMoveInProgress ResourceMoveStatus = "ResourceMoveInProgress"
+)
+
+// PossibleResourceMoveStatusValues returns an array of possible values for the ResourceMoveStatus const type.
+func PossibleResourceMoveStatusValues() []ResourceMoveStatus {
+	return []ResourceMoveStatus{ResourceMoveStatusNone, ResourceMoveStatusResourceMoveFailed, ResourceMoveStatusResourceMoveInProgress}
 }
 
 // RoleStatus enumerates the values for role status.
@@ -559,17 +801,23 @@ type RoleTypes string
 const (
 	// ASA ...
 	ASA RoleTypes = "ASA"
+	// CloudEdgeManagement ...
+	CloudEdgeManagement RoleTypes = "CloudEdgeManagement"
 	// Cognitive ...
 	Cognitive RoleTypes = "Cognitive"
 	// Functions ...
 	Functions RoleTypes = "Functions"
 	// IOT ...
 	IOT RoleTypes = "IOT"
+	// Kubernetes ...
+	Kubernetes RoleTypes = "Kubernetes"
+	// MEC ...
+	MEC RoleTypes = "MEC"
 )
 
 // PossibleRoleTypesValues returns an array of possible values for the RoleTypes const type.
 func PossibleRoleTypesValues() []RoleTypes {
-	return []RoleTypes{ASA, Cognitive, Functions, IOT}
+	return []RoleTypes{ASA, CloudEdgeManagement, Cognitive, Functions, IOT, Kubernetes, MEC}
 }
 
 // ShareAccessProtocol enumerates the values for share access protocol.
@@ -625,14 +873,70 @@ func PossibleShareStatusValues() []ShareStatus {
 	return []ShareStatus{ShareStatusNeedsAttention, ShareStatusOffline, ShareStatusOK, ShareStatusUnknown, ShareStatusUpdating}
 }
 
+// ShipmentType enumerates the values for shipment type.
+type ShipmentType string
+
+const (
+	// NotApplicable ...
+	NotApplicable ShipmentType = "NotApplicable"
+	// SelfPickup ...
+	SelfPickup ShipmentType = "SelfPickup"
+	// ShippedToCustomer ...
+	ShippedToCustomer ShipmentType = "ShippedToCustomer"
+)
+
+// PossibleShipmentTypeValues returns an array of possible values for the ShipmentType const type.
+func PossibleShipmentTypeValues() []ShipmentType {
+	return []ShipmentType{NotApplicable, SelfPickup, ShippedToCustomer}
+}
+
+// SkuAvailability enumerates the values for sku availability.
+type SkuAvailability string
+
+const (
+	// Available ...
+	Available SkuAvailability = "Available"
+	// Unavailable ...
+	Unavailable SkuAvailability = "Unavailable"
+)
+
+// PossibleSkuAvailabilityValues returns an array of possible values for the SkuAvailability const type.
+func PossibleSkuAvailabilityValues() []SkuAvailability {
+	return []SkuAvailability{Available, Unavailable}
+}
+
 // SkuName enumerates the values for sku name.
 type SkuName string
 
 const (
 	// Edge ...
 	Edge SkuName = "Edge"
+	// EdgeMRMini ...
+	EdgeMRMini SkuName = "EdgeMR_Mini"
+	// EdgePBase ...
+	EdgePBase SkuName = "EdgeP_Base"
+	// EdgePHigh ...
+	EdgePHigh SkuName = "EdgeP_High"
+	// EdgePRBase ...
+	EdgePRBase SkuName = "EdgePR_Base"
+	// EdgePRBaseUPS ...
+	EdgePRBaseUPS SkuName = "EdgePR_Base_UPS"
 	// Gateway ...
 	Gateway SkuName = "Gateway"
+	// GPU ...
+	GPU SkuName = "GPU"
+	// RCALarge ...
+	RCALarge SkuName = "RCA_Large"
+	// RCASmall ...
+	RCASmall SkuName = "RCA_Small"
+	// RDC ...
+	RDC SkuName = "RDC"
+	// TCALarge ...
+	TCALarge SkuName = "TCA_Large"
+	// TCASmall ...
+	TCASmall SkuName = "TCA_Small"
+	// TDC ...
+	TDC SkuName = "TDC"
 	// TEA1Node ...
 	TEA1Node SkuName = "TEA_1Node"
 	// TEA1NodeHeater ...
@@ -651,22 +955,22 @@ const (
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Edge, Gateway, TEA1Node, TEA1NodeHeater, TEA1NodeUPS, TEA1NodeUPSHeater, TEA4NodeHeater, TEA4NodeUPSHeater, TMA}
+	return []SkuName{Edge, EdgeMRMini, EdgePBase, EdgePHigh, EdgePRBase, EdgePRBaseUPS, Gateway, GPU, RCALarge, RCASmall, RDC, TCALarge, TCASmall, TDC, TEA1Node, TEA1NodeHeater, TEA1NodeUPS, TEA1NodeUPSHeater, TEA4NodeHeater, TEA4NodeUPSHeater, TMA}
 }
 
-// SkuRestrictionReasonCode enumerates the values for sku restriction reason code.
-type SkuRestrictionReasonCode string
+// SkuSignupOption enumerates the values for sku signup option.
+type SkuSignupOption string
 
 const (
-	// NotAvailableForSubscription ...
-	NotAvailableForSubscription SkuRestrictionReasonCode = "NotAvailableForSubscription"
-	// QuotaID ...
-	QuotaID SkuRestrictionReasonCode = "QuotaId"
+	// SkuSignupOptionAvailable ...
+	SkuSignupOptionAvailable SkuSignupOption = "Available"
+	// SkuSignupOptionNone ...
+	SkuSignupOptionNone SkuSignupOption = "None"
 )
 
-// PossibleSkuRestrictionReasonCodeValues returns an array of possible values for the SkuRestrictionReasonCode const type.
-func PossibleSkuRestrictionReasonCodeValues() []SkuRestrictionReasonCode {
-	return []SkuRestrictionReasonCode{NotAvailableForSubscription, QuotaID}
+// PossibleSkuSignupOptionValues returns an array of possible values for the SkuSignupOption const type.
+func PossibleSkuSignupOptionValues() []SkuSignupOption {
+	return []SkuSignupOption{SkuSignupOptionAvailable, SkuSignupOptionNone}
 }
 
 // SkuTier enumerates the values for sku tier.
@@ -680,6 +984,21 @@ const (
 // PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
 func PossibleSkuTierValues() []SkuTier {
 	return []SkuTier{Standard}
+}
+
+// SkuVersion enumerates the values for sku version.
+type SkuVersion string
+
+const (
+	// Preview ...
+	Preview SkuVersion = "Preview"
+	// Stable ...
+	Stable SkuVersion = "Stable"
+)
+
+// PossibleSkuVersionValues returns an array of possible values for the SkuVersion const type.
+func PossibleSkuVersionValues() []SkuVersion {
+	return []SkuVersion{Preview, Stable}
 }
 
 // SSLStatus enumerates the values for ssl status.
@@ -716,6 +1035,27 @@ const (
 // PossibleStorageAccountStatusValues returns an array of possible values for the StorageAccountStatus const type.
 func PossibleStorageAccountStatusValues() []StorageAccountStatus {
 	return []StorageAccountStatus{StorageAccountStatusNeedsAttention, StorageAccountStatusOffline, StorageAccountStatusOK, StorageAccountStatusUnknown, StorageAccountStatusUpdating}
+}
+
+// SubscriptionState enumerates the values for subscription state.
+type SubscriptionState string
+
+const (
+	// Deleted ...
+	Deleted SubscriptionState = "Deleted"
+	// Registered ...
+	Registered SubscriptionState = "Registered"
+	// Suspended ...
+	Suspended SubscriptionState = "Suspended"
+	// Unregistered ...
+	Unregistered SubscriptionState = "Unregistered"
+	// Warned ...
+	Warned SubscriptionState = "Warned"
+)
+
+// PossibleSubscriptionStateValues returns an array of possible values for the SubscriptionState const type.
+func PossibleSubscriptionStateValues() []SubscriptionState {
+	return []SubscriptionState{Deleted, Registered, Suspended, Unregistered, Warned}
 }
 
 // TimeGrain enumerates the values for time grain.
