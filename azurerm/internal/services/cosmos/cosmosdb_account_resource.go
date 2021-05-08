@@ -344,6 +344,36 @@ func resourceCosmosDbAccount() *schema.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						//only system assigned identity is supported
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(documentdb.ResourceIdentityTypeSystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"cors_rule": common.SchemaCorsRule(),
+
 			// computed
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -495,6 +525,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
+		Identity: expandCosmosdbAccountIdentity(d.Get("identity").([]interface{})),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
@@ -508,6 +539,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
 			PublicNetworkAccess:                publicNetworkAccess,
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
+			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
@@ -625,6 +657,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
+		Identity: expandCosmosdbAccountIdentity(d.Get("identity").([]interface{})),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
@@ -638,6 +671,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			EnableMultipleWriteLocations:       resp.EnableMultipleWriteLocations,
 			PublicNetworkAccess:                publicNetworkAccess,
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
+			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
@@ -743,6 +777,12 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("kind", string(resp.Kind))
 
+	if v := resp.Identity; v != nil {
+		if err := d.Set("identity", flattenAzureRmdocumentdbMachineIdentity(v)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+	}
+
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
 		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
@@ -799,6 +839,9 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 		if err = d.Set("backup", policy); err != nil {
 			return fmt.Errorf("setting `backup`: %+v", err)
 		}
+
+		d.Set("cors_rule", common.FlattenCosmosCorsRule(props.Cors))
+
 	}
 
 	readEndpoints := make([]string, 0)
@@ -1279,5 +1322,41 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 
 	default:
 		return nil, fmt.Errorf("unknown `type` in `backup`: %+v", input)
+	}
+}
+
+func expandCosmosdbAccountIdentity(vs []interface{}) *documentdb.ManagedServiceIdentity {
+	if len(vs) == 0 || vs[0] == nil {
+		return &documentdb.ManagedServiceIdentity{
+			Type: documentdb.ResourceIdentityTypeNone,
+		}
+	}
+
+	v := vs[0].(map[string]interface{})
+
+	return &documentdb.ManagedServiceIdentity{
+		Type: documentdb.ResourceIdentityType(v["type"].(string)),
+	}
+}
+
+func flattenAzureRmdocumentdbMachineIdentity(identity *documentdb.ManagedServiceIdentity) []interface{} {
+	if identity == nil || identity.Type == documentdb.ResourceIdentityTypeNone {
+		return make([]interface{}, 0)
+	}
+
+	var principalID, tenantID string
+	if identity.PrincipalID != nil {
+		principalID = *identity.PrincipalID
+	}
+
+	if identity.TenantID != nil {
+		tenantID = *identity.TenantID
+	}
+
+	return []interface{}{map[string]interface{}{
+		"type":         string(identity.Type),
+		"principal_id": principalID,
+		"tenant_id":    tenantID,
+	},
 	}
 }
