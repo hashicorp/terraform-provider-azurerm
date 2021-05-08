@@ -514,6 +514,35 @@ func TestAccStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_resourceAccessRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkRulesResourceAccessRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkRulesReverted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_blobProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -1485,31 +1514,79 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) networkRules(data acceptance.TestData) string {
+func (r StorageAccountResource) networkRulesTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r StorageAccountResource) networkRulesPrivateEndpointTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.5.0/24"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_storage_account" "connection" {
+  name                     = "unlikely23connacct%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_private_dns_zone" "finance" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = "acctest-privatelink-mssc-%[2]d"
+    private_connection_resource_id = azurerm_storage_account.connection.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+}
+`, r.networkRulesTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (r StorageAccountResource) networkRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
@@ -1528,34 +1605,12 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.networkRulesTemplate(data), data.RandomString)
 }
 
 func (r StorageAccountResource) networkRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
-}
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
@@ -1574,34 +1629,12 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.networkRulesTemplate(data), data.RandomString)
 }
 
 func (r StorageAccountResource) networkRulesReverted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
-}
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
@@ -1620,7 +1653,34 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.networkRulesTemplate(data), data.RandomString)
+}
+
+func (r StorageAccountResource) networkRulesResourceAccessRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  network_rules {
+    default_action             = "Deny"
+    ip_rules                   = ["127.0.0.1"]
+    virtual_network_subnet_ids = [azurerm_subnet.test.id]
+    resource_access_rules {
+      resource_id = azurerm_private_endpoint.test.id
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, r.networkRulesPrivateEndpointTemplate(data), data.RandomString)
 }
 
 func (r StorageAccountResource) blobProperties(data acceptance.TestData) string {

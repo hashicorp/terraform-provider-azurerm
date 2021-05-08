@@ -66,6 +66,35 @@ func TestAccStorageAccountNetworkRules_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccountNetworkRules_resourceAccessRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disableResourceAccessRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceAccessRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableResourceAccessRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
@@ -235,4 +264,62 @@ resource "azurerm_storage_account_network_rules" "test" {
   virtual_network_subnet_ids = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) disableResourceAccessRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+  default_action             = "Deny"
+  bypass                     = ["None"]
+  ip_rules                   = []
+  virtual_network_subnet_ids = []
+}
+`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) resourceAccessRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+  default_action             = "Deny"
+  ip_rules                   = ["127.0.0.1"]
+  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  resource_access_rules {
+    resource_id = azurerm_private_endpoint.test.id
+  }
+}
+`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
 }
