@@ -136,8 +136,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "test" {
-  name                = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id   = azurerm_resource_group.test.id
+  name              = "acctestconsumptionbudgetresourcegroup-%d"
+  resource_group_id = azurerm_resource_group.test.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -183,8 +183,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "test" {
-  name                = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id   = azurerm_resource_group.test.id
+  name              = "acctestconsumptionbudgetresourcegroup-%d"
+  resource_group_id = azurerm_resource_group.test.id
 
   // Changed the amount from 1000 to 2000
   amount     = 3000
@@ -220,8 +220,8 @@ func (ConsumptionBudgetResourceGroupResource) requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_consumption_budget_resource_group" "import" {
-  name                = azurerm_consumption_budget_resource_group.test.name
-  resource_group_id   = azurerm_resource_group.test.id
+  name              = azurerm_consumption_budget_resource_group.test.name
+  resource_group_id = azurerm_resource_group.test.id
 
   amount     = azurerm_consumption_budget_resource_group.test.amount
   time_grain = azurerm_consumption_budget_resource_group.test.time_grain
@@ -264,8 +264,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "test" {
-  name                = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id   = azurerm_resource_group.test.id
+  name              = "acctestconsumptionbudgetresourcegroup-%d"
+  resource_group_id = azurerm_resource_group.test.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -362,8 +362,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "test" {
-  name                = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id   = azurerm_resource_group.test.id
+  name              = "acctestconsumptionbudgetresourcegroup-%d"
+  resource_group_id = azurerm_resource_group.test.id
 
   // Changed the amount from 1000 to 2000
   amount     = 2000
