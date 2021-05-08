@@ -189,7 +189,6 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 				"spatial_index": {
 					Type:     schema.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"path": {

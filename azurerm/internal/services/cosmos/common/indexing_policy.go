@@ -191,7 +191,7 @@ func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]documentdb.IncludedPath
 
 func flattenCosmosDBIndexingPolicySpatialIndexes(input *[]documentdb.SpatialSpec) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	indexes := make([]interface{}, 0)
