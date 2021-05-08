@@ -157,7 +157,7 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta
 	rules.Bypass = expandStorageAccountNetworkRuleBypass(d.Get("bypass").(*schema.Set).List())
 	rules.IPRules = expandStorageAccountNetworkRuleIpRules(d.Get("ip_rules").(*schema.Set).List())
 	rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(d.Get("virtual_network_subnet_ids").(*schema.Set).List())
-	rules.ResourceAccessRules = expandStorageAccountResourceAccessRule(d.Get("resource_access_rules").(*schema.Set).List(), tenantId)
+	rules.ResourceAccessRules = expandStorageAccountResourceAccessRule(d.Get("resource_access_rules").([]interface{}), tenantId)
 
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
