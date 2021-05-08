@@ -53,7 +53,21 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 func getValidSkus() []string {
 	return []string{
 		string(databoxedge.Gateway),
-		string(databoxedge.Edge),
+		// notified that the Edge SKU has been deprecated per the
+		// service team as via a communication on Thursday, March 11, 2021
+		// and been replaced by the below new SKUs: EdgePBase is the new Edge SKU
+		string(databoxedge.EdgeMRMini),
+		string(databoxedge.EdgePBase),
+		string(databoxedge.EdgePHigh),
+		string(databoxedge.EdgePRBase),
+		string(databoxedge.EdgePRBaseUPS),
+		string(databoxedge.GPU),
+		string(databoxedge.RCALarge),
+		string(databoxedge.RCASmall),
+		string(databoxedge.RDC),
+		string(databoxedge.TCALarge),
+		string(databoxedge.TCASmall),
+		string(databoxedge.TDC),
 		string(databoxedge.TEA1Node),
 		string(databoxedge.TEA1NodeUPS),
 		string(databoxedge.TEA1NodeHeater),
