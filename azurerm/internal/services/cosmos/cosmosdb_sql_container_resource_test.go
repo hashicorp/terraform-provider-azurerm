@@ -481,7 +481,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
 
     spatial_index {
-      path = "/test/to/all"
+      path = "/test/to/all/?"
     }
   }
 }

@@ -67,6 +67,9 @@ func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 }
 
 func expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]documentdb.SpatialSpec {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
 	indexes := make([]documentdb.SpatialSpec, 0)
 	spatialTypes := []documentdb.SpatialType{
 		documentdb.SpatialTypeLineString,
@@ -106,9 +109,8 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *schema.ResourceData) *documentdb.Ind
 		policy.CompositeIndexes = expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 
-	if v, ok := input["spatial_index"].([]interface{}); ok {
-		policy.SpatialIndexes = expandAzureRmCosmosDBIndexingPolicySpatialIndexes(v)
-	}
+	policy.SpatialIndexes = expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+
 	return policy
 }
 
