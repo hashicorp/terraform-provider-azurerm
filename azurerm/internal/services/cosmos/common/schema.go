@@ -128,35 +128,6 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"indexes": {
-								Type:     schema.TypeList,
-								Optional: true,
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										"data_type": {
-											Type:     schema.TypeString,
-											Optional: true,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(documentdb.Number),
-												string(documentdb.String),
-											}, false),
-										},
-										"kind": {
-											Type:     schema.TypeString,
-											Optional: true,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(documentdb.Hash),
-												string(documentdb.Range),
-												string(documentdb.Spatial),
-											}, false),
-										},
-										"precision": {
-											Type:     schema.TypeInt,
-											Optional: true,
-										},
-									},
-								},
-							},
 							"path": {
 								Type:         schema.TypeString,
 								Required:     true,
@@ -215,7 +186,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 					},
 				},
 
-				"spatial_indexes": {
+				"spatial_index": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Computed: true,
@@ -225,19 +196,6 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 								Type:         schema.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"types": {
-								Type:     schema.TypeSet,
-								Required: true,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(documentdb.SpatialTypeLineString),
-										string(documentdb.SpatialTypeMultiPolygon),
-										string(documentdb.SpatialTypePoint),
-										string(documentdb.SpatialTypePolygon),
-									}, false),
-								},
 							},
 						},
 					},

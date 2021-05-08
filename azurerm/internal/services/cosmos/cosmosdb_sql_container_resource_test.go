@@ -158,14 +158,15 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		},
 		{
 
-			Config: r.indexing_policy_update_indexes(data, "/includedPath02/*", "/excludedPath02/?"),
+			Config: r.indexing_policy_update_spatialIndex(data, "/includedPath02/*", "/excludedPath02/?"),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 
-			Config: r.indexing_policy_update_spatialIndexes(data, "/includedPath02/*", "/excludedPath02/?"),
+			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -427,69 +428,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
 }
 
-func (CosmosSqlContainerResource) indexing_policy_update_indexes(data acceptance.TestData, includedPath, excludedPath string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
-
-  indexing_policy {
-    indexing_mode = "Consistent"
-
-    included_path {
-      path = "/*"
-      indexes{
-data_type = "String"
-kind = "Hash"
-precision = 1
-}
-
- indexes{
-data_type = "Number"
-kind = "Range"
-}
-    }
-
-    included_path {
-      path = "%s"
-    }
-
-    excluded_path {
-      path = "%s"
-    }
-
-    composite_index {
-      index {
-        path  = "/path1"
-        order = "Ascending"
-      }
-      index {
-        path  = "/path2"
-        order = "Descending"
-      }
-    }
-
-    composite_index {
-      index {
-        path  = "/path3"
-        order = "Ascending"
-      }
-      index {
-        path  = "/path4"
-        order = "Descending"
-      }
-    }
-  }
-}
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
-}
-
-func (CosmosSqlContainerResource) indexing_policy_update_spatialIndexes(data acceptance.TestData, includedPath, excludedPath string) string {
+func (CosmosSqlContainerResource) indexing_policy_update_spatialIndex(data acceptance.TestData, includedPath, excludedPath string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -537,13 +476,12 @@ resource "azurerm_cosmosdb_sql_container" "test" {
       }
     }
 
- spatial_indexes {
+    spatial_index {
       path = "/path/*"
-      types = ["LineString","Point"]
     }
 
-spatial_indexes {
-      path = "/2/*"
+    spatial_index {
+      path = "/test/to/all"
     }
   }
 }
