@@ -302,8 +302,10 @@ func resourceManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if v := d.Get("tier"); v != 0 {
-		tier := v.(string)
+	if tier := d.Get("tier").(string); tier != "" {
+		if storageAccountType != string(compute.PremiumZRS) && storageAccountType != string(compute.PremiumLRS) {
+			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
 		props.Tier = &tier
 	}
 
@@ -366,6 +368,9 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("tier") {
+		if storageAccountType != string(compute.PremiumZRS) && storageAccountType != string(compute.PremiumLRS) {
+			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
 		shouldShutDown = true
 		tier := d.Get("tier").(string)
 		diskUpdate.Tier = &tier
