@@ -27,7 +27,7 @@ func SchemaCorsRule() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"allowed_origins": {
-					Type:     schema.TypeString,
+					Type:     schema.TypeList,
 					Required: true,
 					MaxItems: 64,
 					Elem: &schema.Schema{
@@ -37,7 +37,7 @@ func SchemaCorsRule() *schema.Schema {
 				},
 
 				"exposed_headers": {
-					Type:     schema.TypeString,
+					Type:     schema.TypeList,
 					Required: true,
 					MaxItems: 64,
 					Elem: &schema.Schema{
@@ -47,7 +47,7 @@ func SchemaCorsRule() *schema.Schema {
 				},
 
 				"allowed_headers": {
-					Type:     schema.TypeString,
+					Type:     schema.TypeList,
 					Required: true,
 					MaxItems: 64,
 					Elem: &schema.Schema{
@@ -57,7 +57,7 @@ func SchemaCorsRule() *schema.Schema {
 				},
 
 				"allowed_methods": {
-					Type:     schema.TypeString,
+					Type:     schema.TypeList,
 					Required: true,
 					MaxItems: 64,
 					Elem: &schema.Schema{
