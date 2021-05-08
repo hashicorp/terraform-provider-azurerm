@@ -225,6 +225,45 @@ func resourceSpringCloudService() *schema.Resource {
 				},
 			},
 
+			"required_traffic": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"protocol": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"ips": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"fqdns": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"direction": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -418,6 +457,10 @@ func resourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) er
 		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
 		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
+		}
+
+		if err := d.Set("required_traffic", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `required_traffic`: %+v", err)
 		}
 	}
 
@@ -890,4 +933,32 @@ func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []inter
 	}
 
 	return utils.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+}
+
+func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
+	if input == nil || input.RequiredTraffics == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0)
+	for _, v := range *input.RequiredTraffics {
+		protocol := ""
+		if v.Protocol != nil {
+			protocol = *v.Protocol
+		}
+
+		port := 0
+		if v.Port != nil {
+			port = int(*v.Port)
+		}
+
+		result = append(result, map[string]interface{}{
+			"protocol":  protocol,
+			"port":      port,
+			"ips":       utils.FlattenStringSlice(v.Ips),
+			"fqdns":     utils.FlattenStringSlice(v.Fqdns),
+			"direction": string(v.Direction),
+		})
+	}
+	return result
 }
