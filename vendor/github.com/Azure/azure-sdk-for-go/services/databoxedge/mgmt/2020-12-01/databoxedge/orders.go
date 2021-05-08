@@ -56,13 +56,8 @@ func (client OrdersClient) CreateOrUpdate(ctx context.Context, deviceName string
 						{Target: "order.OrderProperties.ContactInformation.Phone", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "order.OrderProperties.ContactInformation.EmailList", Name: validation.Null, Rule: true, Chain: nil},
 					}},
-					{Target: "order.OrderProperties.ShippingAddress", Name: validation.Null, Rule: true,
-						Chain: []validation.Constraint{{Target: "order.OrderProperties.ShippingAddress.AddressLine1", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "order.OrderProperties.ShippingAddress.PostalCode", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "order.OrderProperties.ShippingAddress.City", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "order.OrderProperties.ShippingAddress.State", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "order.OrderProperties.ShippingAddress.Country", Name: validation.Null, Rule: true, Chain: nil},
-						}},
+					{Target: "order.OrderProperties.ShippingAddress", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "order.OrderProperties.ShippingAddress.Country", Name: validation.Null, Rule: true, Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("databoxedge.OrdersClient", "CreateOrUpdate", err.Error())
 	}
@@ -90,7 +85,7 @@ func (client OrdersClient) CreateOrUpdatePreparer(ctx context.Context, deviceNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +165,7 @@ func (client OrdersClient) DeletePreparer(ctx context.Context, deviceName string
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -254,7 +249,7 @@ func (client OrdersClient) GetPreparer(ctx context.Context, deviceName string, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,7 +330,7 @@ func (client OrdersClient) ListByDataBoxEdgeDevicePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -400,5 +395,81 @@ func (client OrdersClient) ListByDataBoxEdgeDeviceComplete(ctx context.Context, 
 		}()
 	}
 	result.page, err = client.ListByDataBoxEdgeDevice(ctx, deviceName, resourceGroupName)
+	return
+}
+
+// ListDCAccessCode sends the list dc access code request.
+// Parameters:
+// deviceName - the device name
+// resourceGroupName - the resource group name.
+func (client OrdersClient) ListDCAccessCode(ctx context.Context, deviceName string, resourceGroupName string) (result DCAccessCode, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OrdersClient.ListDCAccessCode")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListDCAccessCodePreparer(ctx, deviceName, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "ListDCAccessCode", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListDCAccessCodeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "ListDCAccessCode", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListDCAccessCodeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "ListDCAccessCode", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListDCAccessCodePreparer prepares the ListDCAccessCode request.
+func (client OrdersClient) ListDCAccessCodePreparer(ctx context.Context, deviceName string, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"deviceName":        autorest.Encode("path", deviceName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/orders/default/listDCAccessCode", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListDCAccessCodeSender sends the ListDCAccessCode request. The method will close the
+// http.Response Body if it receives an error.
+func (client OrdersClient) ListDCAccessCodeSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListDCAccessCodeResponder handles the response to the ListDCAccessCode request. The method always
+// closes the http.Response Body.
+func (client OrdersClient) ListDCAccessCodeResponder(resp *http.Response) (result DCAccessCode, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

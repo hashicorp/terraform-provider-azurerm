@@ -34,17 +34,18 @@ func NewNodesClientWithBaseURI(baseURI string, subscriptionID string) NodesClien
 // Parameters:
 // deviceName - the device name.
 // resourceGroupName - the resource group name.
-func (client NodesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceName string, resourceGroupName string) (result NodeList, err error) {
+func (client NodesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceName string, resourceGroupName string) (result NodeListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/NodesClient.ListByDataBoxEdgeDevice")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.nl.Response.Response != nil {
+				sc = result.nl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.fn = client.listByDataBoxEdgeDeviceNextResults
 	req, err := client.ListByDataBoxEdgeDevicePreparer(ctx, deviceName, resourceGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.NodesClient", "ListByDataBoxEdgeDevice", nil, "Failure preparing request")
@@ -53,14 +54,18 @@ func (client NodesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceNam
 
 	resp, err := client.ListByDataBoxEdgeDeviceSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.nl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "databoxedge.NodesClient", "ListByDataBoxEdgeDevice", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
+	result.nl, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.NodesClient", "ListByDataBoxEdgeDevice", resp, "Failure responding to request")
+		return
+	}
+	if result.nl.hasNextLink() && result.nl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -75,7 +80,7 @@ func (client NodesClient) ListByDataBoxEdgeDevicePreparer(ctx context.Context, d
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -103,5 +108,42 @@ func (client NodesClient) ListByDataBoxEdgeDeviceResponder(resp *http.Response) 
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByDataBoxEdgeDeviceNextResults retrieves the next set of results, if any.
+func (client NodesClient) listByDataBoxEdgeDeviceNextResults(ctx context.Context, lastResults NodeList) (result NodeList, err error) {
+	req, err := lastResults.nodeListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "databoxedge.NodesClient", "listByDataBoxEdgeDeviceNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByDataBoxEdgeDeviceSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "databoxedge.NodesClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.NodesClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByDataBoxEdgeDeviceComplete enumerates all values, automatically crossing page boundaries as required.
+func (client NodesClient) ListByDataBoxEdgeDeviceComplete(ctx context.Context, deviceName string, resourceGroupName string) (result NodeListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodesClient.ListByDataBoxEdgeDevice")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByDataBoxEdgeDevice(ctx, deviceName, resourceGroupName)
 	return
 }

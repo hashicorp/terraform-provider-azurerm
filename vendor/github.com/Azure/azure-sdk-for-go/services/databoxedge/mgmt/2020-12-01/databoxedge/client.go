@@ -1,4 +1,4 @@
-// Package databoxedge implements the Azure ARM Databoxedge service API version 2019-08-01.
+// Package databoxedge implements the Azure ARM Databoxedge service API version 2020-12-01.
 //
 //
 package databoxedge

@@ -77,7 +77,7 @@ func (client JobsClient) GetPreparer(ctx context.Context, deviceName string, nam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
