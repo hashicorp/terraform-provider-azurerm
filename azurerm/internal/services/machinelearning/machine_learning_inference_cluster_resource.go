@@ -24,7 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-const min_number_of_nodes_prod int32 = 12
+const minNumberOfNodesProd int32 = 12
 
 func resourceAksInferenceCluster() *schema.Resource {
 	return &schema.Resource{
@@ -160,17 +160,15 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 
 	// Get Machine Learning Workspace Name and Resource Group from ID
-	ml_workspace_id := d.Get("machine_learning_workspace_id").(string)
-	ws_id, err := parse.WorkspaceID(ml_workspace_id)
+	unparsedWorkspaceID := d.Get("machine_learning_workspace_id").(string)
+
+	workspaceID, err := parse.WorkspaceID(unparsedWorkspaceID)
 	if err != nil {
 		return err
 	}
 
-	workspace_name := ws_id.Name
-	resource_group_name := ws_id.ResourceGroup
-
 	// Check if Inference Cluster already exists
-	existing, err := mlComputeClient.Get(ctx, resource_group_name, workspace_name, name)
+	existing, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("error checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspace_name, resource_group_name, err)
@@ -181,34 +179,31 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	// Get SKU from Workspace
-	aml_ws, err := mlWorkspacesClient.Get(ctx, resource_group_name, workspace_name)
+	workspace, err := mlWorkspacesClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name)
 	if err != nil {
 		return err
 	}
-	sku := aml_ws.Sku
+	sku := workspace.Sku
 
 	// Get Kubernetes Cluster Name and Resource Group from ID
-	aks_id := d.Get("kubernetes_cluster_id").(string)
-	aks_id_details, err := parse.KubernetesClusterID(aks_id)
+	unparsedAksID := d.Get("kubernetes_cluster_id").(string)
+	aksID, err := parse.KubernetesClusterID(unparsedAksID)
 	if err != nil {
 		return err
 	}
-	kubernetes_cluster_name := aks_id_details.ManagedClusterName
-	kubernetes_cluster_rg := aks_id_details.ResourceGroup
 
 	// Get Existing AKS
-	aks_cluster, err := aksClient.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name)
+	aks, err := aksClient.Get(ctx, aksID.ResourceGroup, aksID.ManagedClusterName)
 	if err != nil {
 		return err
 	}
 
-	pool_id := d.Get("node_pool_id").(string)
-	pool_id_details, err := parse.NodePoolID(pool_id)
+	unparsedAgentPoolID := d.Get("node_pool_id").(string)
+	agentPoolID, err := parse.NodePoolID(unparsedAgentPoolID )
 	if err != nil {
 		return err
 	}
-	pool_name := pool_id_details.AgentPoolName
-	node_pool, err := poolsClient.Get(ctx, kubernetes_cluster_rg, kubernetes_cluster_name, pool_name)
+	nodePool, err := poolsClient.Get(ctx, aksID.ResourceGroup, aksID.ManagedClusterName, agentPoolID.AgentPoolName)
 	if err != nil {
 		return err
 	}
@@ -216,29 +211,29 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	t := d.Get("tags").(map[string]interface{})
 
 	identity := d.Get("identity").([]interface{})
-	ssl_interface := d.Get("ssl").([]interface{})
-	ssl := expandSSLConfig(ssl_interface)
+	sslInterface := d.Get("ssl").([]interface{})
+	ssl := expandSSLConfig(sslInterface)
 
-	cluster_purpose := d.Get("cluster_purpose").(string)
-	var map_cluster_purpose = map[string]string{
+	unmappedclusterPurpose := d.Get("cluster_purpose").(string)
+	var mapClusterPurpose = map[string]string{
 		"Dev":  "DevTest",
 		"Test": "DevTest",
 		"Prod": "FastProd",
 	}
-	aks_cluster_purpose := machinelearningservices.ClusterPurpose(map_cluster_purpose[cluster_purpose])
+	clusterPurpose := machinelearningservices.ClusterPurpose(mapClusterPurpose[unmappedclusterPurpose])
 
-	aks_properties := expandAksProperties(&aks_cluster, &node_pool, ssl, aks_cluster_purpose)
+	aksProperties := expandAksProperties(&aks, &nodePool, ssl, clusterPurpose)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
-	aks_compute_properties := expandAksComputeProperties(aks_properties, &aks_cluster, location, description)
-	compute_properties, is_aks := (machinelearningservices.BasicCompute).AsAKS(aks_compute_properties)
-	if !is_aks {
+	aksComputeProperties := expandAksComputeProperties(aksProperties, &aks, location, description)
+	aksCompute, isAks := (machinelearningservices.BasicCompute).AsAKS(aksComputeProperties)
+	if !isAks {
 		return fmt.Errorf("error: No AKS cluster")
 	}
 
-	inference_cluster_parameters := machinelearningservices.ComputeResource{
+	inferenceClusterParameters := machinelearningservices.ComputeResource{
 		// Properties - Compute properties
-		Properties: compute_properties,
+		Properties: aksCompute,
 		// ID - READ-ONLY; Specifies the resource ID.
 		// Name - READ-ONLY; Specifies the name of the resource.
 		// Identity - The identity of the resource.
@@ -253,27 +248,27 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		aks_compute_properties.Description = utils.String(v.(string))
+		aksCompute.Description = utils.String(v.(string))
 	}
 
-	future, err := mlComputeClient.CreateOrUpdate(ctx, resource_group_name, workspace_name, name, inference_cluster_parameters)
+	future, err := mlComputeClient.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, inferenceClusterParameters)
 	if err != nil {
-		return fmt.Errorf("error creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, err)
+		return fmt.Errorf("error creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
-		return fmt.Errorf("error waiting for creation of Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, err)
+		return fmt.Errorf("error waiting for creation of Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
-	resp, err := mlComputeClient.Get(ctx, resource_group_name, workspace_name, name)
+	resp, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
 	if err != nil {
-		return fmt.Errorf("error retrieving Inference Cluster Compute %q in workspace %q (Resource Group %q): %+v", name, workspace_name, resource_group_name, err)
+		return fmt.Errorf("error retrieving Inference Cluster Compute %q in workspace %q (Resource Group %q): %+v", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("cannot read Inference Cluster ID %q in workspace %q (Resource Group %q) ID", name, workspace_name, resource_group_name)
+		return fmt.Errorf("cannot read Inference Cluster ID %q in workspace %q (Resource Group %q) ID", name, workspaceID.Name, workspaceID.ResourceGroup)
 	}
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewInferenceClusterID(subscriptionId, resource_group_name, workspace_name, name)
+	id := parse.NewInferenceClusterID(subscriptionId, workspaceID.ResourceGroup, workspaceID.Name, name)
 	d.SetId(id.ID())
 
 	return resourceAksInferenceClusterRead(d, meta)
@@ -306,37 +301,35 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Retrieve Machine Learning Workspace ID
-	ws_resp, err := mlWorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+	mlResp, err := mlWorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
 		return err
 	}
-	d.Set("machine_learning_workspace_id", ws_resp.ID)
+	d.Set("machine_learning_workspace_id", mlResp.ID)
 
 	// Retrieve AKS Cluster ID
-	aks_resp, err := aksClient.ListByResourceGroup(ctx, id.ResourceGroup)
+	aksResp, err := aksClient.ListByResourceGroup(ctx, id.ResourceGroup)
 	if err != nil {
 		return err
 	}
 
-	aks_id := *(aks_resp.Values()[0].ID)
+	unparsedAksId := *(aksResp.Values()[0].ID)
 
 	// Retrieve AKS Cluster name and Node pool name from ID
-	aks_id_details, err := parse.KubernetesClusterID(aks_id)
+	aksId, err := parse.KubernetesClusterID(unparsedAksId)
 	if err != nil {
 		return err
 	}
 
-	kubernetes_cluster_name := aks_id_details.ManagedClusterName
-	node_pool_list, _ := poolsClient.List(ctx, id.ResourceGroup, kubernetes_cluster_name)
-	pool_id := *(node_pool_list.Values()[0].ID)
-	pool_id_details, err := parse.NodePoolID(pool_id)
+	nodePoolList, _ := poolsClient.List(ctx, id.ResourceGroup, aksId.ManagedClusterName)
+	unparsedPoolId := *(nodePoolList.Values()[0].ID)
+	poolId, err := parse.NodePoolID(unparsedPoolId)
 	if err != nil {
 		return err
 	}
-	pool_name := pool_id_details.AgentPoolName
 
-	d.Set("kubernetes_cluster_id", aks_id)
-	d.Set("node_pool_name", pool_name)
+	d.Set("kubernetes_cluster_id", aksId)
+	d.Set("node_pool_name", poolId.AgentPoolName)
 
 	// Retrieve location
 	if location := resp.Location; location != nil {
@@ -365,8 +358,8 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	underlying_resource_action := machinelearningservices.Detach
-	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, underlying_resource_action)
+
+	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.Detach)
 	if err != nil {
 		return fmt.Errorf("error deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
@@ -386,14 +379,14 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 	v := input[0].(map[string]interface{})
 
 	// SSL Certificate default values
-	ssl_status := "Disabled"
+	sslStatus := "Disabled"
 
 	if !(v["cert"] == "" && v["key"] == "" && v["cname"] == "") {
-		ssl_status = "Enabled"
+		sslStatus = "Enabled"
 	}
 
 	return &machinelearningservices.SslConfiguration{
-		Status:                  machinelearningservices.Status1(ssl_status),
+		Status:                  machinelearningservices.Status1(sslStatus),
 		Cert:                    utils.String(v["cert"].(string)),
 		Key:                     utils.String(v["key"].(string)),
 		Cname:                   utils.String(v["cname"].(string)),
@@ -414,15 +407,15 @@ func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node
 		DockerBridgeCidr: utils.String(docker_bridge_cidr)}
 }
 
-func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool *containerservice.AgentPool,
-	ssl *machinelearningservices.SslConfiguration, cluster_purpose machinelearningservices.ClusterPurpose) *machinelearningservices.AKSProperties {
-	fqdn := *(aks_cluster.ManagedClusterProperties.Fqdn)
-	agent_count := *(node_pool.ManagedClusterAgentPoolProfileProperties).Count
-	agent_vmsize := string(node_pool.ManagedClusterAgentPoolProfileProperties.VMSize)
+func expandAksProperties(aks *containerservice.ManagedCluster, nodePool *containerservice.AgentPool,
+	ssl *machinelearningservices.SslConfiguration, clusterPurpose machinelearningservices.ClusterPurpose) *machinelearningservices.AKSProperties {
+	fqdn := *(aks.ManagedClusterProperties.Fqdn)
+	agentCount := *(nodePool.ManagedClusterAgentPoolProfileProperties).Count
+	agentVmSize := string(nodePool.ManagedClusterAgentPoolProfileProperties.VMSize)
 
-	if agent_count < min_number_of_nodes_prod && cluster_purpose == "FastProd" {
-		min_number_of_cores_needed := int(math.Ceil(float64(min_number_of_nodes_prod) / float64(agent_count)))
-		err := fmt.Errorf("error: you should pick a VM with at least %d cores", min_number_of_cores_needed)
+	if agentCount < minNumberOfNodesProd && clusterPurpose == "FastProd" {
+		minNumberOfCores := int(math.Ceil(float64(minNumberOfNodesProd) / float64(agentCount)))
+		err := fmt.Errorf("error: you should pick a VM with at least %d cores", minNumberOfCores)
 		fmt.Println(err.Error())
 	}
 
@@ -431,22 +424,22 @@ func expandAksProperties(aks_cluster *containerservice.ManagedCluster, node_pool
 		ClusterFqdn: utils.String(fqdn),
 		// SystemServices - READ-ONLY; System services
 		// AgentCount - Number of agents
-		AgentCount: utils.Int32(agent_count),
+		AgentCount: utils.Int32(agentCount),
 		// AgentVMSize - Agent virtual machine size
-		AgentVMSize: utils.String(agent_vmsize),
+		AgentVMSize: utils.String(agentVmSize),
 		// SslConfiguration - SSL configuration
 		SslConfiguration: ssl,
 		// AksNetworkingConfiguration - AKS networking configuration for vnet
-		AksNetworkingConfiguration: expandAksNetworkingConfiguration(aks_cluster, node_pool),
+		AksNetworkingConfiguration: expandAksNetworkingConfiguration(aks, nodePool),
 		// ClusterPurpose - Possible values include: 'FastProd', 'DenseProd', 'DevTest'
-		ClusterPurpose: cluster_purpose,
+		ClusterPurpose: clusterPurpose,
 	}
 }
 
-func expandAksComputeProperties(aks_properties *machinelearningservices.AKSProperties, aks_cluster *containerservice.ManagedCluster, location string, description string) machinelearningservices.AKS {
+func expandAksComputeProperties(aksProperties *machinelearningservices.AKSProperties, aks *containerservice.ManagedCluster, location string, description string) machinelearningservices.AKS {
 	return machinelearningservices.AKS{
 		// Properties - AKS properties
-		Properties: aks_properties,
+		Properties: aksProperties,
 		// ComputeLocation - Location for the underlying compute
 		ComputeLocation: &location,
 		// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
@@ -455,7 +448,7 @@ func expandAksComputeProperties(aks_properties *machinelearningservices.AKSPrope
 		// CreatedOn - READ-ONLY; The date and time when the compute was created.
 		// ModifiedOn - READ-ONLY; The date and time when the compute was last modified.
 		// ResourceID - ARM resource id of the underlying compute
-		ResourceID: aks_cluster.ID,
+		ResourceID: aks.ID,
 		// ProvisioningErrors - READ-ONLY; Errors during provisioning
 		// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 		// ComputeType - Possible values include: 'ComputeTypeCompute', 'ComputeTypeAKS1', 'ComputeTypeAmlCompute1', 'ComputeTypeVirtualMachine1', 'ComputeTypeHDInsight1', 'ComputeTypeDataFactory1', 'ComputeTypeDatabricks1', 'ComputeTypeDataLakeAnalytics1'
