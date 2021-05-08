@@ -25,7 +25,7 @@ import (
 
 func resourceManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceManagedDiskCreateUpdate,
+		Create: resourceManagedDiskCreate,
 		Read:   resourceManagedDiskRead,
 		Update: resourceManagedDiskUpdate,
 		Delete: resourceManagedDiskDelete,
@@ -163,15 +163,21 @@ func resourceManagedDisk() *schema.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
+			"tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
@@ -197,6 +203,7 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
+
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	skuName := compute.DiskStorageAccountTypes(storageAccountType)
@@ -295,6 +302,11 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if v := d.Get("tier"); v != 0 {
+		tier := v.(string)
+		props.Tier = &tier
+	}
+
 	createDisk := compute.Disk{
 		Name:           &name,
 		Location:       &location,
@@ -351,6 +363,12 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	diskUpdate := compute.DiskUpdate{
 		DiskUpdateProperties: &compute.DiskUpdateProperties{},
+	}
+
+	if d.HasChange("tier") {
+		shouldShutDown = true
+		tier := d.Get("tier").(string)
+		diskUpdate.Tier = &tier
 	}
 
 	if d.HasChange("tags") {
@@ -600,6 +618,7 @@ func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
+		d.Set("tier", props.Tier)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
