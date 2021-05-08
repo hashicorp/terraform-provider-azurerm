@@ -176,7 +176,21 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
 		}
 	}
-
+	// TODO: remove in 3.0
+	// to address this breaking change : https://azure.microsoft.com/en-us/updates/zone-behavior-change/, by setting a location's available zone list as default value to keep the behavior unchanged,
+	// to create a non-zonal resource, user can set zones to ["no_zone"]
+	if strings.EqualFold(sku, "standard") {
+		if zones == nil || len(*zones) == 0 {
+			allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPAddresses", location)
+			if err != nil {
+				return fmt.Errorf("failed to get available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)
+			} else {
+				zones = allZones
+			}
+		} else if (*zones)[0] == "no_zone" {
+			zones = nil
+		}
+	}
 	publicIp := network.PublicIPAddress{
 		Name:     utils.String(id.Name),
 		Location: &location,
@@ -267,7 +281,25 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", resp.Zones)
+	// TODO: remove in 3.0
+	zones := make([]string, 0)
+	if resp.Location != nil && resp.Sku != nil && strings.EqualFold(string(resp.Sku.Name), "standard") {
+		allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPAddresses", *resp.Location)
+		if err != nil {
+			return fmt.Errorf("failed to get available zones for resourceType: publicIPAddresses, location: %s:%+v", *resp.Location, err)
+		}
+		switch {
+		case allZones == nil || len(*allZones) == 0:
+			zones = make([]string, 0)
+		case resp.Zones == nil || len(*resp.Zones) == 0:
+			zones = append(zones, "no_zone")
+		case len(*resp.Zones) == 1:
+			zones = append(zones, (*resp.Zones)[0])
+		default:
+			zones = make([]string, 0)
+		}
+	}
+	d.Set("zones", &zones)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
@@ -103,6 +104,20 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
+	// TODO: remove in 3.0
+	// to address this breaking change : https://azure.microsoft.com/en-us/updates/zone-behavior-change/, by setting a location's available zone list as default value to keep the behavior unchanged,
+	// to create a non-zonal resource, user can set zones to ["no_zone"]
+	if zones == nil || len(*zones) == 0 {
+		allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPPrefixes", location)
+		if err != nil {
+			return fmt.Errorf("failed to get available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)
+		} else {
+			zones = allZones
+		}
+	} else if (*zones)[0] == "no_zone" {
+		zones = nil
+	}
+
 	publicIpPrefix := network.PublicIPPrefix{
 		Location: &location,
 		Sku: &network.PublicIPPrefixSku{
@@ -151,7 +166,25 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.PublicIPPrefixeName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", resp.Zones)
+	// TODO: remove in 3.0
+	zones := make([]string, 0)
+	if resp.Location != nil && resp.Sku != nil && strings.EqualFold(string(resp.Sku.Name), "standard") {
+		allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPPrefixes", *resp.Location)
+		if err != nil {
+			return fmt.Errorf("failed to get available zones for resourceType: publicIPPrefixes, location: %s:%+v", *resp.Location, err)
+		}
+		switch {
+		case allZones == nil || len(*allZones) == 0:
+			zones = make([]string, 0)
+		case resp.Zones == nil || len(*resp.Zones) == 0:
+			zones = append(zones, "no_zone")
+		case len(*resp.Zones) == 1:
+			zones = append(zones, (*resp.Zones)[0])
+		default:
+			zones = make([]string, 0)
+		}
+	}
+	d.Set("zones", &zones)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

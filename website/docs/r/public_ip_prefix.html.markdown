@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Public IP Prefix in.
 
--> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview). Set it to `no_zone` to create a non-zonal resource.
 
 ## Attributes Reference
 

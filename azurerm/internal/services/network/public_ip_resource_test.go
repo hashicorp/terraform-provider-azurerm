@@ -771,9 +771,9 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
-  domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+  domain_name_label = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomStringOfLength(63))
 }
 
 func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {

@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
 
--> **Please Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are zone redundant by default. 
+-> **Please Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are zone redundant by default. Set it to `no_zone` to create a non-zonal resource.
 
 ## Attributes Reference
 
