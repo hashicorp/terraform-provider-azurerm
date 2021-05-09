@@ -129,7 +129,7 @@ resource "azurerm_cosmosdb_table" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger)
 }
 
 func (CosmosTableResource) throughput(data acceptance.TestData, throughput int) string {
@@ -142,7 +142,7 @@ resource "azurerm_cosmosdb_table" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, throughput)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, throughput)
 }
 
 func (CosmosTableResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -157,7 +157,7 @@ resource "azurerm_cosmosdb_table" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, maxThroughput)
 }
 
 func (CosmosTableResource) serverless(data acceptance.TestData) string {
@@ -169,5 +169,5 @@ resource "azurerm_cosmosdb_table" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableServerless", "EnableTable"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless", "EnableTable"}), data.RandomInteger)
 }

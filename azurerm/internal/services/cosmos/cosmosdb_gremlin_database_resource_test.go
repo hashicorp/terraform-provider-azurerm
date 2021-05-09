@@ -130,7 +130,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger)
 }
 
 func (r CosmosGremlinDatabaseResource) requiresImport(data acceptance.TestData) string {
@@ -155,7 +155,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, throughput)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, throughput)
 }
 
 func (CosmosGremlinDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -170,5 +170,5 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
 }

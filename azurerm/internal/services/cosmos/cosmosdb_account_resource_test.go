@@ -21,67 +21,67 @@ type CosmosDBAccountResource struct {
 }
 
 func TestAccCosmosDBAccount_basic_global_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.BoundedStaleness)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_global_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.ConsistentPrefix)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_global_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Eventual)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual)
 }
 
 func TestAccCosmosDBAccount_basic_global_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Session)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelSession)
 }
 
 func TestAccCosmosDBAccount_basic_global_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Strong)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.BoundedStaleness)
+	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelBoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.ConsistentPrefix)
+	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.Eventual)
+	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelEventual)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_session(t *testing.T) {
-	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.Session)
+	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelSession)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.Strong)
+	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func TestAccCosmosDBAccount_basic_parse_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.Parse, documentdb.BoundedStaleness)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelBoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_parse_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.Parse, documentdb.ConsistentPrefix)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_parse_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.Parse, documentdb.Eventual)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelEventual)
 }
 
 func TestAccCosmosDBAccount_basic_parse_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.Parse, documentdb.Session)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelSession)
 }
 
 func TestAccCosmosDBAccount_basic_parse_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.Parse, documentdb.Strong)
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func TestAccCosmosDBAccount_public_network_access_enabled(t *testing.T) {
-	testAccCosmosDBAccount_public_network_access_enabled(t, documentdb.MongoDB, documentdb.Strong)
+	testAccCosmosDBAccount_public_network_access_enabled(t, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func testAccCosmosDBAccount_public_network_access_enabled(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
@@ -105,9 +105,9 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
@@ -120,16 +120,16 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Session),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Session, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
 			),
 		},
 		data.ImportStep(),
@@ -172,20 +172,20 @@ func TestAccCosmosDBAccount_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, "GlobalDocumentDB", documentdb.Eventual),
+			Config: r.basic(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		{
-			Config:      r.requiresImport(data, documentdb.Eventual),
+			Config:      r.requiresImport(data, documentdb.DefaultConsistencyLevelEventual),
 			ExpectError: acceptance.RequiresImportError("azurerm_cosmosdb_account"),
 		},
 	})
 }
 
 func TestAccCosmosDBAccount_updateConsistency_global(t *testing.T) {
-	testAccCosmosDBAccount_updateConsistency(t, documentdb.GlobalDocumentDB)
+	testAccCosmosDBAccount_updateConsistency(t, documentdb.DatabaseAccountKindGlobalDocumentDB)
 }
 
 func TestAccCosmosDBAccount_updateConsistency_mongo(t *testing.T) {
@@ -194,33 +194,33 @@ func TestAccCosmosDBAccount_updateConsistency_mongo(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicMongoDB(data, documentdb.Strong),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+			Config: r.basicMongoDB(data, documentdb.DefaultConsistencyLevelStrong),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistencyMongoDB(data, documentdb.Strong, 8, 880),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+			Config: r.consistencyMongoDB(data, documentdb.DefaultConsistencyLevelStrong, 8, 880),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicMongoDB(data, documentdb.BoundedStaleness),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			Config: r.basicMongoDB(data, documentdb.DefaultConsistencyLevelBoundedStaleness),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistencyMongoDB(data, documentdb.BoundedStaleness, 7, 770),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			Config: r.consistencyMongoDB(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistencyMongoDB(data, documentdb.BoundedStaleness, 77, 700),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			Config: r.consistencyMongoDB(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicMongoDB(data, documentdb.ConsistentPrefix),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.ConsistentPrefix, 1),
+			Config: r.basicMongoDB(data, documentdb.DefaultConsistencyLevelConsistentPrefix),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelConsistentPrefix, 1),
 		},
 		data.ImportStep(),
 	})
@@ -232,33 +232,33 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind documentdb.Data
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, kind, documentdb.Strong),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+			Config: r.basic(data, kind, documentdb.DefaultConsistencyLevelStrong),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, documentdb.Strong, 8, 880),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+			Config: r.consistency(data, kind, documentdb.DefaultConsistencyLevelStrong, 8, 880),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, kind, documentdb.BoundedStaleness),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			Config: r.basic(data, kind, documentdb.DefaultConsistencyLevelBoundedStaleness),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, documentdb.BoundedStaleness, 7, 770),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			Config: r.consistency(data, kind, documentdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, documentdb.BoundedStaleness, 77, 700),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			Config: r.consistency(data, kind, documentdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, kind, documentdb.ConsistentPrefix),
-			Check:  checkAccCosmosDBAccount_basic(data, documentdb.ConsistentPrefix, 1),
+			Config: r.basic(data, kind, documentdb.DefaultConsistencyLevelConsistentPrefix),
+			Check:  checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelConsistentPrefix, 1),
 		},
 		data.ImportStep(),
 	})
@@ -270,9 +270,9 @@ func TestAccCosmosDBAccount_complete_mongo(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.completeMongoDB(data, documentdb.Eventual),
+			Config: r.completeMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
 		},
 		data.ImportStep(),
@@ -280,11 +280,11 @@ func TestAccCosmosDBAccount_complete_mongo(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_complete_global(t *testing.T) {
-	testAccCosmosDBAccount_completeWith(t, documentdb.GlobalDocumentDB)
+	testAccCosmosDBAccount_completeWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB)
 }
 
 func TestAccCosmosDBAccount_complete_parse(t *testing.T) {
-	testAccCosmosDBAccount_completeWith(t, documentdb.Parse)
+	testAccCosmosDBAccount_completeWith(t, documentdb.DatabaseAccountKindParse)
 }
 
 func testAccCosmosDBAccount_completeWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
@@ -293,9 +293,9 @@ func testAccCosmosDBAccount_completeWith(t *testing.T, kind documentdb.DatabaseA
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, kind, documentdb.Eventual),
+			Config: r.complete(data, kind, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
 		},
 		data.ImportStep(),
@@ -318,11 +318,11 @@ func TestAccCosmosDBAccount_completeZoneRedundant_mongo(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_completeZoneRedundant_global(t *testing.T) {
-	testAccCosmosDBAccount_zoneRedundantWith(t, documentdb.GlobalDocumentDB)
+	testAccCosmosDBAccount_zoneRedundantWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB)
 }
 
 func TestAccCosmosDBAccount_completeZoneRedundant_parse(t *testing.T) {
-	testAccCosmosDBAccount_zoneRedundantWith(t, documentdb.Parse)
+	testAccCosmosDBAccount_zoneRedundantWith(t, documentdb.DatabaseAccountKindParse)
 }
 
 func testAccCosmosDBAccount_zoneRedundantWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
@@ -346,16 +346,16 @@ func TestAccCosmosDBAccount_zoneRedundant_update_mongo(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicMongoDB(data, documentdb.Eventual),
+			Config: r.basicMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.zoneRedundantMongoDBUpdate(data, documentdb.Eventual),
+			Config: r.zoneRedundantMongoDBUpdate(data, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 2),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 2),
 			),
 		},
 		data.ImportStep(),
@@ -368,30 +368,30 @@ func TestAccCosmosDBAccount_update_mongo(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicMongoDB(data, documentdb.Eventual),
+			Config: r.basicMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeMongoDB(data, documentdb.Eventual),
+			Config: r.completeMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdatedMongoDB(data, documentdb.Eventual),
+			Config: r.completeUpdatedMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithResourcesMongoDB(data, documentdb.Eventual),
+			Config: r.basicWithResourcesMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check:  resource.ComposeAggregateTestCheckFunc(
-			// checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+			// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
@@ -399,11 +399,11 @@ func TestAccCosmosDBAccount_update_mongo(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_update_global(t *testing.T) {
-	testAccCosmosDBAccount_updateWith(t, documentdb.GlobalDocumentDB)
+	testAccCosmosDBAccount_updateWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB)
 }
 
 func TestAccCosmosDBAccount_update_parse(t *testing.T) {
-	testAccCosmosDBAccount_updateWith(t, documentdb.Parse)
+	testAccCosmosDBAccount_updateWith(t, documentdb.DatabaseAccountKindParse)
 }
 
 func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
@@ -412,30 +412,30 @@ func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAcc
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, kind, documentdb.Eventual),
+			Config: r.basic(data, kind, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, kind, documentdb.Eventual),
+			Config: r.complete(data, kind, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdated(data, kind, documentdb.Eventual),
+			Config: r.completeUpdated(data, kind, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithResources(data, kind, documentdb.Eventual),
+			Config: r.basicWithResources(data, kind, documentdb.DefaultConsistencyLevelEventual),
 			Check:  resource.ComposeAggregateTestCheckFunc(
-			// checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+			// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
@@ -443,43 +443,43 @@ func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAcc
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableAggregationPipeline(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableAggregationPipeline"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableAggregationPipeline"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableCassandra(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableCassandra"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableGremlin(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableGremlin"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableTable"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableServerless"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"})
 }
 
 func TestAccCosmosDBAccount_capabilities_MongoDBv34(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo", "MongoDBv3.4"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "MongoDBv3.4"})
 }
 
 func TestAccCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo", "mongoEnableDocLevelTTL"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "mongoEnableDocLevelTTL"})
 }
 
 func TestAccCosmosDBAccount_capabilities_DisableRateLimitingResponses(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo", "DisableRateLimitingResponses"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "DisableRateLimitingResponses"})
 }
 
 func TestAccCosmosDBAccount_capabilities_AllowSelfServeUpgradeToMongo36(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo", "AllowSelfServeUpgradeToMongo36"})
+	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "AllowSelfServeUpgradeToMongo36"})
 }
 
 func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.DatabaseAccountKind, capabilities []string) {
@@ -490,7 +490,7 @@ func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.Datab
 		{
 			Config: r.capabilities(data, kind, capabilities),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
@@ -503,16 +503,16 @@ func TestAccCosmosDBAccount_capabilitiesAdd(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
+			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
@@ -525,16 +525,16 @@ func TestAccCosmosDBAccount_capabilitiesUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
+			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable", "EnableAggregationPipeline"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
@@ -547,23 +547,23 @@ func TestAccCosmosDBAccount_geoLocationsUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, "GlobalDocumentDB", documentdb.Eventual),
+			Config: r.basic(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.geoLocationUpdate(data, "GlobalDocumentDB", documentdb.Eventual),
+			Config: r.geoLocationUpdate(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 2),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 2),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "GlobalDocumentDB", documentdb.Eventual),
+			Config: r.basic(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
@@ -576,9 +576,9 @@ func TestAccCosmosDBAccount_freeTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.freeTier(data, "GlobalDocumentDB", documentdb.Eventual),
+			Config: r.freeTier(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 				check.That(data.ResourceName).Key("enable_free_tier").HasValue("true"),
 			),
 		},
@@ -592,9 +592,9 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.Eventual),
+			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
 			),
 		},
@@ -625,7 +625,7 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
@@ -635,14 +635,14 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupPeriodic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithBackupPeriodic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupPeriodicUpdate(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithBackupPeriodicUpdate(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
@@ -658,7 +658,7 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicWithBackupContinuous(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithBackupContinuous(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -673,21 +673,21 @@ func TestAccCosmosDBAccount_networkBypass(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithNetworkBypass(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithNetworkBypass(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithoutNetworkBypass(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
+			Config: r.basicWithoutNetworkBypass(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -702,7 +702,7 @@ func TestAccCosmosDBAccount_mongoVersion32(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicMongoDBVersion32(data, documentdb.Session),
+			Config: r.basicMongoDBVersion32(data, documentdb.DefaultConsistencyLevelSession),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -717,7 +717,7 @@ func TestAccCosmosDBAccount_mongoVersion40(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicMongoDBVersion40(data, documentdb.Session),
+			Config: r.basicMongoDBVersion40(data, documentdb.DefaultConsistencyLevelSession),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1545,7 +1545,7 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documen
 		check.That(data.ResourceName).Key("resource_group_name").Exists(),
 		check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 		check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-		check.That(data.ResourceName).Key("offer_type").HasValue(string(documentdb.Standard)),
+		check.That(data.ResourceName).Key("offer_type").HasValue(string(documentdb.DatabaseAccountOfferTypeStandard)),
 		check.That(data.ResourceName).Key("consistency_policy.0.consistency_level").HasValue(string(consistency)),
 		check.That(data.ResourceName).Key("geo_location.#").HasValue(strconv.Itoa(locationCount)),
 		check.That(data.ResourceName).Key("endpoint").Exists(),

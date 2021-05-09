@@ -129,7 +129,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_path  = "/definition/id"
 }
-	`, data.Locations.Primary, data.RandomInteger, string(documentdb.GlobalDocumentDB), string(documentdb.Session))
+	`, data.Locations.Primary, data.RandomInteger, string(documentdb.DatabaseAccountKindGlobalDocumentDB), string(documentdb.DefaultConsistencyLevelSession))
 }
 
 func (r CosmosDbSQLTriggerResource) basic(data acceptance.TestData) string {
