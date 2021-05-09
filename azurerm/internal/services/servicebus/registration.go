@@ -22,13 +22,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_servicebus_namespace":                    dataSourceServiceBusNamespace(),
-		"azurerm_servicebus_namespace_authorization_rule": dataSourceServiceBusNamespaceAuthorizationRule(),
-		"azurerm_servicebus_topic_authorization_rule":     dataSourceServiceBusTopicAuthorizationRule(),
-		"azurerm_servicebus_queue_authorization_rule":     dataSourceServiceBusQueueAuthorizationRule(),
-		"azurerm_servicebus_subscription":                 dataSourceServiceBusSubscription(),
-		"azurerm_servicebus_topic":                        dataSourceServiceBusTopic(),
-		"azurerm_servicebus_queue":                        dataSourceServiceBusQueue(),
+		"azurerm_servicebus_namespace":                          dataSourceServiceBusNamespace(),
+		"azurerm_servicebus_namespace_disaster_recovery_config": dataSourceServiceBusNamespaceDisasterRecoveryConfig(),
+		"azurerm_servicebus_namespace_authorization_rule":       dataSourceServiceBusNamespaceAuthorizationRule(),
+		"azurerm_servicebus_topic_authorization_rule":           dataSourceServiceBusTopicAuthorizationRule(),
+		"azurerm_servicebus_queue_authorization_rule":           dataSourceServiceBusQueueAuthorizationRule(),
+		"azurerm_servicebus_subscription":                       dataSourceServiceBusSubscription(),
+		"azurerm_servicebus_topic":                              dataSourceServiceBusTopic(),
+		"azurerm_servicebus_queue":                              dataSourceServiceBusQueue(),
 	}
 }
 
