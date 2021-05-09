@@ -646,8 +646,6 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
-				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("240"),
-				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("8"),
 			),
 		},
 		data.ImportStep(),
@@ -1774,7 +1772,9 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   backup {
-    type = "Periodic"
+    type                = "Periodic"
+    interval_in_minutes = 60
+    retention_in_hours  = 8
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
