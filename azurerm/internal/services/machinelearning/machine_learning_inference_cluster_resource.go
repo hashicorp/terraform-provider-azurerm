@@ -214,13 +214,13 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	sslInterface := d.Get("ssl").([]interface{})
 	ssl := expandSSLConfig(sslInterface)
 
-	unmappedclusterPurpose := d.Get("cluster_purpose").(string)
+	unmappedClusterPurpose := d.Get("cluster_purpose").(string)
 	var mapClusterPurpose = map[string]string{
 		"Dev":  "DevTest",
 		"Test": "DevTest",
 		"Prod": "FastProd",
 	}
-	clusterPurpose := machinelearningservices.ClusterPurpose(mapClusterPurpose[unmappedclusterPurpose])
+	clusterPurpose := machinelearningservices.ClusterPurpose(mapClusterPurpose[unmappedClusterPurpose])
 
 	aksProperties := expandAksProperties(&aks, &nodePool, ssl, clusterPurpose)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -267,8 +267,10 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("cannot read Inference Cluster ID %q in workspace %q (Resource Group %q) ID", name, workspaceID.Name, workspaceID.ResourceGroup)
 	}
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewInferenceClusterID(subscriptionId, workspaceID.ResourceGroup, workspaceID.Name, name)
+	id, err := parse.InferenceClusterID(*resp.ID)
+	if err != nil {
+		return err
+	}
 	d.SetId(id.ID())
 
 	return resourceAksInferenceClusterRead(d, meta)
@@ -277,7 +279,6 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) error {
 	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.WorkspacesClient
 	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
-	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -290,9 +291,9 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", id.ComputeName)
 
 	// Check that Inference Cluster Response can be read
-	resp, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	computeResource, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(computeResource.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -307,14 +308,14 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 	d.Set("machine_learning_workspace_id", mlResp.ID)
 
-	// Retrieve AKS Cluster ID
-	aksResp, err := aksClient.ListByResourceGroup(ctx, id.ResourceGroup)
-	if err != nil {
-		return err
+	// use ComputeResource to get to AKS Cluster ID and other properties
+	aksCompute, isAks := (machinelearningservices.BasicCompute).AsAKS(computeResource.Properties)
+	if !isAks {
+		return fmt.Errorf("compute resource %s is not an AKS cluster", id.ComputeName)
 	}
 
-	unparsedAksId := *(aksResp.Values()[0].ID)
-
+	unparsedAksId := *aksCompute.ResourceID
+	
 	// Retrieve AKS Cluster name and Node pool name from ID
 	aksId, err := parse.KubernetesClusterID(unparsedAksId)
 	if err != nil {
@@ -332,22 +333,22 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("node_pool_name", poolId.AgentPoolName)
 
 	// Retrieve location
-	if location := resp.Location; location != nil {
+	if location := computeResource.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	// Retrieve Sku
-	if sku := resp.Sku; sku != nil {
+	if sku := computeResource.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
 
 	// Retrieve Identity
-	if err := d.Set("identity", flattenAksInferenceClusterIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenAksInferenceClusterIdentity(computeResource.Identity)); err != nil {
 		return fmt.Errorf("error flattening identity on Workspace %q (Resource Group %q): %+v",
 			id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, computeResource.Tags)
 }
 
 func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{}) error {
