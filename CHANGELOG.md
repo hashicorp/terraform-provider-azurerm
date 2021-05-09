@@ -7,11 +7,11 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v54.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11593]
+* dependencies: updating `databox` to API version `2020-12-01` [GH-11626]
 * Data Source: `azurerm_kubernetes_cluster` - Add `ingress_application_gateway_identity` export for add-on `ingress_application_gateway` [GH-11622]
 * `azurerm_cosmosdb_account` - support for the `backup` property [GH-11597]
-* `azurerm_databox_edge_device` - upgrade to databox edge API version 2020-12-01 and fix test cases [GH-11626]
-* `azurerm_databox_edge_order` - upgrade to databox edge API version 2020-12-01 and fix test cases [GH-11626]
-* `azurerm_kubernetes_cluster` - Add `ingress_application_gateway_identity` export for add-on `ingress_application_gateway` [GH-11622]
+* `azurerm_kubernetes_cluster` - export the `ingress_application_gateway_identity` attribute for the `ingress_application_gateway` add-on [GH-11622]
+* `azurerm_managed_disk` - support for the `tier` property [GH-11634]
 * `azurerm_storage_account` - support for the `azure_files_identity_based_authentication` and `routing_preference` blocks [GH-11485]
 
 BUG FIXES
