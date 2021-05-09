@@ -46,24 +46,24 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			"primary_resource_group_name": azure.SchemaResourceGroupName(),
-
-			"primary_namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"secondary_resource_group_name": azure.SchemaResourceGroupName(),
-
-			"secondary_namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"alias_name": {
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"namespace_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"partner_namespace_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"alias_primary_connection_string": {
@@ -101,11 +101,11 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Namespace pairing create/update.")
 
-	id := parse.NewNamespaceDisasterRecoveryConfigID(subscriptionId, d.Get("primary_resource_group_name").(string), d.Get("primary_namespace_name").(string), d.Get("alias_name").(string))
+	id := parse.NewNamespaceDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	resourceGroup := id.ResourceGroup
 	primaryNamespace := id.NamespaceName
-	secondaryNamespace := d.Get("secondary_namespace_name").(string)
+	partnerNamespaceId := d.Get("partner_namespace_id").(string)
 	aliasName := id.DisasterRecoveryConfigName
 
 	if d.IsNewResource() {
@@ -122,11 +122,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 		}
 	}
 
-	partnerNamespace := parse.NewNamespaceID(subscriptionId, d.Get("secondary_resource_group_name").(string), secondaryNamespace)
 	parameters := servicebus.ArmDisasterRecovery{
 
 		ArmDisasterRecoveryProperties: &servicebus.ArmDisasterRecoveryProperties{
-			PartnerNamespace: utils.String(partnerNamespace.ID()),
+			PartnerNamespace: utils.String(partnerNamespaceId),
 		},
 	}
 
@@ -169,21 +168,21 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceD
 	locks.ByName(primaryNamespace, serviceBusNamespaceResourceName)
 	defer locks.UnlockByName(primaryNamespace, serviceBusNamespaceResourceName)
 
-	if d.HasChange("secondary_namespace_name") {
+	if d.HasChange("partner_namespace_id") {
 		// break pairing
 		breakPair, err := client.BreakPairing(ctx, resourceGroup, primaryNamespace, aliasName)
 		if breakPair.StatusCode != http.StatusOK {
-			return fmt.Errorf("error issuing break pairing request for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, primaryNamespace, resourceGroup, err)
+			return fmt.Errorf("error issuing break pairing request for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, primaryNamespace, resourceGroup, err)
 		}
 
 		if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, primaryNamespace, aliasName, d.Timeout(schema.TimeoutUpdate)); err != nil {
-			return fmt.Errorf("error waiting for break pairing request to complete for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, primaryNamespace, resourceGroup, err)
+			return fmt.Errorf("error waiting for break pairing request to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, primaryNamespace, resourceGroup, err)
 		}
 	}
 
 	parameters := servicebus.ArmDisasterRecovery{
 		ArmDisasterRecoveryProperties: &servicebus.ArmDisasterRecoveryProperties{
-			PartnerNamespace: utils.String(d.Get("secondary_namespace_name").(string)),
+			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
 		},
 	}
 
@@ -217,19 +216,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceDat
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("primary_resource_group_name", id.ResourceGroup)
-	d.Set("primary_namespace_name", id.NamespaceName)
-
-	secondaryId, err := parse.NamespaceID(*resp.ArmDisasterRecoveryProperties.PartnerNamespace)
-	if err != nil {
-		return err
-	}
-
-	d.Set("secondary_resource_group_name", secondaryId.ResourceGroup)
-	d.Set("secondary_namespace_name", secondaryId.Name)
-
-	d.Set("alias_name", id.DisasterRecoveryConfigName)
-
+	d.Set("name", id.DisasterRecoveryConfigName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("partner_namespace_id", *resp.ArmDisasterRecoveryProperties.PartnerNamespace)
 	d.SetId(*resp.ID)
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
@@ -270,7 +260,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName); err != nil {
-		return fmt.Errorf("error issuing delete request for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("error issuing delete request for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	// no future for deletion so wait for it to vanish
