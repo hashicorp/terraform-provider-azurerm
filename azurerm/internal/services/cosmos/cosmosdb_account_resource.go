@@ -495,7 +495,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		Properties: &documentdb.DatabaseAccountCreateUpdateProperties{
+		Properties: &documentdb.DefaultRequestDatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
@@ -515,41 +515,42 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
-	props, _ := account.Properties.AsDatabaseAccountCreateUpdateProperties()
-
-	if v, ok := d.GetOk("mongo_server_version"); ok {
-		props.APIProperties = &documentdb.APIProperties{
-			ServerVersion: documentdb.ServerVersion(v.(string)),
+	if props, ok := account.Properties.AsDefaultRequestDatabaseAccountCreateUpdateProperties(); ok {
+		if v, ok := d.GetOk("mongo_server_version"); ok {
+			props.APIProperties = &documentdb.APIProperties{
+				ServerVersion: documentdb.ServerVersion(v.(string)),
+			}
 		}
+
+		if v, ok := d.GetOk("backup"); ok {
+			policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `backup`: %+v", err)
+			}
+			props.BackupPolicy = policy
+		}
+
+		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
+			keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
+			if err != nil {
+				return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+			}
+			props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		}
+
+		// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
+		consistencyPolicy := props.ConsistencyPolicy
+		if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.DefaultConsistencyLevelBoundedStaleness {
+			if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
+				return fmt.Errorf("max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
+			}
+			if mis := consistencyPolicy.MaxIntervalInSeconds; mis != nil && *mis < 300 {
+				return fmt.Errorf("max_interval_in_seconds (%d) must be greater then 300 (5min) when more then one geo_location is used", *mis)
+			}
+		}
+	} else {
+		return fmt.Errorf("fetching properties for CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `backup`: %+v", err)
-		}
-		props.BackupPolicy = policy
-	}
-
-	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
-		if err != nil {
-			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
-		}
-		props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
-	}
-
-	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
-	consistencyPolicy := props.ConsistencyPolicy
-	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.DefaultConsistencyLevelBoundedStaleness {
-		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
-			return fmt.Errorf("max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
-		}
-		if mis := consistencyPolicy.MaxIntervalInSeconds; mis != nil && *mis < 300 {
-			return fmt.Errorf("max_interval_in_seconds (%d) must be greater then 300 (5min) when more then one geo_location is used", *mis)
-		}
-	}
-
 	resp, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -627,7 +628,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		Properties: &documentdb.DatabaseAccountCreateUpdateProperties{
+		Properties: &documentdb.DefaultRequestDatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
@@ -647,75 +648,77 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
-	props, _ := account.Properties.AsDatabaseAccountCreateUpdateProperties()
+	if props, ok := account.Properties.AsDefaultRequestDatabaseAccountCreateUpdateProperties(); ok {
 
-	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
-		if err != nil {
-			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
+			keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
+			if err != nil {
+				return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+			}
+			props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 		}
-		props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
-	}
 
-	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `backup`: %+v", err)
+		if v, ok := d.GetOk("backup"); ok {
+			policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `backup`: %+v", err)
+			}
+			props.BackupPolicy = policy
 		}
-		props.BackupPolicy = policy
-	}
 
-	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	// Update the property independently after the initial upsert as no other properties may change at the same time.
-	props.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
-	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-	}
 
-	// determine if any locations have been renamed/priority reordered and remove them
-	removedOne := false
-	for _, l := range newLocations {
-		if ol, ok := oldLocationsMap[*l.LocationName]; ok {
-			if *l.FailoverPriority != *ol.FailoverPriority {
-				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %s to %d (Resource Group %q)", name, *l.LocationName, *l.FailoverPriority, resourceGroup)
-				}
-				delete(oldLocationsMap, *l.LocationName)
-				removedOne = true
-				continue
+		// Update the property independently after the initial upsert as no other properties may change at the same time.
+		props.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
+		if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
+			if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+				return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
-	}
 
-	if removedOne {
-		locationsUnchanged := make([]documentdb.Location, 0, len(oldLocationsMap))
-		for _, value := range oldLocationsMap {
-			locationsUnchanged = append(locationsUnchanged, value)
+		// determine if any locations have been renamed/priority reordered and remove them
+		removedOne := false
+		for _, l := range newLocations {
+			if ol, ok := oldLocationsMap[*l.LocationName]; ok {
+				if *l.FailoverPriority != *ol.FailoverPriority {
+					if *l.FailoverPriority == 0 {
+						return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %s to %d (Resource Group %q)", name, *l.LocationName, *l.FailoverPriority, resourceGroup)
+					}
+					delete(oldLocationsMap, *l.LocationName)
+					removedOne = true
+					continue
+				}
+			}
 		}
 
-		props.Locations = &locationsUnchanged
-		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
+		if removedOne {
+			locationsUnchanged := make([]documentdb.Location, 0, len(oldLocationsMap))
+			for _, value := range oldLocationsMap {
+				locationsUnchanged = append(locationsUnchanged, value)
+			}
+
+			props.Locations = &locationsUnchanged
+			if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+				return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
+			}
 		}
-	}
 
-	// add any new/renamed locations
-	props.Locations = &newLocations
-	upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
-	if err != nil {
-		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
-	}
+		// add any new/renamed locations
+		props.Locations = &newLocations
+		upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
+		if err != nil {
+			return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 
-	if upsertResponse.ID == nil {
-		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
+		if upsertResponse.ID == nil {
+			return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
+		}
+		d.SetId(*upsertResponse.ID)
+	} else {
+		return fmt.Errorf("fetching properties for CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	d.SetId(*upsertResponse.ID)
 
 	return resourceCosmosDbAccountRead(d, meta)
 }
@@ -1224,6 +1227,7 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 
 	switch attr["type"].(string) {
 	case string(documentdb.BackupPolicyTypeContinuous):
+
 		if v := attr["interval_in_minutes"].(int); v != 0 {
 			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in`backup` is `Continuous` ")
 		}
