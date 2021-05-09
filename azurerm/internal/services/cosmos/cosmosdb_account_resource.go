@@ -649,7 +649,6 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if props, ok := account.Properties.AsDefaultRequestDatabaseAccountCreateUpdateProperties(); ok {
-
 		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
 			keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 			if err != nil {
