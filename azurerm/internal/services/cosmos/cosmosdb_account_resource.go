@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2021-04-01-preview/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -40,7 +40,7 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *schema.R
 
 	consistencyPolicy := consistencyPolicyList[0].(map[string]interface{})
 
-	return consistencyPolicy["consistency_level"].(string) != string(documentdb.BoundedStaleness)
+	return consistencyPolicy["consistency_level"].(string) != string(documentdb.DefaultConsistencyLevelBoundedStaleness)
 }
 
 func resourceCosmosDbAccount() *schema.Resource {
@@ -80,7 +80,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.Standard),
+					string(documentdb.DatabaseAccountOfferTypeStandard),
 				}, true),
 			},
 
@@ -88,12 +88,12 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          string(documentdb.GlobalDocumentDB),
+				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.GlobalDocumentDB),
-					string(documentdb.MongoDB),
-					string(documentdb.Parse),
+					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
+					string(documentdb.DatabaseAccountKindMongoDB),
+					string(documentdb.DatabaseAccountKindParse),
 				}, true),
 			},
 
@@ -151,11 +151,11 @@ func resourceCosmosDbAccount() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.BoundedStaleness),
-								string(documentdb.ConsistentPrefix),
-								string(documentdb.Eventual),
-								string(documentdb.Session),
-								string(documentdb.Strong),
+								string(documentdb.DefaultConsistencyLevelBoundedStaleness),
+								string(documentdb.DefaultConsistencyLevelConsistentPrefix),
+								string(documentdb.DefaultConsistencyLevelEventual),
+								string(documentdb.DefaultConsistencyLevelSession),
+								string(documentdb.DefaultConsistencyLevelStrong),
 							}, true),
 						},
 
@@ -290,9 +290,9 @@ func resourceCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.ThreeFullStopTwo),
-					string(documentdb.ThreeFullStopSix),
-					string(documentdb.FourFullStopZero),
+					string(documentdb.ServerVersionThreeFullStopTwo),
+					string(documentdb.ServerVersionThreeFullStopSix),
+					string(documentdb.ServerVersionFourFullStopZero),
 				}, false),
 			},
 
@@ -322,8 +322,8 @@ func resourceCosmosDbAccount() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.TypeContinuous),
-								string(documentdb.TypePeriodic),
+								string(documentdb.BackupPolicyTypeContinuous),
+								string(documentdb.BackupPolicyTypePeriodic),
 							}, false),
 						},
 
@@ -482,9 +482,9 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
-	publicNetworkAccess := documentdb.Enabled
+	publicNetworkAccess := documentdb.PublicNetworkAccessEnabled
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		publicNetworkAccess = documentdb.Disabled
+		publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
 	}
 
 	networkByPass := documentdb.NetworkACLBypassNone
@@ -495,7 +495,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
+		Properties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
@@ -515,8 +515,10 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
+	props, _ := account.Properties.AsDatabaseAccountCreateUpdateProperties()
+
 	if v, ok := d.GetOk("mongo_server_version"); ok {
-		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+		props.APIProperties = &documentdb.APIProperties{
 			ServerVersion: documentdb.ServerVersion(v.(string)),
 		}
 	}
@@ -526,7 +528,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.BackupPolicy = policy
+		props.BackupPolicy = policy
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
@@ -534,12 +536,12 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
-	consistencyPolicy := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
-	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.BoundedStaleness {
+	consistencyPolicy := props.ConsistencyPolicy
+	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.DefaultConsistencyLevelBoundedStaleness {
 		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
 			return fmt.Errorf("max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
 		}
@@ -610,9 +612,9 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
-	publicNetworkAccess := documentdb.Enabled
+	publicNetworkAccess := documentdb.PublicNetworkAccessEnabled
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		publicNetworkAccess = documentdb.Disabled
+		publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
 	}
 
 	networkByPass := documentdb.NetworkACLBypassNone
@@ -625,7 +627,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
+		Properties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
@@ -645,12 +647,14 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
+	props, _ := account.Properties.AsDatabaseAccountCreateUpdateProperties()
+
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
@@ -658,7 +662,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.BackupPolicy = policy
+		props.BackupPolicy = policy
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
@@ -666,7 +670,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// Update the property independently after the initial upsert as no other properties may change at the same time.
-	account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
+	props.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
@@ -694,14 +698,14 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			locationsUnchanged = append(locationsUnchanged, value)
 		}
 
-		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
+		props.Locations = &locationsUnchanged
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	// add any new/renamed locations
-	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
+	props.Locations = &newLocations
 	upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
@@ -750,7 +754,7 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.Enabled)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -954,7 +958,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 					}
 				}
 
-				for _, desiredLocation := range *account.Locations {
+				for _, desiredLocation := range *props.Locations {
 					for index, l := range locations {
 						if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
 							break
@@ -1219,7 +1223,7 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 	attr := input[0].(map[string]interface{})
 
 	switch attr["type"].(string) {
-	case string(documentdb.TypeContinuous):
+	case string(documentdb.BackupPolicyTypeContinuous):
 		if v := attr["interval_in_minutes"].(int); v != 0 {
 			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in`backup` is `Continuous` ")
 		}
@@ -1227,12 +1231,12 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in`backup` is `Continuous` ")
 		}
 		return documentdb.ContinuousModeBackupPolicy{
-			Type: documentdb.TypeContinuous,
+			Type: documentdb.TypeTypeContinuous,
 		}, nil
 
-	case string(documentdb.TypePeriodic):
+	case string(documentdb.BackupPolicyTypePeriodic):
 		return documentdb.PeriodicModeBackupPolicy{
-			Type: documentdb.TypePeriodic,
+			Type: documentdb.TypeTypePeriodic,
 			PeriodicModeProperties: &documentdb.PeriodicModeProperties{
 				BackupIntervalInMinutes:        utils.Int32(int32(attr["interval_in_minutes"].(int))),
 				BackupRetentionIntervalInHours: utils.Int32(int32(attr["retention_in_hours"].(int))),
@@ -1253,7 +1257,7 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 	case documentdb.ContinuousModeBackupPolicy:
 		return []interface{}{
 			map[string]interface{}{
-				"type": string(documentdb.TypeContinuous),
+				"type": string(documentdb.BackupPolicyTypeContinuous),
 			},
 		}, nil
 
@@ -1271,7 +1275,7 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 		}
 		return []interface{}{
 			map[string]interface{}{
-				"type":                string(documentdb.TypePeriodic),
+				"type":                string(documentdb.BackupPolicyTypePeriodic),
 				"interval_in_minutes": interval,
 				"retention_in_hours":  retention,
 			},

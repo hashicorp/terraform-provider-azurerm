@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2021-04-01-preview/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -61,11 +61,11 @@ func resourceCosmosDbSQLTrigger() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.All),
-					string(documentdb.Create),
-					string(documentdb.Update),
-					string(documentdb.Delete),
-					string(documentdb.Replace),
+					string(documentdb.TriggerOperationAll),
+					string(documentdb.TriggerOperationCreate),
+					string(documentdb.TriggerOperationUpdate),
+					string(documentdb.TriggerOperationDelete),
+					string(documentdb.TriggerOperationReplace),
 				}, false),
 			},
 
@@ -73,8 +73,8 @@ func resourceCosmosDbSQLTrigger() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.Pre),
-					string(documentdb.Post),
+					string(documentdb.TriggerTypePre),
+					string(documentdb.TriggerTypePost),
 				}, false),
 			},
 		},
