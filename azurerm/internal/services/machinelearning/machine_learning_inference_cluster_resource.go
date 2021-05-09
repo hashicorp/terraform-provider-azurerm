@@ -171,7 +171,7 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 	existing, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("error checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspace_name, resource_group_name, err)
+			return fmt.Errorf("error checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
@@ -394,8 +394,8 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool))}
 }
 
-func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, node_pool *containerservice.AgentPool) *machinelearningservices.AksNetworkingConfiguration {
-	subnet_id := *(node_pool.ManagedClusterAgentPoolProfileProperties).VnetSubnetID
+func expandAksNetworkingConfiguration(aks *containerservice.ManagedCluster, nodePool *containerservice.AgentPool) *machinelearningservices.AksNetworkingConfiguration {
+	subnet_id := *(nodePool.ManagedClusterAgentPoolProfileProperties).VnetSubnetID
 	service_cidr := *(aks.NetworkProfile.ServiceCidr)
 	dns_service_ip := *(aks.NetworkProfile.DNSServiceIP)
 	docker_bridge_cidr := *(aks.NetworkProfile.DockerBridgeCidr)
