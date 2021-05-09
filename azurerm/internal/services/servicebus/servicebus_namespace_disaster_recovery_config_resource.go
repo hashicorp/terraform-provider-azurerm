@@ -109,7 +109,6 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 	aliasName := id.DisasterRecoveryConfigName
 
 	if d.IsNewResource() {
-
 		existing, err := client.Get(ctx, resourceGroup, primaryNamespace, aliasName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -220,7 +219,6 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceDat
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("partner_namespace_id", *resp.ArmDisasterRecoveryProperties.PartnerNamespace)
-	d.SetId(*resp.ID)
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
 

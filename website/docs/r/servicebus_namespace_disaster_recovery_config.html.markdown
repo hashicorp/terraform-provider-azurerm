@@ -37,10 +37,10 @@ resource "azurerm_servicebus_namespace" "secondary" {
 }
 
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
-  name                            = "servicebus-alias-name"
-  resource_group_name             = azurerm_resource_group.example.name
-  namespace_name                  = azurerm_servicebus_namespace.primary.name
-  partner_namespace_id            = azurerm_resource_group.secondary.id
+  name                 = "servicebus-alias-name"
+  resource_group_name  = azurerm_resource_group.example.name
+  namespace_name       = azurerm_servicebus_namespace.primary.name
+  partner_namespace_id = azurerm_resource_group.secondary.id
 }
 
 ```
