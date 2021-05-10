@@ -1209,20 +1209,12 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   cors_rule {
-    allowed_origins    = ["http://www.example.com"]
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
     max_age_in_seconds = "2000000000"
   }
-  cors_rule {
-    allowed_origins    = ["http://www.test.com"]
-    exposed_headers    = ["x-tempo-*"]
-    allowed_headers    = ["*"]
-    allowed_methods    = ["PUT"]
-    max_age_in_seconds = "1000"
-  }
-
 
   access_key_metadata_writes_enabled = true
 }
@@ -1274,18 +1266,11 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   cors_rule {
-    allowed_origins    = ["http://www.example.com"]
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
     max_age_in_seconds = "2000000000"
-  }
-  cors_rule {
-    allowed_origins    = ["http://www.test.com"]
-    exposed_headers    = ["x-tempo-*"]
-    allowed_headers    = ["*"]
-    allowed_methods    = ["PUT"]
-    max_age_in_seconds = "1000"
   }
   access_key_metadata_writes_enabled = true
 }
