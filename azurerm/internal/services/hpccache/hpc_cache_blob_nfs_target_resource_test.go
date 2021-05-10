@@ -260,11 +260,19 @@ data "azuread_service_principal" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststorgacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                      = "accteststorgacc%s"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Premium"
+  account_kind              = "BlockBlobStorage"
+  account_replication_type  = "LRS"
+  is_hns_enabled            = true
+  nfsv3_enabled             = true
+  enable_https_traffic_only = false
+  network_rules {
+    default_action             = "Allow"
+    virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  }
 }
 
 resource "azurerm_storage_container" "test" {
