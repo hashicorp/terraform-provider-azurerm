@@ -38,8 +38,7 @@ resource "azurerm_servicebus_namespace" "secondary" {
 
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
   name                 = "servicebus-alias-name"
-  resource_group_name  = azurerm_resource_group.example.name
-  namespace_name       = azurerm_servicebus_namespace.primary.name
+  primary_namespace_id = azurerm_servicebus_namespace.primary.id
   partner_namespace_id = azurerm_resource_group.secondary.id
 }
 
@@ -51,17 +50,23 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Disaster Recovery Config. This is the alias DNS name that will be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Disaster Recovery Config exists. Changing this forces a new resource to be created.
+* `primary_namespace_id` - (Required) The ID of the primary Service Bus Namespace to replicate. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the name of the primary Service Bus Namespace to replicate. Changing this forces a new resource to be created.
-
-* `partner_namespace_id` - (Optional) The ID of the Service Bus Namespace to replicate to.
+* `partner_namespace_id` - (Required) The ID of the Service Bus Namespace to replicate to.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Service Bus Namespace Disaster Recovery Config ID.
+
+* `alias_primary_connection_string` - The alias Primary Connection String for the ServiceBus Namespace.
+
+* `alias_secondary_connection_string` - The alias Secondary Connection String for the ServiceBus Namespace 
+
+* `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
+
+* `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 
 ## Timeouts
 
