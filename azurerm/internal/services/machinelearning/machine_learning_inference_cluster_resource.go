@@ -216,8 +216,7 @@ func resourceAksInferenceClusterCreateUpdate(d *schema.ResourceData, meta interf
 
 	unmappedClusterPurpose := d.Get("cluster_purpose").(string)
 	var mapClusterPurpose = map[string]string{
-		"Dev":  "DevTest",
-		"Test": "DevTest",
+		"DevTest":  "DevTest",
 		"Prod": "FastProd",
 	}
 	clusterPurpose := machinelearningservices.ClusterPurpose(mapClusterPurpose[unmappedClusterPurpose])
@@ -331,6 +330,15 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("kubernetes_cluster_id", aksId)
 	d.Set("node_pool_name", poolId.AgentPoolName)
+
+	var mapClusterPurpose = map[string]string{
+		"DevTest":  "DevTest",
+		"FastProd": "Prod",
+	}
+	d.Set("cluster_purpose", mapClusterPurpose[string(aksCompute.Properties.ClusterPurpose)])
+
+	d.Set("description", aksCompute.Description)
+	d.Set("ssl", aksCompute.Properties.SslConfiguration)
 
 	// Retrieve location
 	if location := computeResource.Location; location != nil {

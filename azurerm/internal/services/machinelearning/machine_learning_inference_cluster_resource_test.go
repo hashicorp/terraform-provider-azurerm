@@ -31,7 +31,7 @@ func TestAccInferenceCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep("cluster_purpose", "description"),
+		data.ImportStep(),
 	})
 }
 
@@ -69,7 +69,7 @@ func TestAccInferenceCluster_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep("ssl", "cluster_purpose", "description"),
+		data.ImportStep(),
 	})
 }
 
@@ -88,7 +88,7 @@ func TestAccInferenceCluster_basicUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep("cluster_purpose", "description"),
+		data.ImportStep(),
 		{
 			Config: r.basicUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -99,7 +99,7 @@ func TestAccInferenceCluster_basicUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep("cluster_purpose", "description"),
+		data.ImportStep(),
 	})
 }
 
@@ -118,7 +118,7 @@ func TestAccInferenceCluster_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep("ssl", "cluster_purpose", "description"),
+		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -129,7 +129,7 @@ func TestAccInferenceCluster_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep("ssl", "cluster_purpose", "description"),
+		data.ImportStep(),
 	})
 }
 
@@ -161,7 +161,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "Dev"
+  cluster_purpose               = "DevTest"
   node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
 
   identity {
@@ -181,7 +181,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "Dev"
+  cluster_purpose               = "DevTest"
   node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
 
   identity {
@@ -205,7 +205,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "Test"
+  cluster_purpose               = "DevTest"
   node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
   ssl {
     cert  = file("testdata/cert.pem")
@@ -231,7 +231,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "Test"
+  cluster_purpose               = "DevTest"
   node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
   ssl {
     cert  = file("testdata/cert.pem")
