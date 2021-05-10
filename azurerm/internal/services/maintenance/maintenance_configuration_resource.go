@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -26,6 +27,11 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 		Read:   resourceArmMaintenanceConfigurationRead,
 		Update: resourceArmMaintenanceConfigurationCreateUpdate,
 		Delete: resourceArmMaintenanceConfigurationDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ConfigurationV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -49,6 +55,9 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			// TODO use `azure.SchemaResourceGroupName()` in version 3.0
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/8653
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"scope": {
