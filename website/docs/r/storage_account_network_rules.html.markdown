@@ -88,11 +88,11 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 
-* `resource_access_rules` - (Optional) A `resource_access_rules` block as defined below.
+* `private_endpoint_access_rules` - (Optional) One or More `private_endpoint_access_rules` block as defined below.
 
 ---
 
-A `resource_access_rules` block supports the following:
+A `private_endpoint_access_rules` block supports the following:
 
 * `resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
 

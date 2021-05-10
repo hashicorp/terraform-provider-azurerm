@@ -514,7 +514,7 @@ func TestAccStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_resourceAccessRules(t *testing.T) {
+func TestAccStorageAccount_privateEndpointAccessRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -527,7 +527,7 @@ func TestAccStorageAccount_resourceAccessRules(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkRulesResourceAccessRule(data),
+			Config: r.networkRulesPrivateEndpointAccessRule(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -893,7 +893,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-            %s
+                %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1546,8 +1546,8 @@ func (r StorageAccountResource) networkRulesPrivateEndpointTemplate(data accepta
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%[2]d"
+resource "azurerm_subnet" "blob_endpoint" {
+  name                 = "acctestsnetblobendpoint-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.5.0/24"]
@@ -1555,29 +1555,65 @@ resource "azurerm_subnet" "endpoint" {
   enforce_private_link_endpoint_network_policies = true
 }
 
-resource "azurerm_storage_account" "connection" {
-  name                     = "unlikely23connacct%[3]s"
+resource "azurerm_subnet" "table_endpoint" {
+  name                 = "acctestsnettableendpoint-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.6.0/24"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_storage_account" "blob_connection" {
+  name                     = "accblobconnacct%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_private_dns_zone" "finance" {
+resource "azurerm_storage_account" "table_connection" {
+  name                     = "acctableconnacct%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_private_dns_zone" "blob" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_private_endpoint" "test" {
-  name                = "acctest-privatelink-%[2]d"
+resource "azurerm_private_dns_zone" "table" {
+  name                = "privatelink.table.core.windows.net"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_endpoint" "blob" {
+  name                = "acctest-privatelink-blob-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  subnet_id           = azurerm_subnet.endpoint.id
+  subnet_id           = azurerm_subnet.blob_endpoint.id
 
   private_service_connection {
     name                           = "acctest-privatelink-mssc-%[2]d"
-    private_connection_resource_id = azurerm_storage_account.connection.id
+    private_connection_resource_id = azurerm_storage_account.blob_connection.id
     subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+}
+
+resource "azurerm_private_endpoint" "table" {
+  name                = "acctest-privatelink-table-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.table_endpoint.id
+
+  private_service_connection {
+    name                           = "acctest-privatelink-mssc-%[2]d"
+    private_connection_resource_id = azurerm_storage_account.table_connection.id
+    subresource_names              = ["table"]
     is_manual_connection           = false
   }
 }
@@ -1656,7 +1692,7 @@ resource "azurerm_storage_account" "test" {
 `, r.networkRulesTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) networkRulesResourceAccessRule(data acceptance.TestData) string {
+func (r StorageAccountResource) networkRulesPrivateEndpointAccessRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1671,8 +1707,11 @@ resource "azurerm_storage_account" "test" {
     default_action             = "Deny"
     ip_rules                   = ["127.0.0.1"]
     virtual_network_subnet_ids = [azurerm_subnet.test.id]
-    resource_access_rules {
-      resource_id = azurerm_private_endpoint.test.id
+    private_endpoint_access_rules {
+      resource_id = azurerm_private_endpoint.blob.id
+    }
+    private_endpoint_access_rules {
+      resource_id = azurerm_private_endpoint.table.id
     }
   }
 

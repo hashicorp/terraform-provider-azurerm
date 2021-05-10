@@ -93,7 +93,7 @@ func resourceStorageAccountNetworkRules() *schema.Resource {
 				}, false),
 			},
 
-			"resource_access_rules": {
+			"private_endpoint_access_rules": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -157,7 +157,7 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta
 	rules.Bypass = expandStorageAccountNetworkRuleBypass(d.Get("bypass").(*schema.Set).List())
 	rules.IPRules = expandStorageAccountNetworkRuleIpRules(d.Get("ip_rules").(*schema.Set).List())
 	rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(d.Get("virtual_network_subnet_ids").(*schema.Set).List())
-	rules.ResourceAccessRules = expandStorageAccountResourceAccessRule(d.Get("resource_access_rules").([]interface{}), tenantId)
+	rules.ResourceAccessRules = expandStorageAccountPrivateEndpointAccessRule(d.Get("private_endpoint_access_rules").([]interface{}), tenantId)
 
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -206,8 +206,8 @@ func resourceStorageAccountNetworkRulesRead(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error setting `bypass`: %+v", err)
 		}
 		d.Set("default_action", string(rules.DefaultAction))
-		if err := d.Set("resource_access_rules", flattenStorageAccountResourceAccessRules(rules.ResourceAccessRules)); err != nil {
-			return fmt.Errorf("setting `resource_access_rules`: %+v", err)
+		if err := d.Set("private_endpoint_access_rules", flattenStorageAccountPrivateEndpointAccessRules(rules.ResourceAccessRules)); err != nil {
+			return fmt.Errorf("setting `private_endpoint_access_rules`: %+v", err)
 		}
 	}
 

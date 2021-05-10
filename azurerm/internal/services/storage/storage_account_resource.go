@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -288,7 +289,7 @@ func resourceStorageAccount() *schema.Resource {
 							}, false),
 						},
 
-						"resource_access_rules": {
+						"private_endpoint_access_rules": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -296,7 +297,7 @@ func resourceStorageAccount() *schema.Resource {
 									"resource_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: networkValidate.PrivateEndpointID,
 									},
 
 									"tenant_id": {
@@ -1681,7 +1682,7 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData, tenantId string) *
 		IPRules:             expandStorageAccountIPRules(networkRule),
 		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
 		Bypass:              expandStorageAccountBypass(networkRule),
-		ResourceAccessRules: expandStorageAccountResourceAccessRule(networkRule["resource_access_rules"].([]interface{}), tenantId),
+		ResourceAccessRules: expandStorageAccountPrivateEndpointAccessRule(networkRule["private_endpoint_access_rules"].([]interface{}), tenantId),
 	}
 
 	if v := networkRule["default_action"]; v != nil {
@@ -1734,23 +1735,23 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandStorageAccountResourceAccessRule(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
-	resourceAccessRules := make([]storage.ResourceAccessRule, 0)
+func expandStorageAccountPrivateEndpointAccessRule(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
+	privateEndpointAccessRules := make([]storage.ResourceAccessRule, 0)
 	if len(inputs) == 0 {
-		return &resourceAccessRules
+		return &privateEndpointAccessRules
 	}
 	for _, input := range inputs {
 		accessRule := input.(map[string]interface{})
 		if v := accessRule["tenant_id"].(string); v != "" {
 			tenantId = v
 		}
-		resourceAccessRules = append(resourceAccessRules, storage.ResourceAccessRule{
+		privateEndpointAccessRules = append(privateEndpointAccessRules, storage.ResourceAccessRule{
 			TenantID:   utils.String(tenantId),
 			ResourceID: utils.String(accessRule["resource_id"].(string)),
 		})
 	}
 
-	return &resourceAccessRules
+	return &privateEndpointAccessRules
 }
 
 func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
@@ -2079,7 +2080,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
 	networkRules["default_action"] = string(input.DefaultAction)
-	networkRules["resource_access_rules"] = flattenStorageAccountResourceAccessRules(input.ResourceAccessRules)
+	networkRules["private_endpoint_access_rules"] = flattenStorageAccountPrivateEndpointAccessRules(input.ResourceAccessRules)
 
 	return []interface{}{networkRules}
 }
@@ -2118,7 +2119,7 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	return virtualNetworks
 }
 
-func flattenStorageAccountResourceAccessRules(inputs *[]storage.ResourceAccessRule) []interface{} {
+func flattenStorageAccountPrivateEndpointAccessRules(inputs *[]storage.ResourceAccessRule) []interface{} {
 	if inputs == nil || len(*inputs) == 0 {
 		return []interface{}{}
 	}
