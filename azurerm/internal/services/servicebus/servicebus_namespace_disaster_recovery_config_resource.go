@@ -52,9 +52,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"namespace_name": {
+			"primary_namespace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -95,13 +93,16 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *schema.Resource {
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Namespace pairing create/update.")
 
-	id := parse.NewNamespaceDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id, err := parse.NamespaceDisasterRecoveryConfigID(d.Get("primary_namespace_id").(string))
+	if err != nil {
+		return err
+	}
+
 	partnerNamespaceId := d.Get("partner_namespace_id").(string)
 
 	if d.IsNewResource() {
@@ -137,7 +138,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("got nil ID for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q)", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup)
+		return fmt.Errorf("got nil ID for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q)", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -206,8 +207,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceDat
 	}
 
 	d.Set("name", id.DisasterRecoveryConfigName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("namespace_name", id.NamespaceName)
+	d.Set("primary_namespace_id", id.ID())
 	d.Set("partner_namespace_id", *resp.ArmDisasterRecoveryProperties.PartnerNamespace)
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
@@ -263,7 +263,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, strconv.Itoa(resp.StatusCode), nil
 				}
-				return nil, "nil", fmt.Errorf("error polling for the status of the EventHub Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
+				return nil, "nil", fmt.Errorf("error polling for the status of the Service Bus Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 			}
 
 			return resp, strconv.Itoa(resp.StatusCode), nil
