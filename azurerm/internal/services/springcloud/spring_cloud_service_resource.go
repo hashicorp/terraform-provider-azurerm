@@ -240,7 +240,7 @@ func resourceSpringCloudService() *schema.Resource {
 							Computed: true,
 						},
 
-						"ips": {
+						"ip_addresses": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -953,11 +953,11 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		}
 
 		result = append(result, map[string]interface{}{
-			"protocol":  protocol,
-			"port":      port,
-			"ips":       utils.FlattenStringSlice(v.Ips),
-			"fqdns":     utils.FlattenStringSlice(v.Fqdns),
-			"direction": string(v.Direction),
+			"protocol":     protocol,
+			"port":         port,
+			"ip_addresses": utils.FlattenStringSlice(v.Ips),
+			"fqdns":        utils.FlattenStringSlice(v.Fqdns),
+			"direction":    string(v.Direction),
 		})
 	}
 	return result
