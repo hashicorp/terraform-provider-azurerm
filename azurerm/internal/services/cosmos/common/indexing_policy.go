@@ -202,11 +202,26 @@ func flattenCosmosDBIndexingPolicySpatialIndexes(input *[]documentdb.SpatialSpec
 			path = *v.Path
 		}
 		indexes = append(indexes, map[string]interface{}{
-			"path": path,
+			"path":  path,
+			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypes(v.Types),
 		})
 	}
 
 	return indexes
+}
+
+func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]documentdb.SpatialType) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	types := make([]interface{}, 0)
+
+	for _, v := range *input {
+		types = append(types, string(v))
+	}
+
+	return types
 }
 
 func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPolicy) []interface{} {

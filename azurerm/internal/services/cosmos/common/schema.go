@@ -196,6 +196,14 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+
+							"types": {
+								Type:     schema.TypeSet,
+								Computed: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
 						},
 					},
 				},

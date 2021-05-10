@@ -146,6 +146,12 @@ The following attributes are exported:
 
 * `id` - The ID of the CosmosDB SQL Container.
 
+---
+
+An `spatial_index` block exports the following:
+
+* `types` - A set of spatial types of the path.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
