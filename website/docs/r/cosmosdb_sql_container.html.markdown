@@ -100,7 +100,7 @@ An `indexing_policy` block supports the following:
 
 ---
 
-An `spatial_index` block supports the following:
+A `spatial_index` block supports the following:
 
 * `path` - (Required) Path for which the indexing behaviour applies to.
 
@@ -148,7 +148,7 @@ The following attributes are exported:
 
 ---
 
-An `spatial_index` block exports the following:
+A `spatial_index` block exports the following:
 
 * `types` - A set of spatial types of the path.
 
