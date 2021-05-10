@@ -318,11 +318,11 @@ resource "azurerm_storage_account_network_rules" "test" {
   ip_rules                   = ["127.0.0.1"]
   virtual_network_subnet_ids = [azurerm_subnet.test.id]
   private_endpoint_access_rules {
-      resource_id = azurerm_private_endpoint.blob.id
-    }
-    private_endpoint_access_rules {
-      resource_id = azurerm_private_endpoint.table.id
-    }
+    resource_id = azurerm_private_endpoint.blob.id
+  }
+  private_endpoint_access_rules {
+    resource_id = azurerm_private_endpoint.table.id
+  }
 }
 `, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
 }
