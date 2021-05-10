@@ -98,18 +98,19 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Namespace pairing create/update.")
 
-	id, err := parse.NamespaceDisasterRecoveryConfigID(d.Get("primary_namespace_id").(string))
+	id, err := parse.NamespaceID(d.Get("primary_namespace_id").(string))
 	if err != nil {
 		return err
 	}
 
+	aliasName := d.Get("name").(string)
 	partnerNamespaceId := d.Get("partner_namespace_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, aliasName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("error checking for presence of existing Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
+				return fmt.Errorf("error checking for presence of existing Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
 			}
 		}
 
@@ -124,21 +125,21 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, parameters); err != nil {
-		return fmt.Errorf("error creating/updating Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aliasName, parameters); err != nil {
+		return fmt.Errorf("error creating/updating Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(schema.TimeoutCreate)); err != nil {
-		return fmt.Errorf("error waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.Name, aliasName, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return fmt.Errorf("error waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name, aliasName)
 	if err != nil {
-		return fmt.Errorf("error reading Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("error reading Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", aliasName, id.Name, id.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("got nil ID for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q)", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup)
+		return fmt.Errorf("got nil ID for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q)", aliasName, id.Name, id.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -206,8 +207,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceDat
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	primaryId := parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName)
+
 	d.Set("name", id.DisasterRecoveryConfigName)
-	d.Set("primary_namespace_id", id.ID())
+	d.Set("primary_namespace_id", primaryId.ID())
 	d.Set("partner_namespace_id", *resp.ArmDisasterRecoveryProperties.PartnerNamespace)
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
