@@ -28,7 +28,7 @@ type StateUpgrade interface {
 // PR's and attempts to make this interface a little less verbose.
 func StateUpgrades(upgrades map[int]StateUpgrade) []StateUpgrader {
 	versions := make([]int, 0)
-	for version := range versions {
+	for version := range upgrades {
 		versions = append(versions, version)
 	}
 	sort.Ints(versions)
