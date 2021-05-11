@@ -1,11 +1,10 @@
 package databricks
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -15,9 +14,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/validate"
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,7 +36,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WorkspaceID(id)
 			return err
 		}),
@@ -84,18 +84,27 @@ func resourceDatabricksWorkspace() *schema.Resource {
 							Type:     schema.TypeBool,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 
 						"public_subnet_name": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 
 						"private_subnet_name": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 
 						"virtual_network_id": {
@@ -103,6 +112,9 @@ func resourceDatabricksWorkspace() *schema.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 					},
 				},
@@ -124,7 +136,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if d.HasChange("sku") {
 				sku, changedSKU := d.GetChange("sku")
 
@@ -137,7 +149,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

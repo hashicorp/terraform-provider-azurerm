@@ -10,15 +10,17 @@ import (
 )
 
 var kubernetesAuthTests = map[string]func(t *testing.T){
-	"apiServerAuthorizedIPRanges": testAccKubernetesCluster_apiServerAuthorizedIPRanges,
-	"managedClusterIdentity":      testAccKubernetesCluster_managedClusterIdentity,
-	"userAssignedIdentity":        testAccKubernetesCluster_userAssignedIdentity,
-	"roleBasedAccessControl":      testAccKubernetesCluster_roleBasedAccessControl,
-	"AAD":                         testAccKubernetesCluster_roleBasedAccessControlAAD,
-	"AADUpdateToManaged":          testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
-	"AADManaged":                  testAccKubernetesCluster_roleBasedAccessControlAADManaged,
-	"AADManagedChange":            testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
-	"servicePrincipal":            testAccKubernetesCluster_servicePrincipal,
+	"apiServerAuthorizedIPRanges":    testAccKubernetesCluster_apiServerAuthorizedIPRanges,
+	"managedClusterIdentity":         testAccKubernetesCluster_managedClusterIdentity,
+	"userAssignedIdentity":           testAccKubernetesCluster_userAssignedIdentity,
+	"updateWithUserAssignedIdentity": testAccKubernetesCluster_updateWithUserAssignedIdentity,
+	"roleBasedAccessControl":         testAccKubernetesCluster_roleBasedAccessControl,
+	"AAD":                            testAccKubernetesCluster_roleBasedAccessControlAAD,
+	"AADUpdateToManaged":             testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
+	"AADManaged":                     testAccKubernetesCluster_roleBasedAccessControlAADManaged,
+	"AADManagedChange":               testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
+	"roleBasedAccessControlAzure":    testAccKubernetesCluster_roleBasedAccessControlAzure,
+	"servicePrincipal":               testAccKubernetesCluster_servicePrincipal,
 }
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
@@ -95,6 +97,33 @@ func testAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_updateWithUserAssignedIdentity(t)
+}
+
+func testAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedIdentityConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateWithUserAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -290,6 +319,48 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+			),
+		},
+		data.ImportStep(
+			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+		),
+	})
+}
+
+func TestAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_roleBasedAccessControlAzure(t)
+}
+
+func testAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.roleBasedAccessControlAzureConfig(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.azure_rbac_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+			),
+		},
+		data.ImportStep(
+			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+		),
+		{
+			// should be no changes since the default for Tenant ID comes from the Provider block
+			Config:   r.roleBasedAccessControlAzureConfig(data, clientData.TenantID),
+			PlanOnly: true,
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
@@ -505,6 +576,47 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) updateWithUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  tags = {
+    Env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) roleBasedAccessControlConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -686,6 +798,78 @@ resource "azurerm_kubernetes_cluster" "test" {
       managed   = true
     }
   }
+}
+`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) roleBasedAccessControlAzureConfig(data acceptance.TestData, tenantId string) string {
+	return fmt.Sprintf(`
+variable "tenant_id" {
+  default = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  role_based_access_control {
+    enabled = true
+
+    azure_active_directory {
+      tenant_id          = var.tenant_id
+      managed            = true
+      azure_rbac_enabled = true
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "test_role1" {
+  scope                = azurerm_kubernetes_cluster.test.id
+  role_definition_name = "Azure Kubernetes Service RBAC Reader"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test_role2" {
+  scope                = "${azurerm_kubernetes_cluster.test.id}/namespaces/default"
+  role_definition_name = "Azure Kubernetes Service RBAC Admin"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test_role3" {
+  scope                = "${azurerm_kubernetes_cluster.test.id}"
+  role_definition_name = "Azure Kubernetes Service RBAC Writer"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test_role4" {
+  scope                = "${azurerm_kubernetes_cluster.test.id}"
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
 }
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

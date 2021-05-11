@@ -37,7 +37,7 @@ func TestAccFrontDoor_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("HEAD"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -54,7 +54,7 @@ func TestAccFrontDoor_global(t *testing.T) {
 			),
 			ExpectNonEmptyPlan: true,
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -83,21 +83,21 @@ func TestAccFrontDoor_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -115,8 +115,10 @@ func TestAccFrontDoor_multiplePools(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.#").HasValue("2"),
 			),
 		},
-		// @favoretti: Do not import for now, since order changes
-		// data.ImportStep(),
+		// I am ignoring the returned values here because the ImportStep does not respect my state file reording code,
+		// and the API is currently returning these value intermentently out of order causing false positive failures
+		// of the test case.
+		data.ImportStep("explicit_resource_order", "routing_rule", "backend_pool_load_balancing", "backend_pool_health_probe", "backend_pool"),
 	})
 }
 
@@ -130,7 +132,7 @@ func TestAccFrontDoor_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -144,7 +146,7 @@ func TestAccFrontDoor_waf(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -179,33 +181,7 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccFrontDoor_CustomHttps(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	r := FrontDoorResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.CustomHttpsEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_provisioning_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.certificate_source").HasValue("FrontDoor"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.minimum_tls_version").HasValue("1.2"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.provisioning_state").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.provisioning_substate").HasValue("CertificateDeployed"),
-			),
-		},
-		{
-			Config: r.CustomHttpsDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_provisioning_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
+		data.ImportStep("explicit_resource_order"),
 	})
 }
 
@@ -279,9 +255,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -345,9 +320,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -411,9 +385,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -461,9 +434,8 @@ resource "azurerm_frontdoor" "import" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, r.basic(data), data.RandomInteger)
@@ -526,9 +498,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -598,7 +569,6 @@ resource "azurerm_frontdoor" "test" {
   frontend_endpoint {
     name                                    = local.endpoint_name
     host_name                               = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled       = false
     web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
 }
@@ -661,9 +631,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -727,142 +696,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (FrontDoorResource) CustomHttpsEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-frontdoor-%d"
-  location = "%s"
-}
-
-locals {
-  backend_name        = "backend-bing"
-  endpoint_name       = "frontend-endpoint"
-  health_probe_name   = "health-probe"
-  load_balancing_name = "load-balancing-setting"
-}
-
-resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
-
-  routing_rule {
-    name               = "routing-rule"
-    accepted_protocols = ["Http", "Https"]
-    patterns_to_match  = ["/*"]
-    frontend_endpoints = [local.endpoint_name]
-
-    forwarding_configuration {
-      forwarding_protocol = "MatchRequest"
-      backend_pool_name   = local.backend_name
-    }
-  }
-
-  backend_pool_load_balancing {
-    name = local.load_balancing_name
-  }
-
-  backend_pool_health_probe {
-    name = local.health_probe_name
-  }
-
-  backend_pool {
-    name = local.backend_name
-    backend {
-      host_header = "www.bing.com"
-      address     = "www.bing.com"
-      http_port   = 80
-      https_port  = 443
-    }
-
-    load_balancing_name = local.load_balancing_name
-    health_probe_name   = local.health_probe_name
-  }
-
-  frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = true
-    custom_https_configuration {
-      certificate_source = "FrontDoor"
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (FrontDoorResource) CustomHttpsDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-frontdoor-%d"
-  location = "%s"
-}
-
-locals {
-  backend_name        = "backend-bing"
-  endpoint_name       = "frontend-endpoint"
-  health_probe_name   = "health-probe"
-  load_balancing_name = "load-balancing-setting"
-}
-
-resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
-
-  routing_rule {
-    name               = "routing-rule"
-    accepted_protocols = ["Http", "Https"]
-    patterns_to_match  = ["/*"]
-    frontend_endpoints = [local.endpoint_name]
-
-    forwarding_configuration {
-      forwarding_protocol = "MatchRequest"
-      backend_pool_name   = local.backend_name
-    }
-  }
-
-  backend_pool_load_balancing {
-    name = local.load_balancing_name
-  }
-
-  backend_pool_health_probe {
-    name = local.health_probe_name
-  }
-
-  backend_pool {
-    name = local.backend_name
-    backend {
-      host_header = "www.bing.com"
-      address     = "www.bing.com"
-      http_port   = 80
-      https_port  = 443
-    }
-
-    load_balancing_name = local.load_balancing_name
-    health_probe_name   = local.health_probe_name
-  }
-
-  frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -885,9 +720,8 @@ resource "azurerm_frontdoor" "test" {
   enforce_backend_pools_certificate_name_check = false
 
   frontend_endpoint {
-    name                              = "acctest-FD-%[1]d-default-FE"
-    host_name                         = "acctest-FD-%[1]d.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = "acctest-FD-%[1]d-default-FE"
+    host_name = "acctest-FD-%[1]d.azurefd.net"
   }
 
   # --- Pool 1

@@ -14,27 +14,30 @@ type KubernetesClusterDataSource struct {
 }
 
 var kubernetesDataSourceTests = map[string]func(t *testing.T){
-	"basic":                                       testAccDataSourceKubernetesCluster_basic,
-	"roleBasedAccessControl":                      testAccDataSourceKubernetesCluster_roleBasedAccessControl,
-	"roleBasedAccessControlAAD":                   testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD,
-	"internalNetwork":                             testAccDataSourceKubernetesCluster_internalNetwork,
-	"advancedNetworkingAzure":                     testAccDataSourceKubernetesCluster_advancedNetworkingAzure,
-	"advancedNetworkingAzureCalicoPolicy":         testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-	"advancedNetworkingAzureNPMPolicy":            testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-	"advancedNetworkingAzureComplete":             testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete,
-	"advancedNetworkingAzureCalicoPolicyComplete": testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-	"advancedNetworkingAzureNPMPolicyComplete":    testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-	"advancedNetworkingKubenet":                   testAccDataSourceKubernetesCluster_advancedNetworkingKubenet,
-	"advancedNetworkingKubenetComplete":           testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete,
-	"addOnProfileOMS":                             testAccDataSourceKubernetesCluster_addOnProfileOMS,
-	"addOnProfileKubeDashboard":                   testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard,
-	"addOnProfileAzurePolicy":                     testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy,
-	"addOnProfileRouting":                         testAccDataSourceKubernetesCluster_addOnProfileRouting,
-	"autoscalingNoAvailabilityZones":              testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
-	"autoscalingWithAvailabilityZones":            testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
-	"nodeLabels":                                  testAccDataSourceKubernetesCluster_nodeLabels,
-	"enableNodePublicIP":                          testAccDataSourceKubernetesCluster_enableNodePublicIP,
-	"privateCluster":                              testAccDataSourceKubernetesCluster_privateCluster,
+	"basic":                                            testAccDataSourceKubernetesCluster_basic,
+	"roleBasedAccessControl":                           testAccDataSourceKubernetesCluster_roleBasedAccessControl,
+	"roleBasedAccessControlAAD":                        testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD,
+	"internalNetwork":                                  testAccDataSourceKubernetesCluster_internalNetwork,
+	"advancedNetworkingAzure":                          testAccDataSourceKubernetesCluster_advancedNetworkingAzure,
+	"advancedNetworkingAzureCalicoPolicy":              testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
+	"advancedNetworkingAzureNPMPolicy":                 testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy,
+	"advancedNetworkingAzureComplete":                  testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete,
+	"advancedNetworkingAzureCalicoPolicyComplete":      testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
+	"advancedNetworkingAzureNPMPolicyComplete":         testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
+	"advancedNetworkingKubenet":                        testAccDataSourceKubernetesCluster_advancedNetworkingKubenet,
+	"advancedNetworkingKubenetComplete":                testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete,
+	"addOnProfileOMS":                                  testAccDataSourceKubernetesCluster_addOnProfileOMS,
+	"addOnProfileKubeDashboard":                        testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard,
+	"addOnProfileAzurePolicy":                          testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy,
+	"addOnProfileRouting":                              testAccDataSourceKubernetesCluster_addOnProfileRouting,
+	"addOnProfileIngressApplicationGateewayAppGateway": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway,
+	"addOnProfileIngressApplicationGateewaySubnetCIDR": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR,
+	"addOnProfileIngressApplicationGateewaySubnetId":   testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId,
+	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
+	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
+	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
+	"enableNodePublicIP":                               testAccDataSourceKubernetesCluster_enableNodePublicIP,
+	"privateCluster":                                   testAccDataSourceKubernetesCluster_privateCluster,
 }
 
 func TestAccDataSourceKubernetesCluster_basic(t *testing.T) {
@@ -450,6 +453,82 @@ func testAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t)
+}
+
+func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.addOnProfileIngressApplicationGatewayAppGatewayConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
+					check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id"),
+				),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t)
+}
+
+func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.addOnProfileIngressApplicationGatewaySubnetCIDRConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId(t)
+}
+
+func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.addOnProfileIngressApplicationGatewaySubnetIdConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t)
@@ -711,6 +790,39 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileRoutingConfig(data))
+}
+
+func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileIngressApplicationGatewayAppGatewayConfig(data))
+}
+
+func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewaySubnetCIDRConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileIngressApplicationGatewaySubnetCIDRConfig(data))
+}
+
+func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewaySubnetIdConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileIngressApplicationGatewaySubnetIdConfig(data))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {

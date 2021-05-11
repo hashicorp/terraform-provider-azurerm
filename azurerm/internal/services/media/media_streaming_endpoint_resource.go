@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -17,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,7 +36,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StreamingEndpointID(id)
 			return err
 		}),
@@ -78,6 +78,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"akamai_signature_header_authentication_key": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -100,7 +101,9 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
 						},
+						//lintignore:XS003
 						"ip_allow": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -122,6 +125,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
 						},
 					},
 				},
@@ -162,6 +166,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 
 						"cross_domain_policy": {
@@ -169,6 +174,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 					},
 				},
@@ -482,8 +488,11 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 	// Get IP information
 	if raw, ok := accessControl["ip_allow"]; ok {
 		ipAllowsList := raw.([]interface{})
-		ipRanges := make([]media.IPRange, len(ipAllowsList))
+		ipRanges := make([]media.IPRange, 0)
 		for index, ipAllow := range ipAllowsList {
+			if ipAllow == nil {
+				continue
+			}
 			allow := ipAllow.(map[string]interface{})
 			address := allow["address"].(string)
 			name := allow["name"].(string)
@@ -505,8 +514,11 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 	// Get Akamai information
 	if raw, ok := accessControl["akamai_signature_header_authentication_key"]; ok {
 		akamaiSignatureKeyList := raw.([]interface{})
-		akamaiSignatureHeaderAuthenticationKeyList := make([]media.AkamaiSignatureHeaderAuthenticationKey, len(akamaiSignatureKeyList))
-		for index, akamaiSignatureKey := range akamaiSignatureKeyList {
+		akamaiSignatureHeaderAuthenticationKeyList := make([]media.AkamaiSignatureHeaderAuthenticationKey, 0)
+		for _, akamaiSignatureKey := range akamaiSignatureKeyList {
+			if akamaiSignatureKey == nil {
+				continue
+			}
 			akamaiKey := akamaiSignatureKey.(map[string]interface{})
 			base64Key := akamaiKey["base64_key"].(string)
 			expirationRaw := akamaiKey["expiration"].(string)
@@ -525,7 +537,7 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 					Time: expiration,
 				}
 			}
-			akamaiSignatureHeaderAuthenticationKeyList[index] = akamaiSignatureHeaderAuthenticationKey
+			akamaiSignatureHeaderAuthenticationKeyList = append(akamaiSignatureHeaderAuthenticationKeyList, akamaiSignatureHeaderAuthenticationKey)
 			accessControlResult.Akamai = &media.AkamaiAccessControl{
 				AkamaiSignatureHeaderAuthenticationKeyList: &akamaiSignatureHeaderAuthenticationKeyList,
 			}

@@ -1,10 +1,13 @@
 package containers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -31,14 +34,13 @@ func resourceContainerRegistry() *schema.Resource {
 		Delete: resourceContainerRegistryDelete,
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.RegistryV0ToV1(),
-			migration.RegistryV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.RegistryV0ToV1{},
+			1: migration.RegistryV1ToV2{},
+		}),
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -253,7 +255,7 @@ func resourceContainerRegistry() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
 			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 			geoReplications := d.Get("georeplications").(*schema.Set)
@@ -279,7 +281,7 @@ func resourceContainerRegistry() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

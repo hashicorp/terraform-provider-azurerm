@@ -1,39 +1,37 @@
 package migration
 
 import (
+	"context"
 	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func SubscriptionPricingV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Type:    subscriptionPricingSchemaForV0().CoreConfigSchema().ImpliedType(),
-		Upgrade: subscriptionPricingUpgradeV0ToV1,
-		Version: 0,
-	}
-}
+var _ pluginsdk.StateUpgrade = SubscriptionPricingV0ToV1{}
 
-func subscriptionPricingSchemaForV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"tier": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+type SubscriptionPricingV0ToV1 struct{}
+
+func (SubscriptionPricingV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"tier": {
+			Type:     schema.TypeString,
+			Required: true,
 		},
 	}
 }
 
-func subscriptionPricingUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	log.Println("[DEBUG] Migrating ResourceType from v0 to v1 format")
-	oldId := rawState["id"].(string)
-	newId := strings.Replace(oldId, "/default", "/VirtualMachines", 1)
+func (SubscriptionPricingV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		log.Println("[DEBUG] Migrating ResourceType from v0 to v1 format")
+		oldId := rawState["id"].(string)
+		newId := strings.Replace(oldId, "/default", "/VirtualMachines", 1)
 
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 
-	rawState["id"] = newId
+		rawState["id"] = newId
 
-	return rawState, nil
+		return rawState, nil
+	}
 }

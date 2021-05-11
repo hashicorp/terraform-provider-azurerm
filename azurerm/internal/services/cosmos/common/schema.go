@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
@@ -74,6 +74,7 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 }
 
 func DatabaseAutoscaleSettingsSchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -92,13 +93,6 @@ func DatabaseAutoscaleSettingsSchema() *schema.Schema {
 	}
 }
 
-func ContainerAutoscaleSettingsSchema() *schema.Schema {
-	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
-	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"partition_key_path"}
-
-	return autoscaleSettingsDatabaseSchema
-}
-
 func MongoCollectionAutoscaleSettingsSchema() *schema.Schema {
 	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
 	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"shard_key"}
@@ -115,14 +109,16 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
+				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
+				// todo: change to SDK constants and remove translation code in 3.0
 				"indexing_mode": {
 					Type:             schema.TypeString,
 					Optional:         true,
 					Default:          documentdb.Consistent,
 					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 					ValidateFunc: validation.StringInSlice([]string{
-						string(documentdb.Consistent),
-						string(documentdb.None),
+						"Consistent",
+						"None",
 					}, false),
 				},
 
@@ -170,6 +166,8 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 											Required:     true,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
+										// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
+										// todo: change to SDK constants and remove translation code in 3.0
 										"order": {
 											Type:     schema.TypeString,
 											Required: true,
@@ -177,8 +175,8 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 											DiffSuppressFunc: suppress.CaseDifference,
 											ValidateFunc: validation.StringInSlice(
 												[]string{
-													string(documentdb.Ascending),
-													string(documentdb.Descending),
+													"Ascending",
+													"Descending",
 												}, false),
 										},
 									},
@@ -186,6 +184,40 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 							},
 						},
 					},
+				},
+			},
+		},
+	}
+}
+
+func ConflictResolutionPolicy() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"mode": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(documentdb.LastWriterWins),
+						string(documentdb.Custom),
+					}, false),
+				},
+
+				"conflict_resolution_path": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"conflict_resolution_procedure": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},

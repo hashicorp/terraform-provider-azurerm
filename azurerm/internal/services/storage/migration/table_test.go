@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -38,7 +39,7 @@ func TestTableStateV0ToV1(t *testing.T) {
 			"storage_account_name": "account1",
 		}
 
-		actual, err := tableStateUpgradeV0ToV1(input, meta)
+		actual, err := TableV0ToV1{}.UpgradeFunc()(context.TODO(), input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
@@ -80,7 +81,7 @@ func TestTableStateV1ToV2(t *testing.T) {
 			"storage_account_name": "account1",
 		}
 
-		actual, err := tableStateUpgradeV1ToV2(input, meta)
+		actual, err := TableV1ToV2{}.UpgradeFunc()(context.TODO(), input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}

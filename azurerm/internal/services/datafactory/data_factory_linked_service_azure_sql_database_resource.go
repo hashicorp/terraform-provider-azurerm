@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,8 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -179,7 +179,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.Reso
 	if v, ok := d.GetOk("connection_string"); ok {
 		sqlDatabaseProperties.ConnectionString = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
@@ -188,7 +188,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.Reso
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
@@ -204,7 +204,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.Reso
 	azureSQLDatabaseLinkedService := &datafactory.AzureSQLDatabaseLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureSQLDatabaseLinkedServiceTypeProperties: sqlDatabaseProperties,
-		Type: datafactory.TypeAzureSQLDatabase,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -272,7 +272,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData
 
 	sql, ok := resp.Properties.AsAzureSQLDatabaseLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeAzureSQLDatabase, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase, *resp.Type)
 	}
 
 	if sql != nil {

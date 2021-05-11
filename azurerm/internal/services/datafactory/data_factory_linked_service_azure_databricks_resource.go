@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	databricksValidator "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +26,8 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceDatabricksCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceDatabricksDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -293,7 +293,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: &datafactory.SecureString{
 				Value: utils.String(accessTokenAuth),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		}
 	}
@@ -385,7 +385,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureDatabricksLinkedServiceTypeProperties: databricksProperties,
-		Type: datafactory.TypeAzureDatabricks,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureDatabricks,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -456,7 +456,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 
 	databricks, ok := resp.Properties.AsAzureDatabricksLinkedService()
 	if !ok {
-		return fmt.Errorf("classifiying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureDatabricks, *resp.Type)
+		return fmt.Errorf("classifiying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureDatabricks, *resp.Type)
 	}
 
 	// Check the properties and verify if authentication is set to MSI

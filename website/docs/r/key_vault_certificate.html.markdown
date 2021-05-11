@@ -270,9 +270,10 @@ The following arguments are supported:
 
 `key_properties` supports the following:
 
-* `exportable` - (Required) Is this Certificate Exportable? Changing this forces a new resource to be created.
-* `key_size` - (Required) The size of the Key used in the Certificate. Possible values include `2048`, `3072`, and `4096`. Changing this forces a new resource to be created.
-* `key_type` - (Required) Specifies the Type of Key, such as `RSA`. Changing this forces a new resource to be created.
+* `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. Changing this forces a new resource to be created.
+* `exportable` - (Required) Is this certificate exportable? Changing this forces a new resource to be created.
+* `key_size` - (Optional) The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for `RSA` keys, or `256`, `384`, and `521` for `EC` keys. This property is required when using RSA keys. Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the type of key, such as `RSA` or `EC`. Changing this forces a new resource to be created.
 * `reuse_key` - (Required) Is the key reusable? Changing this forces a new resource to be created.
 
 `lifetime_action` supports the following:

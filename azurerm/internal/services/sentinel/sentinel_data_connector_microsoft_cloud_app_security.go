@@ -14,7 +14,7 @@ import (
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *schema.Resource {
 		Update: resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
 		Delete: resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectorID(id)
 			return err
 		}, importSentinelDataConnector(securityinsight.DataConnectorKindMicrosoftCloudAppSecurity)),
@@ -113,14 +113,14 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
 	}
 
-	alertState := securityinsight.Enabled
+	alertState := securityinsight.DataTypeStateEnabled
 	if !alertsEnabled {
-		alertState = securityinsight.Disabled
+		alertState = securityinsight.DataTypeStateDisabled
 	}
 
-	discoveryLogsState := securityinsight.Enabled
+	discoveryLogsState := securityinsight.DataTypeStateEnabled
 	if !discoveryLogsEnabled {
-		discoveryLogsState = securityinsight.Disabled
+		discoveryLogsState = securityinsight.DataTypeStateDisabled
 	}
 
 	param := securityinsight.MCASDataConnector{
@@ -136,7 +136,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 				},
 			},
 		},
-		Kind: securityinsight.KindMicrosoftCloudAppSecurity,
+		Kind: securityinsight.KindBasicDataConnectorKindMicrosoftCloudAppSecurity,
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -201,11 +201,11 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	)
 	if dt := dc.DataTypes; dt != nil {
 		if alert := dt.Alerts; alert != nil {
-			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.Enabled))
+			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.DataTypeStateEnabled))
 		}
 
 		if discoveryLogs := dt.DiscoveryLogs; discoveryLogs != nil {
-			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.Enabled))
+			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.DataTypeStateEnabled))
 		}
 	}
 	d.Set("discovery_logs_enabled", discoveryLogsEnabled)

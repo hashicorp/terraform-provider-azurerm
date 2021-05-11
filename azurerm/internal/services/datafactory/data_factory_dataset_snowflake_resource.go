@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,8 @@ func resourceDataFactoryDatasetSnowflake() *schema.Resource {
 		Update: resourceDataFactoryDatasetSnowflakeCreateUpdate,
 		Delete: resourceDataFactoryDatasetSnowflakeDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -215,7 +215,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *schema.ResourceData, met
 		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypeSnowflakeTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &snowflakeTableset,
 		Type:       &datasetType,
@@ -268,7 +268,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *schema.ResourceData, meta interf
 
 	snowflakeTable, ok := resp.Properties.AsSnowflakeDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeSnowflakeTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", snowflakeTable.AdditionalProperties)

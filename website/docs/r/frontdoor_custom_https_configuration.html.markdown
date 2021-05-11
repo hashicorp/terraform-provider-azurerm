@@ -18,6 +18,8 @@ Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint
 
 !> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
+!> **Breaking Provider Change:** The `resource_group_name` field has been removed as of the v2.58.0 provider release. If the `resource_group_name` field has been defined in your current `azurerm_frontdoor_custom_https_configuration` resource configuration file please remove it else you will receive a `An argument named "resource_group_name" is not expected here.` error.
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
@@ -87,10 +89,9 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
-    certificate_source                         = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name    = "examplefd1"
-    azure_key_vault_certificate_secret_version = "ec8d0737e0df4f4gb52ecea858e97a73"
-    azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.vault.id
+    certificate_source                      = "AzureKeyVault"
+    azure_key_vault_certificate_secret_name = "examplefd1"
+    azure_key_vault_certificate_vault_id    = data.azurerm_key_vault.vault.id
   }
 }
 ```
@@ -117,7 +118,7 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
 
-* `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
+* `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 

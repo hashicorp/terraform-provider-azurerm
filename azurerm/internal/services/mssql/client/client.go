@@ -17,6 +17,8 @@ type Client struct {
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
 	JobAgentsClient                                    *sql.JobAgentsClient
+	JobCredentialsClient                               *sql.JobCredentialsClient
+	ReplicationLinksClient                             *sql.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
@@ -56,8 +58,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	jobAgentsClient := sql.NewJobAgentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&jobAgentsClient.Client, o.ResourceManagerAuthorizer)
 
+	jobCredentialsClient := sql.NewJobCredentialsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&jobCredentialsClient.Client, o.ResourceManagerAuthorizer)
+
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	replicationLinksClient := sql.NewReplicationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&replicationLinksClient.Client, o.ResourceManagerAuthorizer)
 
 	restorableDroppedDatabasesClient := sql.NewRestorableDroppedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDroppedDatabasesClient.Client, o.ResourceManagerAuthorizer)
@@ -105,7 +113,9 @@ func NewClient(o *common.ClientOptions) *Client {
 		EncryptionProtectorClient:                          &sqlEncryptionProtectorClient,
 		ElasticPoolsClient:                                 &elasticPoolsClient,
 		JobAgentsClient:                                    &jobAgentsClient,
+		JobCredentialsClient:                               &jobCredentialsClient,
 		FirewallRulesClient:                                &firewallRulesClient,
+		ReplicationLinksClient:                             &replicationLinksClient,
 		RestorableDroppedDatabasesClient:                   &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,
 		ServersClient:                                      &serversClient,

@@ -109,6 +109,10 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be `true` when `account_tier` is `Standard` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage` 
 
+* `nfsv3_enabled` - (Optional) Is NFSv3 protocol enabled? Changing this forces a new resource to be created. Defaults to `false`.
+
+-> **NOTE:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true`, and `enable_https_traffic_only` is `false`.
+
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
 * `identity` - (Optional) A `identity` block as defined below.
@@ -127,6 +131,10 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
+
+* `routing` - (Optional) A `routing` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -136,6 +144,12 @@ A `blob_properties` block supports the following:
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
+
+* `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
+
+* `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
+
+* `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
@@ -236,6 +250,40 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
+---
+
+A `azure_files_authentication` block supports the following:
+
+* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
+
+* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
+
+---
+
+A `active_directory` block supports the following:
+
+* `storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
+
+* `domain_name` - (Required) Specifies the primary domain that the AD DNS server is authoritative for.
+
+* `domain_sid` - (Required) Specifies the security identifier (SID).
+
+* `domain_guid` - (Required) Specifies the domain GUID.
+
+* `forest_name` - (Required) Specifies the Active Directory forest.
+
+* `netbios_domain_name` - (Required) Specifies the NetBIOS domain name.
+
+---
+
+A `routing` block supports the following:
+
+* `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
+
+* `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
+
+* `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 
 ---
 

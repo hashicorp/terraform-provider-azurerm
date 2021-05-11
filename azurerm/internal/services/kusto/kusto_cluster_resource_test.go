@@ -764,7 +764,7 @@ resource "azurerm_public_ip" "management_pip" {
   name                = "acctestkc%s-management-pip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   allocation_method   = "Static"
 }
 
