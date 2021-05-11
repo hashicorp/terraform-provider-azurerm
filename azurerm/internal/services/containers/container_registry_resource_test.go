@@ -1027,9 +1027,7 @@ resource "azurerm_container_registry" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-
 }
-
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
