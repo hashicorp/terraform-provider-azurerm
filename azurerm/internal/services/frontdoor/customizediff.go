@@ -26,7 +26,6 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *schema.Res
 }
 
 func customHttpsSettings(d *schema.ResourceDiff) error {
-	frontendId := d.Get("frontend_endpoint_id").(string)
 	frontendEndpointCustomHttpsConfig := d.Get("custom_https_configuration").([]interface{})
 	customHttpsEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 
@@ -36,7 +35,7 @@ func customHttpsSettings(d *schema.ResourceDiff) error {
 		}
 
 		// Verify frontend endpoints custom https configuration is valid if defined
-		if err := verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig, frontendId); err != nil {
+		if err := verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig); err != nil {
 			return err
 		}
 	} else if customHttpsEnabled {
@@ -46,7 +45,7 @@ func customHttpsSettings(d *schema.ResourceDiff) error {
 	return nil
 }
 
-func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interface{}, frontendId string) error {
+func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interface{}) error {
 	if len(frontendEndpointCustomHttpsConfig) > 0 {
 		customHttpsConfiguration := frontendEndpointCustomHttpsConfig[0].(map[string]interface{})
 		certificateSource := customHttpsConfiguration["certificate_source"].(string)
