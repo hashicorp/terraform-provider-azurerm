@@ -68,7 +68,7 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "allow_management_inbound" {
   name                        = "allow_management_inbound"
-  priority                    = 105
+  priority                    = 106
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -1133,6 +1133,54 @@ resource "azurerm_route_table" "test" {
     name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.northeurope"
     address_prefix = "EventHub.northeurope"
     next_hop_type  = "Internet"
+  }
+
+  route {
+    address_prefix         = "AzureCloud.westcentralus"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westcentralus"
+    next_hop_type          = "Internet"
+  }
+
+  route {
+    address_prefix         = "AzureCloud.westus2"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus2"
+    next_hop_type          = "Internet"
+  }
+  
+  route {
+    address_prefix         = "Storage.westcentralus"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westcentralus"
+    next_hop_type          = "Internet"
+  }
+  
+  route {
+    address_prefix         = "Storage.westus2"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus2"
+    next_hop_type          = "Internet"
+  }
+  
+  route {
+    address_prefix         = "EventHub.westcentralus"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westcentralus"
+    next_hop_type          = "Internet"
+  }
+
+  route {
+    address_prefix         = "EventHub.westus2"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus2"
+    next_hop_type          = "Internet"
+  }
+  
+  route {
+    address_prefix         = "Sql.westcentralus"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westcentralus"
+    next_hop_type          = "Internet"
+  }
+
+  route {
+    address_prefix         = "Sql.westus2"
+    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus2"
+    next_hop_type          = "Internet"
   }
 
   depends_on = [
