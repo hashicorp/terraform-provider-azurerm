@@ -21,7 +21,7 @@ With the release of the v2.58.0 provider, if you run the `apply` command against
 
 # How to Migrate Your Current Front Door Configuration to Azure Resource Manager: v2.58.0
 
-For this upgrade guide we are going to assume that your configuration file looks something like the below example before you upgraded to v2.58.0 of the Azure provider. For this upgrade guide we are also assuming that the Front Door resource already exists in Azure and that it is curretnly being managed by Terraform.
+For this upgrade guide we are going to assume that your configuration file looks something like the below example before you upgraded to `v2.58.0` of the Azure provider. For this upgrade guide we are also assuming that the Front Door resource already exists in Azure and that it is curretnly being managed by Terraform.
 
 **Example Configuration:**
 
