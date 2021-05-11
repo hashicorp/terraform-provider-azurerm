@@ -27,9 +27,9 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "example" {
-  name                = "example"
-  subscription_id     = data.azurerm_subscription.current.subscription_id
-  resource_group_name = azurerm_resource_group.example.name
+  name              = "example"
+  subscription_id   = data.azurerm_subscription.current.subscription_id
+  resource_group_id = azurerm_resource_group.example.id
 
   amount     = 1000
   category   = "Cost"
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Required) The ID of subscription in which the Resource Group exists. Changing this forces a new Resource Group Consumption Budget to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group to create the consumption budget for. Changing this forces a new Resource Group Consumption Budget to be created.
+* `resource_group_id` - (Required) The ID of the Resource Group to create the consumption budget for. Changing this forces a new Resource Group Consumption Budget to be created.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
