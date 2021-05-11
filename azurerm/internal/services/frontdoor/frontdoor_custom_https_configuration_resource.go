@@ -42,8 +42,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				frontend := parse.NewFrontendEndpointID(custom.SubscriptionId, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName)
 
 				// validate that the frontend endpoint ID exists in the Frontdoor resource
-				_, err = client.Get(ctx, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName)
-				if err != nil {
+				if _, err = client.Get(ctx, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName); err != nil {
 					return []*schema.ResourceData{d}, fmt.Errorf("retrieving the Custom HTTPS Configuration(ID: %q) for the frontend endpoint (ID: %q): %s", custom.ID(), frontend.ID(), err)
 				}
 
