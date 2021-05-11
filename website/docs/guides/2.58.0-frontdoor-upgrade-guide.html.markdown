@@ -174,7 +174,7 @@ resource "azurerm_frontdoor" "example" {
 }
 ```
 
-Firstly, you will need to upgrade your provider to v2.58.0 or later in the way you normally would upgrade your provider, for more information about how to upgrade your provider please see the [product documentation](https://learn.hashicorp.com/tutorials/terraform/provider-versioning). For this upgrade guide I am going to force the upgrade via the configuration files `provider` block like this:
+Firstly, you will need to upgrade your provider to `v2.58.0` or later in the way you normally would upgrade your provider, for more information about how to upgrade your provider please see the [product documentation](https://learn.hashicorp.com/tutorials/terraform/provider-versioning). For this upgrade guide I am going to force the upgrade via the configuration files `provider` block like this:
 
 ```hcl
 provider "azurerm" {
