@@ -350,7 +350,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						//only system assigned identity is supported
+						// only system assigned identity is supported
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -841,7 +841,6 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 		}
 
 		d.Set("cors_rule", common.FlattenCosmosCorsRule(props.Cors))
-
 	}
 
 	readEndpoints := make([]string, 0)
