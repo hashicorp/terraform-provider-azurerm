@@ -1,7 +1,5 @@
 package utils
 
-import "github.com/gofrs/uuid"
-
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
 	for _, item := range input {
@@ -36,15 +34,6 @@ func ExpandInt32Slice(input []interface{}) *[]int32 {
 	result := make([]int32, len(input))
 	for i, item := range input {
 		result[i] = int32(item.(int))
-	}
-
-	return &result
-}
-
-func ExpandUUIDSlice(input []interface{}) *[]uuid.UUID {
-	result := make([]uuid.UUID, len(input))
-	for i, item := range input {
-		result[i] = uuid.FromStringOrNil(item.(string))
 	}
 
 	return &result
@@ -87,16 +76,6 @@ func FlattenInt32Slice(input *[]int32) []interface{} {
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, item)
-		}
-	}
-	return result
-}
-
-func FlattenUUIDSlice(input *[]uuid.UUID) []interface{} {
-	result := make([]interface{}, 0)
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, item.String())
 		}
 	}
 	return result
