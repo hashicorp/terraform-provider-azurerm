@@ -324,7 +324,6 @@ func resourceContainerRegistry() *schema.Resource {
 			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 			geoReplications := d.Get("georeplications").(*schema.Set)
 			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || geoReplications.Len() > 0
-
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
@@ -349,7 +348,6 @@ func resourceContainerRegistry() *schema.Resource {
 			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
 			}
-
 			return nil
 		}),
 	}
@@ -541,6 +539,9 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
 	}
 
+	identityRaw := d.Get("identity").([]interface{})
+	identity := expandIdentityProperties(identityRaw)
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
@@ -552,7 +553,8 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 			PublicNetworkAccess: publicNetworkAccess,
 		},
-		Tags: tags.Expand(t),
+		Identity: identity,
+		Tags:     tags.Expand(t),
 	}
 
 	// geo replication is only supported by Premium Sku
@@ -774,7 +776,6 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("georeplication_locations", geoReplicationLocations)
 	d.Set("georeplications", geoReplications)
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -936,7 +937,6 @@ func expandIdentityProperties(e []interface{}) *containerregistry.IdentityProper
 			}
 			identityProperties.UserAssignedIdentities = identityIds
 		}
-
 	}
 	return &identityProperties
 }
@@ -957,7 +957,6 @@ func expandEncryption(e []interface{}) *containerregistry.EncryptionProperty {
 				Identity:      &identityClientId,
 			}
 		}
-
 	}
 
 	return &encryptionProperty
@@ -975,7 +974,6 @@ func flattenEncryption(encryptionProperty *containerregistry.EncryptionProperty)
 	}
 
 	return []interface{}{encryption}
-
 }
 
 func flattenIdentityProperties(identityProperties *containerregistry.IdentityProperties) ([]interface{}, error) {

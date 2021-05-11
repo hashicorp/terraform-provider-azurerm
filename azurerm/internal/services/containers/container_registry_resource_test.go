@@ -1027,7 +1027,7 @@ resource "azurerm_container_registry" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-  
+
 }
 
 
