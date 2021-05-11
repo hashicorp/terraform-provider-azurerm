@@ -10,7 +10,7 @@ description: |-
 
 ## Resource Behavior Change
 
-With the release of the v2.58.0 provider, if you run the `apply` command against an existing Front Door resource it **will not** apply the detected changes. Instead it will persist the `explicit_resource_order` mapping structure to the state file. Once this operation has completed the resource will resume functioning normally.This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource via Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned.
+With the release of the v2.58.0 provider, if you run the `apply` command against an existing Front Door resource it **will not** apply the detected changes. Instead it will persist the `explicit_resource_order` mapping structure to the state file. Once this operation has completed the resource will resume functioning normally. This change in behavior is due to the underlying service API now returning the JSON response's elements out of order from how it was sent to the resource by Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned.
 
 ## Breaking Changes
 
