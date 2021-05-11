@@ -3,10 +3,11 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"log"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -362,7 +363,7 @@ func flattenMonitorAADDiagnosticLogs(input *[]aad.LogSettings) []interface{} {
 		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
 			days := 0
 			if inputPolicy.Days != nil {
-				days= int(*inputPolicy.Days)
+				days = int(*inputPolicy.Days)
 			}
 
 			enabled := false
@@ -371,14 +372,14 @@ func flattenMonitorAADDiagnosticLogs(input *[]aad.LogSettings) []interface{} {
 			}
 
 			policies = append(policies, map[string]interface{}{
-				"days": days,
+				"days":    days,
 				"enabled": enabled,
 			})
 		}
 
 		results = append(results, map[string]interface{}{
-			"category": category,
-			"enabled": enabled,
+			"category":         category,
+			"enabled":          enabled,
 			"retention_policy": policies,
 		})
 	}

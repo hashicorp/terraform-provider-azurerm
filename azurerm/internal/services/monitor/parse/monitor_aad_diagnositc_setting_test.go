@@ -1,8 +1,9 @@
 package parse
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
 var _ resourceid.Formatter = MonitorAADDiagnosticSettingId{}
@@ -44,7 +45,7 @@ func TestMonitorAADDiagnosticSettingID(t *testing.T) {
 			// valid
 			Input: "/providers/Microsoft.AADIAM/diagnosticSettings/setting1",
 			Expected: &MonitorAADDiagnosticSettingId{
-				Name:           "setting1",
+				Name: "setting1",
 			},
 		},
 

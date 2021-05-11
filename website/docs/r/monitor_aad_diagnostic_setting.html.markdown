@@ -23,30 +23,30 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                      = "examplestorageaccount"
-  resource_group_name       = azurerm_resource_group.example.name
-  location                  = azurerm_resource_group.example.location
+  name                     = "examplestorageaccount"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_kind             = "StorageV2"
-  account_replication_type  = "LRS"
+  account_replication_type = "LRS"
 }
 
 locals {
-  enabled_log_categories = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
+  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
   disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
 }
 
 resource "azurerm_monitor_aad_diagnostic_setting" "example" {
-  name = "setting1"
+  name               = "setting1"
   storage_account_id = azurerm_storage_account.example.id
   dynamic log {
     for_each = local.enabled_log_categories
     content {
       category = log.value
-      enabled = true
+      enabled  = true
       retention_policy {
         enabled = true
-        days = 1
+        days    = 1
       }
     }
   }
@@ -55,10 +55,10 @@ resource "azurerm_monitor_aad_diagnostic_setting" "example" {
     for_each = local.disabled_log_categories
     content {
       category = log.value
-      enabled = false
+      enabled  = false
       retention_policy {
         enabled = false
-        days = 0
+        days    = 0
       }
     }
   }
