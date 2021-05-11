@@ -102,6 +102,8 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 			"index_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"automatic": {
@@ -126,6 +128,7 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 						"included_paths": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -136,6 +139,7 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 						"excluded_paths": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,

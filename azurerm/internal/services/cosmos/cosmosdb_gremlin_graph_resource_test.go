@@ -84,13 +84,6 @@ func TestAccCosmosDbGremlinGraph_indexPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.indexPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
