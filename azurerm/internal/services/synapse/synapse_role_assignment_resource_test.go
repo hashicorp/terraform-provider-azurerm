@@ -51,17 +51,22 @@ func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clien
 		return nil, err
 	}
 
-	environment := client.Account.Environment
-	accessClient, err := client.Synapse.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	workspaceName, _, err := parse.SynapseScope(id.Scope)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := accessClient.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
+
+	environment := client.Account.Environment
+	roleAssignmentsClient, err := client.Synapse.RoleAssignmentsClient(workspaceName, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := roleAssignmentsClient.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Synapse RoleAssignment (Resource Group %q): %+v", id.Workspace.Name, err)
+		return nil, fmt.Errorf("retrieving Synapse RoleAssignment (Resource Group %q): %+v", workspaceName, err)
 	}
 
 	return utils.Bool(true), nil
@@ -73,9 +78,9 @@ func (r SynapseRoleAssignmentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_synapse_role_assignment" "test" {
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  role_name            = "Sql Admin"
-  principal_id         = data.azurerm_client_config.current.object_id
+  synapse_scope = azurerm_synapse_workspace.test.id
+  role_name     = "Synapse SQL Administrator"
+  principal_id  = data.azurerm_client_config.current.object_id
 
   depends_on = [azurerm_synapse_firewall_rule.test]
 }
@@ -88,9 +93,9 @@ func (r SynapseRoleAssignmentResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_synapse_role_assignment" "import" {
-  synapse_workspace_id = azurerm_synapse_role_assignment.test.synapse_workspace_id
-  role_name            = azurerm_synapse_role_assignment.test.role_name
-  principal_id         = azurerm_synapse_role_assignment.test.principal_id
+  synapse_scope = azurerm_synapse_role_assignment.test.synapse_scope
+  role_name     = azurerm_synapse_role_assignment.test.role_name
+  principal_id  = azurerm_synapse_role_assignment.test.principal_id
 }
 `, config)
 }
