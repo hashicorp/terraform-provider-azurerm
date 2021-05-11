@@ -36,8 +36,10 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", resp.Name)
 	d.Set("category", resp.Category)
-	amount, _ := resp.Amount.Float64()
-	d.Set("amount", amount)
+	if resp.Amount != nil {
+		amount, _ := resp.Amount.Float64()
+		d.Set("amount", amount)
+	}
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
 	d.Set("notification", schema.NewSet(schema.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
