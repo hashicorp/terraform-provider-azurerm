@@ -1,27 +1,63 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type StaticSiteResourceID struct {
-	ResourceGroup string
-	Name          string
+type StaticSiteId struct {
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func StaticSiteID(input string) (*StaticSiteResourceID, error) {
+func NewStaticSiteID(subscriptionId, resourceGroup, name string) StaticSiteId {
+	return StaticSiteId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id StaticSiteId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Static Site", segmentsStr)
+}
+
+func (id StaticSiteId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/staticSites/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// StaticSiteID parses a StaticSite ID into an StaticSiteId struct
+func StaticSiteID(input string) (*StaticSiteId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Static Site ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	staticSite := StaticSiteResourceID{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := StaticSiteId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if staticSite.Name, err = id.PopSegment("staticSites"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("staticSites"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +65,5 @@ func StaticSiteID(input string) (*StaticSiteResourceID, error) {
 		return nil, err
 	}
 
-	return &staticSite, nil
+	return &resourceId, nil
 }

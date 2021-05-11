@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
@@ -24,9 +27,10 @@ func resourceStaticSite() *schema.Resource {
 		Read:   resourceStaticSiteRead,
 		Update: resourceStaticSiteCreateOrUpdate,
 		Delete: resourceStaticSiteDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.StaticSiteID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -76,54 +80,44 @@ func resourceStaticSite() *schema.Resource {
 
 func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Static Site creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewStaticSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetStaticSite(ctx, resourceGroup, name)
+		existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed checking for presence of existing Static Site %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_static_site", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_static_site", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	skuName := d.Get("sku_size").(string)
-	skuTier := d.Get("sku_tier").(string)
-
-	staticSiteSkuDescription := &web.SkuDescription{Name: &skuName, Tier: &skuTier}
+	loc := location.Normalize(d.Get("location").(string))
 
 	siteEnvelope := web.StaticSiteARMResource{
-		Sku:        staticSiteSkuDescription,
+		Sku: &web.SkuDescription{
+			Name: utils.String(d.Get("sku_size").(string)),
+			Tier: utils.String(d.Get("sku_tier").(string)),
+		},
 		StaticSite: &web.StaticSite{},
-		Location:   &location,
+		Location:   &loc,
 	}
 
-	_, err := client.CreateOrUpdateStaticSite(ctx, resourceGroup, name, siteEnvelope)
+	_, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("failed creating Static Site %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("failed creating %s: %+v", id, err)
 	}
 
-	read, err := client.GetStaticSite(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("failed retrieving Static Site %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read Static Site %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceStaticSiteRead(d, meta)
 }
@@ -145,14 +139,12 @@ func resourceStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed making Read request on AzureRM Static Site %q: %+v", id.Name, err)
+		return fmt.Errorf("failed making Read request on %s: %+v", id, err)
 	}
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if prop := resp.StaticSite; prop != nil {
 		defaultHostname := ""
@@ -161,19 +153,20 @@ func resourceStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("default_host_name", defaultHostname)
 	}
+
+	skuName := ""
+	skuTier := ""
 	if sku := resp.Sku; sku != nil {
-		skuName := ""
 		if v := sku.Name; v != nil {
 			skuName = *v
 		}
-		d.Set("sku_size", skuName)
 
-		skuTier := ""
 		if v := sku.Tier; v != nil {
 			skuTier = *v
 		}
-		d.Set("sku_tier", skuTier)
 	}
+	d.Set("sku_size", skuName)
+	d.Set("sku_tier", skuTier)
 
 	secretResp, err := client.ListStaticSiteSecrets(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
