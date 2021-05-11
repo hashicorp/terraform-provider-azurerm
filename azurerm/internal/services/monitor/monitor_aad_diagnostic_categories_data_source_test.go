@@ -29,6 +29,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_monitor_diagnostic_categories" "test" {}
+data "azurerm_monitor_aad_diagnostic_categories" "test" {}
 `
 }
