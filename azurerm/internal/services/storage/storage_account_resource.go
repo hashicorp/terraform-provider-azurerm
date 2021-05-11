@@ -289,18 +289,18 @@ func resourceStorageAccount() *schema.Resource {
 							}, false),
 						},
 
-						"private_endpoint_access_rules": {
+						"private_link_access": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"resource_id": {
+									"endpoint_resource_id": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: networkValidate.PrivateEndpointID,
 									},
 
-									"tenant_id": {
+									"endpoint_tenant_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Computed:     true,
@@ -1682,7 +1682,7 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData, tenantId string) *
 		IPRules:             expandStorageAccountIPRules(networkRule),
 		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
 		Bypass:              expandStorageAccountBypass(networkRule),
-		ResourceAccessRules: expandStorageAccountPrivateEndpointAccessRule(networkRule["private_endpoint_access_rules"].([]interface{}), tenantId),
+		ResourceAccessRules: expandStorageAccountPrivateLinkAccess(networkRule["private_link_access"].([]interface{}), tenantId),
 	}
 
 	if v := networkRule["default_action"]; v != nil {
@@ -1735,23 +1735,23 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandStorageAccountPrivateEndpointAccessRule(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
-	privateEndpointAccessRules := make([]storage.ResourceAccessRule, 0)
+func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
+	privateLinkAccess := make([]storage.ResourceAccessRule, 0)
 	if len(inputs) == 0 {
-		return &privateEndpointAccessRules
+		return &privateLinkAccess
 	}
 	for _, input := range inputs {
 		accessRule := input.(map[string]interface{})
-		if v := accessRule["tenant_id"].(string); v != "" {
+		if v := accessRule["endpoint_tenant_id"].(string); v != "" {
 			tenantId = v
 		}
-		privateEndpointAccessRules = append(privateEndpointAccessRules, storage.ResourceAccessRule{
+		privateLinkAccess = append(privateLinkAccess, storage.ResourceAccessRule{
 			TenantID:   utils.String(tenantId),
-			ResourceID: utils.String(accessRule["resource_id"].(string)),
+			ResourceID: utils.String(accessRule["endpoint_resource_id"].(string)),
 		})
 	}
 
-	return &privateEndpointAccessRules
+	return &privateLinkAccess
 }
 
 func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
@@ -2080,7 +2080,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
 	networkRules["default_action"] = string(input.DefaultAction)
-	networkRules["private_endpoint_access_rules"] = flattenStorageAccountPrivateEndpointAccessRules(input.ResourceAccessRules)
+	networkRules["private_link_access"] = flattenStorageAccountPrivateLinkAccess(input.ResourceAccessRules)
 
 	return []interface{}{networkRules}
 }
@@ -2119,7 +2119,7 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	return virtualNetworks
 }
 
-func flattenStorageAccountPrivateEndpointAccessRules(inputs *[]storage.ResourceAccessRule) []interface{} {
+func flattenStorageAccountPrivateLinkAccess(inputs *[]storage.ResourceAccessRule) []interface{} {
 	if inputs == nil || len(*inputs) == 0 {
 		return []interface{}{}
 	}
@@ -2136,8 +2136,8 @@ func flattenStorageAccountPrivateEndpointAccessRules(inputs *[]storage.ResourceA
 		}
 
 		accessRules = append(accessRules, map[string]interface{}{
-			"resource_id": resourceId,
-			"tenant_id":   tenantId,
+			"endpoint_resource_id": resourceId,
+			"endpoint_tenant_id":   tenantId,
 		})
 	}
 

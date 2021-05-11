@@ -514,7 +514,7 @@ func TestAccStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_privateEndpointAccessRules(t *testing.T) {
+func TestAccStorageAccount_privateLinkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -527,7 +527,7 @@ func TestAccStorageAccount_privateEndpointAccessRules(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkRulesPrivateEndpointAccessRule(data),
+			Config: r.networkRulesPrivateLinkAccess(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1692,7 +1692,7 @@ resource "azurerm_storage_account" "test" {
 `, r.networkRulesTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) networkRulesPrivateEndpointAccessRule(data acceptance.TestData) string {
+func (r StorageAccountResource) networkRulesPrivateLinkAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1707,11 +1707,11 @@ resource "azurerm_storage_account" "test" {
     default_action             = "Deny"
     ip_rules                   = ["127.0.0.1"]
     virtual_network_subnet_ids = [azurerm_subnet.test.id]
-    private_endpoint_access_rules {
-      resource_id = azurerm_private_endpoint.blob.id
+    private_link_access {
+      endpoint_resource_id = azurerm_private_endpoint.blob.id
     }
-    private_endpoint_access_rules {
-      resource_id = azurerm_private_endpoint.table.id
+    private_link_access {
+      endpoint_resource_id = azurerm_private_endpoint.table.id
     }
   }
 

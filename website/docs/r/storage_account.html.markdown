@@ -243,7 +243,7 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
-* `private_endpoint_access_rules` - (Optional) One or More `private_endpoint_access_rules` block as defined below.
+* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
@@ -255,11 +255,11 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ---
 
-A `private_endpoint_access_rules` block supports the following:
+A `private_link_access` block supports the following:
 
-* `resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
+* `endpoint_resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
 
-* `tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
+* `endpoint_tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
 
 ---
 

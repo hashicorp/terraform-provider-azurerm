@@ -88,15 +88,15 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 
-* `private_endpoint_access_rules` - (Optional) One or More `private_endpoint_access_rules` block as defined below.
+* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
 
 ---
 
-A `private_endpoint_access_rules` block supports the following:
+A `private_link_access` block supports the following:
 
-* `resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
+* `endpoint_resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
 
-* `tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
+* `endpoint_tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
 
 
 ## Attributes Reference
