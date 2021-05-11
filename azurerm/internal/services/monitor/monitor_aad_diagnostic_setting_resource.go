@@ -144,13 +144,27 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 	}
 
 	logs := expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*schema.Set).List())
+
+	// If there is no `enabled` log entry, the PUT will succeed while the next GET will return a 404.
+	// Therefore, ensure users has at least one enabled log entry.
+	valid := false
+	for _, log := range logs {
+		if *log.Enabled {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		return fmt.Errorf("At least one of the `log` of the %s should be enabled", id)
+	}
+
 	properties := aad.DiagnosticSettingsResource{
 		DiagnosticSettings: &aad.DiagnosticSettings{
 			Logs: &logs,
 		},
 	}
 
-	valid := false
+	valid = false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {

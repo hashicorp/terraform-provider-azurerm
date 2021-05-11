@@ -21,7 +21,6 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_monitor_aad_diagnostic_categories":      dataSourceMonitorAADDiagnosticCategories(),
 		"azurerm_monitor_action_group":                dataSourceMonitorActionGroup(),
 		"azurerm_monitor_diagnostic_categories":       dataSourceMonitorDiagnosticCategories(),
 		"azurerm_monitor_log_profile":                 dataSourceMonitorLogProfile(),

@@ -126,12 +126,41 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   manage              = true
 }
 
-resource "azurerm_aad_monitor_diagnostic_setting" "test" {
+locals {
+  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
+  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
+  dynamic log {
+    for_each = local.enabled_log_categories
+    content {
+      category = log.value
+      enabled  = true
+      retention_policy {
+        enabled = true
+        days    = 1
+      }
+    }
+  }
+
+  dynamic log {
+    for_each = local.disabled_log_categories
+    content {
+      category = log.value
+      enabled  = false
+      retention_policy {
+        enabled = false
+        days    = 0
+      }
+    }
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MonitorAADDiagnosticSettingResource) requiresImport(data acceptance.TestData) string {
@@ -145,11 +174,7 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
 
   log {
     category = "SignInLogs"
-    enabled  = false
-
-    retention_policy {
-      enabled = false
-    }
+    enabled  = true
   }
 }
 `, r.eventhub(data))
@@ -174,11 +199,40 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 
+
+locals {
+  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
+  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
+}
+
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                       = "acctest-DS-%[1]d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  dynamic log {
+    for_each = local.enabled_log_categories
+    content {
+      category = log.value
+      enabled  = true
+      retention_policy {
+        enabled = true
+        days    = 1
+      }
+    }
+  }
+
+  dynamic log {
+    for_each = local.disabled_log_categories
+    content {
+      category = log.value
+      enabled  = false
+      retention_policy {
+        enabled = false
+        days    = 0
+      }
+    }
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (MonitorAADDiagnosticSettingResource) storageAccount(data acceptance.TestData) string {
@@ -193,16 +247,45 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]d"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  account_replication_type = "LRS"
   account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
 }
 
-resource "azurerm_monitor_diagnostic_setting" "test" {
+locals {
+  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
+  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name               = "acctest-DS-%[1]d"
   storage_account_id = azurerm_storage_account.test.id
+  dynamic log {
+    for_each = local.enabled_log_categories
+    content {
+      category = log.value
+      enabled  = true
+      retention_policy {
+        enabled = true
+        days    = 1
+      }
+    }
+  }
+
+  dynamic log {
+    for_each = local.disabled_log_categories
+    content {
+      category = log.value
+      enabled  = false
+      retention_policy {
+        enabled = false
+        days    = 0
+      }
+    }
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
 }
