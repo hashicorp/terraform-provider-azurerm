@@ -210,8 +210,13 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
 	}
 
 	if miServerProperties := resp.ManagedInstanceProperties; miServerProperties != nil {
@@ -227,7 +232,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ManagedInstancesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.ManagedInstanceID(d.Id())
