@@ -18,7 +18,6 @@ With the release of the v2.58.0 provider, if you run the `apply` command against
 
 * `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` field has been removed from the `azurerm_frontdoor_custom_https_configuration` resource. If the `resource_group_name` field has been defined in your current `azurerm_frontdoor_custom_https_configuration` resource configuration file please remove it else you will receive a `An argument named "resource_group_name" is not expected here.` error.
 
-
 # How to Migrate Your Current Front Door Configuration to Azure Resource Manager: v2.58.0
 
 For this upgrade guide we are going to assume that your configuration file looks something like the below example before you upgraded to `v2.58.0` of the Azure provider. For this upgrade guide we are also assuming that the Front Door resource already exists in Azure and that it is curretnly being managed by Terraform.
