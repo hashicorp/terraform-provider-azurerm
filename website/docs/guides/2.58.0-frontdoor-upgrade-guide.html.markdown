@@ -363,7 +363,7 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 
 ## Import Your azurerm_frontdoor_custom_https_configuration Settings Into Your State File
 
-At this point, you have now succesfully upgraded your provider and modified your configuration file to be **v2.58.0** compliant. You will need to import your frontend endpoint `custom_https_configuration` settings into a new `azurerm_frontdoor_custom_https_configuration` resource. This is done by modifying your configuration file with a new `azurerm_frontdoor_custom_https_configuration` resource stub for each of your frontend endpoints in your configuration file so they can be imported into the state file without causing an error during `apply`. To do this you will need to add the following `azurerm_frontdoor_custom_https_configuration` stubs to the end of your configuration file:
+At this point, you have now successfully upgraded your provider and modified your configuration file to be **v2.58.0** compliant. You will need to import your frontend endpoint `custom_https_configuration` settings into a new `azurerm_frontdoor_custom_https_configuration` resource. This is done by modifying your configuration file with a new `azurerm_frontdoor_custom_https_configuration` resource stub for each of your frontend endpoints in your configuration file so they can be imported into the state file without causing an error during `apply`. To do this you will need to add the following `azurerm_frontdoor_custom_https_configuration` stubs to the end of your configuration file:
 
 ```hcl
 resource "azurerm_frontdoor_custom_https_configuration" "default" {
