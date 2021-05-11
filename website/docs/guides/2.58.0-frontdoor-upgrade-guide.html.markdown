@@ -58,7 +58,7 @@ resource "azurerm_frontdoor" "example" {
     host_name = "example-custom.contoso.com"
 
     custom_https_provisioning_enabled = true
-    
+
     custom_https_configuration {
       certificate_source = "FrontDoor"
     }
@@ -98,7 +98,7 @@ resource "azurerm_frontdoor" "example" {
     accepted_protocols = ["Http"]
     frontend_endpoints = ["default"]
     patterns_to_match  = ["/*"]
-    
+
     redirect_configuration {
       redirect_protocol = "HttpsOnly"
       redirect_type     = "Found"
@@ -114,8 +114,8 @@ resource "azurerm_frontdoor" "example" {
   }
 
   backend_pool_health_probe {
-    name         = "example-AFD-bing-HP"
-    protocol     = "Https"
+    name     = "example-AFD-bing-HP"
+    protocol = "Https"
   }
 
   # Backend Pool 2
@@ -152,7 +152,7 @@ resource "azurerm_frontdoor" "example" {
     accepted_protocols = ["Http"]
     frontend_endpoints = ["custom"]
     patterns_to_match  = ["/*"]
-    
+
     redirect_configuration {
       redirect_protocol = "HttpsOnly"
       redirect_type     = "Found"
@@ -264,7 +264,7 @@ resource "azurerm_frontdoor" "example" {
     accepted_protocols = ["Http"]
     frontend_endpoints = ["default"]
     patterns_to_match  = ["/*"]
-    
+
     redirect_configuration {
       redirect_protocol = "HttpsOnly"
       redirect_type     = "Found"
@@ -280,8 +280,8 @@ resource "azurerm_frontdoor" "example" {
   }
 
   backend_pool_health_probe {
-    name         = "example-AFD-bing-HP"
-    protocol     = "Https"
+    name     = "example-AFD-bing-HP"
+    protocol = "Https"
   }
 
   # Backend Pool 2
@@ -318,7 +318,7 @@ resource "azurerm_frontdoor" "example" {
     accepted_protocols = ["Http"]
     frontend_endpoints = ["custom"]
     patterns_to_match  = ["/*"]
-    
+
     redirect_configuration {
       redirect_protocol = "HttpsOnly"
       redirect_type     = "Found"
@@ -413,8 +413,8 @@ Once the `azurerm_frontdoor_custom_https_configuration` stubs have been imported
 
 ```hcl
 resource "azurerm_frontdoor_custom_https_configuration" "default" {
- frontend_endpoint_id              = "${azurerm_frontdoor.example.id}/frontendEndpoints/${local.default_frontend_name}"
- custom_https_provisioning_enabled = false
+  frontend_endpoint_id              = "${azurerm_frontdoor.example.id}/frontendEndpoints/${local.default_frontend_name}"
+  custom_https_provisioning_enabled = false
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "custom" {
