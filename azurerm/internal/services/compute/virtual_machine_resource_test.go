@@ -29,7 +29,6 @@ func TestAccVirtualMachine_winTimeZone(t *testing.T) {
 			Config: r.winTimeZone(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("os_profile_windows_config.59207889.timezone").HasValue("Pacific Standard Time"),
 			),
 		},
 	})

@@ -76,11 +76,13 @@ func (client DevicesClient) CreateOrUpdatePreparer(ctx context.Context, deviceNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	dataBoxEdgeDevice.Kind = ""
+	dataBoxEdgeDevice.DeviceProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -166,7 +168,7 @@ func (client DevicesClient) CreateOrUpdateSecuritySettingsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -245,7 +247,7 @@ func (client DevicesClient) DeletePreparer(ctx context.Context, deviceName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -322,7 +324,7 @@ func (client DevicesClient) DownloadUpdatesPreparer(ctx context.Context, deviceN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -358,6 +360,82 @@ func (client DevicesClient) DownloadUpdatesResponder(resp *http.Response) (resul
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// GenerateCertificate generates certificate for activation key.
+// Parameters:
+// deviceName - the device name.
+// resourceGroupName - the resource group name.
+func (client DevicesClient) GenerateCertificate(ctx context.Context, deviceName string, resourceGroupName string) (result GenerateCertResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DevicesClient.GenerateCertificate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GenerateCertificatePreparer(ctx, deviceName, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.DevicesClient", "GenerateCertificate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GenerateCertificateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "databoxedge.DevicesClient", "GenerateCertificate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GenerateCertificateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.DevicesClient", "GenerateCertificate", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GenerateCertificatePreparer prepares the GenerateCertificate request.
+func (client DevicesClient) GenerateCertificatePreparer(ctx context.Context, deviceName string, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"deviceName":        autorest.Encode("path", deviceName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/generateCertificate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GenerateCertificateSender sends the GenerateCertificate request. The method will close the
+// http.Response Body if it receives an error.
+func (client DevicesClient) GenerateCertificateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GenerateCertificateResponder handles the response to the GenerateCertificate request. The method always
+// closes the http.Response Body.
+func (client DevicesClient) GenerateCertificateResponder(resp *http.Response) (result GenerateCertResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -406,7 +484,7 @@ func (client DevicesClient) GetPreparer(ctx context.Context, deviceName string, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -437,7 +515,7 @@ func (client DevicesClient) GetResponder(resp *http.Response) (result Device, er
 	return
 }
 
-// GetExtendedInformation gets additional information for the specified Data Box Edge/Data Box Gateway device.
+// GetExtendedInformation gets additional information for the specified Azure Stack Edge/Data Box Gateway device.
 // Parameters:
 // deviceName - the device name.
 // resourceGroupName - the resource group name.
@@ -482,7 +560,7 @@ func (client DevicesClient) GetExtendedInformationPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -558,7 +636,7 @@ func (client DevicesClient) GetNetworkSettingsPreparer(ctx context.Context, devi
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -634,7 +712,7 @@ func (client DevicesClient) GetUpdateSummaryPreparer(ctx context.Context, device
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -703,7 +781,7 @@ func (client DevicesClient) InstallUpdatesPreparer(ctx context.Context, deviceNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -792,7 +870,7 @@ func (client DevicesClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -911,7 +989,7 @@ func (client DevicesClient) ListBySubscriptionPreparer(ctx context.Context, expa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1020,7 +1098,7 @@ func (client DevicesClient) ScanForUpdatesPreparer(ctx context.Context, deviceNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1105,7 +1183,7 @@ func (client DevicesClient) UpdatePreparer(ctx context.Context, deviceName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1129,6 +1207,85 @@ func (client DevicesClient) UpdateSender(req *http.Request) (*http.Response, err
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client DevicesClient) UpdateResponder(resp *http.Response) (result Device, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateExtendedInformation gets additional information for the specified Data Box Edge/Data Box Gateway device.
+// Parameters:
+// deviceName - the device name.
+// parameters - the patch object.
+// resourceGroupName - the resource group name.
+func (client DevicesClient) UpdateExtendedInformation(ctx context.Context, deviceName string, parameters DeviceExtendedInfoPatch, resourceGroupName string) (result DeviceExtendedInfo, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DevicesClient.UpdateExtendedInformation")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateExtendedInformationPreparer(ctx, deviceName, parameters, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.DevicesClient", "UpdateExtendedInformation", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateExtendedInformationSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "databoxedge.DevicesClient", "UpdateExtendedInformation", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateExtendedInformationResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databoxedge.DevicesClient", "UpdateExtendedInformation", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdateExtendedInformationPreparer prepares the UpdateExtendedInformation request.
+func (client DevicesClient) UpdateExtendedInformationPreparer(ctx context.Context, deviceName string, parameters DeviceExtendedInfoPatch, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"deviceName":        autorest.Encode("path", deviceName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/{deviceName}/updateExtendedInformation", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateExtendedInformationSender sends the UpdateExtendedInformation request. The method will close the
+// http.Response Body if it receives an error.
+func (client DevicesClient) UpdateExtendedInformationSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateExtendedInformationResponder handles the response to the UpdateExtendedInformation request. The method always
+// closes the http.Response Body.
+func (client DevicesClient) UpdateExtendedInformationResponder(resp *http.Response) (result DeviceExtendedInfo, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -1191,7 +1348,7 @@ func (client DevicesClient) UploadCertificatePreparer(ctx context.Context, devic
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

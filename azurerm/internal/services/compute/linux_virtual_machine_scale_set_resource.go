@@ -432,8 +432,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta inte
 
 	// otherwise the service return the error:
 	// Automatic OS Upgrade is not supported for this Virtual Machine Scale Set because a health probe or health extension was not specified.
-	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && (healthProbeId == "" && !hasHealthExtension) {
-		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
+	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
+		if *automaticOSUpgradePolicy.EnableAutomaticOSUpgrade && (healthProbeId == "" && !hasHealthExtension) {
+			return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
+		}
 	}
 
 	// otherwise the service return the error:

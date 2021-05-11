@@ -330,14 +330,14 @@ func resourceCosmosDbAccount() *schema.Resource {
 						"interval_in_minutes": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      240,
+							Computed:     true,
 							ValidateFunc: validation.IntBetween(60, 1440),
 						},
 
 						"retention_in_hours": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      8,
+							Computed:     true,
 							ValidateFunc: validation.IntBetween(8, 720),
 						},
 					},
