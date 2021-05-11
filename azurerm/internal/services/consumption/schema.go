@@ -182,16 +182,6 @@ func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
 			ValidateFunc: validation.FloatAtLeast(1.0),
 		},
 
-		"category": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  "Cost",
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Cost",
-			}, false),
-		},
-
 		"filter": {
 			Type:     schema.TypeList,
 			Optional: true,

@@ -142,7 +142,6 @@ resource "azurerm_consumption_budget_subscription" "test" {
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   amount     = 1000
-  category   = "Cost"
   time_grain = "Monthly"
 
   time_period {
@@ -364,7 +363,6 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Changed the amount from 1000 to 2000
   amount     = 2000
-  category   = "Cost"
   time_grain = "Monthly"
 
   // Removed end_date

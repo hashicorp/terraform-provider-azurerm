@@ -35,7 +35,6 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("category", resp.Category)
 	if resp.Amount != nil {
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)
@@ -98,11 +97,14 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error expanding `time_period`: %+v", err)
 	}
 
+	// The Consumption Budget API requires the category type field to be set in a budget's properties.
+	// 'Cost' is the only valid Budget type today according to the API spec.
+	category := "Cost"
 	parameters := consumption.Budget{
 		Name: utils.String(name),
 		BudgetProperties: &consumption.BudgetProperties{
 			Amount:        &amount,
-			Category:      utils.String(d.Get("category").(string)),
+			Category:      &category,
 			Filter:        ExpandConsumptionBudgetFilter(d.Get("filter").([]interface{})),
 			Notifications: ExpandConsumptionBudgetNotifications(d.Get("notification").(*schema.Set).List()),
 			TimeGrain:     consumption.TimeGrainType(d.Get("time_grain").(string)),

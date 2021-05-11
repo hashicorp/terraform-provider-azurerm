@@ -31,7 +31,6 @@ resource "azurerm_consumption_budget_subscription" "example" {
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   amount     = 1000
-  category   = "Cost"
   time_grain = "Monthly"
 
   time_period {
@@ -99,8 +98,6 @@ The following arguments are supported:
 * `amount` - (Required) The total amount of cost to track with the budget.
 
 * `time_grain` - (Required) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `Monthly`, `Quarterly`, `Annually`, `BillingMonth`, `BillingQuarter`, or `BillingYear`. Defaults to `Monthly`.
-
-* `category` - (Required) The category of the budget. The allowed values are `Cost`. Defaults to `Cost`.
 
 * `time_period` - (Required) A `time_period` block as defined below.
 

@@ -188,7 +188,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
 
   // Changed the amount from 1000 to 2000
   amount     = 3000
-  category   = "Cost"
   time_grain = "Monthly"
 
   // Add end_date
