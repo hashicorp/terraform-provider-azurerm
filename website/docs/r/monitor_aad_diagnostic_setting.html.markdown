@@ -1,0 +1,137 @@
+---
+subcategory: "Monitor"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_monitor_aad_diagnostic_setting"
+description: |-
+  Manages a Monitor Azure Active Directory Diagnostic Setting.
+---
+
+# azurerm_monitor_aad_diagnostic_setting
+
+Manages a Monitor Azure Active Directory Diagnostic Setting.
+
+## Example Usage
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "west europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                      = "examplestorageaccount"
+  resource_group_name       = azurerm_resource_group.example.name
+  location                  = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type  = "LRS"
+}
+
+locals {
+  enabled_log_categories = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
+  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "example" {
+  name = "setting1"
+  storage_account_id = azurerm_storage_account.example.id
+  dynamic log {
+    for_each = local.enabled_log_categories
+    content {
+      category = log.value
+      enabled = true
+      retention_policy {
+        enabled = true
+        days = 1
+      }
+    }
+  }
+
+  dynamic log {
+    for_each = local.disabled_log_categories
+    content {
+      category = log.value
+      enabled = false
+      retention_policy {
+        enabled = false
+        days = 0
+      }
+    }
+  }
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name which should be used for this Monitor Azure Active Directory Diagnostic Setting. Changing this forces a new Monitor Azure Active Directory Diagnostic Setting to be created.
+  
+* `log` - (Required) One or more `log` blocks as defined below.
+
+~> **Note:** At least one of the `log` block should have the `enabled` set to `true`.
+
+---
+
+* `eventhub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. Changing this forces a new resource to be created.
+
+-> **NOTE:** This can be sourced from [the `azurerm_eventhub_namespace_authorization_rule` resource](eventhub_namespace_authorization_rule.html) and is different from [a `azurerm_eventhub_authorization_rule` resource](eventhub_authorization_rule.html).
+
+-> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+
+* `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
+
+-> **NOTE:** If this isn't specified then the default Event Hub will be used.
+
+* `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
+
+-> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+
+* `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. Changing this forces a new resource to be created.
+
+-> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+
+---
+
+A `log` block supports the following:
+
+* `category` - (Required) The name of a Diagnostic Log Category for the Azure Active Directory.
+
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
+
+* `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
+
+---
+
+A `retention_policy` block supports the following:
+
+* `enabled` - (Required) Is this Retention Policy enabled?
+
+* `days` - (Optional) The number of days for which this Retention Policy should apply.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported: 
+
+* `id` - The ID of the Monitor Azure Active Directory Diagnostic Setting.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 5 minutes) Used when creating the Monitor Azure Active Directory Diagnostic Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Azure Active Directory Diagnostic Setting.
+* `update` - (Defaults to 5 minutes) Used when updating the Monitor Azure Active Directory Diagnostic Setting.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Monitor Azure Active Directory Diagnostic Setting.
+
+## Import
+
+Monitor Azure Active Directory Diagnostic Settings can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_monitor_aad_diagnostic_setting.example /providers/Microsoft.AADIAM/diagnosticSettings/setting1
+```

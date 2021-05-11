@@ -16,6 +16,20 @@ import (
 type MonitorAADDiagnosticSettingResource struct {
 }
 
+func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
+	r := MonitorAADDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.eventhubDefault(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
@@ -135,6 +149,69 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
+  dynamic log {
+    for_each = local.enabled_log_categories
+    content {
+      category = log.value
+      enabled  = true
+      retention_policy {
+        enabled = true
+        days    = 1
+      }
+    }
+  }
+
+  dynamic log {
+    for_each = local.disabled_log_categories
+    content {
+      category = log.value
+      enabled  = false
+      retention_policy {
+        enabled = false
+        days    = 0
+      }
+    }
+  }
+}
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MonitorAADDiagnosticSettingResource) eventhubDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+locals {
+  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
+  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   dynamic log {
     for_each = local.enabled_log_categories
     content {
