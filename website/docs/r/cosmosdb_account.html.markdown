@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
-* `identity` - (Optional) An `identity` block is documented below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
