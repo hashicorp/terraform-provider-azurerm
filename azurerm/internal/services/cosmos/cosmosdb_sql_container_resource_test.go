@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -57,6 +58,22 @@ func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 		{
 
 			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+
+			Config: r.analyticalStorageTTL(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -287,6 +304,27 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   }
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) analyticalStorageTTL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                   = "acctest-CSQLC-%[2]d"
+  resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
+  account_name           = azurerm_cosmosdb_account.test.name
+  database_name          = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path     = "/definition/id"
+  analytical_storage_ttl = 600
+}
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.Eventual), data.RandomInteger, data.RandomInteger)
 }
 
 func (CosmosSqlContainerResource) update(data acceptance.TestData) string {

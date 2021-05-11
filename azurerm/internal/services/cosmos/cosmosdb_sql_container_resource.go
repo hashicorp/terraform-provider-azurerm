@@ -93,6 +93,11 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 
 			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
+			"analytical_storage_ttl": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"default_ttl": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -156,9 +161,8 @@ func resourceCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
-				ID:             &name,
-				IndexingPolicy: indexingPolicy,
-
+				ID:                       &name,
+				IndexingPolicy:           indexingPolicy,
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
@@ -180,6 +184,10 @@ func resourceCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}
 		db.SQLContainerCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
+	}
+
+	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.SQLContainerCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int64(int64(analyticalStorageTTL.(int)))
 	}
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
@@ -269,6 +277,10 @@ func resourceCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.SQLContainerCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int64(int64(analyticalStorageTTL.(int)))
+	}
+
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
 		db.SQLContainerCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
@@ -346,6 +358,10 @@ func resourceCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{}) 
 				if err := d.Set("unique_key", flattenCosmosSQLContainerUniqueKeys(ukp.UniqueKeys)); err != nil {
 					return fmt.Errorf("setting `unique_key`: %+v", err)
 				}
+			}
+
+			if analyticalStorageTTL := res.AnalyticalStorageTTL; analyticalStorageTTL != nil {
+				d.Set("analytical_storage_ttl", analyticalStorageTTL)
 			}
 
 			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
