@@ -26,10 +26,33 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 		Update: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
 		Delete: resourceFrontDoorCustomHttpsConfigurationDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontendEndpointID(id)
-			return err
-		}),
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+				defer cancel()
+
+				// validate that the passed ID is a valid custom HTTPS configuration ID
+				custom, err := parse.CustomHttpsConfigurationID(d.Id())
+				if err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("parsing Custom HTTPS Configuration ID %q for import: %v", d.Id(), err)
+				}
+
+				// convert the passed custom HTTPS configuration ID to a frontend endpoint ID
+				frontend := parse.NewFrontendEndpointID(custom.SubscriptionId, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName)
+
+				// validate that the frontend endpoint ID exists in the Frontdoor resource
+				if _, err = client.Get(ctx, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName); err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("retrieving the Custom HTTPS Configuration(ID: %q) for the frontend endpoint (ID: %q): %s", custom.ID(), frontend.ID(), err)
+				}
+
+				// set the new values for the custom HTTPS configuration resource
+				d.Set("id", custom.ID())
+				d.Set("frontend_endpoint_id", frontend.ID())
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -81,8 +104,6 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 	}
 
 	customHttpsConfigurationId := parse.NewCustomHttpsConfigurationID(frontendEndpointId.SubscriptionId, frontendEndpointId.ResourceGroup, frontendEndpointId.FrontDoorName, frontendEndpointId.Name)
-
-	// TODO: Requires Import support
 
 	resp, err := client.Get(ctx, frontendEndpointId.ResourceGroup, frontendEndpointId.FrontDoorName, frontendEndpointId.Name)
 	if err != nil {
