@@ -5,9 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -93,11 +93,33 @@ func resourceStorageAccountNetworkRules() *schema.Resource {
 					string(storage.DefaultActionDeny),
 				}, false),
 			},
+
+			"private_link_access": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint_resource_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.PrivateEndpointID,
+						},
+
+						"endpoint_tenant_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
 func resourceStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,6 +158,7 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta
 	rules.Bypass = expandStorageAccountNetworkRuleBypass(d.Get("bypass").(*schema.Set).List())
 	rules.IPRules = expandStorageAccountNetworkRuleIpRules(d.Get("ip_rules").(*schema.Set).List())
 	rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(d.Get("virtual_network_subnet_ids").(*schema.Set).List())
+	rules.ResourceAccessRules = expandStorageAccountPrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
 
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -184,6 +207,9 @@ func resourceStorageAccountNetworkRulesRead(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error setting `bypass`: %+v", err)
 		}
 		d.Set("default_action", string(rules.DefaultAction))
+		if err := d.Set("private_link_access", flattenStorageAccountPrivateLinkAccess(rules.ResourceAccessRules)); err != nil {
+			return fmt.Errorf("setting `private_link_access`: %+v", err)
+		}
 	}
 
 	return nil

@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -286,6 +287,27 @@ func resourceStorageAccount() *schema.Resource {
 								string(storage.DefaultActionAllow),
 								string(storage.DefaultActionDeny),
 							}, false),
+						},
+
+						"private_link_access": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"endpoint_resource_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: networkValidate.PrivateEndpointID,
+									},
+
+									"endpoint_tenant_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IsUUID,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -737,6 +759,7 @@ func resourceStorageAccount() *schema.Resource {
 
 func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
+	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -780,7 +803,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
+			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
 			IsHnsEnabled:           &isHnsEnabled,
 			EnableNfsV3:            &nfsV3Enabled,
 		},
@@ -964,6 +987,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
+	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1126,12 +1150,12 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("network_rules") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: expandStorageAccountNetworkRules(d),
+				NetworkRuleSet: expandStorageAccountNetworkRules(d, tenantId),
 			},
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
+			return fmt.Errorf("updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1646,7 +1670,7 @@ func expandArmStorageAccountRouting(input []interface{}) *storage.RoutingPrefere
 	}
 }
 
-func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
+func expandStorageAccountNetworkRules(d *schema.ResourceData, tenantId string) *storage.NetworkRuleSet {
 	networkRules := d.Get("network_rules").([]interface{})
 	if len(networkRules) == 0 {
 		// Default access is enabled when no network rules are set.
@@ -1658,6 +1682,7 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 		IPRules:             expandStorageAccountIPRules(networkRule),
 		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
 		Bypass:              expandStorageAccountBypass(networkRule),
+		ResourceAccessRules: expandStorageAccountPrivateLinkAccess(networkRule["private_link_access"].([]interface{}), tenantId),
 	}
 
 	if v := networkRule["default_action"]; v != nil {
@@ -1708,6 +1733,25 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	}
 
 	return storage.Bypass(strings.Join(bypassValues, ", "))
+}
+
+func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
+	privateLinkAccess := make([]storage.ResourceAccessRule, 0)
+	if len(inputs) == 0 {
+		return &privateLinkAccess
+	}
+	for _, input := range inputs {
+		accessRule := input.(map[string]interface{})
+		if v := accessRule["endpoint_tenant_id"].(string); v != "" {
+			tenantId = v
+		}
+		privateLinkAccess = append(privateLinkAccess, storage.ResourceAccessRule{
+			TenantID:   utils.String(tenantId),
+			ResourceID: utils.String(accessRule["endpoint_resource_id"].(string)),
+		})
+	}
+
+	return &privateLinkAccess
 }
 
 func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
@@ -2036,6 +2080,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
 	networkRules["default_action"] = string(input.DefaultAction)
+	networkRules["private_link_access"] = flattenStorageAccountPrivateLinkAccess(input.ResourceAccessRules)
 
 	return []interface{}{networkRules}
 }
@@ -2072,6 +2117,31 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	}
 
 	return virtualNetworks
+}
+
+func flattenStorageAccountPrivateLinkAccess(inputs *[]storage.ResourceAccessRule) []interface{} {
+	if inputs == nil || len(*inputs) == 0 {
+		return []interface{}{}
+	}
+
+	accessRules := make([]interface{}, 0)
+	for _, input := range *inputs {
+		var resourceId, tenantId string
+		if input.ResourceID != nil {
+			resourceId = *input.ResourceID
+		}
+
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
+
+		accessRules = append(accessRules, map[string]interface{}{
+			"endpoint_resource_id": resourceId,
+			"endpoint_tenant_id":   tenantId,
+		})
+	}
+
+	return accessRules
 }
 
 func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
