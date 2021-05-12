@@ -63,15 +63,8 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"withFilters":                testAccNetworkPacketCapture_withFilters,
 			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
 		},
-		"FlowLog": {
-			"basic":                testAccNetworkWatcherFlowLog_basic,
-			"disabled":             testAccNetworkWatcherFlowLog_disabled,
-			"reenabled":            testAccNetworkWatcherFlowLog_reenabled,
-			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
-			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
-			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
-			"version":              testAccNetworkWatcherFlowLog_version,
-		},
+
+		// The FlowLog has been removed from this list as all its test cases are not parallel test cases, which are guaranteed to run in sequential and exclusively.
 	}
 
 	for group, m := range testCases {
