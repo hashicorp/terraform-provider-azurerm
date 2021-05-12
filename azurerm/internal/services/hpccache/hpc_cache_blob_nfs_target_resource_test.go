@@ -263,8 +263,8 @@ resource "azurerm_storage_account" "test" {
   name                      = "accteststorgacc%[3]s"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_kind             = "StorageV2"
+  account_tier              = "Standard"
+  account_kind              = "StorageV2"
   account_replication_type  = "LRS"
   is_hns_enabled            = true
   nfsv3_enabled             = true
@@ -285,13 +285,13 @@ resource "azurerm_resource_group_template_deployment" "storage-containers" {
   deployment_mode     = "Incremental"
 
   parameters_content = jsonencode({
-    location           = {
+    location = {
       value = azurerm_storage_account.test.location
     },
     storageAccountName = {
       value = azurerm_storage_account.test.name
     },
-    containerName      = {
+    containerName = {
       value = "acctest-strgctn-hpc-%[1]d"
     }
   })
