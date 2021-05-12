@@ -264,6 +264,7 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv4.1"]
+  security_style      = "Unix"
   storage_quota_in_gb = 100
 
   export_policy_rule {
