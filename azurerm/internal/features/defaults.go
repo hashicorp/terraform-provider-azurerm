@@ -20,8 +20,7 @@ func Default() UserFeatures {
 			DeleteOSDiskOnDeletion: true,
 			GracefulShutdown:       false,
 			// TODO: this should likely be defaulted true in 3.0
-			ForceDelete:            false,
-			ShutdownBeforeDeletion: true,
+			SkipShutdownAndForceDelete: false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			// TODO: this should likely be defaulted true in 3.0

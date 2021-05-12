@@ -1193,7 +1193,7 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if meta.(*clients.Client).Features.VirtualMachine.ShutdownBeforeDeletion {
+	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
 		// If the VM was in a Failed state we can skip powering off, since that'll fail
 		if strings.EqualFold(*existing.ProvisioningState, "failed") {
 			log.Printf("[DEBUG] Powering Off Windows Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
@@ -1221,7 +1221,7 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
 	// conditionally set this if required
 	var forceDeletion *bool = nil
-	if meta.(*clients.Client).Features.VirtualMachine.ForceDelete {
+	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
 		forceDeletion = utils.Bool(true)
 	}
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
