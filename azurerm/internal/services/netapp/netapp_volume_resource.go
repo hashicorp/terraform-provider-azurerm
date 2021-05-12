@@ -122,9 +122,10 @@ func resourceNetAppVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"unix",
-					"ntfs",
+					"Unix",
+					"Ntfs",
 				}, false),
 			},
 
@@ -291,12 +292,16 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		protocols = append(protocols, "NFSv3")
 	}
 
+	// Handling security style property
 	securityStyle := d.Get("security_style").(string)
 	if strings.ToLower(securityStyle) == "unix" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "cifs" {
 		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
 	}
 	if strings.ToLower(securityStyle) == "ntfs" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "nfsv3" || strings.ToLower(protocols[0].(string)) == "nfsv4.1" {
 		return fmt.Errorf("NTFS security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+	}
+	if securityStyle == "" && len(protocols) == 2 {
+		securityStyle = "Unix"
 	}
 
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
