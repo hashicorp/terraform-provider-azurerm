@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
 
-* `volume_path` - The unique file path of the volume.
+* `protocols` - A list of protocol types enabled on volume.
 
 * `service_level` - The service level of the file system.
 
@@ -53,11 +53,26 @@ The following attributes are exported:
 
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
  
-* `protocols` - Volume protocol(s)
-
 * `security_style` - Volume security style
 
-* `data_protection_replication` - Volume data protection object
+* `data_protection_replication` - Volume data protection block
+* 
+* `volume_path` - The unique file path of the volume.
+
+---
+
+A `data_protection_replication` block exports the following:
+
+* `endpoint_type` - The endpoint type.
+
+* `remote_volume_location` - Location of the primary volume.
+
+* `remote_volume_resource_id` - Resource ID of the primary volume.
+
+* `replication_frequency` - Frequency of replication.
+
+---
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

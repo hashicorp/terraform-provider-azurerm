@@ -170,11 +170,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
-  }
 }
 `, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -195,11 +190,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "import" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, r.basic(data))
@@ -277,11 +267,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     excluded_paths = ["/\"_etag\"/?"]
   }
 
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
-  }
-
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -309,11 +294,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)

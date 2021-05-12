@@ -121,7 +121,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -193,7 +193,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		Location: template.Location,
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: template.Properties.DebugSetting,
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: template.Tags,
 	}

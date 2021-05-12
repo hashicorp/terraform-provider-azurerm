@@ -175,14 +175,14 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	if v, ok := d.GetOk("connection_string"); ok {
 		blobStorageProperties.ConnectionString = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
 		blobStorageProperties.SasURI = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
@@ -193,7 +193,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
@@ -204,7 +204,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureBlobStorageLinkedServiceTypeProperties: blobStorageProperties,
-		Type: datafactory.TypeAzureBlobStorage,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -275,7 +275,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 
 	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage, *resp.Type)
 	}
 
 	if blobStorage != nil {

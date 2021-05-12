@@ -154,7 +154,7 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.ResourceDat
 			ConnectionString: d.Get("connection_string").(string),
 			Password:         expandAzureKeyVaultPassword(password),
 		},
-		Type: datafactory.TypeSQLServer,
+		Type: datafactory.TypeBasicLinkedServiceTypeSQLServer,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -222,7 +222,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, meta 
 
 	sqlServer, ok := resp.Properties.AsSQLServerLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeSQLServer, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSQLServer, *resp.Type)
 	}
 
 	d.Set("additional_properties", sqlServer.AdditionalProperties)

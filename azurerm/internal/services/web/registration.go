@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 )
 
 type Registration struct{}
@@ -50,5 +51,22 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_app_service":                                       resourceAppService(),
 		"azurerm_function_app":                                      resourceFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceFunctionAppSlot(),
+	}
+}
+
+// PackagePath is the relative path to this package
+func (r Registration) PackagePath() string {
+	return "TODO: do we need this?"
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		AppServiceEnvironmentV3DataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		AppServiceEnvironmentV3Resource{},
 	}
 }

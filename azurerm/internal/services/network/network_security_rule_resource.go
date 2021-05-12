@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -62,6 +62,8 @@ func resourceNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
 					string(network.SecurityRuleProtocolIcmp),
+					string(network.SecurityRuleProtocolAh),
+					string(network.SecurityRuleProtocolEsp),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},

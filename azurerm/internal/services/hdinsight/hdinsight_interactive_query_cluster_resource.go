@@ -32,6 +32,8 @@ var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefiniti
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
+	CanAutoScaleByCapacity:  true,
+	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
@@ -192,7 +194,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,

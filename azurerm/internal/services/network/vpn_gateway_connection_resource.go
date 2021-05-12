@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 
@@ -228,14 +228,14 @@ func resourceVPNGatewayConnection() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.None),
-											string(network.DHGroup1),
-											string(network.DHGroup2),
-											string(network.DHGroup14),
-											string(network.DHGroup24),
-											string(network.DHGroup2048),
-											string(network.ECP256),
-											string(network.ECP384),
+											string(network.DhGroupNone),
+											string(network.DhGroupDHGroup1),
+											string(network.DhGroupDHGroup2),
+											string(network.DhGroupDHGroup14),
+											string(network.DhGroupDHGroup24),
+											string(network.DhGroupDHGroup2048),
+											string(network.DhGroupECP256),
+											string(network.DhGroupECP384),
 										}, false),
 									},
 

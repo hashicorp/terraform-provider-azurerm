@@ -161,7 +161,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.R
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
@@ -175,7 +175,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.R
 	datalakeStorageGen2LinkedService := &datafactory.AzureBlobFSLinkedService{
 		Description:                            utils.String(d.Get("description").(string)),
 		AzureBlobFSLinkedServiceTypeProperties: datalakeStorageGen2Properties,
-		Type:                                   datafactory.TypeAzureBlobFS,
+		Type:                                   datafactory.TypeBasicLinkedServiceTypeAzureBlobFS,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -247,7 +247,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceD
 	dataLakeStorageGen2, ok := resp.Properties.AsAzureBlobFSLinkedService()
 
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobFS, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobFS, *resp.Type)
 	}
 
 	if dataLakeStorageGen2.Tenant != nil {

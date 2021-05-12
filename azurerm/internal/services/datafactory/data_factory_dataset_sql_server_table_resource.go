@@ -208,7 +208,7 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceData
 		sqlServerTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeSQLServerTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypeSQLServerTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &sqlServerTableset,
 		Type:       &datasetType,
@@ -261,7 +261,7 @@ func resourceDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, meta i
 
 	sqlServerTable, ok := resp.Properties.AsSQLServerTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServerTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeSQLServerTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", sqlServerTable.AdditionalProperties)

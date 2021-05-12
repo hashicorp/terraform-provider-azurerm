@@ -62,13 +62,13 @@ func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.MicrosoftCloudAppSecurity),
-					string(securityinsight.AzureSecurityCenter),
-					string(securityinsight.AzureActiveDirectoryIdentityProtection),
-					string(securityinsight.AzureSecurityCenterforIoT),
-					string(securityinsight.AzureAdvancedThreatProtection),
-					string(securityinsight.MicrosoftDefenderAdvancedThreatProtection),
-					string(securityinsight.Office365AdvancedThreatProtection),
+					string(securityinsight.MicrosoftSecurityProductNameMicrosoftCloudAppSecurity),
+					string(securityinsight.MicrosoftSecurityProductNameAzureSecurityCenter),
+					string(securityinsight.MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection),
+					string(securityinsight.MicrosoftSecurityProductNameAzureSecurityCenterforIoT),
+					string(securityinsight.MicrosoftSecurityProductNameAzureAdvancedThreatProtection),
+					string(securityinsight.MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection),
+					string(securityinsight.MicrosoftSecurityProductNameOffice365AdvancedThreatProtection),
 				}, false),
 			},
 
@@ -79,10 +79,10 @@ func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(securityinsight.High),
-						string(securityinsight.Medium),
-						string(securityinsight.Low),
-						string(securityinsight.Informational),
+						string(securityinsight.AlertSeverityHigh),
+						string(securityinsight.AlertSeverityMedium),
+						string(securityinsight.AlertSeverityLow),
+						string(securityinsight.AlertSeverityInformational),
 					}, false),
 				},
 			},
@@ -171,7 +171,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceD
 	}
 
 	param := securityinsight.MicrosoftSecurityIncidentCreationAlertRule{
-		Kind: securityinsight.KindMicrosoftSecurityIncidentCreation,
+		Kind: securityinsight.KindBasicAlertRuleKindMicrosoftSecurityIncidentCreation,
 		MicrosoftSecurityIncidentCreationAlertRuleProperties: &securityinsight.MicrosoftSecurityIncidentCreationAlertRuleProperties{
 			ProductFilter:    securityinsight.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
 			DisplayName:      utils.String(d.Get("display_name").(string)),

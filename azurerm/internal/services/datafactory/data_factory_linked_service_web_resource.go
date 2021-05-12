@@ -142,7 +142,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, met
 
 	webLinkedService := &datafactory.WebLinkedService{
 		Description: &description,
-		Type:        datafactory.TypeWeb,
+		Type:        datafactory.TypeBasicLinkedServiceTypeWeb,
 	}
 
 	url := d.Get("url").(string)
@@ -161,7 +161,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, met
 		password := d.Get("password").(string)
 		passwordSecureString := datafactory.SecureString{
 			Value: &password,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		basicAuthProperties := &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
@@ -240,7 +240,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta interf
 
 	web, ok := resp.Properties.AsWebLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeWeb, *resp.Type)
 	}
 
 	isWebPropertiesLoaded := false

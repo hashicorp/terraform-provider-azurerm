@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -159,6 +159,32 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							),
 						},
 
+						"coverage_level": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.AboveAverage),
+								string(network.Average),
+								string(network.BelowAverage),
+								string(network.Default),
+								string(network.Full),
+								string(network.Low),
+							}, false),
+						},
+
+						"excluded_ip_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.Any(
+									validation.IsIPv4Address,
+									validation.IsIPv6Address,
+									validation.IsCIDR,
+								),
+							},
+						},
+
 						"filter": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -200,10 +226,50 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
+						"included_ip_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.Any(
+									validation.IsIPv4Address,
+									validation.IsIPv6Address,
+									validation.IsCIDR,
+								),
+							},
+						},
+
+						"target_resource_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.Any(
+								computeValidate.VirtualMachineID,
+								logAnalyticsValidate.LogAnalyticsWorkspaceID,
+								networkValidate.SubnetID,
+								networkValidate.VirtualNetworkID,
+							),
+						},
+
+						"target_resource_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.AzureSubnet),
+								string(network.AzureVM),
+								string(network.AzureVNet),
+								string(network.ExternalAddress),
+								string(network.MMAWorkspaceMachine),
+								string(network.MMAWorkspaceNetwork),
+							}, false),
+						},
+
+						// TODO 3.0 - remove this property
 						"virtual_machine_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: computeValidate.VirtualMachineID,
+							Deprecated:   "This property has been renamed to `target_resource_id` and will be removed in v3.0 of the provider.",
 						},
 					},
 				},
@@ -473,18 +539,23 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta i
 		Location: utils.String(location),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
-			Endpoints:          expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
 			Outputs:            expandNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
 			TestConfigurations: expandNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
 			TestGroups:         expandNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
 		},
 	}
 
+	if v, err := expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()); err == nil {
+		properties.ConnectionMonitorParameters.Endpoints = v
+	} else {
+		return err
+	}
+
 	if notes, ok := d.GetOk("notes"); ok {
 		properties.Notes = utils.String(notes.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, properties, "") // empty string indicating we are not migrating V1 to V2
 	if err != nil {
 		return fmt.Errorf("Error creating Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
@@ -585,11 +656,15 @@ func resourceNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.ConnectionMonitorEndpoint {
+func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.ConnectionMonitorEndpoint, error) {
 	results := make([]network.ConnectionMonitorEndpoint, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
+
+		if v["target_resource_id"] != nil && v["target_resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
+			return nil, fmt.Errorf("`target_resource_id` and `virtual_machine_id` cannot be set together")
+		}
 
 		result := network.ConnectionMonitorEndpoint{
 			Name:   utils.String(v["name"].(string)),
@@ -600,14 +675,53 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.Conn
 			result.Address = utils.String(address.(string))
 		}
 
-		if resourceId := v["virtual_machine_id"]; resourceId != "" {
+		if coverageLevel := v["coverage_level"]; coverageLevel != "" {
+			result.CoverageLevel = network.CoverageLevel(coverageLevel.(string))
+		}
+
+		excludedItems := v["excluded_ip_addresses"].(*schema.Set).List()
+		includedItems := v["included_ip_addresses"].(*schema.Set).List()
+		if len(excludedItems) != 0 || len(includedItems) != 0 {
+			result.Scope = &network.ConnectionMonitorEndpointScope{}
+
+			if len(excludedItems) != 0 {
+				var excludedAddresses []network.ConnectionMonitorEndpointScopeItem
+				for _, v := range excludedItems {
+					excludedAddresses = append(excludedAddresses, network.ConnectionMonitorEndpointScopeItem{
+						Address: utils.String(v.(string)),
+					})
+				}
+				result.Scope.Exclude = &excludedAddresses
+			}
+
+			if len(includedItems) != 0 {
+				var includedAddresses []network.ConnectionMonitorEndpointScopeItem
+				for _, v := range includedItems {
+					includedAddresses = append(includedAddresses, network.ConnectionMonitorEndpointScopeItem{
+						Address: utils.String(v.(string)),
+					})
+				}
+				result.Scope.Include = &includedAddresses
+			}
+		}
+
+		if resourceId := v["target_resource_id"]; resourceId != "" {
 			result.ResourceID = utils.String(resourceId.(string))
+		}
+
+		if endpointType := v["target_resource_type"]; endpointType != "" {
+			result.Type = network.EndpointType(endpointType.(string))
+		}
+
+		// TODO: remove in v3.0
+		if vmId := v["virtual_machine_id"]; vmId != "" {
+			result.ResourceID = utils.String(vmId.(string))
 		}
 
 		results = append(results, result)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *network.ConnectionMonitorEndpointFilter {
@@ -814,16 +928,54 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 			address = *item.Address
 		}
 
+		var coverageLevel string
+		if item.CoverageLevel != "" {
+			coverageLevel = string(item.CoverageLevel)
+		}
+
+		var endpointType string
+		if item.Type != "" {
+			endpointType = string(item.Type)
+		}
+
 		var resourceId string
 		if item.ResourceID != nil {
 			resourceId = *item.ResourceID
 		}
 
 		v := map[string]interface{}{
-			"name":               name,
-			"address":            address,
-			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
-			"virtual_machine_id": resourceId,
+			"name":                 name,
+			"address":              address,
+			"coverage_level":       coverageLevel,
+			"target_resource_id":   resourceId,
+			"target_resource_type": endpointType,
+			"filter":               flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
+		}
+
+		if scope := item.Scope; scope != nil {
+			if includeScope := scope.Include; includeScope != nil {
+				includedAddresses := make([]interface{}, 0)
+
+				for _, includedItem := range *includeScope {
+					if includedAddress := includedItem.Address; includedAddress != nil {
+						includedAddresses = append(includedAddresses, includedAddress)
+					}
+				}
+
+				v["included_ip_addresses"] = includedAddresses
+			}
+
+			if excludeScope := scope.Exclude; excludeScope != nil {
+				excludedAddresses := make([]interface{}, 0)
+
+				for _, excludedItem := range *excludeScope {
+					if excludedAddress := excludedItem.Address; excludedAddress != nil {
+						excludedAddresses = append(excludedAddresses, excludedAddress)
+					}
+				}
+
+				v["excluded_ip_addresses"] = excludedAddresses
+			}
 		}
 
 		results = append(results, v)

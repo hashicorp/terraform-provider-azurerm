@@ -72,6 +72,14 @@ func dataSourcePublicIP() *schema.Resource {
 				Computed: true,
 			},
 
+			"ip_tags": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"zones": azure.SchemaZonesComputed(),
 
 			"tags": tags.Schema(),

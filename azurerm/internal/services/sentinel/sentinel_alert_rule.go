@@ -23,6 +23,8 @@ func alertRuleID(rule securityinsight.BasicAlertRule) *string {
 		return rule.ID
 	case securityinsight.ScheduledAlertRule:
 		return rule.ID
+	case securityinsight.MLBehaviorAnalyticsAlertRule:
+		return rule.ID
 	default:
 		return nil
 	}
@@ -51,6 +53,8 @@ func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) pluginsdk
 func assertAlertRuleKind(rule securityinsight.BasicAlertRule, expectKind securityinsight.AlertRuleKind) error {
 	var kind securityinsight.AlertRuleKind
 	switch rule.(type) {
+	case securityinsight.MLBehaviorAnalyticsAlertRule:
+		kind = securityinsight.AlertRuleKindMLBehaviorAnalytics
 	case securityinsight.FusionAlertRule:
 		kind = securityinsight.AlertRuleKindFusion
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRule:
