@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - export the `ingress_application_gateway_identity` attribute for the `ingress_application_gateway` add-on [GH-11622]
 * `azurerm_managed_disk` - support for the `tier` property [GH-11634]
 * `azurerm_storage_account` - support for the `azure_files_identity_based_authentication` and `routing_preference` blocks [GH-11485]
+* `azurerm_storage_account` - support for the `private_link_access` property [GH-11629]
 
 BUG FIXES
 
