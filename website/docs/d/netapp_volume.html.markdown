@@ -52,7 +52,12 @@ The following attributes are exported:
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
+ 
+* `protocols` - Volume protocol(s)
 
+* `security_style` - Volume security style
+
+* `data_protection_replication` - Volume data protection object
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
