@@ -100,6 +100,11 @@ func resourceRedisCache() *schema.Resource {
 				}, false),
 			},
 
+			"replicas_per_master": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"shard_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -340,6 +345,11 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandedTags,
 	}
 
+	if v, ok := d.GetOk("replicas_per_master"); ok {
+		replicasPerMaster := int32(v.(int))
+		parameters.ReplicasPerMaster = &replicasPerMaster
+	}
+
 	if v, ok := d.GetOk("shard_count"); ok {
 		shardCount := int32(v.(int))
 		parameters.ShardCount = &shardCount
@@ -433,6 +443,13 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 			},
 		},
 		Tags: expandedTags,
+	}
+
+	if v, ok := d.GetOk("replicas_per_master"); ok {
+		if d.HasChange("replicas_per_master") {
+			replicasPerMaster := int32(v.(int))
+			parameters.replicasPerMaster = &replicasPerMaster
+		}
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
@@ -545,6 +562,9 @@ func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		if props.RepliasPerMaster != nil {
+			d.Set("replicas_per_master", props.ReplicasPerMaster)
+		}
 		if props.ShardCount != nil {
 			d.Set("shard_count", props.ShardCount)
 		}
