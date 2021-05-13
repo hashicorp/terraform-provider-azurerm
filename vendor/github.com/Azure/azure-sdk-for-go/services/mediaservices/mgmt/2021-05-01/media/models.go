@@ -19,11 +19,11 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 
 // AacAudio describes Advanced Audio Codec (AAC) audio encoding settings.
 type AacAudio struct {
-	// Profile - The encoding profile to be used when encoding audio with AAC. Possible values include: 'AacLc', 'HeAacV1', 'HeAacV2'
+	// Profile - The encoding profile to be used when encoding audio with AAC. Possible values include: 'AacAudioProfileAacLc', 'AacAudioProfileHeAacV1', 'AacAudioProfileHeAacV2'
 	Profile AacAudioProfile `json:"profile,omitempty"`
 	// Channels - The number of channels in the audio.
 	Channels *int32 `json:"channels,omitempty"`
@@ -33,13 +33,13 @@ type AacAudio struct {
 	Bitrate *int32 `json:"bitrate,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AacAudio.
 func (aa AacAudio) MarshalJSON() ([]byte, error) {
-	aa.OdataType = OdataTypeMicrosoftMediaAacAudio
+	aa.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio
 	objectMap := make(map[string]interface{})
 	if aa.Profile != "" {
 		objectMap["profile"] = aa.Profile
@@ -143,13 +143,13 @@ func (aa AacAudio) AsBasicCodec() (BasicCodec, bool) {
 type AbsoluteClipTime struct {
 	// Time - The time position on the timeline of the input media. It is usually specified as an ISO8601 period. e.g PT30S for 30 seconds.
 	Time *string `json:"time,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeMicrosoftMediaUtcClipTime'
+	// OdataType - Possible values include: 'OdataTypeBasicClipTimeOdataTypeClipTime', 'OdataTypeBasicClipTimeOdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeBasicClipTimeOdataTypeMicrosoftMediaUtcClipTime'
 	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AbsoluteClipTime.
 func (act AbsoluteClipTime) MarshalJSON() ([]byte, error) {
-	act.OdataType = OdataTypeMicrosoftMediaAbsoluteClipTime
+	act.OdataType = OdataTypeBasicClipTimeOdataTypeMicrosoftMediaAbsoluteClipTime
 	objectMap := make(map[string]interface{})
 	if act.Time != nil {
 		objectMap["time"] = act.Time
@@ -180,9 +180,17 @@ func (act AbsoluteClipTime) AsBasicClipTime() (BasicClipTime, bool) {
 	return &act, true
 }
 
+// AccessControl ...
+type AccessControl struct {
+	// DefaultAction - The behavior for IP access control in Key Delivery. Possible values include: 'DefaultActionAllow', 'DefaultActionDeny'
+	DefaultAction DefaultAction `json:"defaultAction,omitempty"`
+	// IPAllowList - The IP allow list for access control in Key Delivery. If the default action is set to 'Allow', the IP allow list must be empty.
+	IPAllowList *[]string `json:"ipAllowList,omitempty"`
+}
+
 // AccountEncryption ...
 type AccountEncryption struct {
-	// Type - The type of key used to encrypt the Account Key. Possible values include: 'SystemKey', 'CustomerKey'
+	// Type - The type of key used to encrypt the Account Key. Possible values include: 'AccountEncryptionKeyTypeSystemKey', 'AccountEncryptionKeyTypeCustomerKey'
 	Type AccountEncryptionKeyType `json:"type,omitempty"`
 	// KeyVaultProperties - The properties of the key used to encrypt the account.
 	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
@@ -970,7 +978,7 @@ type AssetProperties struct {
 	Container *string `json:"container,omitempty"`
 	// StorageAccountName - The name of the storage account.
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
-	// StorageEncryptionFormat - READ-ONLY; The Asset encryption format. One of None or MediaStorageEncryption. Possible values include: 'None', 'MediaStorageClientEncryption'
+	// StorageEncryptionFormat - READ-ONLY; The Asset encryption format. One of None or MediaStorageEncryption. Possible values include: 'AssetStorageEncryptionFormatNone', 'AssetStorageEncryptionFormatMediaStorageClientEncryption'
 	StorageEncryptionFormat AssetStorageEncryptionFormat `json:"storageEncryptionFormat,omitempty"`
 }
 
@@ -1012,6 +1020,12 @@ type AssetStreamingLocator struct {
 	DefaultContentKeyPolicyName *string `json:"defaultContentKeyPolicyName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssetStreamingLocator.
+func (asl AssetStreamingLocator) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BasicAudio defines the common properties for all audio codecs.
 type BasicAudio interface {
 	AsAacAudio() (*AacAudio, bool)
@@ -1028,7 +1042,7 @@ type Audio struct {
 	Bitrate *int32 `json:"bitrate,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -1040,7 +1054,7 @@ func unmarshalBasicAudio(body []byte) (BasicAudio, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaAacAudio):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio):
 		var aa AacAudio
 		err := json.Unmarshal(body, &aa)
 		return aa, err
@@ -1071,7 +1085,7 @@ func unmarshalBasicAudioArray(body []byte) ([]BasicAudio, error) {
 
 // MarshalJSON is the custom marshaler for Audio.
 func (a Audio) MarshalJSON() ([]byte, error) {
-	a.OdataType = OdataTypeMicrosoftMediaAudio
+	a.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio
 	objectMap := make(map[string]interface{})
 	if a.Channels != nil {
 		objectMap["channels"] = a.Channels
@@ -1179,11 +1193,11 @@ type BasicAudioAnalyzerPreset interface {
 type AudioAnalyzerPreset struct {
 	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode::Basic, since automatic language detection is not included in basic mode. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
 	AudioLanguage *string `json:"audioLanguage,omitempty"`
-	// Mode - Determines the set of audio analysis operations to be performed. If unspecified, the Standard AudioAnalysisMode would be chosen. Possible values include: 'Standard', 'Basic'
+	// Mode - Determines the set of audio analysis operations to be performed. If unspecified, the Standard AudioAnalysisMode would be chosen. Possible values include: 'AudioAnalysisModeStandard', 'AudioAnalysisModeBasic'
 	Mode AudioAnalysisMode `json:"mode,omitempty"`
 	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
 	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
-	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
+	// OdataType - Possible values include: 'OdataTypeBasicPresetOdataTypePreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
 
@@ -1195,7 +1209,7 @@ func unmarshalBasicAudioAnalyzerPreset(body []byte) (BasicAudioAnalyzerPreset, e
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaVideoAnalyzerPreset):
+	case string(OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset):
 		var vap VideoAnalyzerPreset
 		err := json.Unmarshal(body, &vap)
 		return vap, err
@@ -1226,7 +1240,7 @@ func unmarshalBasicAudioAnalyzerPresetArray(body []byte) ([]BasicAudioAnalyzerPr
 
 // MarshalJSON is the custom marshaler for AudioAnalyzerPreset.
 func (aap AudioAnalyzerPreset) MarshalJSON() ([]byte, error) {
-	aap.OdataType = OdataTypeMicrosoftMediaAudioAnalyzerPreset
+	aap.OdataType = OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset
 	objectMap := make(map[string]interface{})
 	if aap.AudioLanguage != nil {
 		objectMap["audioLanguage"] = aap.AudioLanguage
@@ -1297,13 +1311,13 @@ type AudioOverlay struct {
 	FadeOutDuration *string `json:"fadeOutDuration,omitempty"`
 	// AudioGainLevel - The gain level of audio in the overlay. The value should be in the range [0, 1.0]. The default is 1.0.
 	AudioGainLevel *float64 `json:"audioGainLevel,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeOverlay', 'OdataTypeMicrosoftMediaAudioOverlay', 'OdataTypeMicrosoftMediaVideoOverlay'
+	// OdataType - Possible values include: 'OdataTypeBasicOverlayOdataTypeOverlay', 'OdataTypeBasicOverlayOdataTypeMicrosoftMediaAudioOverlay', 'OdataTypeBasicOverlayOdataTypeMicrosoftMediaVideoOverlay'
 	OdataType OdataTypeBasicOverlay `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AudioOverlay.
 func (ao AudioOverlay) MarshalJSON() ([]byte, error) {
-	ao.OdataType = OdataTypeMicrosoftMediaAudioOverlay
+	ao.OdataType = OdataTypeBasicOverlayOdataTypeMicrosoftMediaAudioOverlay
 	objectMap := make(map[string]interface{})
 	if ao.InputLabel != nil {
 		objectMap["inputLabel"] = ao.InputLabel
@@ -1358,9 +1372,9 @@ type BasicAudioTrackDescriptor interface {
 
 // AudioTrackDescriptor a TrackSelection to select audio tracks.
 type AudioTrackDescriptor struct {
-	// ChannelMapping - Optional designation for single channel audio tracks.  Can be used to combine the tracks into stereo or multi-channel audio tracks. Possible values include: 'FrontLeft', 'FrontRight', 'Center', 'LowFrequencyEffects', 'BackLeft', 'BackRight', 'StereoLeft', 'StereoRight'
+	// ChannelMapping - Optional designation for single channel audio tracks.  Can be used to combine the tracks into stereo or multi-channel audio tracks. Possible values include: 'ChannelMappingFrontLeft', 'ChannelMappingFrontRight', 'ChannelMappingCenter', 'ChannelMappingLowFrequencyEffects', 'ChannelMappingBackLeft', 'ChannelMappingBackRight', 'ChannelMappingStereoLeft', 'ChannelMappingStereoRight'
 	ChannelMapping ChannelMapping `json:"channelMapping,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
@@ -1372,11 +1386,11 @@ func unmarshalBasicAudioTrackDescriptor(body []byte) (BasicAudioTrackDescriptor,
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaSelectAudioTrackByAttribute):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute):
 		var satba SelectAudioTrackByAttribute
 		err := json.Unmarshal(body, &satba)
 		return satba, err
-	case string(OdataTypeMicrosoftMediaSelectAudioTrackByID):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID):
 		var satbi SelectAudioTrackByID
 		err := json.Unmarshal(body, &satbi)
 		return satbi, err
@@ -1407,7 +1421,7 @@ func unmarshalBasicAudioTrackDescriptorArray(body []byte) ([]BasicAudioTrackDesc
 
 // MarshalJSON is the custom marshaler for AudioTrackDescriptor.
 func (atd AudioTrackDescriptor) MarshalJSON() ([]byte, error) {
-	atd.OdataType = OdataTypeMicrosoftMediaAudioTrackDescriptor
+	atd.OdataType = OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor
 	objectMap := make(map[string]interface{})
 	if atd.ChannelMapping != "" {
 		objectMap["channelMapping"] = atd.ChannelMapping
@@ -1480,18 +1494,24 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BuiltInStandardEncoderPreset describes a built-in preset for encoding the input video with the Standard
 // Encoder.
 type BuiltInStandardEncoderPreset struct {
-	// PresetName - The built-in preset to be used for encoding videos. Possible values include: 'H264SingleBitrateSD', 'H264SingleBitrate720p', 'H264SingleBitrate1080p', 'AdaptiveStreaming', 'AACGoodQualityAudio', 'ContentAwareEncodingExperimental', 'ContentAwareEncoding', 'CopyAllBitrateNonInterleaved', 'H264MultipleBitrate1080p', 'H264MultipleBitrate720p', 'H264MultipleBitrateSD', 'H265ContentAwareEncoding', 'H265AdaptiveStreaming', 'H265SingleBitrate720p', 'H265SingleBitrate1080p', 'H265SingleBitrate4K'
+	// PresetName - The built-in preset to be used for encoding videos. Possible values include: 'EncoderNamedPresetH264SingleBitrateSD', 'EncoderNamedPresetH264SingleBitrate720p', 'EncoderNamedPresetH264SingleBitrate1080p', 'EncoderNamedPresetAdaptiveStreaming', 'EncoderNamedPresetAACGoodQualityAudio', 'EncoderNamedPresetContentAwareEncodingExperimental', 'EncoderNamedPresetContentAwareEncoding', 'EncoderNamedPresetCopyAllBitrateNonInterleaved', 'EncoderNamedPresetH264MultipleBitrate1080p', 'EncoderNamedPresetH264MultipleBitrate720p', 'EncoderNamedPresetH264MultipleBitrateSD', 'EncoderNamedPresetH265ContentAwareEncoding', 'EncoderNamedPresetH265AdaptiveStreaming', 'EncoderNamedPresetH265SingleBitrate720p', 'EncoderNamedPresetH265SingleBitrate1080p', 'EncoderNamedPresetH265SingleBitrate4K'
 	PresetName EncoderNamedPreset `json:"presetName,omitempty"`
-	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
+	// OdataType - Possible values include: 'OdataTypeBasicPresetOdataTypePreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BuiltInStandardEncoderPreset.
 func (bisep BuiltInStandardEncoderPreset) MarshalJSON() ([]byte, error) {
-	bisep.OdataType = OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset
+	bisep.OdataType = OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset
 	objectMap := make(map[string]interface{})
 	if bisep.PresetName != "" {
 		objectMap["presetName"] = bisep.PresetName
@@ -1581,7 +1601,7 @@ type BasicClipTime interface {
 // ClipTime base class for specifying a clip time. Use sub classes of this class to specify the time position
 // in the media.
 type ClipTime struct {
-	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeMicrosoftMediaUtcClipTime'
+	// OdataType - Possible values include: 'OdataTypeBasicClipTimeOdataTypeClipTime', 'OdataTypeBasicClipTimeOdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeBasicClipTimeOdataTypeMicrosoftMediaUtcClipTime'
 	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
 }
 
@@ -1593,11 +1613,11 @@ func unmarshalBasicClipTime(body []byte) (BasicClipTime, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaAbsoluteClipTime):
+	case string(OdataTypeBasicClipTimeOdataTypeMicrosoftMediaAbsoluteClipTime):
 		var act AbsoluteClipTime
 		err := json.Unmarshal(body, &act)
 		return act, err
-	case string(OdataTypeMicrosoftMediaUtcClipTime):
+	case string(OdataTypeBasicClipTimeOdataTypeMicrosoftMediaUtcClipTime):
 		var uct UtcClipTime
 		err := json.Unmarshal(body, &uct)
 		return uct, err
@@ -1628,7 +1648,7 @@ func unmarshalBasicClipTimeArray(body []byte) ([]BasicClipTime, error) {
 
 // MarshalJSON is the custom marshaler for ClipTime.
 func (ct ClipTime) MarshalJSON() ([]byte, error) {
-	ct.OdataType = OdataTypeClipTime
+	ct.OdataType = OdataTypeBasicClipTimeOdataTypeClipTime
 	objectMap := make(map[string]interface{})
 	if ct.OdataType != "" {
 		objectMap["@odata.type"] = ct.OdataType
@@ -1678,7 +1698,7 @@ type BasicCodec interface {
 type Codec struct {
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -1690,43 +1710,43 @@ func unmarshalBasicCodec(body []byte) (BasicCodec, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaAudio):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio):
 		var a Audio
 		err := json.Unmarshal(body, &a)
 		return a, err
-	case string(OdataTypeMicrosoftMediaAacAudio):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio):
 		var aa AacAudio
 		err := json.Unmarshal(body, &aa)
 		return aa, err
-	case string(OdataTypeMicrosoftMediaVideo):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo):
 		var vVar Video
 		err := json.Unmarshal(body, &vVar)
 		return vVar, err
-	case string(OdataTypeMicrosoftMediaH265Video):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video):
 		var hv H265Video
 		err := json.Unmarshal(body, &hv)
 		return hv, err
-	case string(OdataTypeMicrosoftMediaCopyVideo):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo):
 		var cv CopyVideo
 		err := json.Unmarshal(body, &cv)
 		return cv, err
-	case string(OdataTypeMicrosoftMediaImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaImage):
 		var i Image
 		err := json.Unmarshal(body, &i)
 		return i, err
-	case string(OdataTypeMicrosoftMediaCopyAudio):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio):
 		var ca CopyAudio
 		err := json.Unmarshal(body, &ca)
 		return ca, err
-	case string(OdataTypeMicrosoftMediaH264Video):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video):
 		var hv H264Video
 		err := json.Unmarshal(body, &hv)
 		return hv, err
-	case string(OdataTypeMicrosoftMediaJpgImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage):
 		var ji JpgImage
 		err := json.Unmarshal(body, &ji)
 		return ji, err
-	case string(OdataTypeMicrosoftMediaPngImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage):
 		var pi PngImage
 		err := json.Unmarshal(body, &pi)
 		return pi, err
@@ -1757,7 +1777,7 @@ func unmarshalBasicCodecArray(body []byte) ([]BasicCodec, error) {
 
 // MarshalJSON is the custom marshaler for Codec.
 func (c Codec) MarshalJSON() ([]byte, error) {
-	c.OdataType = OdataTypeCodec
+	c.OdataType = OdataTypeBasicCodecOdataTypeCodec
 	objectMap := make(map[string]interface{})
 	if c.Label != nil {
 		objectMap["label"] = c.Label
@@ -1952,13 +1972,13 @@ func (ckp *ContentKeyPolicy) UnmarshalJSON(body []byte) error {
 
 // ContentKeyPolicyClearKeyConfiguration represents a configuration for non-DRM keys.
 type ContentKeyPolicyClearKeyConfiguration struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyClearKeyConfiguration.
 func (ckpckc ContentKeyPolicyClearKeyConfiguration) MarshalJSON() ([]byte, error) {
-	ckpckc.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration
+	ckpckc.OdataType = OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration
 	objectMap := make(map[string]interface{})
 	if ckpckc.OdataType != "" {
 		objectMap["@odata.type"] = ckpckc.OdataType
@@ -2174,7 +2194,7 @@ type BasicContentKeyPolicyConfiguration interface {
 // ContentKeyPolicyConfiguration base class for Content Key Policy configuration. A derived class must be used
 // to create a configuration.
 type ContentKeyPolicyConfiguration struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
 
@@ -2186,23 +2206,23 @@ func unmarshalBasicContentKeyPolicyConfiguration(body []byte) (BasicContentKeyPo
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration):
+	case string(OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration):
 		var ckpckc ContentKeyPolicyClearKeyConfiguration
 		err := json.Unmarshal(body, &ckpckc)
 		return ckpckc, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration):
+	case string(OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration):
 		var ckpuc ContentKeyPolicyUnknownConfiguration
 		err := json.Unmarshal(body, &ckpuc)
 		return ckpuc, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration):
+	case string(OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration):
 		var ckpwc ContentKeyPolicyWidevineConfiguration
 		err := json.Unmarshal(body, &ckpwc)
 		return ckpwc, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
+	case string(OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
 		var ckpprc ContentKeyPolicyPlayReadyConfiguration
 		err := json.Unmarshal(body, &ckpprc)
 		return ckpprc, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
+	case string(OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
 		var ckpfpc ContentKeyPolicyFairPlayConfiguration
 		err := json.Unmarshal(body, &ckpfpc)
 		return ckpfpc, err
@@ -2233,7 +2253,7 @@ func unmarshalBasicContentKeyPolicyConfigurationArray(body []byte) ([]BasicConte
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyConfiguration.
 func (ckpc ContentKeyPolicyConfiguration) MarshalJSON() ([]byte, error) {
-	ckpc.OdataType = OdataTypeContentKeyPolicyConfiguration
+	ckpc.OdataType = OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration
 	objectMap := make(map[string]interface{})
 	if ckpc.OdataType != "" {
 		objectMap["@odata.type"] = ckpc.OdataType
@@ -2284,19 +2304,19 @@ type ContentKeyPolicyFairPlayConfiguration struct {
 	FairPlayPfxPassword *string `json:"fairPlayPfxPassword,omitempty"`
 	// FairPlayPfx - The Base64 representation of FairPlay certificate in PKCS 12 (pfx) format (including private key).
 	FairPlayPfx *string `json:"fairPlayPfx,omitempty"`
-	// RentalAndLeaseKeyType - The rental and lease key type. Possible values include: 'Unknown', 'Undefined', 'DualExpiry', 'PersistentUnlimited', 'PersistentLimited'
+	// RentalAndLeaseKeyType - The rental and lease key type. Possible values include: 'ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeUnknown', 'ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeUndefined', 'ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeDualExpiry', 'ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentUnlimited', 'ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentLimited'
 	RentalAndLeaseKeyType ContentKeyPolicyFairPlayRentalAndLeaseKeyType `json:"rentalAndLeaseKeyType,omitempty"`
 	// RentalDuration - The rental duration. Must be greater than or equal to 0.
 	RentalDuration *int64 `json:"rentalDuration,omitempty"`
 	// OfflineRentalConfiguration - Offline rental policy
 	OfflineRentalConfiguration *ContentKeyPolicyFairPlayOfflineRentalConfiguration `json:"offlineRentalConfiguration,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyFairPlayConfiguration.
 func (ckpfpc ContentKeyPolicyFairPlayConfiguration) MarshalJSON() ([]byte, error) {
-	ckpfpc.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration
+	ckpfpc.OdataType = OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration
 	objectMap := make(map[string]interface{})
 	if ckpfpc.Ask != nil {
 		objectMap["ask"] = ckpfpc.Ask
@@ -2368,13 +2388,13 @@ type ContentKeyPolicyFairPlayOfflineRentalConfiguration struct {
 // ContentKeyPolicyOpenRestriction represents an open restriction. License or key will be delivered on
 // every request.
 type ContentKeyPolicyOpenRestriction struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeContentKeyPolicyRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
 	OdataType OdataTypeBasicContentKeyPolicyRestriction `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyOpenRestriction.
 func (ckpor ContentKeyPolicyOpenRestriction) MarshalJSON() ([]byte, error) {
-	ckpor.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction
+	ckpor.OdataType = OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction
 	objectMap := make(map[string]interface{})
 	if ckpor.OdataType != "" {
 		objectMap["@odata.type"] = ckpor.OdataType
@@ -2485,13 +2505,13 @@ type ContentKeyPolicyPlayReadyConfiguration struct {
 	Licenses *[]ContentKeyPolicyPlayReadyLicense `json:"licenses,omitempty"`
 	// ResponseCustomData - The custom response data.
 	ResponseCustomData *string `json:"responseCustomData,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyPlayReadyConfiguration.
 func (ckpprc ContentKeyPolicyPlayReadyConfiguration) MarshalJSON() ([]byte, error) {
-	ckpprc.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration
+	ckpprc.OdataType = OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration
 	objectMap := make(map[string]interface{})
 	if ckpprc.Licenses != nil {
 		objectMap["licenses"] = ckpprc.Licenses
@@ -2911,7 +2931,7 @@ type BasicContentKeyPolicyRestriction interface {
 // ContentKeyPolicyRestriction base class for Content Key Policy restrictions. A derived class must be used to
 // create a restriction.
 type ContentKeyPolicyRestriction struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeContentKeyPolicyRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
 	OdataType OdataTypeBasicContentKeyPolicyRestriction `json:"@odata.type,omitempty"`
 }
 
@@ -2923,15 +2943,15 @@ func unmarshalBasicContentKeyPolicyRestriction(body []byte) (BasicContentKeyPoli
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction):
+	case string(OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction):
 		var ckpor ContentKeyPolicyOpenRestriction
 		err := json.Unmarshal(body, &ckpor)
 		return ckpor, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction):
+	case string(OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction):
 		var ckpur ContentKeyPolicyUnknownRestriction
 		err := json.Unmarshal(body, &ckpur)
 		return ckpur, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
+	case string(OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
 		var ckptr ContentKeyPolicyTokenRestriction
 		err := json.Unmarshal(body, &ckptr)
 		return ckptr, err
@@ -2962,7 +2982,7 @@ func unmarshalBasicContentKeyPolicyRestrictionArray(body []byte) ([]BasicContent
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyRestriction.
 func (ckpr ContentKeyPolicyRestriction) MarshalJSON() ([]byte, error) {
-	ckpr.OdataType = OdataTypeContentKeyPolicyRestriction
+	ckpr.OdataType = OdataTypeBasicContentKeyPolicyRestrictionOdataTypeContentKeyPolicyRestriction
 	objectMap := make(map[string]interface{})
 	if ckpr.OdataType != "" {
 		objectMap["@odata.type"] = ckpr.OdataType
@@ -3007,7 +3027,7 @@ type BasicContentKeyPolicyRestrictionTokenKey interface {
 // ContentKeyPolicyRestrictionTokenKey base class for Content Key Policy key for token validation. A derived
 // class must be used to create a token key.
 type ContentKeyPolicyRestrictionTokenKey struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
 	OdataType OdataTypeBasicContentKeyPolicyRestrictionTokenKey `json:"@odata.type,omitempty"`
 }
 
@@ -3019,15 +3039,15 @@ func unmarshalBasicContentKeyPolicyRestrictionTokenKey(body []byte) (BasicConten
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey):
+	case string(OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey):
 		var ckpstk ContentKeyPolicySymmetricTokenKey
 		err := json.Unmarshal(body, &ckpstk)
 		return ckpstk, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey):
+	case string(OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey):
 		var ckprtk ContentKeyPolicyRsaTokenKey
 		err := json.Unmarshal(body, &ckprtk)
 		return ckprtk, err
-	case string(OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey):
+	case string(OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey):
 		var ckpxctk ContentKeyPolicyX509CertificateTokenKey
 		err := json.Unmarshal(body, &ckpxctk)
 		return ckpxctk, err
@@ -3058,7 +3078,7 @@ func unmarshalBasicContentKeyPolicyRestrictionTokenKeyArray(body []byte) ([]Basi
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyRestrictionTokenKey.
 func (ckprtk ContentKeyPolicyRestrictionTokenKey) MarshalJSON() ([]byte, error) {
-	ckprtk.OdataType = OdataTypeContentKeyPolicyRestrictionTokenKey
+	ckprtk.OdataType = OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeContentKeyPolicyRestrictionTokenKey
 	objectMap := make(map[string]interface{})
 	if ckprtk.OdataType != "" {
 		objectMap["@odata.type"] = ckprtk.OdataType
@@ -3097,13 +3117,13 @@ type ContentKeyPolicyRsaTokenKey struct {
 	Exponent *[]byte `json:"exponent,omitempty"`
 	// Modulus - The RSA Parameter modulus
 	Modulus *[]byte `json:"modulus,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
 	OdataType OdataTypeBasicContentKeyPolicyRestrictionTokenKey `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyRsaTokenKey.
 func (ckprtk ContentKeyPolicyRsaTokenKey) MarshalJSON() ([]byte, error) {
-	ckprtk.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey
+	ckprtk.OdataType = OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey
 	objectMap := make(map[string]interface{})
 	if ckprtk.Exponent != nil {
 		objectMap["exponent"] = ckprtk.Exponent
@@ -3146,13 +3166,13 @@ func (ckprtk ContentKeyPolicyRsaTokenKey) AsBasicContentKeyPolicyRestrictionToke
 type ContentKeyPolicySymmetricTokenKey struct {
 	// KeyValue - The key value of the key
 	KeyValue *[]byte `json:"keyValue,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
 	OdataType OdataTypeBasicContentKeyPolicyRestrictionTokenKey `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicySymmetricTokenKey.
 func (ckpstk ContentKeyPolicySymmetricTokenKey) MarshalJSON() ([]byte, error) {
-	ckpstk.OdataType = OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey
+	ckpstk.OdataType = OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey
 	objectMap := make(map[string]interface{})
 	if ckpstk.KeyValue != nil {
 		objectMap["keyValue"] = ckpstk.KeyValue
@@ -3213,13 +3233,13 @@ type ContentKeyPolicyTokenRestriction struct {
 	RestrictionTokenType ContentKeyPolicyRestrictionTokenType `json:"restrictionTokenType,omitempty"`
 	// OpenIDConnectDiscoveryDocument - The OpenID connect discovery document.
 	OpenIDConnectDiscoveryDocument *string `json:"openIdConnectDiscoveryDocument,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeContentKeyPolicyRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
 	OdataType OdataTypeBasicContentKeyPolicyRestriction `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyTokenRestriction.
 func (ckptr ContentKeyPolicyTokenRestriction) MarshalJSON() ([]byte, error) {
-	ckptr.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction
+	ckptr.OdataType = OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction
 	objectMap := make(map[string]interface{})
 	if ckptr.Issuer != nil {
 		objectMap["issuer"] = ckptr.Issuer
@@ -3359,13 +3379,13 @@ func (ckptr *ContentKeyPolicyTokenRestriction) UnmarshalJSON(body []byte) error 
 // ContentKeyPolicyUnknownConfiguration represents a ContentKeyPolicyConfiguration that is unavailable in
 // the current API version.
 type ContentKeyPolicyUnknownConfiguration struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyUnknownConfiguration.
 func (ckpuc ContentKeyPolicyUnknownConfiguration) MarshalJSON() ([]byte, error) {
-	ckpuc.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration
+	ckpuc.OdataType = OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration
 	objectMap := make(map[string]interface{})
 	if ckpuc.OdataType != "" {
 		objectMap["@odata.type"] = ckpuc.OdataType
@@ -3411,13 +3431,13 @@ func (ckpuc ContentKeyPolicyUnknownConfiguration) AsBasicContentKeyPolicyConfigu
 // ContentKeyPolicyUnknownRestriction represents a ContentKeyPolicyRestriction that is unavailable in the
 // current API version.
 type ContentKeyPolicyUnknownRestriction struct {
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeContentKeyPolicyRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
 	OdataType OdataTypeBasicContentKeyPolicyRestriction `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyUnknownRestriction.
 func (ckpur ContentKeyPolicyUnknownRestriction) MarshalJSON() ([]byte, error) {
-	ckpur.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction
+	ckpur.OdataType = OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction
 	objectMap := make(map[string]interface{})
 	if ckpur.OdataType != "" {
 		objectMap["@odata.type"] = ckpur.OdataType
@@ -3454,13 +3474,13 @@ func (ckpur ContentKeyPolicyUnknownRestriction) AsBasicContentKeyPolicyRestricti
 type ContentKeyPolicyWidevineConfiguration struct {
 	// WidevineTemplate - The Widevine template.
 	WidevineTemplate *string `json:"widevineTemplate,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeContentKeyPolicyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyWidevineConfiguration.
 func (ckpwc ContentKeyPolicyWidevineConfiguration) MarshalJSON() ([]byte, error) {
-	ckpwc.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration
+	ckpwc.OdataType = OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration
 	objectMap := make(map[string]interface{})
 	if ckpwc.WidevineTemplate != nil {
 		objectMap["widevineTemplate"] = ckpwc.WidevineTemplate
@@ -3510,13 +3530,13 @@ func (ckpwc ContentKeyPolicyWidevineConfiguration) AsBasicContentKeyPolicyConfig
 type ContentKeyPolicyX509CertificateTokenKey struct {
 	// RawBody - The raw data field of a certificate in PKCS 12 format (X509Certificate2 in .NET)
 	RawBody *[]byte `json:"rawBody,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
+	// OdataType - Possible values include: 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeContentKeyPolicyRestrictionTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey', 'OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey'
 	OdataType OdataTypeBasicContentKeyPolicyRestrictionTokenKey `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContentKeyPolicyX509CertificateTokenKey.
 func (ckpxctk ContentKeyPolicyX509CertificateTokenKey) MarshalJSON() ([]byte, error) {
-	ckpxctk.OdataType = OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey
+	ckpxctk.OdataType = OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey
 	objectMap := make(map[string]interface{})
 	if ckpxctk.RawBody != nil {
 		objectMap["rawBody"] = ckpxctk.RawBody
@@ -3556,13 +3576,13 @@ func (ckpxctk ContentKeyPolicyX509CertificateTokenKey) AsBasicContentKeyPolicyRe
 type CopyAudio struct {
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CopyAudio.
 func (ca CopyAudio) MarshalJSON() ([]byte, error) {
-	ca.OdataType = OdataTypeMicrosoftMediaCopyAudio
+	ca.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio
 	objectMap := make(map[string]interface{})
 	if ca.Label != nil {
 		objectMap["label"] = ca.Label
@@ -3652,13 +3672,13 @@ func (ca CopyAudio) AsBasicCodec() (BasicCodec, bool) {
 type CopyVideo struct {
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CopyVideo.
 func (cv CopyVideo) MarshalJSON() ([]byte, error) {
-	cv.OdataType = OdataTypeMicrosoftMediaCopyVideo
+	cv.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo
 	objectMap := make(map[string]interface{})
 	if cv.Label != nil {
 		objectMap["label"] = cv.Label
@@ -3762,9 +3782,9 @@ type DefaultKey struct {
 
 // Deinterlace describes the de-interlacing settings.
 type Deinterlace struct {
-	// Parity - The field parity for de-interlacing, defaults to Auto. Possible values include: 'Auto', 'TopFieldFirst', 'BottomFieldFirst'
+	// Parity - The field parity for de-interlacing, defaults to Auto. Possible values include: 'DeinterlaceParityAuto', 'DeinterlaceParityTopFieldFirst', 'DeinterlaceParityBottomFieldFirst'
 	Parity DeinterlaceParity `json:"parity,omitempty"`
-	// Mode - The deinterlacing mode. Defaults to AutoPixelAdaptive. Possible values include: 'Off', 'AutoPixelAdaptive'
+	// Mode - The deinterlacing mode. Defaults to AutoPixelAdaptive. Possible values include: 'DeinterlaceModeOff', 'DeinterlaceModeAutoPixelAdaptive'
 	Mode DeinterlaceMode `json:"mode,omitempty"`
 }
 
@@ -3834,21 +3854,21 @@ type EnvelopeEncryption struct {
 // FaceDetectorPreset describes all the settings to be used when analyzing a video in order to detect (and
 // optionally redact) all the faces present.
 type FaceDetectorPreset struct {
-	// Resolution - Specifies the maximum resolution at which your video is analyzed. The default behavior is "SourceResolution," which will keep the input video at its original resolution when analyzed. Using "StandardDefinition" will resize input videos to standard definition while preserving the appropriate aspect ratio. It will only resize if the video is of higher resolution. For example, a 1920x1080 input would be scaled to 640x360 before processing. Switching to "StandardDefinition" will reduce the time it takes to process high resolution video. It may also reduce the cost of using this component (see https://azure.microsoft.com/en-us/pricing/details/media-services/#analytics for details). However, faces that end up being too small in the resized video may not be detected. Possible values include: 'SourceResolution', 'StandardDefinition'
+	// Resolution - Specifies the maximum resolution at which your video is analyzed. The default behavior is "SourceResolution," which will keep the input video at its original resolution when analyzed. Using "StandardDefinition" will resize input videos to standard definition while preserving the appropriate aspect ratio. It will only resize if the video is of higher resolution. For example, a 1920x1080 input would be scaled to 640x360 before processing. Switching to "StandardDefinition" will reduce the time it takes to process high resolution video. It may also reduce the cost of using this component (see https://azure.microsoft.com/en-us/pricing/details/media-services/#analytics for details). However, faces that end up being too small in the resized video may not be detected. Possible values include: 'AnalysisResolutionSourceResolution', 'AnalysisResolutionStandardDefinition'
 	Resolution AnalysisResolution `json:"resolution,omitempty"`
-	// Mode - This mode provides the ability to choose between the following settings: 1) Analyze - For detection only.This mode generates a metadata JSON file marking appearances of faces throughout the video.Where possible, appearances of the same person are assigned the same ID. 2) Combined - Additionally redacts(blurs) detected faces. 3) Redact - This enables a 2-pass process, allowing for selective redaction of a subset of detected faces.It takes in the metadata file from a prior analyze pass, along with the source video, and a user-selected subset of IDs that require redaction. Possible values include: 'Analyze', 'Redact', 'Combined'
+	// Mode - This mode provides the ability to choose between the following settings: 1) Analyze - For detection only.This mode generates a metadata JSON file marking appearances of faces throughout the video.Where possible, appearances of the same person are assigned the same ID. 2) Combined - Additionally redacts(blurs) detected faces. 3) Redact - This enables a 2-pass process, allowing for selective redaction of a subset of detected faces.It takes in the metadata file from a prior analyze pass, along with the source video, and a user-selected subset of IDs that require redaction. Possible values include: 'FaceRedactorModeAnalyze', 'FaceRedactorModeRedact', 'FaceRedactorModeCombined'
 	Mode FaceRedactorMode `json:"mode,omitempty"`
-	// BlurType - Blur type. Possible values include: 'Box', 'Low', 'Med', 'High', 'Black'
+	// BlurType - Blur type. Possible values include: 'BlurTypeBox', 'BlurTypeLow', 'BlurTypeMed', 'BlurTypeHigh', 'BlurTypeBlack'
 	BlurType BlurType `json:"blurType,omitempty"`
 	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
 	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
-	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
+	// OdataType - Possible values include: 'OdataTypeBasicPresetOdataTypePreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FaceDetectorPreset.
 func (fdp FaceDetectorPreset) MarshalJSON() ([]byte, error) {
-	fdp.OdataType = OdataTypeMicrosoftMediaFaceDetectorPreset
+	fdp.OdataType = OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset
 	objectMap := make(map[string]interface{})
 	if fdp.Resolution != "" {
 		objectMap["resolution"] = fdp.Resolution
@@ -3987,7 +4007,7 @@ type FilterTrackPropertyCondition struct {
 	Property FilterTrackPropertyType `json:"property,omitempty"`
 	// Value - The track property value.
 	Value *string `json:"value,omitempty"`
-	// Operation - The track property condition operation. Possible values include: 'Equal', 'NotEqual'
+	// Operation - The track property condition operation. Possible values include: 'FilterTrackPropertyCompareOperationEqual', 'FilterTrackPropertyCompareOperationNotEqual'
 	Operation FilterTrackPropertyCompareOperation `json:"operation,omitempty"`
 }
 
@@ -4021,7 +4041,7 @@ type BasicFormat interface {
 type Format struct {
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
@@ -4033,27 +4053,27 @@ func unmarshalBasicFormat(body []byte) (BasicFormat, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaImageFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat):
 		var ifVar ImageFormat
 		err := json.Unmarshal(body, &ifVar)
 		return ifVar, err
-	case string(OdataTypeMicrosoftMediaJpgFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat):
 		var jf JpgFormat
 		err := json.Unmarshal(body, &jf)
 		return jf, err
-	case string(OdataTypeMicrosoftMediaPngFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat):
 		var pf PngFormat
 		err := json.Unmarshal(body, &pf)
 		return pf, err
-	case string(OdataTypeMicrosoftMediaMultiBitrateFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat):
 		var mbf MultiBitrateFormat
 		err := json.Unmarshal(body, &mbf)
 		return mbf, err
-	case string(OdataTypeMicrosoftMediaMp4Format):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format):
 		var m4f Mp4Format
 		err := json.Unmarshal(body, &m4f)
 		return m4f, err
-	case string(OdataTypeMicrosoftMediaTransportStreamFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat):
 		var tsf TransportStreamFormat
 		err := json.Unmarshal(body, &tsf)
 		return tsf, err
@@ -4084,7 +4104,7 @@ func unmarshalBasicFormatArray(body []byte) ([]BasicFormat, error) {
 
 // MarshalJSON is the custom marshaler for Format.
 func (f Format) MarshalJSON() ([]byte, error) {
-	f.OdataType = OdataTypeFormat
+	f.OdataType = OdataTypeBasicFormatOdataTypeFormat
 	objectMap := make(map[string]interface{})
 	if f.FilenamePattern != nil {
 		objectMap["filenamePattern"] = f.FilenamePattern
@@ -4151,13 +4171,13 @@ func (f Format) AsBasicFormat() (BasicFormat, bool) {
 type FromAllInputFile struct {
 	// IncludedTracks - The list of TrackDescriptors which define the metadata and selection of tracks in the input.
 	IncludedTracks *[]BasicTrackDescriptor `json:"includedTracks,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeInputDefinition', 'OdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeMicrosoftMediaInputFile'
+	// OdataType - Possible values include: 'OdataTypeBasicInputDefinitionOdataTypeInputDefinition', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaInputFile'
 	OdataType OdataTypeBasicInputDefinition `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FromAllInputFile.
 func (faif FromAllInputFile) MarshalJSON() ([]byte, error) {
-	faif.OdataType = OdataTypeMicrosoftMediaFromAllInputFile
+	faif.OdataType = OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromAllInputFile
 	objectMap := make(map[string]interface{})
 	if faif.IncludedTracks != nil {
 		objectMap["includedTracks"] = faif.IncludedTracks
@@ -4231,13 +4251,13 @@ func (faif *FromAllInputFile) UnmarshalJSON(body []byte) error {
 type FromEachInputFile struct {
 	// IncludedTracks - The list of TrackDescriptors which define the metadata and selection of tracks in the input.
 	IncludedTracks *[]BasicTrackDescriptor `json:"includedTracks,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeInputDefinition', 'OdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeMicrosoftMediaInputFile'
+	// OdataType - Possible values include: 'OdataTypeBasicInputDefinitionOdataTypeInputDefinition', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaInputFile'
 	OdataType OdataTypeBasicInputDefinition `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FromEachInputFile.
 func (feif FromEachInputFile) MarshalJSON() ([]byte, error) {
-	feif.OdataType = OdataTypeMicrosoftMediaFromEachInputFile
+	feif.OdataType = OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromEachInputFile
 	objectMap := make(map[string]interface{})
 	if feif.IncludedTracks != nil {
 		objectMap["includedTracks"] = feif.IncludedTracks
@@ -4316,7 +4336,7 @@ type H264Layer struct {
 	BufferWindow *string `json:"bufferWindow,omitempty"`
 	// ReferenceFrames - The number of reference frames to be used when encoding this layer. If not specified, the encoder determines an appropriate number based on the encoder complexity setting.
 	ReferenceFrames *int32 `json:"referenceFrames,omitempty"`
-	// EntropyMode - The entropy mode to be used for this layer. If not specified, the encoder chooses the mode that is appropriate for the profile and level. Possible values include: 'Cabac', 'Cavlc'
+	// EntropyMode - The entropy mode to be used for this layer. If not specified, the encoder chooses the mode that is appropriate for the profile and level. Possible values include: 'EntropyModeCabac', 'EntropyModeCavlc'
 	EntropyMode EntropyMode `json:"entropyMode,omitempty"`
 	// Bitrate - The average bitrate in bits per second at which to encode the input video when generating this layer. This is a required field.
 	Bitrate *int32 `json:"bitrate,omitempty"`
@@ -4336,13 +4356,13 @@ type H264Layer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for H264Layer.
 func (hl H264Layer) MarshalJSON() ([]byte, error) {
-	hl.OdataType = OdataTypeMicrosoftMediaH264Layer
+	hl.OdataType = OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer
 	objectMap := make(map[string]interface{})
 	if hl.Profile != "" {
 		objectMap["profile"] = hl.Profile
@@ -4446,7 +4466,7 @@ func (hl H264Layer) AsBasicLayer() (BasicLayer, bool) {
 type H264Video struct {
 	// SceneChangeDetection - Whether or not the encoder should insert key frames at scene changes. If not specified, the default is false. This flag should be set to true only when the encoder is being configured to produce a single output video.
 	SceneChangeDetection *bool `json:"sceneChangeDetection,omitempty"`
-	// Complexity - Tells the encoder how to choose its encoding settings. The default value is Balanced. Possible values include: 'Speed', 'Balanced', 'Quality'
+	// Complexity - Tells the encoder how to choose its encoding settings. The default value is Balanced. Possible values include: 'H264ComplexitySpeed', 'H264ComplexityBalanced', 'H264ComplexityQuality'
 	Complexity H264Complexity `json:"complexity,omitempty"`
 	// Layers - The collection of output H.264 layers to be produced by the encoder.
 	Layers *[]H264Layer `json:"layers,omitempty"`
@@ -4458,13 +4478,13 @@ type H264Video struct {
 	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for H264Video.
 func (hv H264Video) MarshalJSON() ([]byte, error) {
-	hv.OdataType = OdataTypeMicrosoftMediaH264Video
+	hv.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video
 	objectMap := make(map[string]interface{})
 	if hv.SceneChangeDetection != nil {
 		objectMap["sceneChangeDetection"] = hv.SceneChangeDetection
@@ -4597,13 +4617,13 @@ type H265Layer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for H265Layer.
 func (hl H265Layer) MarshalJSON() ([]byte, error) {
-	hl.OdataType = OdataTypeMicrosoftMediaH265Layer
+	hl.OdataType = OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer
 	objectMap := make(map[string]interface{})
 	if hl.Profile != "" {
 		objectMap["profile"] = hl.Profile
@@ -4716,13 +4736,13 @@ type H265Video struct {
 	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for H265Video.
 func (hv H265Video) MarshalJSON() ([]byte, error) {
-	hv.OdataType = OdataTypeMicrosoftMediaH265Video
+	hv.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video
 	objectMap := make(map[string]interface{})
 	if hv.SceneChangeDetection != nil {
 		objectMap["sceneChangeDetection"] = hv.SceneChangeDetection
@@ -4854,7 +4874,7 @@ type H265VideoLayer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
@@ -4866,7 +4886,7 @@ func unmarshalBasicH265VideoLayer(body []byte) (BasicH265VideoLayer, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaH265Layer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer):
 		var hl H265Layer
 		err := json.Unmarshal(body, &hl)
 		return hl, err
@@ -4897,7 +4917,7 @@ func unmarshalBasicH265VideoLayerArray(body []byte) ([]BasicH265VideoLayer, erro
 
 // MarshalJSON is the custom marshaler for H265VideoLayer.
 func (hvl H265VideoLayer) MarshalJSON() ([]byte, error) {
-	hvl.OdataType = OdataTypeMicrosoftMediaH265VideoLayer
+	hvl.OdataType = OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer
 	objectMap := make(map[string]interface{})
 	if hvl.Bitrate != nil {
 		objectMap["bitrate"] = hvl.Bitrate
@@ -5011,7 +5031,7 @@ type Image struct {
 	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -5023,11 +5043,11 @@ func unmarshalBasicImage(body []byte) (BasicImage, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaJpgImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage):
 		var ji JpgImage
 		err := json.Unmarshal(body, &ji)
 		return ji, err
-	case string(OdataTypeMicrosoftMediaPngImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage):
 		var pi PngImage
 		err := json.Unmarshal(body, &pi)
 		return pi, err
@@ -5058,7 +5078,7 @@ func unmarshalBasicImageArray(body []byte) ([]BasicImage, error) {
 
 // MarshalJSON is the custom marshaler for Image.
 func (i Image) MarshalJSON() ([]byte, error) {
-	i.OdataType = OdataTypeMicrosoftMediaImage
+	i.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaImage
 	objectMap := make(map[string]interface{})
 	if i.Start != nil {
 		objectMap["start"] = i.Start
@@ -5173,7 +5193,7 @@ type BasicImageFormat interface {
 type ImageFormat struct {
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
@@ -5185,11 +5205,11 @@ func unmarshalBasicImageFormat(body []byte) (BasicImageFormat, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaJpgFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat):
 		var jf JpgFormat
 		err := json.Unmarshal(body, &jf)
 		return jf, err
-	case string(OdataTypeMicrosoftMediaPngFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat):
 		var pf PngFormat
 		err := json.Unmarshal(body, &pf)
 		return pf, err
@@ -5220,7 +5240,7 @@ func unmarshalBasicImageFormatArray(body []byte) ([]BasicImageFormat, error) {
 
 // MarshalJSON is the custom marshaler for ImageFormat.
 func (ifVar ImageFormat) MarshalJSON() ([]byte, error) {
-	ifVar.OdataType = OdataTypeMicrosoftMediaImageFormat
+	ifVar.OdataType = OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat
 	objectMap := make(map[string]interface{})
 	if ifVar.FilenamePattern != nil {
 		objectMap["filenamePattern"] = ifVar.FilenamePattern
@@ -5295,7 +5315,7 @@ type BasicInputDefinition interface {
 type InputDefinition struct {
 	// IncludedTracks - The list of TrackDescriptors which define the metadata and selection of tracks in the input.
 	IncludedTracks *[]BasicTrackDescriptor `json:"includedTracks,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeInputDefinition', 'OdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeMicrosoftMediaInputFile'
+	// OdataType - Possible values include: 'OdataTypeBasicInputDefinitionOdataTypeInputDefinition', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaInputFile'
 	OdataType OdataTypeBasicInputDefinition `json:"@odata.type,omitempty"`
 }
 
@@ -5307,15 +5327,15 @@ func unmarshalBasicInputDefinition(body []byte) (BasicInputDefinition, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaFromAllInputFile):
+	case string(OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromAllInputFile):
 		var faif FromAllInputFile
 		err := json.Unmarshal(body, &faif)
 		return faif, err
-	case string(OdataTypeMicrosoftMediaFromEachInputFile):
+	case string(OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromEachInputFile):
 		var feif FromEachInputFile
 		err := json.Unmarshal(body, &feif)
 		return feif, err
-	case string(OdataTypeMicrosoftMediaInputFile):
+	case string(OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaInputFile):
 		var ifVar InputFile
 		err := json.Unmarshal(body, &ifVar)
 		return ifVar, err
@@ -5346,7 +5366,7 @@ func unmarshalBasicInputDefinitionArray(body []byte) ([]BasicInputDefinition, er
 
 // MarshalJSON is the custom marshaler for InputDefinition.
 func (ID InputDefinition) MarshalJSON() ([]byte, error) {
-	ID.OdataType = OdataTypeInputDefinition
+	ID.OdataType = OdataTypeBasicInputDefinitionOdataTypeInputDefinition
 	objectMap := make(map[string]interface{})
 	if ID.IncludedTracks != nil {
 		objectMap["includedTracks"] = ID.IncludedTracks
@@ -5420,13 +5440,13 @@ type InputFile struct {
 	Filename *string `json:"filename,omitempty"`
 	// IncludedTracks - The list of TrackDescriptors which define the metadata and selection of tracks in the input.
 	IncludedTracks *[]BasicTrackDescriptor `json:"includedTracks,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeInputDefinition', 'OdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeMicrosoftMediaInputFile'
+	// OdataType - Possible values include: 'OdataTypeBasicInputDefinitionOdataTypeInputDefinition', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromAllInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaFromEachInputFile', 'OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaInputFile'
 	OdataType OdataTypeBasicInputDefinition `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for InputFile.
 func (ifVar InputFile) MarshalJSON() ([]byte, error) {
-	ifVar.OdataType = OdataTypeMicrosoftMediaInputFile
+	ifVar.OdataType = OdataTypeBasicInputDefinitionOdataTypeMicrosoftMediaInputFile
 	objectMap := make(map[string]interface{})
 	if ifVar.Filename != nil {
 		objectMap["filename"] = ifVar.Filename
@@ -5768,16 +5788,22 @@ func NewJobCollectionPage(cur JobCollection, getNextPage func(context.Context, J
 
 // JobError details of JobOutput errors.
 type JobError struct {
-	// Code - READ-ONLY; Error code describing the error. Possible values include: 'ServiceError', 'ServiceTransientError', 'DownloadNotAccessible', 'DownloadTransientError', 'UploadNotAccessible', 'UploadTransientError', 'ConfigurationUnsupported', 'ContentMalformed', 'ContentUnsupported'
+	// Code - READ-ONLY; Error code describing the error. Possible values include: 'JobErrorCodeServiceError', 'JobErrorCodeServiceTransientError', 'JobErrorCodeDownloadNotAccessible', 'JobErrorCodeDownloadTransientError', 'JobErrorCodeUploadNotAccessible', 'JobErrorCodeUploadTransientError', 'JobErrorCodeConfigurationUnsupported', 'JobErrorCodeContentMalformed', 'JobErrorCodeContentUnsupported'
 	Code JobErrorCode `json:"code,omitempty"`
 	// Message - READ-ONLY; A human-readable language-dependent representation of the error.
 	Message *string `json:"message,omitempty"`
 	// Category - READ-ONLY; Helps with categorization of errors. Possible values include: 'JobErrorCategoryService', 'JobErrorCategoryDownload', 'JobErrorCategoryUpload', 'JobErrorCategoryConfiguration', 'JobErrorCategoryContent'
 	Category JobErrorCategory `json:"category,omitempty"`
-	// Retry - READ-ONLY; Indicates that it may be possible to retry the Job. If retry is unsuccessful, please contact Azure support via Azure Portal. Possible values include: 'DoNotRetry', 'MayRetry'
+	// Retry - READ-ONLY; Indicates that it may be possible to retry the Job. If retry is unsuccessful, please contact Azure support via Azure Portal. Possible values include: 'JobRetryDoNotRetry', 'JobRetryMayRetry'
 	Retry JobRetry `json:"retry,omitempty"`
 	// Details - READ-ONLY; An array of details about specific errors that led to this reported error.
 	Details *[]JobErrorDetail `json:"details,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobError.
+func (je JobError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // JobErrorDetail details of JobOutput errors.
@@ -5786,6 +5812,12 @@ type JobErrorDetail struct {
 	Code *string `json:"code,omitempty"`
 	// Message - READ-ONLY; A human-readable representation of the error.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobErrorDetail.
+func (jed JobErrorDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BasicJobInput base class for inputs to a Job.
@@ -5801,7 +5833,7 @@ type BasicJobInput interface {
 
 // JobInput base class for inputs to a Job.
 type JobInput struct {
-	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeMicrosoftMediaJobInputSequence'
+	// OdataType - Possible values include: 'OdataTypeBasicJobInputOdataTypeJobInput', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence'
 	OdataType OdataTypeBasicJobInput `json:"@odata.type,omitempty"`
 }
 
@@ -5813,23 +5845,23 @@ func unmarshalBasicJobInput(body []byte) (BasicJobInput, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaJobInputClip):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip):
 		var jic JobInputClip
 		err := json.Unmarshal(body, &jic)
 		return jic, err
-	case string(OdataTypeMicrosoftMediaJobInputs):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs):
 		var ji JobInputs
 		err := json.Unmarshal(body, &ji)
 		return ji, err
-	case string(OdataTypeMicrosoftMediaJobInputAsset):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset):
 		var jia JobInputAsset
 		err := json.Unmarshal(body, &jia)
 		return jia, err
-	case string(OdataTypeMicrosoftMediaJobInputHTTP):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP):
 		var jih JobInputHTTP
 		err := json.Unmarshal(body, &jih)
 		return jih, err
-	case string(OdataTypeMicrosoftMediaJobInputSequence):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence):
 		var jis JobInputSequence
 		err := json.Unmarshal(body, &jis)
 		return jis, err
@@ -5860,7 +5892,7 @@ func unmarshalBasicJobInputArray(body []byte) ([]BasicJobInput, error) {
 
 // MarshalJSON is the custom marshaler for JobInput.
 func (ji JobInput) MarshalJSON() ([]byte, error) {
-	ji.OdataType = OdataTypeJobInput
+	ji.OdataType = OdataTypeBasicJobInputOdataTypeJobInput
 	objectMap := make(map[string]interface{})
 	if ji.OdataType != "" {
 		objectMap["@odata.type"] = ji.OdataType
@@ -5922,13 +5954,13 @@ type JobInputAsset struct {
 	Label *string `json:"label,omitempty"`
 	// InputDefinitions - Defines a list of InputDefinitions. For each InputDefinition, it defines a list of track selections and related metadata.
 	InputDefinitions *[]BasicInputDefinition `json:"inputDefinitions,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeMicrosoftMediaJobInputSequence'
+	// OdataType - Possible values include: 'OdataTypeBasicJobInputOdataTypeJobInput', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence'
 	OdataType OdataTypeBasicJobInput `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JobInputAsset.
 func (jia JobInputAsset) MarshalJSON() ([]byte, error) {
-	jia.OdataType = OdataTypeMicrosoftMediaJobInputAsset
+	jia.OdataType = OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset
 	objectMap := make(map[string]interface{})
 	if jia.AssetName != nil {
 		objectMap["assetName"] = jia.AssetName
@@ -6084,7 +6116,7 @@ type JobInputClip struct {
 	Label *string `json:"label,omitempty"`
 	// InputDefinitions - Defines a list of InputDefinitions. For each InputDefinition, it defines a list of track selections and related metadata.
 	InputDefinitions *[]BasicInputDefinition `json:"inputDefinitions,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeMicrosoftMediaJobInputSequence'
+	// OdataType - Possible values include: 'OdataTypeBasicJobInputOdataTypeJobInput', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence'
 	OdataType OdataTypeBasicJobInput `json:"@odata.type,omitempty"`
 }
 
@@ -6096,11 +6128,11 @@ func unmarshalBasicJobInputClip(body []byte) (BasicJobInputClip, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaJobInputAsset):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset):
 		var jia JobInputAsset
 		err := json.Unmarshal(body, &jia)
 		return jia, err
-	case string(OdataTypeMicrosoftMediaJobInputHTTP):
+	case string(OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP):
 		var jih JobInputHTTP
 		err := json.Unmarshal(body, &jih)
 		return jih, err
@@ -6131,7 +6163,7 @@ func unmarshalBasicJobInputClipArray(body []byte) ([]BasicJobInputClip, error) {
 
 // MarshalJSON is the custom marshaler for JobInputClip.
 func (jic JobInputClip) MarshalJSON() ([]byte, error) {
-	jic.OdataType = OdataTypeMicrosoftMediaJobInputClip
+	jic.OdataType = OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip
 	objectMap := make(map[string]interface{})
 	if jic.Files != nil {
 		objectMap["files"] = jic.Files
@@ -6270,13 +6302,13 @@ type JobInputHTTP struct {
 	Label *string `json:"label,omitempty"`
 	// InputDefinitions - Defines a list of InputDefinitions. For each InputDefinition, it defines a list of track selections and related metadata.
 	InputDefinitions *[]BasicInputDefinition `json:"inputDefinitions,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeMicrosoftMediaJobInputSequence'
+	// OdataType - Possible values include: 'OdataTypeBasicJobInputOdataTypeJobInput', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence'
 	OdataType OdataTypeBasicJobInput `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JobInputHTTP.
 func (jih JobInputHTTP) MarshalJSON() ([]byte, error) {
-	jih.OdataType = OdataTypeMicrosoftMediaJobInputHTTP
+	jih.OdataType = OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP
 	objectMap := make(map[string]interface{})
 	if jih.BaseURI != nil {
 		objectMap["baseUri"] = jih.BaseURI
@@ -6417,13 +6449,13 @@ func (jih *JobInputHTTP) UnmarshalJSON(body []byte) error {
 type JobInputs struct {
 	// Inputs - List of inputs to a Job.
 	Inputs *[]BasicJobInput `json:"inputs,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeMicrosoftMediaJobInputSequence'
+	// OdataType - Possible values include: 'OdataTypeBasicJobInputOdataTypeJobInput', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence'
 	OdataType OdataTypeBasicJobInput `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JobInputs.
 func (ji JobInputs) MarshalJSON() ([]byte, error) {
-	ji.OdataType = OdataTypeMicrosoftMediaJobInputs
+	ji.OdataType = OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs
 	objectMap := make(map[string]interface{})
 	if ji.Inputs != nil {
 		objectMap["inputs"] = ji.Inputs
@@ -6511,13 +6543,13 @@ func (ji *JobInputs) UnmarshalJSON(body []byte) error {
 type JobInputSequence struct {
 	// Inputs - JobInputs that make up the timeline.
 	Inputs *[]BasicJobInputClip `json:"inputs,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeMicrosoftMediaJobInputSequence'
+	// OdataType - Possible values include: 'OdataTypeBasicJobInputOdataTypeJobInput', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputClip', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputs', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputHTTP', 'OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence'
 	OdataType OdataTypeBasicJobInput `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JobInputSequence.
 func (jis JobInputSequence) MarshalJSON() ([]byte, error) {
-	jis.OdataType = OdataTypeMicrosoftMediaJobInputSequence
+	jis.OdataType = OdataTypeBasicJobInputOdataTypeMicrosoftMediaJobInputSequence
 	objectMap := make(map[string]interface{})
 	if jis.Inputs != nil {
 		objectMap["inputs"] = jis.Inputs
@@ -6610,7 +6642,7 @@ type BasicJobOutput interface {
 type JobOutput struct {
 	// Error - READ-ONLY; If the JobOutput is in the Error state, it contains the details of the error.
 	Error *JobError `json:"error,omitempty"`
-	// State - READ-ONLY; Describes the state of the JobOutput. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
+	// State - READ-ONLY; Describes the state of the JobOutput. Possible values include: 'JobStateCanceled', 'JobStateCanceling', 'JobStateError', 'JobStateFinished', 'JobStateProcessing', 'JobStateQueued', 'JobStateScheduled'
 	State JobState `json:"state,omitempty"`
 	// Progress - READ-ONLY; If the JobOutput is in a Processing state, this contains the Job completion percentage. The value is an estimate and not intended to be used to predict Job completion times. To determine if the JobOutput is complete, use the State property.
 	Progress *int32 `json:"progress,omitempty"`
@@ -6620,7 +6652,7 @@ type JobOutput struct {
 	StartTime *date.Time `json:"startTime,omitempty"`
 	// EndTime - READ-ONLY; The UTC date and time at which this Job Output finished processing.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobOutput', 'OdataTypeMicrosoftMediaJobOutputAsset'
+	// OdataType - Possible values include: 'OdataTypeBasicJobOutputOdataTypeJobOutput', 'OdataTypeBasicJobOutputOdataTypeMicrosoftMediaJobOutputAsset'
 	OdataType OdataTypeBasicJobOutput `json:"@odata.type,omitempty"`
 }
 
@@ -6632,7 +6664,7 @@ func unmarshalBasicJobOutput(body []byte) (BasicJobOutput, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaJobOutputAsset):
+	case string(OdataTypeBasicJobOutputOdataTypeMicrosoftMediaJobOutputAsset):
 		var joa JobOutputAsset
 		err := json.Unmarshal(body, &joa)
 		return joa, err
@@ -6663,7 +6695,7 @@ func unmarshalBasicJobOutputArray(body []byte) ([]BasicJobOutput, error) {
 
 // MarshalJSON is the custom marshaler for JobOutput.
 func (jo JobOutput) MarshalJSON() ([]byte, error) {
-	jo.OdataType = OdataTypeJobOutput
+	jo.OdataType = OdataTypeBasicJobOutputOdataTypeJobOutput
 	objectMap := make(map[string]interface{})
 	if jo.Label != nil {
 		objectMap["label"] = jo.Label
@@ -6695,7 +6727,7 @@ type JobOutputAsset struct {
 	AssetName *string `json:"assetName,omitempty"`
 	// Error - READ-ONLY; If the JobOutput is in the Error state, it contains the details of the error.
 	Error *JobError `json:"error,omitempty"`
-	// State - READ-ONLY; Describes the state of the JobOutput. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
+	// State - READ-ONLY; Describes the state of the JobOutput. Possible values include: 'JobStateCanceled', 'JobStateCanceling', 'JobStateError', 'JobStateFinished', 'JobStateProcessing', 'JobStateQueued', 'JobStateScheduled'
 	State JobState `json:"state,omitempty"`
 	// Progress - READ-ONLY; If the JobOutput is in a Processing state, this contains the Job completion percentage. The value is an estimate and not intended to be used to predict Job completion times. To determine if the JobOutput is complete, use the State property.
 	Progress *int32 `json:"progress,omitempty"`
@@ -6705,13 +6737,13 @@ type JobOutputAsset struct {
 	StartTime *date.Time `json:"startTime,omitempty"`
 	// EndTime - READ-ONLY; The UTC date and time at which this Job Output finished processing.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeJobOutput', 'OdataTypeMicrosoftMediaJobOutputAsset'
+	// OdataType - Possible values include: 'OdataTypeBasicJobOutputOdataTypeJobOutput', 'OdataTypeBasicJobOutputOdataTypeMicrosoftMediaJobOutputAsset'
 	OdataType OdataTypeBasicJobOutput `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JobOutputAsset.
 func (joa JobOutputAsset) MarshalJSON() ([]byte, error) {
-	joa.OdataType = OdataTypeMicrosoftMediaJobOutputAsset
+	joa.OdataType = OdataTypeBasicJobOutputOdataTypeMicrosoftMediaJobOutputAsset
 	objectMap := make(map[string]interface{})
 	if joa.AssetName != nil {
 		objectMap["assetName"] = joa.AssetName
@@ -6744,7 +6776,7 @@ func (joa JobOutputAsset) AsBasicJobOutput() (BasicJobOutput, bool) {
 type JobProperties struct {
 	// Created - READ-ONLY; The UTC date and time when the customer has created the Job, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	Created *date.Time `json:"created,omitempty"`
-	// State - READ-ONLY; The current state of the job. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
+	// State - READ-ONLY; The current state of the job. Possible values include: 'JobStateCanceled', 'JobStateCanceling', 'JobStateError', 'JobStateFinished', 'JobStateProcessing', 'JobStateQueued', 'JobStateScheduled'
 	State JobState `json:"state,omitempty"`
 	// Description - Optional customer supplied description of the Job.
 	Description *string `json:"description,omitempty"`
@@ -6890,13 +6922,13 @@ func (jp *JobProperties) UnmarshalJSON(body []byte) error {
 type JpgFormat struct {
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JpgFormat.
 func (jf JpgFormat) MarshalJSON() ([]byte, error) {
-	jf.OdataType = OdataTypeMicrosoftMediaJpgFormat
+	jf.OdataType = OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat
 	objectMap := make(map[string]interface{})
 	if jf.FilenamePattern != nil {
 		objectMap["filenamePattern"] = jf.FilenamePattern
@@ -6977,13 +7009,13 @@ type JpgImage struct {
 	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JpgImage.
 func (ji JpgImage) MarshalJSON() ([]byte, error) {
-	ji.OdataType = OdataTypeMicrosoftMediaJpgImage
+	ji.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage
 	objectMap := make(map[string]interface{})
 	if ji.Layers != nil {
 		objectMap["layers"] = ji.Layers
@@ -7103,13 +7135,13 @@ type JpgLayer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JpgLayer.
 func (jl JpgLayer) MarshalJSON() ([]byte, error) {
-	jl.OdataType = OdataTypeMicrosoftMediaJpgLayer
+	jl.OdataType = OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer
 	objectMap := make(map[string]interface{})
 	if jl.Quality != nil {
 		objectMap["quality"] = jl.Quality
@@ -7179,6 +7211,12 @@ func (jl JpgLayer) AsBasicLayer() (BasicLayer, bool) {
 	return &jl, true
 }
 
+// KeyDelivery ...
+type KeyDelivery struct {
+	// AccessControl - The access control properties for Key Delivery.
+	AccessControl *AccessControl `json:"accessControl,omitempty"`
+}
+
 // KeyVaultProperties ...
 type KeyVaultProperties struct {
 	// KeyIdentifier - The URL of the Key Vault key used to encrypt the account. The key may either be versioned (for example https://vault/keys/mykey/version1) or reference a key without a version (for example https://vault/keys/mykey).
@@ -7221,7 +7259,7 @@ type Layer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
@@ -7233,27 +7271,27 @@ func unmarshalBasicLayer(body []byte) (BasicLayer, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaH265VideoLayer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer):
 		var hvl H265VideoLayer
 		err := json.Unmarshal(body, &hvl)
 		return hvl, err
-	case string(OdataTypeMicrosoftMediaH265Layer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer):
 		var hl H265Layer
 		err := json.Unmarshal(body, &hl)
 		return hl, err
-	case string(OdataTypeMicrosoftMediaVideoLayer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer):
 		var vl VideoLayer
 		err := json.Unmarshal(body, &vl)
 		return vl, err
-	case string(OdataTypeMicrosoftMediaH264Layer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer):
 		var hl H264Layer
 		err := json.Unmarshal(body, &hl)
 		return hl, err
-	case string(OdataTypeMicrosoftMediaJpgLayer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer):
 		var jl JpgLayer
 		err := json.Unmarshal(body, &jl)
 		return jl, err
-	case string(OdataTypeMicrosoftMediaPngLayer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer):
 		var pl PngLayer
 		err := json.Unmarshal(body, &pl)
 		return pl, err
@@ -7284,7 +7322,7 @@ func unmarshalBasicLayerArray(body []byte) ([]BasicLayer, error) {
 
 // MarshalJSON is the custom marshaler for Layer.
 func (l Layer) MarshalJSON() ([]byte, error) {
-	l.OdataType = OdataTypeLayer
+	l.OdataType = OdataTypeBasicLayerOdataTypeLayer
 	objectMap := make(map[string]interface{})
 	if l.Width != nil {
 		objectMap["width"] = l.Width
@@ -7353,7 +7391,7 @@ func (l Layer) AsBasicLayer() (BasicLayer, bool) {
 
 // ListContainerSasInput the parameters to the list SAS request.
 type ListContainerSasInput struct {
-	// Permissions - The permissions to set on the SAS URL. Possible values include: 'Read', 'ReadWrite', 'ReadWriteDelete'
+	// Permissions - The permissions to set on the SAS URL. Possible values include: 'AssetContainerPermissionRead', 'AssetContainerPermissionReadWrite', 'AssetContainerPermissionReadWriteDelete'
 	Permissions AssetContainerPermission `json:"permissions,omitempty"`
 	// ExpiryTime - The SAS URL expiration time.  This must be less than 24 hours from the current time.
 	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
@@ -7386,6 +7424,12 @@ type ListStreamingLocatorsResponse struct {
 	autorest.Response `json:"-"`
 	// StreamingLocators - READ-ONLY; The list of Streaming Locators.
 	StreamingLocators *[]AssetStreamingLocator `json:"streamingLocators,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListStreamingLocatorsResponse.
+func (lslr ListStreamingLocatorsResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // LiveEvent the live event.
@@ -7528,7 +7572,7 @@ type LiveEventEndpoint struct {
 
 // LiveEventInput the live event input.
 type LiveEventInput struct {
-	// StreamingProtocol - The input protocol for the live event. This is specified at creation time and cannot be updated. Possible values include: 'FragmentedMP4', 'RTMP'
+	// StreamingProtocol - The input protocol for the live event. This is specified at creation time and cannot be updated. Possible values include: 'LiveEventInputProtocolFragmentedMP4', 'LiveEventInputProtocolRTMP'
 	StreamingProtocol LiveEventInputProtocol `json:"streamingProtocol,omitempty"`
 	// AccessControl - Access control for live event input.
 	AccessControl *LiveEventInputAccessControl `json:"accessControl,omitempty"`
@@ -7760,7 +7804,7 @@ type LiveEventProperties struct {
 	Transcriptions *[]LiveEventTranscription `json:"transcriptions,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the live event.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - READ-ONLY; The resource state of the live event. See https://go.microsoft.com/fwlink/?linkid=2139012 for more information. Possible values include: 'Stopped', 'Allocating', 'StandBy', 'Starting', 'Running', 'Stopping', 'Deleting'
+	// ResourceState - READ-ONLY; The resource state of the live event. See https://go.microsoft.com/fwlink/?linkid=2139012 for more information. Possible values include: 'LiveEventResourceStateStopped', 'LiveEventResourceStateAllocating', 'LiveEventResourceStateStandBy', 'LiveEventResourceStateStarting', 'LiveEventResourceStateRunning', 'LiveEventResourceStateStopping', 'LiveEventResourceStateDeleting'
 	ResourceState LiveEventResourceState `json:"resourceState,omitempty"`
 	// CrossSiteAccessPolicies - Live event cross site access policies.
 	CrossSiteAccessPolicies *CrossSiteAccessPolicies `json:"crossSiteAccessPolicies,omitempty"`
@@ -8469,6 +8513,12 @@ type LogSpecification struct {
 	BlobDuration *string `json:"blobDuration,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LogSpecification.
+func (ls LogSpecification) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MetricDimension a metric dimension.
 type MetricDimension struct {
 	// Name - READ-ONLY; The metric dimension name.
@@ -8477,6 +8527,12 @@ type MetricDimension struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// ToBeExportedForShoebox - READ-ONLY; Whether to export metric to shoebox.
 	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricDimension.
+func (md MetricDimension) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MetricSpecification a metric emitted by service.
@@ -8489,14 +8545,22 @@ type MetricSpecification struct {
 	DisplayDescription *string `json:"displayDescription,omitempty"`
 	// Unit - READ-ONLY; The metric unit. Possible values include: 'MetricUnitBytes', 'MetricUnitCount', 'MetricUnitMilliseconds'
 	Unit MetricUnit `json:"unit,omitempty"`
-	// AggregationType - READ-ONLY; The metric aggregation type. Possible values include: 'Average', 'Count', 'Total'
+	// AggregationType - READ-ONLY; The metric aggregation type. Possible values include: 'MetricAggregationTypeAverage', 'MetricAggregationTypeCount', 'MetricAggregationTypeTotal'
 	AggregationType MetricAggregationType `json:"aggregationType,omitempty"`
-	// LockAggregationType - READ-ONLY; The metric lock aggregation type. Possible values include: 'Average', 'Count', 'Total'
+	// LockAggregationType - READ-ONLY; The metric lock aggregation type. Possible values include: 'MetricAggregationTypeAverage', 'MetricAggregationTypeCount', 'MetricAggregationTypeTotal'
 	LockAggregationType MetricAggregationType `json:"lockAggregationType,omitempty"`
 	// SupportedAggregationTypes - Supported aggregation types.
 	SupportedAggregationTypes *[]string `json:"supportedAggregationTypes,omitempty"`
 	// Dimensions - READ-ONLY; The metric dimensions.
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// EnableRegionalMdmAccount - READ-ONLY; Indicates whether regional MDM account is enabled.
+	EnableRegionalMdmAccount *bool `json:"enableRegionalMdmAccount,omitempty"`
+	// SourceMdmAccount - READ-ONLY; The source MDM account.
+	SourceMdmAccount *string `json:"sourceMdmAccount,omitempty"`
+	// SourceMdmNamespace - READ-ONLY; The source MDM namespace.
+	SourceMdmNamespace *string `json:"sourceMdmNamespace,omitempty"`
+	// SupportedTimeGrainTypes - READ-ONLY; The supported time grain types.
+	SupportedTimeGrainTypes *[]string `json:"supportedTimeGrainTypes,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for MetricSpecification.
@@ -8514,13 +8578,13 @@ type Mp4Format struct {
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Mp4Format.
 func (m4f Mp4Format) MarshalJSON() ([]byte, error) {
-	m4f.OdataType = OdataTypeMicrosoftMediaMp4Format
+	m4f.OdataType = OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format
 	objectMap := make(map[string]interface{})
 	if m4f.OutputFiles != nil {
 		objectMap["outputFiles"] = m4f.OutputFiles
@@ -8601,7 +8665,7 @@ type MultiBitrateFormat struct {
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
@@ -8613,11 +8677,11 @@ func unmarshalBasicMultiBitrateFormat(body []byte) (BasicMultiBitrateFormat, err
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaMp4Format):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format):
 		var m4f Mp4Format
 		err := json.Unmarshal(body, &m4f)
 		return m4f, err
-	case string(OdataTypeMicrosoftMediaTransportStreamFormat):
+	case string(OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat):
 		var tsf TransportStreamFormat
 		err := json.Unmarshal(body, &tsf)
 		return tsf, err
@@ -8648,7 +8712,7 @@ func unmarshalBasicMultiBitrateFormatArray(body []byte) ([]BasicMultiBitrateForm
 
 // MarshalJSON is the custom marshaler for MultiBitrateFormat.
 func (mbf MultiBitrateFormat) MarshalJSON() ([]byte, error) {
-	mbf.OdataType = OdataTypeMicrosoftMediaMultiBitrateFormat
+	mbf.OdataType = OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat
 	objectMap := make(map[string]interface{})
 	if mbf.OutputFiles != nil {
 		objectMap["outputFiles"] = mbf.OutputFiles
@@ -8740,6 +8804,10 @@ type Operation struct {
 	Origin *string `json:"origin,omitempty"`
 	// Properties - Operation properties format.
 	Properties *Properties `json:"properties,omitempty"`
+	// IsDataAction - Whether the operation applies to data-plane.
+	IsDataAction *bool `json:"isDataAction,omitempty"`
+	// ActionType - Indicates the action type. Possible values include: 'ActionTypeInternal'
+	ActionType ActionType `json:"actionType,omitempty"`
 }
 
 // OperationCollection a collection of Operation items.
@@ -8940,7 +9008,7 @@ type Overlay struct {
 	FadeOutDuration *string `json:"fadeOutDuration,omitempty"`
 	// AudioGainLevel - The gain level of audio in the overlay. The value should be in the range [0, 1.0]. The default is 1.0.
 	AudioGainLevel *float64 `json:"audioGainLevel,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeOverlay', 'OdataTypeMicrosoftMediaAudioOverlay', 'OdataTypeMicrosoftMediaVideoOverlay'
+	// OdataType - Possible values include: 'OdataTypeBasicOverlayOdataTypeOverlay', 'OdataTypeBasicOverlayOdataTypeMicrosoftMediaAudioOverlay', 'OdataTypeBasicOverlayOdataTypeMicrosoftMediaVideoOverlay'
 	OdataType OdataTypeBasicOverlay `json:"@odata.type,omitempty"`
 }
 
@@ -8952,11 +9020,11 @@ func unmarshalBasicOverlay(body []byte) (BasicOverlay, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaAudioOverlay):
+	case string(OdataTypeBasicOverlayOdataTypeMicrosoftMediaAudioOverlay):
 		var ao AudioOverlay
 		err := json.Unmarshal(body, &ao)
 		return ao, err
-	case string(OdataTypeMicrosoftMediaVideoOverlay):
+	case string(OdataTypeBasicOverlayOdataTypeMicrosoftMediaVideoOverlay):
 		var vo VideoOverlay
 		err := json.Unmarshal(body, &vo)
 		return vo, err
@@ -8987,7 +9055,7 @@ func unmarshalBasicOverlayArray(body []byte) ([]BasicOverlay, error) {
 
 // MarshalJSON is the custom marshaler for Overlay.
 func (o Overlay) MarshalJSON() ([]byte, error) {
-	o.OdataType = OdataTypeOverlay
+	o.OdataType = OdataTypeBasicOverlayOdataTypeOverlay
 	objectMap := make(map[string]interface{})
 	if o.InputLabel != nil {
 		objectMap["inputLabel"] = o.InputLabel
@@ -9037,13 +9105,13 @@ func (o Overlay) AsBasicOverlay() (BasicOverlay, bool) {
 type PngFormat struct {
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PngFormat.
 func (pf PngFormat) MarshalJSON() ([]byte, error) {
-	pf.OdataType = OdataTypeMicrosoftMediaPngFormat
+	pf.OdataType = OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat
 	objectMap := make(map[string]interface{})
 	if pf.FilenamePattern != nil {
 		objectMap["filenamePattern"] = pf.FilenamePattern
@@ -9122,13 +9190,13 @@ type PngImage struct {
 	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PngImage.
 func (pi PngImage) MarshalJSON() ([]byte, error) {
-	pi.OdataType = OdataTypeMicrosoftMediaPngImage
+	pi.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage
 	objectMap := make(map[string]interface{})
 	if pi.Layers != nil {
 		objectMap["layers"] = pi.Layers
@@ -9243,13 +9311,13 @@ type PngLayer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PngLayer.
 func (pl PngLayer) MarshalJSON() ([]byte, error) {
-	pl.OdataType = OdataTypeMicrosoftMediaPngLayer
+	pl.OdataType = OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer
 	objectMap := make(map[string]interface{})
 	if pl.Width != nil {
 		objectMap["width"] = pl.Width
@@ -9348,7 +9416,7 @@ type BasicPreset interface {
 // Preset base type for all Presets, which define the recipe or instructions on how the input media files
 // should be processed.
 type Preset struct {
-	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
+	// OdataType - Possible values include: 'OdataTypeBasicPresetOdataTypePreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
 
@@ -9360,23 +9428,23 @@ func unmarshalBasicPreset(body []byte) (BasicPreset, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaFaceDetectorPreset):
+	case string(OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset):
 		var fdp FaceDetectorPreset
 		err := json.Unmarshal(body, &fdp)
 		return fdp, err
-	case string(OdataTypeMicrosoftMediaAudioAnalyzerPreset):
+	case string(OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset):
 		var aap AudioAnalyzerPreset
 		err := json.Unmarshal(body, &aap)
 		return aap, err
-	case string(OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset):
+	case string(OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset):
 		var bisep BuiltInStandardEncoderPreset
 		err := json.Unmarshal(body, &bisep)
 		return bisep, err
-	case string(OdataTypeMicrosoftMediaStandardEncoderPreset):
+	case string(OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset):
 		var sep StandardEncoderPreset
 		err := json.Unmarshal(body, &sep)
 		return sep, err
-	case string(OdataTypeMicrosoftMediaVideoAnalyzerPreset):
+	case string(OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset):
 		var vap VideoAnalyzerPreset
 		err := json.Unmarshal(body, &vap)
 		return vap, err
@@ -9407,7 +9475,7 @@ func unmarshalBasicPresetArray(body []byte) ([]BasicPreset, error) {
 
 // MarshalJSON is the custom marshaler for Preset.
 func (p Preset) MarshalJSON() ([]byte, error) {
-	p.OdataType = OdataTypePreset
+	p.OdataType = OdataTypeBasicPresetOdataTypePreset
 	objectMap := make(map[string]interface{})
 	if p.OdataType != "" {
 		objectMap["@odata.type"] = p.OdataType
@@ -9459,6 +9527,12 @@ func (p Preset) AsBasicPreset() (BasicPreset, bool) {
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; The ARM identifier for Private Endpoint
 	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnection the Private Endpoint Connection resource.
@@ -9654,7 +9728,7 @@ func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
 // PrivateLinkServiceConnectionState a collection of information about the state of the connection between
 // service consumer and provider.
 type PrivateLinkServiceConnectionState struct {
-	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected'
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'PrivateEndpointServiceConnectionStatusPending', 'PrivateEndpointServiceConnectionStatusApproved', 'PrivateEndpointServiceConnectionStatusRejected'
 	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
 	// Description - The reason for approval/rejection of the connection.
 	Description *string `json:"description,omitempty"`
@@ -9666,6 +9740,12 @@ type PrivateLinkServiceConnectionState struct {
 type Properties struct {
 	// ServiceSpecification - READ-ONLY; The service specifications.
 	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Properties.
+func (p Properties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Provider a resource provider.
@@ -9683,6 +9763,12 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Rectangle describes the properties of a rectangular window applied to the input media before processing
@@ -9708,24 +9794,30 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SelectAudioTrackByAttribute select audio tracks from the input by specifying an attribute and an
 // attribute filter.
 type SelectAudioTrackByAttribute struct {
-	// Attribute - The TrackAttribute to filter the tracks by. Possible values include: 'Bitrate', 'Language'
+	// Attribute - The TrackAttribute to filter the tracks by. Possible values include: 'TrackAttributeBitrate', 'TrackAttributeLanguage'
 	Attribute TrackAttribute `json:"attribute,omitempty"`
-	// Filter - The type of AttributeFilter to apply to the TrackAttribute in order to select the tracks. Possible values include: 'All', 'Top', 'Bottom', 'ValueEquals'
+	// Filter - The type of AttributeFilter to apply to the TrackAttribute in order to select the tracks. Possible values include: 'AttributeFilterAll', 'AttributeFilterTop', 'AttributeFilterBottom', 'AttributeFilterValueEquals'
 	Filter AttributeFilter `json:"filter,omitempty"`
 	// FilterValue - The value to filter the tracks by.  Only used when AttributeFilter.ValueEquals is specified for the Filter property.
 	FilterValue *string `json:"filterValue,omitempty"`
-	// ChannelMapping - Optional designation for single channel audio tracks.  Can be used to combine the tracks into stereo or multi-channel audio tracks. Possible values include: 'FrontLeft', 'FrontRight', 'Center', 'LowFrequencyEffects', 'BackLeft', 'BackRight', 'StereoLeft', 'StereoRight'
+	// ChannelMapping - Optional designation for single channel audio tracks.  Can be used to combine the tracks into stereo or multi-channel audio tracks. Possible values include: 'ChannelMappingFrontLeft', 'ChannelMappingFrontRight', 'ChannelMappingCenter', 'ChannelMappingLowFrequencyEffects', 'ChannelMappingBackLeft', 'ChannelMappingBackRight', 'ChannelMappingStereoLeft', 'ChannelMappingStereoRight'
 	ChannelMapping ChannelMapping `json:"channelMapping,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SelectAudioTrackByAttribute.
 func (satba SelectAudioTrackByAttribute) MarshalJSON() ([]byte, error) {
-	satba.OdataType = OdataTypeMicrosoftMediaSelectAudioTrackByAttribute
+	satba.OdataType = OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute
 	objectMap := make(map[string]interface{})
 	if satba.Attribute != "" {
 		objectMap["attribute"] = satba.Attribute
@@ -9799,15 +9891,15 @@ func (satba SelectAudioTrackByAttribute) AsBasicTrackDescriptor() (BasicTrackDes
 type SelectAudioTrackByID struct {
 	// TrackID - Track identifier to select
 	TrackID *int64 `json:"trackId,omitempty"`
-	// ChannelMapping - Optional designation for single channel audio tracks.  Can be used to combine the tracks into stereo or multi-channel audio tracks. Possible values include: 'FrontLeft', 'FrontRight', 'Center', 'LowFrequencyEffects', 'BackLeft', 'BackRight', 'StereoLeft', 'StereoRight'
+	// ChannelMapping - Optional designation for single channel audio tracks.  Can be used to combine the tracks into stereo or multi-channel audio tracks. Possible values include: 'ChannelMappingFrontLeft', 'ChannelMappingFrontRight', 'ChannelMappingCenter', 'ChannelMappingLowFrequencyEffects', 'ChannelMappingBackLeft', 'ChannelMappingBackRight', 'ChannelMappingStereoLeft', 'ChannelMappingStereoRight'
 	ChannelMapping ChannelMapping `json:"channelMapping,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SelectAudioTrackByID.
 func (satbi SelectAudioTrackByID) MarshalJSON() ([]byte, error) {
-	satbi.OdataType = OdataTypeMicrosoftMediaSelectAudioTrackByID
+	satbi.OdataType = OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID
 	objectMap := make(map[string]interface{})
 	if satbi.TrackID != nil {
 		objectMap["trackId"] = satbi.TrackID
@@ -9874,19 +9966,19 @@ func (satbi SelectAudioTrackByID) AsBasicTrackDescriptor() (BasicTrackDescriptor
 // SelectVideoTrackByAttribute select video tracks from the input by specifying an attribute and an
 // attribute filter.
 type SelectVideoTrackByAttribute struct {
-	// Attribute - The TrackAttribute to filter the tracks by. Possible values include: 'Bitrate', 'Language'
+	// Attribute - The TrackAttribute to filter the tracks by. Possible values include: 'TrackAttributeBitrate', 'TrackAttributeLanguage'
 	Attribute TrackAttribute `json:"attribute,omitempty"`
-	// Filter - The type of AttributeFilter to apply to the TrackAttribute in order to select the tracks. Possible values include: 'All', 'Top', 'Bottom', 'ValueEquals'
+	// Filter - The type of AttributeFilter to apply to the TrackAttribute in order to select the tracks. Possible values include: 'AttributeFilterAll', 'AttributeFilterTop', 'AttributeFilterBottom', 'AttributeFilterValueEquals'
 	Filter AttributeFilter `json:"filter,omitempty"`
 	// FilterValue - The value to filter the tracks by.  Only used when AttributeFilter.ValueEquals is specified for the Filter property. For TrackAttribute.Bitrate, this should be an integer value in bits per second (e.g: '1500000').  The TrackAttribute.Language is not supported for video tracks.
 	FilterValue *string `json:"filterValue,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SelectVideoTrackByAttribute.
 func (svtba SelectVideoTrackByAttribute) MarshalJSON() ([]byte, error) {
-	svtba.OdataType = OdataTypeMicrosoftMediaSelectVideoTrackByAttribute
+	svtba.OdataType = OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute
 	objectMap := make(map[string]interface{})
 	if svtba.Attribute != "" {
 		objectMap["attribute"] = svtba.Attribute
@@ -9957,13 +10049,13 @@ func (svtba SelectVideoTrackByAttribute) AsBasicTrackDescriptor() (BasicTrackDes
 type SelectVideoTrackByID struct {
 	// TrackID - Track identifier to select
 	TrackID *int64 `json:"trackId,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SelectVideoTrackByID.
 func (svtbi SelectVideoTrackByID) MarshalJSON() ([]byte, error) {
-	svtbi.OdataType = OdataTypeMicrosoftMediaSelectVideoTrackByID
+	svtbi.OdataType = OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID
 	objectMap := make(map[string]interface{})
 	if svtbi.TrackID != nil {
 		objectMap["trackId"] = svtbi.TrackID
@@ -10338,6 +10430,8 @@ type ServiceProperties struct {
 	StorageAuthentication StorageAuthentication `json:"storageAuthentication,omitempty"`
 	// Encryption - The account encryption properties.
 	Encryption *AccountEncryption `json:"encryption,omitempty"`
+	// KeyDelivery - The Key Delivery properties for Media Services account.
+	KeyDelivery *KeyDelivery `json:"keyDelivery,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServiceProperties.
@@ -10352,6 +10446,9 @@ func (sp ServiceProperties) MarshalJSON() ([]byte, error) {
 	if sp.Encryption != nil {
 		objectMap["encryption"] = sp.Encryption
 	}
+	if sp.KeyDelivery != nil {
+		objectMap["keyDelivery"] = sp.KeyDelivery
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -10363,6 +10460,79 @@ type ServiceSpecification struct {
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceSpecification.
+func (ss ServiceSpecification) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ServiceUpdate a Media Services account update.
+type ServiceUpdate struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// ServiceProperties - The resource properties.
+	*ServiceProperties `json:"properties,omitempty"`
+	// Identity - The Managed Identity for the Media Services account.
+	Identity *ServiceIdentity `json:"identity,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceUpdate.
+func (su ServiceUpdate) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if su.Tags != nil {
+		objectMap["tags"] = su.Tags
+	}
+	if su.ServiceProperties != nil {
+		objectMap["properties"] = su.ServiceProperties
+	}
+	if su.Identity != nil {
+		objectMap["identity"] = su.Identity
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServiceUpdate struct.
+func (su *ServiceUpdate) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				su.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var serviceProperties ServiceProperties
+				err = json.Unmarshal(*v, &serviceProperties)
+				if err != nil {
+					return err
+				}
+				su.ServiceProperties = &serviceProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity ServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				su.Identity = &identity
+			}
+		}
+	}
+
+	return nil
+}
+
 // StandardEncoderPreset describes all the settings to be used when encoding the input video with the
 // Standard Encoder.
 type StandardEncoderPreset struct {
@@ -10372,13 +10542,13 @@ type StandardEncoderPreset struct {
 	Codecs *[]BasicCodec `json:"codecs,omitempty"`
 	// Formats - The list of outputs to be produced by the encoder.
 	Formats *[]BasicFormat `json:"formats,omitempty"`
-	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
+	// OdataType - Possible values include: 'OdataTypeBasicPresetOdataTypePreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StandardEncoderPreset.
 func (sep StandardEncoderPreset) MarshalJSON() ([]byte, error) {
-	sep.OdataType = OdataTypeMicrosoftMediaStandardEncoderPreset
+	sep.OdataType = OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset
 	objectMap := make(map[string]interface{})
 	if sep.Filters != nil {
 		objectMap["filters"] = sep.Filters
@@ -10488,7 +10658,7 @@ func (sep *StandardEncoderPreset) UnmarshalJSON(body []byte) error {
 type StorageAccount struct {
 	// ID - The ID of the storage account resource. Media Services relies on tables and queues as well as blobs, so the primary storage account must be a Standard Storage account (either Microsoft.ClassicStorage or Microsoft.Storage). Blob only storage accounts can be added as secondary storage accounts.
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the storage account. Possible values include: 'Primary', 'Secondary'
+	// Type - The type of the storage account. Possible values include: 'StorageAccountTypePrimary', 'StorageAccountTypeSecondary'
 	Type StorageAccountType `json:"type,omitempty"`
 }
 
@@ -11764,13 +11934,13 @@ type SyncStorageKeysInput struct {
 type SystemData struct {
 	// CreatedBy - The identity that created the resource.
 	CreatedBy *string `json:"createdBy,omitempty"`
-	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	CreatedByType CreatedByType `json:"createdByType,omitempty"`
 	// CreatedAt - The timestamp of resource creation (UTC).
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
@@ -11793,7 +11963,7 @@ type BasicTrackDescriptor interface {
 // TrackDescriptor base type for all TrackDescriptor types, which define the metadata and selection for tracks
 // that should be processed by a Job
 type TrackDescriptor struct {
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
@@ -11805,27 +11975,27 @@ func unmarshalBasicTrackDescriptor(body []byte) (BasicTrackDescriptor, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaAudioTrackDescriptor):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor):
 		var atd AudioTrackDescriptor
 		err := json.Unmarshal(body, &atd)
 		return atd, err
-	case string(OdataTypeMicrosoftMediaSelectAudioTrackByAttribute):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute):
 		var satba SelectAudioTrackByAttribute
 		err := json.Unmarshal(body, &satba)
 		return satba, err
-	case string(OdataTypeMicrosoftMediaSelectAudioTrackByID):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID):
 		var satbi SelectAudioTrackByID
 		err := json.Unmarshal(body, &satbi)
 		return satbi, err
-	case string(OdataTypeMicrosoftMediaVideoTrackDescriptor):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor):
 		var vtd VideoTrackDescriptor
 		err := json.Unmarshal(body, &vtd)
 		return vtd, err
-	case string(OdataTypeMicrosoftMediaSelectVideoTrackByAttribute):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute):
 		var svtba SelectVideoTrackByAttribute
 		err := json.Unmarshal(body, &svtba)
 		return svtba, err
-	case string(OdataTypeMicrosoftMediaSelectVideoTrackByID):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID):
 		var svtbi SelectVideoTrackByID
 		err := json.Unmarshal(body, &svtbi)
 		return svtbi, err
@@ -11856,7 +12026,7 @@ func unmarshalBasicTrackDescriptorArray(body []byte) ([]BasicTrackDescriptor, er
 
 // MarshalJSON is the custom marshaler for TrackDescriptor.
 func (td TrackDescriptor) MarshalJSON() ([]byte, error) {
-	td.OdataType = OdataTypeTrackDescriptor
+	td.OdataType = OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor
 	objectMap := make(map[string]interface{})
 	if td.OdataType != "" {
 		objectMap["@odata.type"] = td.OdataType
@@ -12205,7 +12375,7 @@ func NewTransformCollectionPage(cur TransformCollection, getNextPage func(contex
 // TransformOutput describes the properties of a TransformOutput, which are the rules to be applied while
 // generating the desired output.
 type TransformOutput struct {
-	// OnError - A Transform can define more than one outputs. This property defines what the service should do when one output fails - either continue to produce other outputs, or, stop the other outputs. The overall Job state will not reflect failures of outputs that are specified with 'ContinueJob'. The default is 'StopProcessingJob'. Possible values include: 'StopProcessingJob', 'ContinueJob'
+	// OnError - A Transform can define more than one outputs. This property defines what the service should do when one output fails - either continue to produce other outputs, or, stop the other outputs. The overall Job state will not reflect failures of outputs that are specified with 'ContinueJob'. The default is 'StopProcessingJob'. Possible values include: 'OnErrorTypeStopProcessingJob', 'OnErrorTypeContinueJob'
 	OnError OnErrorType `json:"onError,omitempty"`
 	// RelativePriority - Sets the relative priority of the TransformOutputs within a Transform. This sets the priority that the service uses for processing TransformOutputs. The default priority is Normal. Possible values include: 'PriorityLow', 'PriorityNormal', 'PriorityHigh'
 	RelativePriority Priority `json:"relativePriority,omitempty"`
@@ -12285,13 +12455,13 @@ type TransportStreamFormat struct {
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`
 	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. {Resolution} - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
+	// OdataType - Possible values include: 'OdataTypeBasicFormatOdataTypeFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaImageFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaJpgFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaPngFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaMp4Format', 'OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TransportStreamFormat.
 func (tsf TransportStreamFormat) MarshalJSON() ([]byte, error) {
-	tsf.OdataType = OdataTypeMicrosoftMediaTransportStreamFormat
+	tsf.OdataType = OdataTypeBasicFormatOdataTypeMicrosoftMediaTransportStreamFormat
 	objectMap := make(map[string]interface{})
 	if tsf.OutputFiles != nil {
 		objectMap["outputFiles"] = tsf.OutputFiles
@@ -12360,13 +12530,13 @@ func (tsf TransportStreamFormat) AsBasicFormat() (BasicFormat, bool) {
 type UtcClipTime struct {
 	// Time - The time position on the timeline of the input media based on Utc time.
 	Time *date.Time `json:"time,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeMicrosoftMediaUtcClipTime'
+	// OdataType - Possible values include: 'OdataTypeBasicClipTimeOdataTypeClipTime', 'OdataTypeBasicClipTimeOdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeBasicClipTimeOdataTypeMicrosoftMediaUtcClipTime'
 	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for UtcClipTime.
 func (uct UtcClipTime) MarshalJSON() ([]byte, error) {
-	uct.OdataType = OdataTypeMicrosoftMediaUtcClipTime
+	uct.OdataType = OdataTypeBasicClipTimeOdataTypeMicrosoftMediaUtcClipTime
 	objectMap := make(map[string]interface{})
 	if uct.Time != nil {
 		objectMap["time"] = uct.Time
@@ -12418,7 +12588,7 @@ type Video struct {
 	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaH265Video', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeBasicCodecOdataTypeCodec', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaAacAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyVideo', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaCopyAudio', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage', 'OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -12430,23 +12600,23 @@ func unmarshalBasicVideo(body []byte) (BasicVideo, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaH265Video):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaH265Video):
 		var hv H265Video
 		err := json.Unmarshal(body, &hv)
 		return hv, err
-	case string(OdataTypeMicrosoftMediaImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaImage):
 		var i Image
 		err := json.Unmarshal(body, &i)
 		return i, err
-	case string(OdataTypeMicrosoftMediaH264Video):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaH264Video):
 		var hv H264Video
 		err := json.Unmarshal(body, &hv)
 		return hv, err
-	case string(OdataTypeMicrosoftMediaJpgImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaJpgImage):
 		var ji JpgImage
 		err := json.Unmarshal(body, &ji)
 		return ji, err
-	case string(OdataTypeMicrosoftMediaPngImage):
+	case string(OdataTypeBasicCodecOdataTypeMicrosoftMediaPngImage):
 		var pi PngImage
 		err := json.Unmarshal(body, &pi)
 		return pi, err
@@ -12477,7 +12647,7 @@ func unmarshalBasicVideoArray(body []byte) ([]BasicVideo, error) {
 
 // MarshalJSON is the custom marshaler for Video.
 func (vVar Video) MarshalJSON() ([]byte, error) {
-	vVar.OdataType = OdataTypeMicrosoftMediaVideo
+	vVar.OdataType = OdataTypeBasicCodecOdataTypeMicrosoftMediaVideo
 	objectMap := make(map[string]interface{})
 	if vVar.KeyFrameInterval != nil {
 		objectMap["keyFrameInterval"] = vVar.KeyFrameInterval
@@ -12575,21 +12745,21 @@ func (vVar Video) AsBasicCodec() (BasicCodec, bool) {
 // VideoAnalyzerPreset a video analyzer preset that extracts insights (rich metadata) from both audio and
 // video, and outputs a JSON format file.
 type VideoAnalyzerPreset struct {
-	// InsightsToExtract - Defines the type of insights that you want the service to generate. The allowed values are 'AudioInsightsOnly', 'VideoInsightsOnly', and 'AllInsights'. The default is AllInsights. If you set this to AllInsights and the input is audio only, then only audio insights are generated. Similarly if the input is video only, then only video insights are generated. It is recommended that you not use AudioInsightsOnly if you expect some of your inputs to be video only; or use VideoInsightsOnly if you expect some of your inputs to be audio only. Your Jobs in such conditions would error out. Possible values include: 'AudioInsightsOnly', 'VideoInsightsOnly', 'AllInsights'
+	// InsightsToExtract - Defines the type of insights that you want the service to generate. The allowed values are 'AudioInsightsOnly', 'VideoInsightsOnly', and 'AllInsights'. The default is AllInsights. If you set this to AllInsights and the input is audio only, then only audio insights are generated. Similarly if the input is video only, then only video insights are generated. It is recommended that you not use AudioInsightsOnly if you expect some of your inputs to be video only; or use VideoInsightsOnly if you expect some of your inputs to be audio only. Your Jobs in such conditions would error out. Possible values include: 'InsightsTypeAudioInsightsOnly', 'InsightsTypeVideoInsightsOnly', 'InsightsTypeAllInsights'
 	InsightsToExtract InsightsType `json:"insightsToExtract,omitempty"`
 	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode::Basic, since automatic language detection is not included in basic mode. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
 	AudioLanguage *string `json:"audioLanguage,omitempty"`
-	// Mode - Determines the set of audio analysis operations to be performed. If unspecified, the Standard AudioAnalysisMode would be chosen. Possible values include: 'Standard', 'Basic'
+	// Mode - Determines the set of audio analysis operations to be performed. If unspecified, the Standard AudioAnalysisMode would be chosen. Possible values include: 'AudioAnalysisModeStandard', 'AudioAnalysisModeBasic'
 	Mode AudioAnalysisMode `json:"mode,omitempty"`
 	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
 	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
-	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
+	// OdataType - Possible values include: 'OdataTypeBasicPresetOdataTypePreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VideoAnalyzerPreset.
 func (vap VideoAnalyzerPreset) MarshalJSON() ([]byte, error) {
-	vap.OdataType = OdataTypeMicrosoftMediaVideoAnalyzerPreset
+	vap.OdataType = OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset
 	objectMap := make(map[string]interface{})
 	if vap.InsightsToExtract != "" {
 		objectMap["insightsToExtract"] = vap.InsightsToExtract
@@ -12676,7 +12846,7 @@ type VideoLayer struct {
 	Height *string `json:"height,omitempty"`
 	// Label - The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeLayer', 'OdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeMicrosoftMediaH265Layer', 'OdataTypeMicrosoftMediaVideoLayer', 'OdataTypeMicrosoftMediaH264Layer', 'OdataTypeMicrosoftMediaJpgLayer', 'OdataTypeMicrosoftMediaPngLayer'
+	// OdataType - Possible values include: 'OdataTypeBasicLayerOdataTypeLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265VideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH265Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaJpgLayer', 'OdataTypeBasicLayerOdataTypeMicrosoftMediaPngLayer'
 	OdataType OdataTypeBasicLayer `json:"@odata.type,omitempty"`
 }
 
@@ -12688,7 +12858,7 @@ func unmarshalBasicVideoLayer(body []byte) (BasicVideoLayer, error) {
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaH264Layer):
+	case string(OdataTypeBasicLayerOdataTypeMicrosoftMediaH264Layer):
 		var hl H264Layer
 		err := json.Unmarshal(body, &hl)
 		return hl, err
@@ -12719,7 +12889,7 @@ func unmarshalBasicVideoLayerArray(body []byte) ([]BasicVideoLayer, error) {
 
 // MarshalJSON is the custom marshaler for VideoLayer.
 func (vl VideoLayer) MarshalJSON() ([]byte, error) {
-	vl.OdataType = OdataTypeMicrosoftMediaVideoLayer
+	vl.OdataType = OdataTypeBasicLayerOdataTypeMicrosoftMediaVideoLayer
 	objectMap := make(map[string]interface{})
 	if vl.Bitrate != nil {
 		objectMap["bitrate"] = vl.Bitrate
@@ -12824,13 +12994,13 @@ type VideoOverlay struct {
 	FadeOutDuration *string `json:"fadeOutDuration,omitempty"`
 	// AudioGainLevel - The gain level of audio in the overlay. The value should be in the range [0, 1.0]. The default is 1.0.
 	AudioGainLevel *float64 `json:"audioGainLevel,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeOverlay', 'OdataTypeMicrosoftMediaAudioOverlay', 'OdataTypeMicrosoftMediaVideoOverlay'
+	// OdataType - Possible values include: 'OdataTypeBasicOverlayOdataTypeOverlay', 'OdataTypeBasicOverlayOdataTypeMicrosoftMediaAudioOverlay', 'OdataTypeBasicOverlayOdataTypeMicrosoftMediaVideoOverlay'
 	OdataType OdataTypeBasicOverlay `json:"@odata.type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VideoOverlay.
 func (vo VideoOverlay) MarshalJSON() ([]byte, error) {
-	vo.OdataType = OdataTypeMicrosoftMediaVideoOverlay
+	vo.OdataType = OdataTypeBasicOverlayOdataTypeMicrosoftMediaVideoOverlay
 	objectMap := make(map[string]interface{})
 	if vo.Position != nil {
 		objectMap["position"] = vo.Position
@@ -12894,7 +13064,7 @@ type BasicVideoTrackDescriptor interface {
 
 // VideoTrackDescriptor a TrackSelection to select video tracks.
 type VideoTrackDescriptor struct {
-	// OdataType - Possible values include: 'OdataTypeTrackDescriptor', 'OdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeMicrosoftMediaSelectVideoTrackByID'
+	// OdataType - Possible values include: 'OdataTypeBasicTrackDescriptorOdataTypeTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaAudioTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectAudioTrackByID', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute', 'OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID'
 	OdataType OdataTypeBasicTrackDescriptor `json:"@odata.type,omitempty"`
 }
 
@@ -12906,11 +13076,11 @@ func unmarshalBasicVideoTrackDescriptor(body []byte) (BasicVideoTrackDescriptor,
 	}
 
 	switch m["@odata.type"] {
-	case string(OdataTypeMicrosoftMediaSelectVideoTrackByAttribute):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByAttribute):
 		var svtba SelectVideoTrackByAttribute
 		err := json.Unmarshal(body, &svtba)
 		return svtba, err
-	case string(OdataTypeMicrosoftMediaSelectVideoTrackByID):
+	case string(OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaSelectVideoTrackByID):
 		var svtbi SelectVideoTrackByID
 		err := json.Unmarshal(body, &svtbi)
 		return svtbi, err
@@ -12941,7 +13111,7 @@ func unmarshalBasicVideoTrackDescriptorArray(body []byte) ([]BasicVideoTrackDesc
 
 // MarshalJSON is the custom marshaler for VideoTrackDescriptor.
 func (vtd VideoTrackDescriptor) MarshalJSON() ([]byte, error) {
-	vtd.OdataType = OdataTypeMicrosoftMediaVideoTrackDescriptor
+	vtd.OdataType = OdataTypeBasicTrackDescriptorOdataTypeMicrosoftMediaVideoTrackDescriptor
 	objectMap := make(map[string]interface{})
 	if vtd.OdataType != "" {
 		objectMap["@odata.type"] = vtd.OdataType
