@@ -245,13 +245,13 @@ func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]media.St
 
 		id := accountMap["id"].(string)
 
-		storageType := media.Secondary
+		storageType := media.StorageAccountTypeSecondary
 		if accountMap["is_primary"].(bool) {
 			if foundPrimary {
 				return nil, fmt.Errorf("Only one Storage Account can be set as Primary")
 			}
 
-			storageType = media.Primary
+			storageType = media.StorageAccountTypePrimary
 			foundPrimary = true
 		}
 
@@ -279,7 +279,7 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 			output["id"] = *storageAccount.ID
 		}
 
-		output["is_primary"] = storageAccount.Type == media.Primary
+		output["is_primary"] = storageAccount.Type == media.StorageAccountTypePrimary
 
 		results = append(results, output)
 	}

@@ -124,8 +124,8 @@ func resourceMediaAssetFilter() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.Equal),
-											string(media.NotEqual),
+											string(media.FilterTrackPropertyCompareOperationEqual),
+											string(media.FilterTrackPropertyCompareOperationNotEqual),
 										}, false),
 									},
 
