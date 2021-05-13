@@ -370,6 +370,12 @@ func resourceStorageAccount() *schema.Resource {
 							Default:  false,
 						},
 
+						"change_feed_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"default_service_version": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -1761,6 +1767,9 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 				CorsRules: &[]storage.CorsRule{},
 			},
 			IsVersioningEnabled: utils.Bool(false),
+			ChangeFeed: &storage.ChangeFeed{
+				Enabled: utils.Bool(false),
+			},
 			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
 				Enable: utils.Bool(false),
 			},
@@ -1785,6 +1794,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
+
+	props.ChangeFeed = &storage.ChangeFeed{
+		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
+	}
 
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
@@ -2164,9 +2177,13 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
-	versioning := false
+	versioning, changeFeed := false, false
 	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
 		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
+	}
+
+	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil && v.Enabled != nil {
+		versioning = *v.Enabled
 	}
 
 	var defaultServiceVersion string
@@ -2184,6 +2201,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
 			"versioning_enabled":                versioning,
+			"change_feed_enabled":               changeFeed,
 			"default_service_version":           defaultServiceVersion,
 			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
