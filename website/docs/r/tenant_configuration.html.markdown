@@ -10,7 +10,7 @@ description: |-
 
 Manages Portal Tenant Configuration.
 
-~> **Note:** User has to be a Tenant Admin for managing this resource.
+~> **Note:** User has to be a Tenant Admin for managing this resource. The Service Principal with Tenant Admin could be created by `az ad sp create-for-rbac --name "<sp name>" --role="Owner" --scopes="/"`.
 
 ## Example Usage
 
