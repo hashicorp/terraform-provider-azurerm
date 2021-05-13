@@ -1,6 +1,6 @@
-// Package maps implements the Azure ARM Maps service API version 2018-05-01.
+// Package maps implements the Azure ARM Maps service API version 2021-02-01.
 //
-// Resource Provider
+// Azure Maps
 package maps
 
 // Copyright (c) Microsoft Corporation. All rights reserved.

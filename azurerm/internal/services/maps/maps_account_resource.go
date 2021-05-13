@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
+	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -53,8 +53,9 @@ func resourceMapsAccount() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"S0",
-					"S1",
+					string(maps.NameS0),
+					string(maps.NameS1),
+					string(maps.NameG2),
 				}, false),
 			},
 
@@ -105,10 +106,10 @@ func resourceMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	parameters := maps.AccountCreateParameters{
+	parameters := maps.Account{
 		Location: utils.String("global"),
 		Sku: &maps.Sku{
-			Name: &sku,
+			Name: maps.Name(sku),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -157,7 +158,7 @@ func resourceMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 	if props := resp.Properties; props != nil {
-		d.Set("x_ms_client_id", props.XMsClientID)
+		d.Set("x_ms_client_id", props.UniqueID)
 	}
 
 	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
