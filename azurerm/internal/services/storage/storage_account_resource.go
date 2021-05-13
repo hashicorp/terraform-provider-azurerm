@@ -793,6 +793,11 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	// this is the default behavior for the resource if the attribute is nil
+	// we are making this change in Terraform https://github.com/terraform-providers/terraform-provider-azurerm/issues/11689
+	// because the portal UI team has a bug in their code ignoring the ARM API documention which state that nil is true
+	// TODO: Remove code when Portal UI team fixes their code
+	allowSharedKeyAccess := true
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -806,6 +811,8 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
 			IsHnsEnabled:           &isHnsEnabled,
 			EnableNfsV3:            &nfsV3Enabled,
+			// TODO: Remove AllowSharedKeyAcces assignment when Portal UI team fixes their code (e.g. nil is true)
+			AllowSharedKeyAccess: &allowSharedKeyAccess,
 		},
 	}
 
@@ -1012,6 +1019,36 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
 	}
+
+	// AllowSharedKeyAccess can only be true due to issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/11460
+	// if value is nil that brakes the Portal UI as reported in https://github.com/terraform-providers/terraform-provider-azurerm/issues/11689
+	// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manafests itself in the Portal UI
+	// when a storage account is created by terraform that the AllowSharedKeyAccess is Disabled when it is actually Enabled, thus confusing out customers
+	// to fix this, I have added this code to explicitly to set the value to true if is nil to workaround the Portal UI bug for our customers.
+	// this is designed as a passive change, meaning the change will only take effect when the existing storage account is modified in some way if the
+	// account already exists. since I have also switched up the default behavor for net new storage accounts to always set this value as true, this issue
+	// should automatically correct itself over time with these changes.
+	// TODO: Remove code when Portal UI team fixes their code
+	existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
+	if err == nil {
+		if sharedKeyAccess := existing.AccountProperties.AllowSharedKeyAccess; sharedKeyAccess == nil {
+			allowSharedKeyAccess := true
+
+			opts := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					AllowSharedKeyAccess: &allowSharedKeyAccess,
+				},
+			}
+
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account AllowSharedKeyAccess %q: %+v", storageAccountName, err)
+			}
+		}
+	} else {
+		// Should never hit this, but added due to an abundance of caution
+		return fmt.Errorf("Error retrieving Azure Storage Account %q AllowSharedKeyAccess: %+v", storageAccountName, err)
+	}
+	// TODO: end remove changes when Portal UI team fixed their code
 
 	if d.HasChange("account_replication_type") {
 		sku := storage.Sku{
