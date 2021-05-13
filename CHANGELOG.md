@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v54.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11593]
 * dependencies: updating `databox` to API version `2020-12-01` [GH-11626]
+* dependencies: updating `maps` to API version `2021-02-01` [GH-11676]
 * Data Source: `azurerm_kubernetes_cluster` - Add `ingress_application_gateway_identity` export for add-on `ingress_application_gateway` [GH-11622]
 * `azurerm_cosmosdb_account` - support for the `backup` property [GH-11597]
 * `azurerm_frontdoor_custom_https_configuration` - Add support for resource import. [GH-11642]
