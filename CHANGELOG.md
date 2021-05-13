@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_monitor_aad_diagnostic_setting` [GH-11660]
 * **New Resource:** `azurerm_sentinel_alert_rule_machine_learning_behavior_analytics` [GH-11552]
 
 ENHANCEMENTS:
