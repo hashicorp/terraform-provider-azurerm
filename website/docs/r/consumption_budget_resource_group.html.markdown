@@ -94,9 +94,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Resource Group Consumption Budget. Changing this forces a new Resource Group Consumption Budget to be created.
 
-* `subscription_id` - (Required) The ID of subscription in which the Resource Group exists. Changing this forces a new Resource Group Consumption Budget to be created.
-
-* `resource_group_id` - (Required) The ID of the Resource Group to create the consumption budget for. Changing this forces a new Resource Group Consumption Budget to be created.
+* `resource_group_id` - (Required) The ID of the Resource Group to create the consumption budget for in the form of /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1. Changing this forces a new Resource Group Consumption Budget to be created.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
