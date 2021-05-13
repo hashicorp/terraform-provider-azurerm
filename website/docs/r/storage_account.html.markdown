@@ -147,6 +147,8 @@ A `blob_properties` block supports the following:
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
+* `change_feed_enabled` - (Optional) Is the blob service properties for change feed events enabled? Default to `false`.
+
 * `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
 
 * `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.

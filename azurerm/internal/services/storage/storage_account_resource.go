@@ -2183,7 +2183,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 	}
 
 	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil && v.Enabled != nil {
-		versioning = *v.Enabled
+		changeFeed = *v.Enabled
 	}
 
 	var defaultServiceVersion string
