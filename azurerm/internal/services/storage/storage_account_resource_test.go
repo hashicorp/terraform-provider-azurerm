@@ -577,6 +577,23 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_blobPropertiesEmptyAllowedExposedHeaders(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.blobPropertiesUpdatedEmptyAllowedExposedHeaders(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.0.allowed_headers.#").HasValue("1"),
+				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.0.exposed_headers.#").HasValue("1"),
+			),
+		},
+	})
+}
+
 func TestAccStorageAccount_queueProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -1833,6 +1850,40 @@ resource "azurerm_storage_account" "test" {
 
   blob_properties {
     versioning_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) blobPropertiesUpdatedEmptyAllowedExposedHeaders(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = true
+  allow_blob_public_access  = true
+
+  blob_properties {
+    cors_rule {
+      allowed_headers    = [""]
+      exposed_headers    = [""]
+      allowed_origins    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = 3600
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
