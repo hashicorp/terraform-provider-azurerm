@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `replicas_per_master` - (Optional) The number of Replicas to create per master on the Redis Cluster.
 
-~> **Note:** Configuring the number of replicas per faster is only available when using the Premium SKU and cannot be used in conjunction with shards.
+~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
