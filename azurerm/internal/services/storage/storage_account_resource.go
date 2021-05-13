@@ -795,7 +795,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	// this is the default behavior for the resource if the attribute is nil
 	// we are making this change in Terraform https://github.com/terraform-providers/terraform-provider-azurerm/issues/11689
-	// because the portal UI team has a bug in thier code ignoring the ARM API documention which state that nil is true
+	// because the portal UI team has a bug in their code ignoring the ARM API documention which state that nil is true
 	// TODO: Remove code when Portal UI team fixes their code
 	allowSharedKeyAccess := true
 
