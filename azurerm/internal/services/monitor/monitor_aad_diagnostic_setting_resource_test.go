@@ -141,37 +141,56 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   manage              = true
 }
 
-locals {
-  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
-  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
-}
-
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
-  dynamic log {
-    for_each = local.enabled_log_categories
-    content {
-      category = log.value
-      enabled  = true
-      retention_policy {
-        enabled = true
-        days    = 1
-      }
+  log {
+    category = "SignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
   }
-
-  dynamic log {
-    for_each = local.disabled_log_categories
-    content {
-      category = log.value
-      enabled  = false
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+  log {
+    category = "AuditLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
+  }
+  log {
+    category = "NonInteractiveUserSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ServicePrincipalSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ManagedIdentitySignInLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ProvisioningLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ADFSSignInLogs"
+    enabled  = false
+    retention_policy {}
   }
 }
 
@@ -205,36 +224,55 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   manage              = true
 }
 
-locals {
-  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
-  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
-}
-
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
-  dynamic log {
-    for_each = local.enabled_log_categories
-    content {
-      category = log.value
-      enabled  = true
-      retention_policy {
-        enabled = true
-        days    = 1
-      }
+  log {
+    category = "SignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
   }
-
-  dynamic log {
-    for_each = local.disabled_log_categories
-    content {
-      category = log.value
-      enabled  = false
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+  log {
+    category = "AuditLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
+  }
+  log {
+    category = "NonInteractiveUserSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ServicePrincipalSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ManagedIdentitySignInLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ProvisioningLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ADFSSignInLogs"
+    enabled  = false
+    retention_policy {}
   }
 }
 
@@ -253,6 +291,7 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
   log {
     category = "SignInLogs"
     enabled  = true
+    retention_policy {}
   }
 }
 `, r.eventhub(data))
@@ -277,37 +316,55 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 
-
-locals {
-  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
-  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
-}
-
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                       = "acctest-DS-%[1]d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  dynamic log {
-    for_each = local.enabled_log_categories
-    content {
-      category = log.value
-      enabled  = true
-      retention_policy {
-        enabled = true
-        days    = 1
-      }
+  log {
+    category = "SignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
   }
-
-  dynamic log {
-    for_each = local.disabled_log_categories
-    content {
-      category = log.value
-      enabled  = false
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+  log {
+    category = "AuditLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
+  }
+  log {
+    category = "NonInteractiveUserSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ServicePrincipalSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ManagedIdentitySignInLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ProvisioningLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ADFSSignInLogs"
+    enabled  = false
+    retention_policy {}
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -333,36 +390,55 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-locals {
-  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
-  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
-}
-
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name               = "acctest-DS-%[1]d"
   storage_account_id = azurerm_storage_account.test.id
-  dynamic log {
-    for_each = local.enabled_log_categories
-    content {
-      category = log.value
-      enabled  = true
-      retention_policy {
-        enabled = true
-        days    = 1
-      }
+  log {
+    category = "SignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
   }
-
-  dynamic log {
-    for_each = local.disabled_log_categories
-    content {
-      category = log.value
-      enabled  = false
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+  log {
+    category = "AuditLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
+  }
+  log {
+    category = "NonInteractiveUserSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ServicePrincipalSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ManagedIdentitySignInLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ProvisioningLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ADFSSignInLogs"
+    enabled  = false
+    retention_policy {}
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

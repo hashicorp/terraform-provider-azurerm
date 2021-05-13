@@ -3,12 +3,12 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_aad_diagnostic_setting"
 description: |-
-  Manages a Monitor Azure Active Directory Diagnostic Setting.
+  Manages an Azure Active Directory Diagnostic Setting for Azure Monitor.
 ---
 
 # azurerm_monitor_aad_diagnostic_setting
 
-Manages a Monitor Azure Active Directory Diagnostic Setting.
+Manages an Azure Active Directory Diagnostic Setting for Azure Monitor.
 
 ## Example Usage
 
@@ -31,36 +31,55 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-locals {
-  enabled_log_categories  = ["SignInLogs", "AuditLogs", "NonInteractiveUserSignInLogs", "ServicePrincipalSignInLogs"]
-  disabled_log_categories = ["ManagedIdentitySignInLogs", "ProvisioningLogs", "ADFSSignInLogs"]
-}
-
 resource "azurerm_monitor_aad_diagnostic_setting" "example" {
   name               = "setting1"
   storage_account_id = azurerm_storage_account.example.id
-  dynamic log {
-    for_each = local.enabled_log_categories
-    content {
-      category = log.value
-      enabled  = true
-      retention_policy {
-        enabled = true
-        days    = 1
-      }
+  log {
+    category = "SignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
   }
-
-  dynamic log {
-    for_each = local.disabled_log_categories
-    content {
-      category = log.value
-      enabled  = false
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+  log {
+    category = "AuditLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
     }
+  }
+  log {
+    category = "NonInteractiveUserSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ServicePrincipalSignInLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "ManagedIdentitySignInLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ProvisioningLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ADFSSignInLogs"
+    enabled  = false
+    retention_policy {}
   }
 }
 ```
@@ -73,7 +92,7 @@ The following arguments are supported:
   
 * `log` - (Required) One or more `log` blocks as defined below.
 
-~> **Note:** At least one of the `log` block should have the `enabled` set to `true`.
+~> **Note:** At least one of the `log` blocks must have the `enabled` property set to `true`.
 
 ---
 
@@ -81,15 +100,9 @@ The following arguments are supported:
 
 -> **NOTE:** This can be sourced from [the `azurerm_eventhub_namespace_authorization_rule` resource](eventhub_namespace_authorization_rule.html) and is different from [a `azurerm_eventhub_authorization_rule` resource](eventhub_authorization_rule.html).
 
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
-
-* `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
-
--> **NOTE:** If this isn't specified then the default Event Hub will be used.
+* `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. If not specified, the default Event Hub will be used. Changing this forces a new resource to be created.
 
 * `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
-
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. Changing this forces a new resource to be created.
 
@@ -99,9 +112,9 @@ The following arguments are supported:
 
 A `log` block supports the following:
 
-* `category` - (Required) The name of a Diagnostic Log Category for the Azure Active Directory.
+* `category` - (Required) The log category for the Azure Active Directory Diagnostic. Possible values are `AuditLogs`, `SignInLogs`, `ADFSSignInLogs`, `ManagedIdentitySignInLogs`, `NonInteractiveUserSignInLogs`, `ProvisioningLogs`, `ServicePrincipalSignInLogs`.
 
-* `retention_policy` - (Optional) A `retention_policy` block as defined below.
+* `retention_policy` - (Required) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
 
@@ -109,9 +122,9 @@ A `log` block supports the following:
 
 A `retention_policy` block supports the following:
 
-* `enabled` - (Required) Is this Retention Policy enabled?
+* `enabled` - (Optional) Is this Retention Policy enabled? Defaults to `false`.
 
-* `days` - (Optional) The number of days for which this Retention Policy should apply.
+* `days` - (Optional) The number of days for which this Retention Policy should apply. Defaults to `0`.
 
 ## Attributes Reference
 

@@ -53,6 +53,7 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 				ValidateFunc: validate.MonitorDiagnosticSettingName,
 			},
 
+			// When absent, will use the default eventhub, whilst the Diagnostic Setting API will return this property as an empty string. Therefore, it is useless to make this property as Computed.
 			"eventhub_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -65,12 +66,14 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.NamespaceAuthorizationRuleID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
 			"log_analytics_workspace_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
 			"storage_account_id": {
@@ -78,6 +81,7 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
 			"log": {
@@ -88,6 +92,15 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 						"category": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(aad.AuditLogs),
+								string(aad.SignInLogs),
+								"ADFSSignInLogs",
+								"ManagedIdentitySignInLogs",
+								"NonInteractiveUserSignInLogs",
+								"ProvisioningLogs",
+								"ServicePrincipalSignInLogs",
+							}, false),
 						},
 
 						"enabled": {
@@ -98,19 +111,21 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 
 						"retention_policy": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeBool,
-										Required: true,
+										Optional: true,
+										Default:  false,
 									},
 
 									"days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
+										Default:      0,
 									},
 								},
 							},
@@ -135,7 +150,7 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing %s: %s", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -150,7 +165,7 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 	// Therefore, ensure users has at least one enabled log entry.
 	valid := false
 	for _, log := range logs {
-		if *log.Enabled {
+		if log.Enabled != nil && *log.Enabled {
 			valid = true
 			break
 		}
@@ -165,33 +180,25 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		},
 	}
 
-	valid = false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
 		properties.DiagnosticSettings.EventHubAuthorizationRuleID = utils.String(eventHubAuthorizationRuleId)
 		properties.DiagnosticSettings.EventHubName = utils.String(eventHubName)
-		valid = true
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
 		properties.DiagnosticSettings.WorkspaceID = utils.String(workspaceId)
-		valid = true
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		properties.DiagnosticSettings.StorageAccountID = utils.String(storageAccountId)
-		valid = true
-	}
-
-	if !valid {
-		return fmt.Errorf("Either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, properties, name); err != nil {
-		return fmt.Errorf("Error creating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -217,7 +224,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -257,7 +264,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	d.Set("storage_account_id", storageAccountId)
 
 	if err := d.Set("log", flattenMonitorAADDiagnosticLogs(resp.Logs)); err != nil {
-		return fmt.Errorf("Error setting `log`: %+v", err)
+		return fmt.Errorf("setting `log`: %+v", err)
 	}
 
 	return nil
@@ -276,7 +283,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 	resp, err := client.Delete(ctx, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting %s: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
@@ -293,7 +300,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for %s to become available: %s", id, err)
+		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
 	return nil
@@ -306,7 +313,7 @@ func monitorAADDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *
 			if utils.ResponseWasNotFound(res.Response) {
 				return "NotFound", "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in monitorAADDiagnosticSettingDeletedRefreshFunc: %s", err)
+			return nil, "", fmt.Errorf("issuing read request in monitorAADDiagnosticSettingDeletedRefreshFunc: %s", err)
 		}
 
 		return res, "Exists", nil
@@ -321,22 +328,18 @@ func expandMonitorAADDiagnosticsSettingsLogs(input []interface{}) []aad.LogSetti
 
 		category := v["category"].(string)
 		enabled := v["enabled"].(bool)
-		policiesRaw := v["retention_policy"].([]interface{})
-		var retentionPolicy *aad.RetentionPolicy
-		if len(policiesRaw) != 0 {
-			policyRaw := policiesRaw[0].(map[string]interface{})
-			retentionDays := policyRaw["days"].(int)
-			retentionEnabled := policyRaw["enabled"].(bool)
-			retentionPolicy = &aad.RetentionPolicy{
-				Days:    utils.Int32(int32(retentionDays)),
-				Enabled: utils.Bool(retentionEnabled),
-			}
-		}
+
+		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
+		retentionDays := policyRaw["days"].(int)
+		retentionEnabled := policyRaw["enabled"].(bool)
 
 		output := aad.LogSettings{
-			Category:        aad.Category(category),
-			Enabled:         utils.Bool(enabled),
-			RetentionPolicy: retentionPolicy,
+			Category: aad.Category(category),
+			Enabled:  utils.Bool(enabled),
+			RetentionPolicy: &aad.RetentionPolicy{
+				Days:    utils.Int32(int32(retentionDays)),
+				Enabled: utils.Bool(retentionEnabled),
+			},
 		}
 
 		results = append(results, output)
