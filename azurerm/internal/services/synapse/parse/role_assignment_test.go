@@ -33,11 +33,6 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 				DataPlaneAssignmentId: "00000000",
 			},
 		},
-		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/Workspaces/workspace1|00000000",
-			Expected: nil,
-		},
 	}
 
 	for _, v := range testData {
