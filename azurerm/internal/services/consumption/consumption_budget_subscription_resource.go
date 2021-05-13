@@ -64,7 +64,12 @@ func resourceArmConsumptionBudgetSubscriptionRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmConsumptionBudgetSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
+	consumptionBudgetId, err := parse.ConsumptionBudgetSubscriptionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
 
 	return resourceArmConsumptionBudgetDelete(d, meta, subscriptionId.ID())
 }
