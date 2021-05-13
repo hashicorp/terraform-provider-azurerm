@@ -8,23 +8,15 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}, scope, name string) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConsumptionBudgetID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	scope := id.Scope
-	name := id.Name
 	resp, err := client.Get(ctx, scope, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -47,19 +39,12 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmConsumptionBudgetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetDelete(d *schema.ResourceData, meta interface{}, scope string) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConsumptionBudgetID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	scope := id.Scope
-	name := id.Name
-
+	name := d.Get("name").(string)
 	resp, err := client.Delete(ctx, scope, name)
 
 	if err != nil {
@@ -120,7 +105,6 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 	if read.ID == nil {
 		return fmt.Errorf("cannot read Azure Consumption Budget %q for scope %q", name, scope)
 	}
-	d.SetId(parse.NewConsumptionBudgetID(name, scope).ID())
 
 	return nil
 }

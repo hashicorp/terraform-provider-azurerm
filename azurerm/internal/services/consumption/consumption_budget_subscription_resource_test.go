@@ -116,12 +116,13 @@ func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetID(state.ID)
+	id, err := parse.ConsumptionBudgetSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
+	scope := fmt.Sprintf("/subscriptions/%s", id.SubscriptionId)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, scope, id.BudgetName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

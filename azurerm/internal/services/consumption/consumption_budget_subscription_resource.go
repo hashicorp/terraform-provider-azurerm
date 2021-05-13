@@ -1,12 +1,11 @@
 package consumption
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
+	subscriptionParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -15,9 +14,9 @@ func resourceArmConsumptionBudgetSubscription() *schema.Resource {
 		Create: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
 		Read:   resourceArmConsumptionBudgetSubscriptionRead,
 		Update: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
-		Delete: resourceArmConsumptionBudgetDelete,
+		Delete: resourceArmConsumptionBudgetSubscriptionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConsumptionBudgetID(id)
+			_, err := parse.ConsumptionBudgetSubscriptionID(id)
 			return err
 		}),
 
@@ -33,36 +32,39 @@ func resourceArmConsumptionBudgetSubscription() *schema.Resource {
 }
 
 func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := d.Get("subscription_id").(string)
-	scope := fmt.Sprintf("/subscriptions/%s", subscriptionId)
+	name := d.Get("name").(string)
+	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
 
-	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetSubscriptionName, scope)
+	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetSubscriptionName, subscriptionId.ID())
 	if err != nil {
 		return err
 	}
 
-	return resourceArmConsumptionBudgetRead(d, meta)
+	d.SetId(parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, name).ID())
+
+	return resourceArmConsumptionBudgetSubscriptionRead(d, meta)
 }
 
 func resourceArmConsumptionBudgetSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	err := resourceArmConsumptionBudgetRead(d, meta)
+	consumptionBudgetId, err := parse.ConsumptionBudgetSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	// Parse the consumption budget to get the scope
-	consumptionBudgetId, err := parse.ConsumptionBudgetID(d.Id())
+	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
+
+	err = resourceArmConsumptionBudgetRead(d, meta, subscriptionId.ID(), consumptionBudgetId.BudgetName)
 	if err != nil {
 		return err
 	}
 
-	// Parse the scope to get the subscription ID
-	resourceId, err := azure.ParseAzureResourceID(consumptionBudgetId.Scope)
-	if err != nil {
-		return err
-	}
-
-	d.Set("subscription_id", resourceId.SubscriptionID)
+	d.Set("subscription_id", consumptionBudgetId.SubscriptionId)
 
 	return nil
+}
+
+func resourceArmConsumptionBudgetSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
+
+	return resourceArmConsumptionBudgetDelete(d, meta, subscriptionId.ID())
 }
