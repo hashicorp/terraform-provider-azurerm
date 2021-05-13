@@ -16,12 +16,24 @@ import (
 
 type PortalTenantConfigurationResource struct{}
 
-func TestAccPortalTenantConfiguration_basic(t *testing.T) {
+func TestAccPortalTenantConfiguration(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being able provision one default Tenant Configuration at a time
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"resource": {
+			"basic":          testAccPortalTenantConfiguration_basic,
+			"update":         testAccPortalTenantConfiguration_update,
+			"requiresImport": testAccPortalTenantConfiguration_requiresImport,
+		},
+	})
+}
+
+func testAccPortalTenantConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_tenant_configuration", "test")
 	r := PortalTenantConfigurationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(),
+			Config: r.basic(true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -30,17 +42,38 @@ func TestAccPortalTenantConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccPortalTenantConfiguration_requiresImport(t *testing.T) {
+func testAccPortalTenantConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_tenant_configuration", "test")
 	r := PortalTenantConfigurationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(),
+			Config: r.basic(true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func testAccPortalTenantConfiguration_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_tenant_configuration", "test")
+	r := PortalTenantConfigurationResource{}
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -58,24 +91,24 @@ func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *c
 	return utils.Bool(resp.ConfigurationProperties != nil), nil
 }
 
-func (r PortalTenantConfigurationResource) basic() string {
+func (r PortalTenantConfigurationResource) basic(enforcePrivateMarkdownStorage bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_tenant_configuration" "test" {
-  enforce_private_markdown_storage = true
+  enforce_private_markdown_storage = %t
 }
-`)
+`, enforcePrivateMarkdownStorage)
 }
 
 func (r PortalTenantConfigurationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_portal_tenant_configuration" "import" {
-  enforce_private_markdown_storage = azurerm_portal_tenant_configuration.test.enforce_private_markdown_storage
+resource "azurerm_tenant_configuration" "import" {
+  enforce_private_markdown_storage = azurerm_tenant_configuration.test.enforce_private_markdown_storage
 }
-`, r.basic())
+`, r.basic(true))
 }
