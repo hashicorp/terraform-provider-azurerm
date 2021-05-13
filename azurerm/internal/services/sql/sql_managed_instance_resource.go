@@ -112,6 +112,39 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"collation": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "SQL_Latin1_General_CP1_CI_AS",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"public_data_endpoint_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"minimum_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "1.2",
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.0",
+					"1.1",
+					"1.2",
+				}, false),
+			},
+
+			"proxy_override": {
+				
+			}
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -125,12 +158,6 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	adminUsername := d.Get("administrator_login").(string)
-	licenseType := d.Get("license_type").(string)
-	subnetId := d.Get("subnet_id").(string)
-	metadata := tags.Expand(d.Get("tags").(map[string]interface{}))
-
 	id := parse.NewManagedInstanceID(subscriptionId, resGroup, name)
 
 	if d.IsNewResource() {
@@ -148,19 +175,22 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	sku, err := expandManagedInstanceSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for SQL Managed Instance Server %q (Resource Group %q): %v", name, resGroup, err)
+		return fmt.Errorf("error expanding `sku_name` for SQL Managed Instance Server %q: %v", id.ID(), err)
 	}
 
 	parameters := sql.ManagedInstance{
 		Sku:      sku,
-		Location: utils.String(location),
-		Tags:     metadata,
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			LicenseType:        sql.ManagedInstanceLicenseType(licenseType),
-			AdministratorLogin: utils.String(adminUsername),
-			SubnetID:           utils.String(subnetId),
-			StorageSizeInGB:    utils.Int32(int32(d.Get("storage_size_in_gb").(int))),
-			VCores:             utils.Int32(int32(d.Get("vcores").(int))),
+			LicenseType:               sql.ManagedInstanceLicenseType(d.Get("license_type").(string)),
+			AdministratorLogin:        utils.String(d.Get("administrator_login").(string)),
+			SubnetID:                  utils.String(d.Get("subnet_id").(string)),
+			StorageSizeInGB:           utils.Int32(int32(d.Get("storage_size_in_gb").(int))),
+			VCores:                    utils.Int32(int32(d.Get("vcores").(int))),
+			Collation:                 utils.String(d.Get("collation").(string)),
+			PublicDataEndpointEnabled: utils.Bool(d.Get("public_data_endpoint_enabled").(bool)),
+			MinimalTLSVersion:         utils.String(d.Get("minimum_tls_version").(string)),
 		},
 	}
 
@@ -219,12 +249,16 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("sku_name", sku.Name)
 	}
 
-	if miServerProperties := resp.ManagedInstanceProperties; miServerProperties != nil {
-		d.Set("license_type", miServerProperties.LicenseType)
-		d.Set("administrator_login", miServerProperties.AdministratorLogin)
-		d.Set("subnet_id", miServerProperties.SubnetID)
-		d.Set("storage_size_in_gb", miServerProperties.StorageSizeInGB)
-		d.Set("vcores", miServerProperties.VCores)
+	if props := resp.ManagedInstanceProperties; props != nil {
+		d.Set("license_type", props.LicenseType)
+		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("subnet_id", props.SubnetID)
+		d.Set("storage_size_in_gb", props.StorageSizeInGB)
+		d.Set("vcores", props.VCores)
+		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("collation", props.Collation)
+		d.Set("public_data_endpoint_enabled", props.PublicDataEndpointEnabled)
+		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
