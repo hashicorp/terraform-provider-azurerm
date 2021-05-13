@@ -1,7 +1,8 @@
 ## 2.59.0 (Unreleased)
 
 FEATURES:
-
+* **New Resource:** `azurerm_consumption_budget_resource_group` [GH-9201]
+* **New Resource:** `azurerm_consumption_budget_subscription` [GH-9201]
 * **New Resource:** `azurerm_monitor_aad_diagnostic_setting` [GH-11660]
 * **New Resource:** `azurerm_sentinel_alert_rule_machine_learning_behavior_analytics` [GH-11552]
 
