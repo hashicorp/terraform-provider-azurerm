@@ -70,7 +70,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 10),
+					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
 				"scm_ip_restriction": schemaAppServiceIpRestriction(),
@@ -124,6 +124,12 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"health_check_path": {
 					Type:     schema.TypeString,
 					Optional: true,
+				},
+
+				"java_version": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
 			},
 		},
@@ -199,6 +205,11 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"health_check_path": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"java_version": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -394,6 +405,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
+	if v, ok := config["java_version"]; ok {
+		siteConfig.JavaVersion = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -450,6 +465,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HealthCheckPath != nil {
 		result["health_check_path"] = *input.HealthCheckPath
+	}
+
+	if input.JavaVersion != nil {
+		result["java_version"] = *input.JavaVersion
 	}
 
 	results = append(results, result)

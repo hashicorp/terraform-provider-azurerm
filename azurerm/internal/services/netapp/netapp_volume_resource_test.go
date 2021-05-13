@@ -28,7 +28,6 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocols.2676449260").HasValue("NFSv3"),
 			),
 		},
 		data.ImportStep(),
@@ -44,7 +43,6 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 			Config: r.nfsv41(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocols.3098200649").HasValue("NFSv4.1"),
 			),
 		},
 		data.ImportStep(),
@@ -519,11 +517,12 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 101
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.4.0/24", "1.3.4.0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index          = 1
+    allowed_clients     = ["1.2.4.0/24", "1.3.4.0"]
+    protocols_enabled   = ["NFSv3"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
   }
 
   tags = {

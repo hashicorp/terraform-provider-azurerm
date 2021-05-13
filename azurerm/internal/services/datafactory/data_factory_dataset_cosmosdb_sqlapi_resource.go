@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,8 @@ func resourceDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
 		Update: resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
 		Delete: resourceDataFactoryDatasetCosmosDbSQLAPIDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,7 +39,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -210,7 +210,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceData
 		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypeRelationalTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &cosmosDbTableset,
 		Type:       &datasetType,
@@ -263,7 +263,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, meta i
 
 	cosmosDbTable, ok := resp.Properties.AsCosmosDbSQLAPICollectionDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", cosmosDbTable.AdditionalProperties)

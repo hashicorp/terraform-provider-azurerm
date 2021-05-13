@@ -23,7 +23,7 @@ resource "azurerm_databox_edge_device" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  sku_name = "Edge-Standard"
+  sku_name = "EdgeP_Base-Standard"
 }
 
 resource "azurerm_databox_edge_order" "example" {

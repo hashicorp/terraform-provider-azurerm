@@ -37,6 +37,34 @@ func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesDisableAutomaticUpdate(data, "2016-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"enable_automatic_updates",
+		),
+		{
+			Config: r.imagesDisableAutomaticUpdate(data, "2019-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"enable_automatic_updates",
+		),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -69,6 +97,9 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 			Config: r.imagesFromVirtualMachine(data, "second"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// Ensure the storage account and disk size has not changed
+				check.That(data.ResourceName).Key("os_disk.0.storage_account_type").HasValue("Standard_LRS"),
+				check.That(data.ResourceName).Key("os_disk.0.disk_size_gb").HasValue("200"),
 			),
 		},
 		data.ImportStep(
@@ -284,6 +315,57 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, version)
 }
 
+func (r WindowsVirtualMachineScaleSetResource) imagesDisableAutomaticUpdate(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Automatic"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "%s"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = false
+    enable_automatic_os_upgrade = false
+  }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 100
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+}
+`, r.template(data), version)
+}
+
 func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -314,6 +396,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -414,6 +497,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
+    disk_size_gb         = 200
   }
 
   network_interface {
@@ -427,7 +511,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.imagesFromVirtualMachinePrerequisites(data), image)
+`, r.imagesFromVirtualMachinePrerequisitesWithImage(data), image)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) imagesManualUpdate(data acceptance.TestData, version string) string {

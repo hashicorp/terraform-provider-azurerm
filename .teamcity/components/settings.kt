@@ -5,7 +5,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "0.14.7"
+var defaultTerraformCoreVersion = "0.15.3"
 
 var locations = mapOf(
         "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false),
@@ -40,6 +40,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(1, defaultStartHour),
 
+        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones
+        "netapp" to testConfiguration(10, defaultStartHour),
+
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
         "servicebus" to testConfiguration(10, defaultStartHour),
@@ -49,5 +52,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "signalr" to testConfiguration(1, defaultStartHour),
 
         // Spring Cloud only allows a max of 10 provisioned
-        "springcloud" to testConfiguration(5, defaultStartHour)
+        "springcloud" to testConfiguration(5, defaultStartHour),
+
+        // Currently have a quota of 10 nodes, 3 nodes required per test so lets limit it to 3
+        "vmware" to testConfiguration(3, defaultStartHour)
 )

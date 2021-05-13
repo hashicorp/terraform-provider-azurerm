@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 		Read:   resourceIoTTimeSeriesInsightsGen2EnvironmentRead,
 		Update: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
 		Delete: resourceIoTTimeSeriesInsightsGen2EnvironmentDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EnvironmentID(id)
 			return err
 		}),
@@ -171,16 +171,16 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resource
 		return fmt.Errorf("retrieving IoT Time Series Insights Gen2 Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resource, ok := resp.Value.AsGen2EnvironmentResource()
+	read, ok := resp.Value.AsGen2EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("resource was not IoT Time Series Insights Gen2 Environment %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	if resource.ID == nil || *resource.ID == "" {
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("cannot read IoT Time Series Insights Gen2 Environment %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*resource.ID)
+	d.SetId(*read.ID)
 
 	return resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
 }

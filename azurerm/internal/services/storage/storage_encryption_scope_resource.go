@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -14,7 +14,7 @@ import (
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceStorageEncryptionScope() *schema.Resource {
 		Update: resourceStorageEncryptionScopeUpdate,
 		Delete: resourceStorageEncryptionScopeDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EncryptionScopeID(id)
 			return err
 		}),
@@ -66,6 +66,12 @@ func resourceStorageEncryptionScope() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+			},
+
+			"infrastructure_encryption_required": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -108,6 +114,11 @@ func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface
 			},
 		},
 	}
+
+	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
+		props.EncryptionScopeProperties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
+	}
+
 	if _, err := client.Put(ctx, accountId.ResourceGroup, accountId.Name, name, props); err != nil {
 		return fmt.Errorf("creating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
@@ -192,6 +203,9 @@ func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}
 			}
 		}
 		d.Set("key_vault_key_id", keyId)
+		if props.RequireInfrastructureEncryption != nil {
+			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
+		}
 	}
 
 	return nil

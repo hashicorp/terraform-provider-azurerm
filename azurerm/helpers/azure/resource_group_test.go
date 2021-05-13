@@ -1,19 +1,23 @@
-package azure
+package azure_test
 
 import (
+	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestValidateResourceGroupName(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
+		Message  string
 	}{
 		{
 			Value:    "",
 			ErrCount: 1,
+			Message:  "cannot be blank",
 		},
 		{
 			Value:    "hello",
@@ -48,21 +52,28 @@ func TestValidateResourceGroupName(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandString(90),
+			Value:    acceptance.RandString(90),
 			ErrCount: 0,
 		},
 		{
-			Value:    acctest.RandString(91),
+			Value:    acceptance.RandString(91),
 			ErrCount: 1,
 		},
 	}
 
 	for _, tc := range cases {
-		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
+		_, errors := azure.ValidateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected "+
 				"validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
+		} else if len(errors) == 1 && tc.Message != "" {
+			var errorMessage = errors[0].Error()
+
+			if !strings.Contains(errorMessage, tc.Message) {
+				t.Fatalf("Expected "+
+					"validateResourceGroupName to report an error including '%s' for '%s' - got '%s'", tc.Message, tc.Value, errorMessage)
+			}
 		}
 	}
 }

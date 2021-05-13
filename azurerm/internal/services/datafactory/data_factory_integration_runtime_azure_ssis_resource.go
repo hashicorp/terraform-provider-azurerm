@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *schema.Resource {
 		Read:   resourceDataFactoryIntegrationRuntimeAzureSsisRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate,
 		Delete: resourceDataFactoryIntegrationRuntimeAzureSsisDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -102,20 +102,20 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *schema.Resource {
 			"edition": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(datafactory.Standard),
+				Default:  string(datafactory.IntegrationRuntimeEditionStandard),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.Standard),
-					string(datafactory.Enterprise),
+					string(datafactory.IntegrationRuntimeEditionStandard),
+					string(datafactory.IntegrationRuntimeEditionEnterprise),
 				}, false),
 			},
 
 			"license_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(datafactory.LicenseIncluded),
+				Default:  string(datafactory.IntegrationRuntimeLicenseTypeLicenseIncluded),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.LicenseIncluded),
-					string(datafactory.BasePrice),
+					string(datafactory.IntegrationRuntimeLicenseTypeLicenseIncluded),
+					string(datafactory.IntegrationRuntimeLicenseTypeBasePrice),
 				}, false),
 			},
 
@@ -225,7 +225,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *schema.Resour
 	description := d.Get("description").(string)
 	managedIntegrationRuntime := datafactory.ManagedIntegrationRuntime{
 		Description: &description,
-		Type:        datafactory.TypeManaged,
+		Type:        datafactory.TypeBasicIntegrationRuntimeTypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
 			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d),
 			SsisProperties:    expandDataFactoryIntegrationRuntimeAzureSsisProperties(d),
@@ -395,7 +395,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *schema.ResourceDa
 		if adminPassword := catalogInfo["administrator_password"]; adminPassword.(string) != "" {
 			ssisProperties.CatalogInfo.CatalogAdminPassword = &datafactory.SecureString{
 				Value: utils.String(adminPassword.(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			}
 		}
 	}
@@ -405,7 +405,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *schema.ResourceDa
 
 		sasToken := &datafactory.SecureString{
 			Value: utils.String(customSetupScript["sas_token"].(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		ssisProperties.CustomSetupScriptProperties = &datafactory.IntegrationRuntimeCustomSetupScriptProperties{

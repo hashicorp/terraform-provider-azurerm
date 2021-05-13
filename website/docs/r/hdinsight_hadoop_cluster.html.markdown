@@ -98,6 +98,8 @@ The following arguments are supported:
 
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
+* `network` - (Optional) A `network` block as defined below.
+
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
@@ -166,6 +168,16 @@ A `roles` block supports the following:
 
 ---
 
+A `network` block supports the following:
+
+* `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`. Changing this forces a new resource to be created.
+
+-> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
+
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+
+---
+
 A `storage_account` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
@@ -217,6 +229,8 @@ A `worker_node` block supports the following:
 * `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+* `autoscale` - (Optional) A `autoscale` block as defined below.
 
 ---
 
@@ -308,6 +322,42 @@ A `monitor` block supports the following:
 * `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
 
 * `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
+---
+
+An `autoscale` block supports the following:
+
+* `capacity` - (Optional) A `capacity` block as defined below.
+
+* `recurrence` - (Optional) A `recurrence` block as defined below.
+
+-> **NOTE:** Either a `capacity` or `recurrence` block must be specified - but not both.
+
+---
+
+A `capacity` block supports the following:
+
+* `max_instance_count` - (Required) The maximum number of worker nodes to autoscale to based on the cluster's activity.
+
+* `min_instance_count` - (Required) The minimum number of worker nodes to autoscale to based on the cluster's activity.
+
+---
+
+A `recurrence` block supports the following:
+
+* `schedule` - (Required) A list of `schedule` blocks as defined below.
+
+* `timezone` - (Required) The time zone for the autoscale schedule times.
+
+---
+
+A `schedule` block supports the following:
+
+* `days` - (Required) The days of the week to perform autoscale.
+
+* `target_instance_count` - (Required) The number of worker nodes to autoscale at the specified time.
+
+* `time` - (Required) The time of day to perform the autoscale in 24hour format.
 
 ## Attributes Reference
 

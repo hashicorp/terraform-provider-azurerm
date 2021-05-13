@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
@@ -325,11 +324,9 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 				"scm_ip_restriction": schemaAppServiceIpRestriction(),
 
 				"java_version": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^(1\.7|1\.8|11)`),
-						`Invalid Java version provided`),
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice([]string{"1.7", "1.8", "11"}, false),
 				},
 
 				"java_container": {
@@ -584,6 +581,7 @@ func schemaAppServiceLogsConfig() *schema.Schema {
 									},
 								},
 								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+								AtLeastOneOf:  []string{"logs.0.http_logs.0.azure_blob_storage", "logs.0.http_logs.0.file_system"},
 							},
 							"azure_blob_storage": {
 								Type:     schema.TypeList,
@@ -603,6 +601,7 @@ func schemaAppServiceLogsConfig() *schema.Schema {
 									},
 								},
 								ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
+								AtLeastOneOf:  []string{"logs.0.http_logs.0.azure_blob_storage", "logs.0.http_logs.0.file_system"},
 							},
 						},
 					},
@@ -845,18 +844,8 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"subnet_id": {
-					// TODO - Remove in 3.0
-					Type:         schema.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Deprecated:   "This field has been deprecated in favour of `virtual_network_subnet_id` and will be removed in a future version of the provider",
-				},
-
 				"virtual_network_subnet_id": {
 					Type:         schema.TypeString,
-					Computed:     true, // TODO Remove `Computed` in 3.0
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -884,6 +873,63 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 						"Deny",
 					}, false),
 				},
+
+				"headers": {
+					Type:       schema.TypeList,
+					Optional:   true,
+					Computed:   true,
+					MaxItems:   1,
+					ConfigMode: schema.SchemaConfigModeAttr,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+
+							// lintignore:S018
+							"x_forwarded_host": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								MaxItems: 8,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_forwarded_for": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								MaxItems: 8,
+								Elem: &schema.Schema{
+									Type:         schema.TypeString,
+									ValidateFunc: validation.IsCIDR,
+								},
+							},
+
+							// lintignore:S018
+							"x_azure_fdid": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								MaxItems: 8,
+								Elem: &schema.Schema{
+									Type:         schema.TypeString,
+									ValidateFunc: validation.IsUUID,
+								},
+							},
+
+							// lintignore:S018
+							"x_fd_health_probe": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+									ValidateFunc: validation.StringInSlice([]string{
+										"1",
+									}, false),
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -899,27 +945,27 @@ func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"service_tag": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"subnet_id": {
-					// TODO - Remove in 3.0
-					Type:     schema.TypeString,
-					Computed: true,
-				},
+
 				"virtual_network_subnet_id": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"name": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"priority": {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
+
 				"action": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -1394,9 +1440,12 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 		appLogsConfigs := v.([]interface{})
 
 		for _, config := range appLogsConfigs {
-			appLogsConfig := config.(map[string]interface{})
-
 			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
+
+			if config == nil {
+				continue
+			}
+			appLogsConfig := config.(map[string]interface{})
 
 			if v, ok := appLogsConfig["file_system_level"]; ok {
 				logs.ApplicationLogs.FileSystem = &web.FileSystemApplicationLogsConfig{
@@ -1424,9 +1473,12 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 		httpLogsConfigs := v.([]interface{})
 
 		for _, config := range httpLogsConfigs {
-			httpLogsConfig := config.(map[string]interface{})
-
 			logs.HTTPLogs = &web.HTTPLogsConfig{}
+
+			if config == nil {
+				continue
+			}
+			httpLogsConfig := config.(map[string]interface{})
 
 			if v, ok := httpLogsConfig["file_system"]; ok {
 				fileSystemConfigs := v.([]interface{})
@@ -1809,21 +1861,32 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			}
 		}
 
-		if subnetId := v.VnetSubnetResourceID; subnetId != nil {
-			restriction["virtual_network_subnet_id"] = subnetId
-			restriction["subnet_id"] = subnetId
+		subnetId := ""
+		if subnetIdRaw := v.VnetSubnetResourceID; subnetIdRaw != nil {
+			subnetId = *subnetIdRaw
 		}
+		restriction["virtual_network_subnet_id"] = subnetId
 
-		if name := v.Name; name != nil {
-			restriction["name"] = *name
+		name := ""
+		if nameRaw := v.Name; nameRaw != nil {
+			name = *nameRaw
 		}
+		restriction["name"] = name
 
-		if priority := v.Priority; priority != nil {
-			restriction["priority"] = *priority
+		priority := 0
+		if priorityRaw := v.Priority; priorityRaw != nil {
+			priority = int(*priorityRaw)
 		}
+		restriction["priority"] = priority
 
-		if action := v.Action; action != nil {
-			restriction["action"] = *action
+		action := ""
+		if actionRaw := v.Action; actionRaw != nil {
+			action = *actionRaw
+		}
+		restriction["action"] = action
+
+		if headers := v.Headers; headers != nil {
+			restriction["headers"] = flattenHeaders(headers)
 		}
 
 		restrictions = append(restrictions, restriction)
@@ -1895,11 +1958,7 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := ""
 
-		if subnetID, ok := restriction["subnet_id"]; ok {
-			vNetSubnetID = subnetID.(string)
-		}
-
-		if subnetID, ok := restriction["virtual_network_subnet_id"]; ok {
+		if subnetID, ok := restriction["virtual_network_subnet_id"]; ok && subnetID != "" {
 			vNetSubnetID = subnetID.(string)
 		}
 
@@ -1946,9 +2005,61 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		if action != "" {
 			ipSecurityRestriction.Action = &action
 		}
+		if headers, ok := restriction["headers"]; ok {
+			ipSecurityRestriction.Headers = expandHeaders(headers.([]interface{}))
+		}
 
 		restrictions = append(restrictions, ipSecurityRestriction)
 	}
 
 	return restrictions, nil
+}
+
+func flattenHeaders(input map[string][]string) []interface{} {
+	output := make([]interface{}, 0)
+	headers := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
+
+	if forwardedHost, ok := input["x-forwarded-host"]; ok && len(forwardedHost) > 0 {
+		headers["x_forwarded_host"] = forwardedHost
+	}
+	if forwardedFor, ok := input["x-forwarded-for"]; ok && len(forwardedFor) > 0 {
+		headers["x_forwarded_for"] = forwardedFor
+	}
+	if fdids, ok := input["x-azure-fdid"]; ok && len(fdids) > 0 {
+		headers["x_azure_fdid"] = fdids
+	}
+	if healthProbe, ok := input["x-fd-healthprobe"]; ok && len(healthProbe) > 0 {
+		headers["x_fd_health_probe"] = healthProbe
+	}
+
+	return append(output, headers)
+}
+
+func expandHeaders(input interface{}) map[string][]string {
+	output := make(map[string][]string)
+
+	for _, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		val := r.(map[string]interface{})
+		if raw := val["x_forwarded_host"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-forwarded-host"] = *utils.ExpandStringSlice(raw)
+		}
+		if raw := val["x_forwarded_for"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-forwarded-for"] = *utils.ExpandStringSlice(raw)
+		}
+		if raw := val["x_azure_fdid"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-azure-fdid"] = *utils.ExpandStringSlice(raw)
+		}
+		if raw := val["x_fd_health_probe"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-fd-healthprobe"] = *utils.ExpandStringSlice(raw)
+		}
+	}
+
+	return output
 }

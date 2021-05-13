@@ -11,24 +11,25 @@ import (
 )
 
 var kubernetesOtherTests = map[string]func(t *testing.T){
-	"basicAvailabilitySet":           testAccKubernetesCluster_basicAvailabilitySet,
-	"basicVMSS":                      testAccKubernetesCluster_basicVMSS,
-	"requiresImport":                 testAccKubernetesCluster_requiresImport,
-	"criticalAddonsTaint":            testAccKubernetesCluster_criticalAddonsTaint,
-	"linuxProfile":                   testAccKubernetesCluster_linuxProfile,
-	"nodeLabels":                     testAccKubernetesCluster_nodeLabels,
-	"nodeResourceGroup":              testAccKubernetesCluster_nodeResourceGroup,
-	"paidSku":                        testAccKubernetesCluster_paidSku,
-	"upgradeConfig":                  testAccKubernetesCluster_upgrade,
-	"tags":                           testAccKubernetesCluster_tags,
-	"windowsProfile":                 testAccKubernetesCluster_windowsProfile,
-	"outboundTypeLoadBalancer":       testAccKubernetesCluster_outboundTypeLoadBalancer,
-	"privateClusterOn":               testAccKubernetesCluster_privateClusterOn,
-	"privateClusterOff":              testAccKubernetesCluster_privateClusterOff,
-	"privateClusterPrivateDNS":       testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
-	"privateClusterPrivateDNSSystem": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
-	"privateClusterPrivateDNSAndSP":  testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal,
-	"upgradeChannel":                 testAccKubernetesCluster_upgradeChannel,
+	"basicAvailabilitySet":              testAccKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                         testAccKubernetesCluster_basicVMSS,
+	"requiresImport":                    testAccKubernetesCluster_requiresImport,
+	"criticalAddonsTaint":               testAccKubernetesCluster_criticalAddonsTaint,
+	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
+	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
+	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
+	"paidSku":                           testAccKubernetesCluster_paidSku,
+	"upgradeConfig":                     testAccKubernetesCluster_upgrade,
+	"tags":                              testAccKubernetesCluster_tags,
+	"windowsProfile":                    testAccKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer":          testAccKubernetesCluster_outboundTypeLoadBalancer,
+	"privateClusterOn":                  testAccKubernetesCluster_privateClusterOn,
+	"privateClusterOff":                 testAccKubernetesCluster_privateClusterOff,
+	"privateClusterPrivateDNS":          testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
+	"privateClusterPrivateDNSSystem":    testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
+	"privateClusterPrivateDNSAndSP":     testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal,
+	"privateClusterPrivateDNSSubDomain": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain,
+	"upgradeChannel":                    testAccKubernetesCluster_upgradeChannel,
 }
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
@@ -1106,7 +1107,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (KubernetesClusterResource) diskEncryptionConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}

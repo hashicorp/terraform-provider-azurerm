@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 		Update: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
 		Delete: resourceDataFactoryIntegrationRuntimeSelfHostedDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IntegrationRuntimeID(id)
 			return err
 		}),
@@ -117,7 +117,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *schema.Resou
 
 	selfHostedIntegrationRuntime := datafactory.SelfHostedIntegrationRuntime{
 		Description: &description,
-		Type:        datafactory.TypeSelfHosted,
+		Type:        datafactory.TypeBasicIntegrationRuntimeTypeSelfHosted,
 	}
 
 	properties := expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d)
@@ -246,7 +246,7 @@ func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d *schem
 		linkedInfo := &datafactory.SelfHostedIntegrationRuntimeTypeProperties{
 			LinkedInfo: &datafactory.LinkedIntegrationRuntimeRbacAuthorization{
 				ResourceID:        &rbac,
-				AuthorizationType: datafactory.AuthorizationTypeRBAC,
+				AuthorizationType: datafactory.AuthorizationTypeAuthorizationTypeRBAC,
 			},
 		}
 		return linkedInfo

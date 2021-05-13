@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -161,7 +161,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.R
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
@@ -175,7 +175,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.R
 	datalakeStorageGen2LinkedService := &datafactory.AzureBlobFSLinkedService{
 		Description:                            utils.String(d.Get("description").(string)),
 		AzureBlobFSLinkedServiceTypeProperties: datalakeStorageGen2Properties,
-		Type:                                   datafactory.TypeAzureBlobFS,
+		Type:                                   datafactory.TypeBasicLinkedServiceTypeAzureBlobFS,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -247,7 +247,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceD
 	dataLakeStorageGen2, ok := resp.Properties.AsAzureBlobFSLinkedService()
 
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobFS, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobFS, *resp.Type)
 	}
 
 	if dataLakeStorageGen2.Tenant != nil {

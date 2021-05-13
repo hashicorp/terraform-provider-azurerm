@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryLinkedServiceAzureFunction() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceAzureFunctionDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceAzureFunction() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -132,10 +132,10 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *schema.Resourc
 			FunctionAppURL: d.Get("url").(string),
 			FunctionKey: &datafactory.SecureString{
 				Value: utils.String(d.Get("key").(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		},
-		Type: datafactory.TypeAzureFunction,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureFunction,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -206,7 +206,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *schema.ResourceData, m
 
 	azureFunction, ok := resp.Properties.AsAzureFunctionLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
 	}
 
 	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)

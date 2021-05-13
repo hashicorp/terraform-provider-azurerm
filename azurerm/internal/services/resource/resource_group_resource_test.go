@@ -88,7 +88,7 @@ func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Clie
 	resourceGroup := state.Attributes["name"]
 
 	groupsClient := client.Resource.GroupsClient
-	deleteFuture, err := groupsClient.Delete(ctx, resourceGroup)
+	deleteFuture, err := groupsClient.Delete(ctx, resourceGroup, "Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
 	if err != nil {
 		return nil, fmt.Errorf("deleting Resource Group %q: %+v", resourceGroup, err)
 	}

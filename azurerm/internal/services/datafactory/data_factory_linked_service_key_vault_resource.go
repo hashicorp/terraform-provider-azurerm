@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceDataFactoryLinkedServiceKeyVault() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceDataFactoryLinkedServiceKeyVault() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -138,7 +138,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData
 	azureKeyVaultLinkedService := &datafactory.AzureKeyVaultLinkedService{
 		Description:                              utils.String(d.Get("description").(string)),
 		AzureKeyVaultLinkedServiceTypeProperties: azureKeyVaultProperties,
-		Type:                                     datafactory.TypeAzureKeyVault,
+		Type:                                     datafactory.TypeBasicLinkedServiceTypeAzureKeyVault,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -211,7 +211,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta i
 
 	keyVault, ok := resp.Properties.AsAzureKeyVaultLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureKeyVault, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureKeyVault, *resp.Type)
 	}
 
 	d.Set("additional_properties", keyVault.AdditionalProperties)

@@ -15,10 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,7 +43,7 @@ func resourceSynapseWorkspace() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WorkspaceID(id)
 			return err
 		}),
@@ -228,6 +229,12 @@ func resourceSynapseWorkspace() *schema.Resource {
 				Optional: true,
 			},
 
+			"customer_managed_key_versionless_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -267,6 +274,7 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 			SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
 			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
+			Encryption:                       expandEncryptionDetails(d),
 		},
 		Identity: &synapse.ManagedIdentity{
 			Type: synapse.ResourceIdentityTypeSystemAssigned,
@@ -300,16 +308,10 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewWorkspaceID(subscriptionId, resourceGroup, name)
+	d.SetId(id.ID())
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Workspace %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
@@ -363,6 +365,7 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
+		d.Set("customer_managed_key_versionless_id", flattenEncryptionDetails(props.Encryption))
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
@@ -397,12 +400,13 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key_versionless_id") {
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
 				SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
 				WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
+				Encryption:                       expandEncryptionDetails(d),
 			},
 		}
 
@@ -542,6 +546,20 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 	}
 }
 
+func expandEncryptionDetails(d *schema.ResourceData) *synapse.EncryptionDetails {
+	if key, ok := d.GetOk("customer_managed_key_versionless_id"); ok {
+		return &synapse.EncryptionDetails{
+			Cmk: &synapse.CustomerManagedKeyDetails{
+				Key: &synapse.WorkspaceKeyDetails{
+					Name:        utils.String("cmk"),
+					KeyVaultURL: utils.String(key.(string)),
+				},
+			},
+		}
+	}
+	return nil
+}
+
 func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -641,4 +659,13 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	}
 
 	return false
+}
+
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) *string {
+	if cmk := encryption.Cmk; cmk != nil {
+		if key := cmk.Key; key != nil {
+			return key.KeyVaultURL
+		}
+	}
+	return nil
 }

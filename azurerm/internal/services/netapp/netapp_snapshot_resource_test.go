@@ -59,47 +59,6 @@ func TestAccNetAppSnapshot_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetAppSnapshot_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
-	r := NetAppSnapshotResource{}
-	oldVolumeName := fmt.Sprintf("acctest-NetAppVolume-%d", data.RandomInteger)
-	newVolumeName := fmt.Sprintf("acctest-updated-NetAppVolume-%d", data.RandomInteger)
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("volume_name").HasValue(oldVolumeName),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateTags(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("volume_name").HasValue(oldVolumeName),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaZ"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("volume_name").HasValue(newVolumeName),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -161,81 +120,8 @@ resource "azurerm_netapp_snapshot" "test" {
   volume_name         = azurerm_netapp_volume.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    "FoO" = "BaR"
-  }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r NetAppSnapshotResource) updateTags(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_netapp_snapshot" "test" {
-  name                = "acctest-NetAppSnapshot-%d"
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    "FoO" = "BaZ"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r NetAppSnapshotResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_network" "update" {
-  name                = "acctest-updated-VirtualNetwork-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "update" {
-  name                 = "acctest-updated-Subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.update.name
-  address_prefix       = "10.0.2.0/24"
-
-  delegation {
-    name = "netapp"
-
-    service_delegation {
-      name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-}
-
-resource "azurerm_netapp_volume" "update" {
-  name                = "acctest-updated-NetAppVolume-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-updated-unique-file-path-%d"
-  service_level       = "Premium"
-  subnet_id           = azurerm_subnet.update.id
-  storage_quota_in_gb = 100
-}
-
-resource "azurerm_netapp_snapshot" "test" {
-  name                = "acctest-NetAppSnapshot-%d"
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.update.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (NetAppSnapshotResource) template(data acceptance.TestData) string {

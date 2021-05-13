@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryLinkedServiceSFTP() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceSFTPCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceSFTPDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceSFTP() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -152,7 +152,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 
 	passwordSecureString := datafactory.SecureString{
 		Value: &password,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
@@ -168,7 +168,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 	sftpLinkedService := &datafactory.SftpServerLinkedService{
 		Description:                           &description,
 		SftpServerLinkedServiceTypeProperties: sftpProperties,
-		Type:                                  datafactory.TypeSftp,
+		Type:                                  datafactory.TypeBasicLinkedServiceTypeSftp,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -239,7 +239,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta inter
 
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSftp, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, *resp.Type)
 	}
 
 	d.Set("authentication_type", sftp.AuthenticationType)

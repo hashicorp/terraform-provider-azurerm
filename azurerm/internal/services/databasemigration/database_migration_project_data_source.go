@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -24,13 +30,13 @@ func dataSourceDatabaseMigrationProject() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDatabaseMigrationProjectName,
+				ValidateFunc: validate.ProjectName,
 			},
 
 			"service_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDatabaseMigrationServiceName,
+				ValidateFunc: validate.ServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -54,38 +60,26 @@ func dataSourceDatabaseMigrationProject() *schema.Resource {
 
 func dataSourceDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serviceName := d.Get("service_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	id := parse.NewProjectID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Database Migration Project (Project Name %q / Service Name %q / Group Name %q) was not found", name, serviceName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("Error reading Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Database Migration Project (Project Name %q / Service Name %q / Group Name %q) ID", name, serviceName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("resource_group_name", resourceGroup)
-
-	location := ""
-	if resp.Location != nil {
-		location = azure.NormalizeLocation(*resp.Location)
-	}
-	d.Set("location", location)
-
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if prop := resp.ProjectProperties; prop != nil {
 		d.Set("source_platform", string(prop.SourcePlatform))
 		d.Set("target_platform", string(prop.TargetPlatform))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

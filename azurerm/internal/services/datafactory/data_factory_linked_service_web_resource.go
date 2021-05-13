@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryLinkedServiceWeb() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceWebCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceWebDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceWeb() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -142,7 +142,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, met
 
 	webLinkedService := &datafactory.WebLinkedService{
 		Description: &description,
-		Type:        datafactory.TypeWeb,
+		Type:        datafactory.TypeBasicLinkedServiceTypeWeb,
 	}
 
 	url := d.Get("url").(string)
@@ -161,7 +161,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, met
 		password := d.Get("password").(string)
 		passwordSecureString := datafactory.SecureString{
 			Value: &password,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		basicAuthProperties := &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
@@ -240,7 +240,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta interf
 
 	web, ok := resp.Properties.AsWebLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeWeb, *resp.Type)
 	}
 
 	isWebPropertiesLoaded := false

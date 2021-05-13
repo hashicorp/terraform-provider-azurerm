@@ -42,6 +42,11 @@ func dataSourceHealthcareService() *schema.Resource {
 				Computed: true,
 			},
 
+			"cosmosdb_key_vault_key_versionless_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"access_policy_object_ids": {
 				Type:     schema.TypeSet,
 				Computed: true,
@@ -140,11 +145,18 @@ func dataSourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
 		}
 
-		cosmosThroughput := 0
-		if props.CosmosDbConfiguration != nil && props.CosmosDbConfiguration.OfferThroughput != nil {
-			cosmosThroughput = int(*props.CosmosDbConfiguration.OfferThroughput)
+		cosmodDbKeyVaultKeyVersionlessId := ""
+		cosmosDbThroughput := 0
+		if cosmos := props.CosmosDbConfiguration; cosmos != nil {
+			if v := cosmos.OfferThroughput; v != nil {
+				cosmosDbThroughput = int(*v)
+			}
+			if v := cosmos.KeyVaultKeyURI; v != nil {
+				cosmodDbKeyVaultKeyVersionlessId = *v
+			}
 		}
-		d.Set("cosmosdb_throughput", cosmosThroughput)
+		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
+		d.Set("cosmosdb_throughput", cosmosDbThroughput)
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)

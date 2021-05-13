@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceCosmosDbDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -154,7 +154,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData
 	if isAccountDetailUsed {
 		accountKeySecureString := datafactory.SecureString{
 			Value: &accountKey,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		cosmosdbProperties.AccountEndpoint = endpoint
 		cosmosdbProperties.AccountKey = accountKeySecureString
@@ -163,7 +163,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData
 		connectionString := d.Get("connection_string").(string)
 		connectionStringSecureString := datafactory.SecureString{
 			Value: &connectionString,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		cosmosdbProperties.ConnectionString = connectionStringSecureString
 		cosmosdbProperties.Database = databaseName
@@ -174,7 +174,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData
 	cosmosdbLinkedService := &datafactory.CosmosDbLinkedService{
 		Description:                         &description,
 		CosmosDbLinkedServiceTypeProperties: cosmosdbProperties,
-		Type:                                datafactory.TypeCosmosDb,
+		Type:                                datafactory.TypeBasicLinkedServiceTypeCosmosDb,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -245,7 +245,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, meta i
 
 	cosmosdb, ok := resp.Properties.AsCosmosDbLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeCosmosDb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicLinkedServiceTypeCosmosDb, *resp.Type)
 	}
 
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)

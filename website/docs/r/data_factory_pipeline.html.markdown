@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Pipeline.
 
+* `folder` - (Optional) The folder that this Pipeline is in. If not specified, the Pipeline will appear at the root level.
+
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
 
 * `variables` - (Optional) A map of variables to associate with the Data Factory Pipeline.

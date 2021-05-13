@@ -31,6 +31,8 @@ func dataSourceVirtualMachineScaleSet() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource(),
+
 			"identity": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -81,6 +83,15 @@ func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error reading Virtual Machine Scale Set %q (Resource Group %q): ID is empty or nil", name, resGroup)
 	}
 	d.SetId(*resp.ID)
+
+	if profile := resp.VirtualMachineProfile; profile != nil {
+		if nwProfile := profile.NetworkProfile; nwProfile != nil {
+			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+			if err := d.Set("network_interface", flattenedNics); err != nil {
+				return fmt.Errorf("Error setting `network_interface`: %+v", err)
+			}
+		}
+	}
 
 	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {

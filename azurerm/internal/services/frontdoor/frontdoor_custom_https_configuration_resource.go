@@ -6,15 +6,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,10 +26,33 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 		Update: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
 		Delete: resourceFrontDoorCustomHttpsConfigurationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.FrontendEndpointID(id)
-			return err
-		}),
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+				defer cancel()
+
+				// validate that the passed ID is a valid custom HTTPS configuration ID
+				custom, err := parse.CustomHttpsConfigurationID(d.Id())
+				if err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("parsing Custom HTTPS Configuration ID %q for import: %v", d.Id(), err)
+				}
+
+				// convert the passed custom HTTPS configuration ID to a frontend endpoint ID
+				frontend := parse.NewFrontendEndpointID(custom.SubscriptionId, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName)
+
+				// validate that the frontend endpoint ID exists in the Frontdoor resource
+				if _, err = client.Get(ctx, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName); err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("retrieving the Custom HTTPS Configuration(ID: %q) for the frontend endpoint (ID: %q): %s", custom.ID(), frontend.ID(), err)
+				}
+
+				// set the new values for the custom HTTPS configuration resource
+				d.Set("id", custom.ID())
+				d.Set("frontend_endpoint_id", frontend.ID())
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -59,21 +82,14 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 					Schema: schemaCustomHttpsConfiguration(),
 				},
 			},
-
-			// TODO: remove in 3.0
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 
-		CustomizeDiff: customizeHttpsConfigurationCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(customizeHttpsConfigurationCustomizeDiff),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.CustomHttpsConfigurationV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.CustomHttpsConfigurationV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CustomHttpsConfigurationV0ToV1{},
+		}),
 	}
 }
 
@@ -82,20 +98,20 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontendEndpointIDInsensitively(d.Get("frontend_endpoint_id").(string))
+	frontendEndpointId, err := parse.FrontendEndpointIDInsensitively(d.Get("frontend_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
 
-	// TODO: Requires Import support
+	customHttpsConfigurationId := parse.NewCustomHttpsConfigurationID(frontendEndpointId.SubscriptionId, frontendEndpointId.ResourceGroup, frontendEndpointId.FrontDoorName, frontendEndpointId.Name)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorName, id.Name)
+	resp, err := client.Get(ctx, frontendEndpointId.ResourceGroup, frontendEndpointId.FrontDoorName, frontendEndpointId.Name)
 	if err != nil {
-		return fmt.Errorf("reading Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Endpoint %q (Front Door %q / Resource Group %q): %+v", frontendEndpointId.Name, frontendEndpointId.FrontDoorName, frontendEndpointId.ResourceGroup, err)
 	}
 
 	if resp.FrontendEndpointProperties == nil {
-		return fmt.Errorf("reading Endpoint %q (Front Door %q / Resource Group %q): `properties` was nil", id.Name, id.FrontDoorName, id.ResourceGroup)
+		return fmt.Errorf("reading Endpoint %q (Front Door %q / Resource Group %q): `properties` was nil", frontendEndpointId.Name, frontendEndpointId.FrontDoorName, frontendEndpointId.ResourceGroup)
 	}
 	props := *resp.FrontendEndpointProperties
 
@@ -103,15 +119,16 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 		customHttpsConfigurationCurrent: props.CustomHTTPSConfiguration,
 		customHttpsConfigurationNew:     d.Get("custom_https_configuration").([]interface{}),
 		customHttpsProvisioningEnabled:  d.Get("custom_https_provisioning_enabled").(bool),
-		frontendEndpointId:              *id,
+		frontendEndpointId:              *frontendEndpointId,
 		provisioningState:               props.CustomHTTPSProvisioningState,
 	}
+
 	if err := updateCustomHttpsConfiguration(ctx, client, input); err != nil {
-		return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", frontendEndpointId.Name, frontendEndpointId.FrontDoorName, frontendEndpointId.ResourceGroup, err)
 	}
 
 	if d.IsNewResource() {
-		d.SetId(id.ID())
+		d.SetId(customHttpsConfigurationId.ID())
 	}
 
 	return resourceFrontDoorCustomHttpsConfigurationRead(d, meta)
@@ -122,7 +139,7 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontendEndpointIDInsensitively(d.Id())
+	id, err := parse.FrontendEndpointIDInsensitively(d.Get("frontend_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
@@ -139,7 +156,6 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta 
 	}
 
 	d.Set("frontend_endpoint_id", id.ID())
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	flattenedHttpsConfig := flattenCustomHttpsConfiguration(resp.FrontendEndpointProperties)
 	if err := d.Set("custom_https_configuration", flattenedHttpsConfig.CustomHTTPSConfiguration); err != nil {
@@ -157,7 +173,7 @@ func resourceFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontendEndpointIDInsensitively(d.Id())
+	id, err := parse.FrontendEndpointIDInsensitively(d.Get("frontend_endpoint_id").(string))
 	if err != nil {
 		return err
 	}

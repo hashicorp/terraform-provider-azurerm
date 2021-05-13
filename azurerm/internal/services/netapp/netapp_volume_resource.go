@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	netAppValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,7 +21,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,12 +33,12 @@ func resourceNetAppVolume() *schema.Resource {
 		Delete: resourceNetAppVolumeDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VolumeID(id)
 			return err
 		}),
@@ -46,7 +48,7 @@ func resourceNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppVolumeName,
+				ValidateFunc: netAppValidate.VolumeName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -57,21 +59,21 @@ func resourceNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: netAppValidate.AccountName,
 			},
 
 			"pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: netAppValidate.PoolName,
 			},
 
 			"volume_path": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppVolumeVolumePath,
+				ValidateFunc: netAppValidate.VolumePath,
 			},
 
 			"service_level": {
@@ -97,7 +99,7 @@ func resourceNetAppVolume() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: netAppValidate.SnapshotID,
 			},
 
 			"protocols": {
@@ -186,6 +188,11 @@ func resourceNetAppVolume() *schema.Resource {
 						},
 
 						"unix_read_write": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"root_access_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -325,7 +332,10 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error getting source NetApp Volume (snapshot's parent resource) %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
 		}
 
-		parsedVolumeID, _ := parse.VolumeID(*sourceVolume.ID)
+		parsedVolumeID, err := parse.VolumeID(*sourceVolume.ID)
+		if err != nil {
+			return fmt.Errorf("parsing Source Volume ID: %s", err)
+		}
 		propertyMismatch := []string{}
 		if !ValidateSlicesEquality(*sourceVolume.ProtocolTypes, *utils.ExpandStringSlice(protocols), false) {
 			propertyMismatch = append(propertyMismatch, "protocols")
@@ -733,6 +743,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
+			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := netapp.ExportPolicyRule{
 				AllowedClients: utils.String(allowedClients),
@@ -742,6 +753,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
+				HasRootAccess:  utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -827,13 +839,18 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 		if v := item.UnixReadWrite; v != nil {
 			unixReadWrite = *v
 		}
+		rootAccessEnabled := false
+		if v := item.HasRootAccess; v != nil {
+			rootAccessEnabled = *v
+		}
 
 		results = append(results, map[string]interface{}{
-			"rule_index":        ruleIndex,
-			"allowed_clients":   utils.FlattenStringSlice(&allowedClients),
-			"unix_read_only":    unixReadOnly,
-			"unix_read_write":   unixReadWrite,
-			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
+			"rule_index":          ruleIndex,
+			"allowed_clients":     utils.FlattenStringSlice(&allowedClients),
+			"unix_read_only":      unixReadOnly,
+			"unix_read_write":     unixReadWrite,
+			"root_access_enabled": rootAccessEnabled,
+			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
 			// TODO: Remove in next major version
 			"cifs_enabled":  cifsEnabled,
 			"nfsv3_enabled": nfsv3Enabled,

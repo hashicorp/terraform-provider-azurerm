@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceDataFactoryLinkedServiceSnowflake() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceSnowflakeCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceSnowflakeDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceDataFactoryLinkedServiceSnowflake() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -154,7 +154,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *schema.ResourceDat
 			ConnectionString: d.Get("connection_string").(string),
 			Password:         expandAzureKeyVaultPassword(password),
 		},
-		Type: datafactory.TypeSnowflake,
+		Type: datafactory.TypeBasicLinkedServiceTypeSnowflake,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -222,7 +222,7 @@ func resourceDataFactoryLinkedServiceSnowflakeRead(d *schema.ResourceData, meta 
 
 	snowflake, ok := resp.Properties.AsSnowflakeLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeSnowflake, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSnowflake, *resp.Type)
 	}
 
 	d.Set("additional_properties", snowflake.AdditionalProperties)
