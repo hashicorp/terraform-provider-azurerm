@@ -261,13 +261,13 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachine_otherForceDelete(t *testing.T) {
+func TestAccLinuxVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherForceDelete(data),
+			Config: r.otherSkipShutdownAndForceDelete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1010,12 +1010,12 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherForceDelete(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     virtual_machine {
-      force_delete = true
+      skip_shutdown_and_force_delete = true
     }
   }
 }

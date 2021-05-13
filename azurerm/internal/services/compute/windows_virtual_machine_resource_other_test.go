@@ -437,13 +437,13 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDisabled(t *testing
 	})
 }
 
-func TestAccWindowsVirtualMachine_otherForceDelete(t *testing.T) {
+func TestAccWindowsVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherForceDelete(data),
+			Config: r.otherSkipShutdownAndForceDelete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1502,12 +1502,12 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) otherForceDelete(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     virtual_machine {
-      force_delete = true
+      skip_shutdown_and_force_delete = true
     }
   }
 }
