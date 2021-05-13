@@ -86,7 +86,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceD
 	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("partner_namespace_id", *resp.ArmDisasterRecoveryProperties.PartnerNamespace)
+	d.Set("partner_namespace_id", resp.ArmDisasterRecoveryProperties.PartnerNamespace)
 	d.SetId(*resp.ID)
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)

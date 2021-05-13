@@ -53,35 +53,35 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "primary" {
   name     = "acctest1RG-%[1]d"
-  location = "%[2]s" 	  
+  location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "secondary" {
-	name     = "acctest2RG-%[1]d"
-	location = "%[3]s"	
-  }
+  name     = "acctest2RG-%[1]d"
+  location = "%[3]s"
+}
 
 resource "azurerm_servicebus_namespace" "primary_namespace_test" {
   name                = "acctest1-%[1]d"
   location            = azurerm_resource_group.primary.location
   resource_group_name = azurerm_resource_group.primary.name
   sku                 = "Premium"
-  capacity            = "1" 
+  capacity            = "1"
 }
 
 resource "azurerm_servicebus_namespace" "secondary_namespace_test" {
-	name                = "acctest2-%[1]d"
-	location            = azurerm_resource_group.secondary.location
-	resource_group_name = azurerm_resource_group.secondary.name
-	sku                 = "Premium"
-	capacity            = "1"	
-  }
+  name                = "acctest2-%[1]d"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
+  sku                 = "Premium"
+  capacity            = "1"
+}
 
-  resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" {
-	name                    = "acctest-alias-%[1]d"
-	primary_namespace_id    = azurerm_servicebus_namespace.primary_namespace_test.id
-	partner_namespace_id    = azurerm_servicebus_namespace.secondary_namespace_test.id
-  }
+resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" {
+  name                 = "acctest-alias-%[1]d"
+  primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
+  partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
+}
 
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
