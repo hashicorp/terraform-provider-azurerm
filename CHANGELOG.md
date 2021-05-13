@@ -23,6 +23,7 @@ BUG FIXES
 * Data Source: `azurerm_container_registry_token` - updating the validation for the `name` field [GH-11607]
 * * `azurerm_bastion_host` - updating the `ip_configuration` block properties now forces a new resource [GH-11700]
 * `azurerm_container_registry_token` - updating the validation for the `name` field [GH-11607]
+* `azurerm_storage_account` - allow empty/blank values for the `allowed_headers` and `exposed_headers` properties [GH-11692]
 
 ## 2.58.0 (May 07, 2021)
 
