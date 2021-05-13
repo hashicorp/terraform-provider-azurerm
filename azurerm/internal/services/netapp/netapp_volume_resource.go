@@ -297,8 +297,8 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	if strings.ToLower(securityStyle) == "unix" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "cifs" {
 		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
 	}
-	if strings.ToLower(securityStyle) == "ntfs" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "nfsv3" || strings.ToLower(protocols[0].(string)) == "nfsv4.1" {
-		return fmt.Errorf("NTFS security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+	if strings.ToLower(securityStyle) == "ntfs" && len(protocols) == 1 && (strings.ToLower(protocols[0].(string)) == "nfsv3" || strings.ToLower(protocols[0].(string)) == "nfsv4.1") {
+		return fmt.Errorf("Ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
 	}
 	if securityStyle == "" && len(protocols) == 2 {
 		securityStyle = "Unix"
