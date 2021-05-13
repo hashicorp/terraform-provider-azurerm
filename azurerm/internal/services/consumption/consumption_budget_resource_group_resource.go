@@ -68,7 +68,12 @@ func resourceArmConsumptionBudgetResourceGroupRead(d *schema.ResourceData, meta 
 }
 
 func resourceArmConsumptionBudgetResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	scope := d.Get("resource_group_id").(string)
+	consumptionBudgetId, err := parse.ConsumptionBudgetResourceGroupID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	return resourceArmConsumptionBudgetDelete(d, meta, scope)
+	resourceGroupId := resourceParse.NewResourceGroupID(consumptionBudgetId.SubscriptionId, consumptionBudgetId.ResourceGroup)
+
+	return resourceArmConsumptionBudgetDelete(d, meta, resourceGroupId.ID())
 }
