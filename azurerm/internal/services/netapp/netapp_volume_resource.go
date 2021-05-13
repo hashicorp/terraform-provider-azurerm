@@ -124,8 +124,8 @@ func resourceNetAppVolume() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Unix",
-					"Ntfs",
+					"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
+					"Ntfs", // ANF changes casing to Pascal case in the backend
 				}, false),
 			},
 
@@ -294,10 +294,10 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	// Handling security style property
 	securityStyle := d.Get("security_style").(string)
-	if strings.ToLower(securityStyle) == "unix" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "cifs" {
+	if strings.EqualFold(securityStyle, "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0].(string), "cifs") {
 		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
 	}
-	if strings.ToLower(securityStyle) == "ntfs" && len(protocols) == 1 && (strings.ToLower(protocols[0].(string)) == "nfsv3" || strings.ToLower(protocols[0].(string)) == "nfsv4.1") {
+	if strings.EqualFold(securityStyle, "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0].(string), "nfsv3") || strings.EqualFold(protocols[0].(string), "nfsv4.1")) {
 		return fmt.Errorf("Ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
 	}
 	if securityStyle == "" && len(protocols) == 2 {
