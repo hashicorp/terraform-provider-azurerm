@@ -137,7 +137,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 			},
 
 			"proxy_override": {
-				
+
 			}
 
 			"fqdn": {
