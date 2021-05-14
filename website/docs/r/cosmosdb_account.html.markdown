@@ -116,6 +116,10 @@ The following arguments are supported:
 
 * `backup` - (Optional) A `backup` block as defined below.
 
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
 ---
 
 `consistency_policy` Configures the database consistency and supports the following:
@@ -160,6 +164,26 @@ A `backup` block supports the following:
 
 * `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
 
+---
+
+A `cors_rule` block supports the following:
+
+* `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
+
+* `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are  `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
+
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
+
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
+
+* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. Possible value is only `SystemAssigned`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -181,6 +205,15 @@ The following attributes are exported:
 * `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 
 ## Timeouts
 
