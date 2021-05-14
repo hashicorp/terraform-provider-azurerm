@@ -160,7 +160,7 @@ func resourceAksInferenceClusterCreate(d *schema.ResourceData, meta interface{})
 	description := d.Get("description").(string)
 	aksComputeProperties, isAks := (machinelearningservices.BasicCompute).AsAKS(expandAksComputeProperties(aksProperties, &aks, location, description))
 	if !isAks {
-		return fmt.Errorf("error: No AKS cluster")
+		return fmt.Errorf("the AKS Compute resource is not recognized as AKS Compute")
 	}
 
 	inferenceClusterParameters := machinelearningservices.ComputeResource{
