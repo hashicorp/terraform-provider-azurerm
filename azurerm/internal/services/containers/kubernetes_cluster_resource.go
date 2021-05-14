@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -120,10 +120,10 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.LeastWaste),
-								string(containerservice.MostPods),
-								string(containerservice.Priority),
-								string(containerservice.Random),
+								string(containerservice.ExpanderLeastWaste),
+								string(containerservice.ExpanderMostPods),
+								string(containerservice.ExpanderPriority),
+								string(containerservice.ExpanderRandom),
 							}, false),
 						},
 						"max_graceful_termination_sec": {
@@ -327,8 +327,8 @@ func resourceKubernetesCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.Azure),
-								string(containerservice.Kubenet),
+								string(containerservice.NetworkPluginAzure),
+								string(containerservice.NetworkPluginKubenet),
 							}, false),
 						},
 
@@ -341,8 +341,8 @@ func resourceKubernetesCluster() *schema.Resource {
 								// https://github.com/Azure/AKS/issues/1954#issuecomment-759306712
 								// Transparent is already the default and only option for CNI
 								// Bridge is only kept for backward compatibility
-								string(containerservice.Bridge),
-								string(containerservice.Transparent),
+								string(containerservice.NetworkModeBridge),
+								string(containerservice.NetworkModeTransparent),
 							}, false),
 						},
 
@@ -392,12 +392,12 @@ func resourceKubernetesCluster() *schema.Resource {
 						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Standard),
+							Default:  string(containerservice.LoadBalancerSkuStandard),
 							ForceNew: true,
 							// TODO: fix the casing in the Swagger
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.Basic),
-								string(containerservice.Standard),
+								string(containerservice.LoadBalancerSkuBasic),
+								string(containerservice.LoadBalancerSkuStandard),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -406,10 +406,10 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Default:  string(containerservice.LoadBalancer),
+							Default:  string(containerservice.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.LoadBalancer),
-								string(containerservice.UserDefinedRouting),
+								string(containerservice.OutboundTypeLoadBalancer),
+								string(containerservice.OutboundTypeUserDefinedRouting),
 							}, false),
 						},
 
@@ -648,10 +648,10 @@ func resourceKubernetesCluster() *schema.Resource {
 				//  * Private clusters aren't currently supported.
 				// @jackofallops (2020-07-21) - Update:
 				//  * sku_tier can now be upgraded in place, downgrade requires rebuild
-				Default: string(containerservice.Free),
+				Default: string(containerservice.ManagedClusterSKUTierFree),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.Free),
-					string(containerservice.Paid),
+					string(containerservice.ManagedClusterSKUTierFree),
+					string(containerservice.ManagedClusterSKUTierPaid),
 				}, false),
 			},
 
@@ -1343,7 +1343,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	skuTier := string(containerservice.Free)
+	skuTier := string(containerservice.ManagedClusterSKUTierFree)
 	if resp.Sku != nil && resp.Sku.Tier != "" {
 		skuTier = string(resp.Sku.Tier)
 	}

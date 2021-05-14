@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -1031,6 +1031,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			enableNodePublicIP = *profile.EnableNodePublicIP
 		}
 
+		vmSize := ""
+		if profile.VMSize != nil {
+			vmSize = *profile.VMSize
+		}
+
 		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
 			"availability_zones":    utils.FlattenStringSlice(profile.AvailabilityZones),
 			"count":                 count,
@@ -1048,7 +1053,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			"tags":                  tags.Flatten(profile.Tags),
 			"type":                  string(profile.Type),
 			"upgrade_settings":      flattenUpgradeSettings(profile.UpgradeSettings),
-			"vm_size":               string(profile.VMSize),
+			"vm_size":               vmSize,
 			"vnet_subnet_id":        vnetSubnetId,
 		})
 	}
