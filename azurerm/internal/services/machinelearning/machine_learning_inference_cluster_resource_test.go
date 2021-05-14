@@ -25,10 +25,6 @@ func TestAccInferenceCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -44,10 +40,6 @@ func TestAccInferenceCluster_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -63,10 +55,6 @@ func TestAccInferenceCluster_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -82,10 +70,6 @@ func TestAccInferenceCluster_basicUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -93,10 +77,6 @@ func TestAccInferenceCluster_basicUpdate(t *testing.T) {
 			Config: r.basicUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -112,10 +92,6 @@ func TestAccInferenceCluster_completeUpdate(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -123,10 +99,6 @@ func TestAccInferenceCluster_completeUpdate(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -162,11 +134,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
-  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
-
-  identity {
-    type = "SystemAssigned"
-  }
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -182,11 +149,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
-  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
-
-  identity {
-    type = "SystemAssigned"
-  }
 
   tags = {
     ENV = "Test"
@@ -206,15 +168,10 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
-  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
     cname = "www.contoso.com"
-  }
-
-  identity {
-    type = "SystemAssigned"
   }
 
 }
@@ -232,15 +189,10 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
-  node_pool_id                  = azurerm_kubernetes_cluster.test.default_node_pool[0].id
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
     cname = "www.contoso.com"
-  }
-
-  identity {
-    type = "SystemAssigned"
   }
 
   tags = {
@@ -261,12 +213,7 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
   machine_learning_workspace_id = azurerm_machine_learning_inference_cluster.test.machine_learning_workspace_id
   location                      = azurerm_machine_learning_inference_cluster.test.location
   kubernetes_cluster_id         = azurerm_machine_learning_inference_cluster.test.kubernetes_cluster_id
-  node_pool_id                  = azurerm_machine_learning_inference_cluster.test.node_pool_id
   cluster_purpose               = azurerm_machine_learning_inference_cluster.test.cluster_purpose
-
-  identity {
-    type = "SystemAssigned"
-  }
 
   tags = azurerm_machine_learning_inference_cluster.test.tags
 }
@@ -351,8 +298,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    node_count     = 3
-    vm_size        = "Standard_D11_v2"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
