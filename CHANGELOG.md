@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * dependencies: updating `databox` to API version `2020-12-01` [GH-11626]
 * dependencies: updating `maps` to API version `2021-02-01` [GH-11676]
 * Data Source: `azurerm_kubernetes_cluster` - Add `ingress_application_gateway_identity` export for add-on `ingress_application_gateway` [GH-11622]
+* `azurerm_cosmosdb_account` - support for the `identity` and `cors_rule` blocks [GH-11653]
 * `azurerm_cosmosdb_account` - support for the `backup` property [GH-11597]
 * `azurerm_cosmosdb_sql_container` - support for the `analytical_storage_ttl` property [GH-11655]
 * `azurerm_container_registry` - support for the `identity` and `encryption` blocks [GH-11661]
