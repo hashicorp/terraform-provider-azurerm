@@ -115,6 +115,34 @@ func resourceMediaServicesAccount() *schema.Resource {
 				}, true),
 			},
 
+			"key_delivery_access_control": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"default_action": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(media.DefaultActionDeny),
+								string(media.DefaultActionAllow),
+							}, true),
+						},
+
+						"ip_allow_list": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -164,6 +192,10 @@ func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta inter
 		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
 	}
 
+	if keyDelivery, ok := d.GetOk("key_delivery_access_control"); ok {
+		parameters.KeyDelivery = expandKeyDelivery(keyDelivery.([]interface{}))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
@@ -210,6 +242,10 @@ func resourceMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) 
 
 	if err := d.Set("identity", flattenAzureRmMediaServicedentity(resp.Identity)); err != nil {
 		return fmt.Errorf("flattening `identity`: %s", err)
+	}
+
+	if err := d.Set("key_delivery_access_control", flattenKeyDelivery(resp.KeyDelivery)); err != nil {
+		return fmt.Errorf("flattening `key_delivery_access_control`: %s", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -314,4 +350,39 @@ func flattenAzureRmMediaServicedentity(identity *media.ServiceIdentity) []interf
 	}
 
 	return []interface{}{result}
+}
+
+func expandKeyDelivery(input []interface{}) *media.KeyDelivery {
+	if len(input) == 0 {
+		return nil
+	}
+
+	keyDelivery := input[0].(map[string]interface{})
+	defaultAction := keyDelivery["default_action"].(string)
+
+	var ipAllowList *[]string
+	if v := keyDelivery["ip_allow_list"]; v != nil {
+		ips := keyDelivery["ip_allow_list"].(*schema.Set).List()
+		ipAllowList = utils.ExpandStringSlice(ips)
+	}
+
+	return &media.KeyDelivery{
+		AccessControl: &media.AccessControl{
+			DefaultAction: media.DefaultAction(defaultAction),
+			IPAllowList:   ipAllowList,
+		},
+	}
+}
+
+func flattenKeyDelivery(input *media.KeyDelivery) []interface{} {
+	if input == nil && input.AccessControl != nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"default_action": string(input.AccessControl.DefaultAction),
+			"ip_allow_list":  utils.FlattenStringSlice(input.AccessControl.IPAllowList),
+		},
+	}
 }

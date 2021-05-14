@@ -81,13 +81,13 @@ func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	})
 }
 
-func TestAccMediaServicesAccount_identitySystemAssigned(t *testing.T) {
+func TestAccMediaServicesAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 	r := MediaServicesAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.identitySystemAssigned(data),
+			Config: r.complete(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 			),
@@ -247,8 +247,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func (MediaServicesAccountResource) identitySystemAssigned(data acceptance.TestData) string {
-	template := MediaServicesAccountResource{}.template(data)
+func (r MediaServicesAccountResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -262,8 +262,17 @@ resource "azurerm_media_services_account" "test" {
     is_primary = true
   }
 
+  tags = {
+    environment = "staging"
+  }
+
   identity {
     type = "SystemAssigned"
+  }
+
+  key_delivery_access_control {
+    default_action = "Deny"
+    ip_allow_list  = ["0.0.0.0/0"]
   }
 }
 `, template, data.RandomString)
