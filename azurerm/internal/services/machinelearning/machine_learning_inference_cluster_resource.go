@@ -138,37 +138,24 @@ func resourceAksInferenceClusterCreate(d *schema.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_machine_learning_inference_cluster", *existing.ID)
 	}
 
-	// Get Kubernetes Cluster Name and Resource Group from ID
+	// Get AKS Compute Properties
 	aksID, err := parse.KubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
-
-	// Get Existing AKS
 	aks, err := aksClient.Get(ctx, aksID.ResourceGroup, aksID.ManagedClusterName)
 	if err != nil {
 		return err
 	}
-
-	ssl := expandSSLConfig(d.Get("ssl").([]interface{}))
-
-	clusterPurpose := machinelearningservices.ClusterPurpose(d.Get("cluster_purpose").(string))
-	aksProperties := expandAksProperties(&aks, ssl, clusterPurpose)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	description := d.Get("description").(string)
-	aksComputeProperties, isAks := (machinelearningservices.BasicCompute).AsAKS(expandAksComputeProperties(aksProperties, &aks, location, description))
+	aksComputeProperties, isAks := (machinelearningservices.BasicCompute).AsAKS(expandAksComputeProperties(&aks, d))
 	if !isAks {
-		return fmt.Errorf("the AKS Compute resource is not recognized as AKS Compute")
+		return fmt.Errorf("the Compute Properties are not recognized as AKS Compute Properties")
 	}
 
 	inferenceClusterParameters := machinelearningservices.ComputeResource{
 		Properties: aksComputeProperties,
-		Location:   &location,
+		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("description"); ok {
-		aksComputeProperties.Description = utils.String(v.(string))
 	}
 
 	future, err := mlComputeClient.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, inferenceClusterParameters)
@@ -260,6 +247,20 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
+func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *schema.ResourceData) machinelearningservices.AKS {
+	return machinelearningservices.AKS{
+		Properties: &machinelearningservices.AKSProperties{
+			ClusterFqdn:      utils.String(*aks.Fqdn),
+			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
+			ClusterPurpose:   machinelearningservices.ClusterPurpose(d.Get("cluster_purpose").(string)),
+		},
+		ComputeLocation: aks.Location,
+		Description:     utils.String(d.Get("description").(string)),
+		ResourceID:      aks.ID,
+		ComputeType:     "ComputeTypeAKS1",
+	}
+}
+
 func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfiguration {
 	if len(input) == 0 {
 		return nil
@@ -279,26 +280,5 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		Cert:   utils.String(v["cert"].(string)),
 		Key:    utils.String(v["key"].(string)),
 		Cname:  utils.String(v["cname"].(string)),
-	}
-}
-
-func expandAksProperties(aks *containerservice.ManagedCluster,
-	ssl *machinelearningservices.SslConfiguration, clusterPurpose machinelearningservices.ClusterPurpose) *machinelearningservices.AKSProperties {
-	fqdn := *(aks.ManagedClusterProperties.Fqdn)
-
-	return &machinelearningservices.AKSProperties{
-		ClusterFqdn:      utils.String(fqdn),
-		SslConfiguration: ssl,
-		ClusterPurpose:   clusterPurpose,
-	}
-}
-
-func expandAksComputeProperties(aksProperties *machinelearningservices.AKSProperties, aks *containerservice.ManagedCluster, location string, description string) machinelearningservices.AKS {
-	return machinelearningservices.AKS{
-		Properties:      aksProperties,
-		ComputeLocation: &location,
-		Description:     &description,
-		ResourceID:      aks.ID,
-		ComputeType:     "ComputeTypeAKS1",
 	}
 }
