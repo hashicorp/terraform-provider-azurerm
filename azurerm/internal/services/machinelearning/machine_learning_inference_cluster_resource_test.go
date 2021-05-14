@@ -57,51 +57,7 @@ func TestAccInferenceCluster_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccInferenceCluster_basicUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccInferenceCluster_completeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
+		data.ImportStep("ssl"),
 	})
 }
 
@@ -134,21 +90,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
-}
-`, template, data.RandomIntOfLength(8))
-}
 
-func (r InferenceClusterResource) basicUpdate(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                          = "AIC-%d"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                      = azurerm_resource_group.test.location
-  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "DevTest"
 
   tags = {
     ENV = "Test"
@@ -158,27 +100,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 }
 
 func (r InferenceClusterResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                          = "AIC-%d"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                      = azurerm_resource_group.test.location
-  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "DevTest"
-  ssl {
-    cert  = file("testdata/cert.pem")
-    key   = file("testdata/key.pem")
-    cname = "www.contoso.com"
-  }
-
-}
-`, template, data.RandomIntOfLength(8))
-}
-
-func (r InferenceClusterResource) completeUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

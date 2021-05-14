@@ -230,7 +230,6 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("kubernetes_cluster_id", aksId.ID())
 	d.Set("cluster_purpose", string(aksComputeProperties.Properties.ClusterPurpose))
 	d.Set("description", aksComputeProperties.Description)
-	d.Set("ssl", flattenSSLConfig(aksComputeProperties.Properties.SslConfiguration))
 
 	// Retrieve location
 	if location := computeResource.Location; location != nil {
@@ -259,20 +258,6 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	return nil
-}
-
-func flattenSSLConfig(sslConfig *machinelearningservices.SslConfiguration) []interface{} {
-	if sslConfig == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"cert":  utils.String(*sslConfig.Cert),
-			"cname": utils.String(*sslConfig.Cname),
-			"key":   utils.String(*sslConfig.Key),
-		},
-	}
 }
 
 func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfiguration {
