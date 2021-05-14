@@ -282,6 +282,8 @@ func resourceRedisCache() *schema.Resource {
 			"replicas_per_master": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				// Can't make more than 3 replicas in portal, assuming it's a limitation
+				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
 			"tags": tags.Schema(),
