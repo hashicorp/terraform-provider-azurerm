@@ -1239,8 +1239,10 @@ resource "azurerm_subnet_route_table_association" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (SqlManagedInstanceResource) basic(data acceptance.TestData) string {
+func (r SqlManagedInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
+
 resource "azurerm_sql_managed_instance" "test" {
   name                         = "acctestsqlserver%d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
@@ -1263,11 +1265,13 @@ resource "azurerm_sql_managed_instance" "test" {
 	database    = "test"
   }
 }
-`, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (SqlManagedInstanceResource) update(data acceptance.TestData) string {
+func (r SqlManagedInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
+
 resource "azurerm_sql_managed_instance" "test" {
   name                         = "acctestsqlserver%d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
@@ -1295,5 +1299,5 @@ resource "azurerm_sql_managed_instance" "test" {
 	database    = "test"
   }
 }
-`, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
