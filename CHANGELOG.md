@@ -1,6 +1,18 @@
+## 2.60.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
+* `azurerm_windows_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
+
 ## 2.59.0 (May 14, 2021)
 
 FEATURES:
+
 * **New Resource:** `azurerm_consumption_budget_resource_group` ([#9201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9201))
 * **New Resource:** `azurerm_consumption_budget_subscription` ([#9201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9201))
 * **New Resource:** `azurerm_monitor_aad_diagnostic_setting` ([#11660](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11660))
