@@ -240,11 +240,7 @@ resource "azurerm_batch_account" "test" {
 func (BatchAccountResource) userSubscription(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy = false
-    }
-  }
+  features {}
 }
 
 provider "azuread" {}
