@@ -49,14 +49,6 @@ func resourceAksInferenceCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"machine_learning_workspace_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"location": azure.SchemaLocation(),
-
 			"kubernetes_cluster_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -64,11 +56,25 @@ func resourceAksInferenceCluster() *schema.Resource {
 				ValidateFunc: validate.KubernetesClusterID,
 			},
 
+			"location": azure.SchemaLocation(),
+
+			"machine_learning_workspace_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
 			"cluster_purpose": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "FastProd",
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"ssl": {
@@ -100,12 +106,6 @@ func resourceAksInferenceCluster() *schema.Resource {
 				},
 			},
 
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"tags": tags.ForceNewSchema(),
 		},
 	}
@@ -125,17 +125,16 @@ func resourceAksInferenceClusterCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	if d.IsNewResource() {
-		// Check if Inference Cluster already exists
-		existing, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspaceID.Name, workspaceID.ResourceGroup, err)
-			}
+
+	// Check if Inference Cluster already exists
+	existing, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_machine_learning_inference_cluster", *existing.ID)
-		}
+	}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_machine_learning_inference_cluster", *existing.ID)
 	}
 
 	// Get Kubernetes Cluster Name and Resource Group from ID
@@ -222,16 +221,13 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("compute resource %s is not an AKS cluster", id.ComputeName)
 	}
 
-	// Retrieve AKS Cluster name and Node pool name from ID
+	// Retrieve AKS Cluster ID
 	aksId, err := parse.KubernetesClusterID(*aksComputeProperties.ResourceID)
 	if err != nil {
 		return err
 	}
-
-	d.Set("kubernetes_cluster_id", aksId)
-
+	d.Set("kubernetes_cluster_id", aksId.ID())
 	d.Set("cluster_purpose", string(aksComputeProperties.Properties.ClusterPurpose))
-
 	d.Set("description", aksComputeProperties.Description)
 	d.Set("ssl", aksComputeProperties.Properties.SslConfiguration)
 
