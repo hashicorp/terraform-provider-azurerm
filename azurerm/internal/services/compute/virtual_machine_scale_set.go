@@ -1236,7 +1236,6 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		ForceNew: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -1244,12 +1243,10 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *schema.Schema {
 				"disable_automatic_rollback": {
 					Type:     schema.TypeBool,
 					Required: true,
-					ForceNew: true,
 				},
 				"enable_automatic_os_upgrade": {
 					Type:     schema.TypeBool,
 					Required: true,
-					ForceNew: true,
 				},
 			},
 		},
