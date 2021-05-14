@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -54,6 +55,8 @@ func resourceAksInferenceCluster() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.KubernetesClusterID,
+				// remove in 3.0 of the provider
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"location": azure.SchemaLocation(),
