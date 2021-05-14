@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/migration"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -39,6 +40,7 @@ func resourceMsSqlDatabase() *schema.Resource {
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+			resourceClient := meta.(*clients.Client).Resource.ResourcesClient
 
 			id, err := parse.DatabaseID(d.Id())
 			if err != nil {
@@ -50,9 +52,50 @@ func resourceMsSqlDatabase() *schema.Resource {
 			}
 
 			for _, link := range *resp.Value {
-				props := *link.ReplicationLinkProperties
-				if props.Role == sql.ReplicationRoleSecondary || props.Role == sql.ReplicationRoleNonReadableSecondary {
+				linkProps := *link.ReplicationLinkProperties
+				if linkProps.Role == sql.ReplicationRoleSecondary || linkProps.Role == sql.ReplicationRoleNonReadableSecondary {
 					d.Set("create_mode", string(sql.CreateModeSecondary))
+					log.Printf("[INFO] replication link found for %s MsSql Database %s (MsSql Server Name %q / Resource Group %q) with Database %q on MsSql Server %q ", string(sql.CreateModeSecondary), id.Name, id.ServerName, id.ResourceGroup, *linkProps.PartnerDatabase, *linkProps.PartnerServer)
+
+					// get all SQL Servers with the name of the linked Primary
+					filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", *linkProps.PartnerServer)
+					var resourceList []resources.GenericResourceExpanded
+					for resourcesIterator, err := resourceClient.ListComplete(ctx, filter, "", nil); resourcesIterator.NotDone(); err = resourcesIterator.NextWithContext(ctx) {
+						if err != nil {
+							return nil, fmt.Errorf("loading SQL Server List: %+v", err)
+						}
+
+						resourceList = append(resourceList, resourcesIterator.Value())
+					}
+					if err != nil {
+						return nil, fmt.Errorf("reading Linked Servers for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+					}
+
+					for _, server := range resourceList {
+						serverID, err := parse.ServerID(*server.ID)
+						if err != nil {
+							return nil, err
+						}
+
+						// check if server named like the replication linked server has a database named like the partner database with a replication link
+						linksPossiblePrimary, err := replicationLinksClient.ListByDatabase(ctx, serverID.ResourceGroup, serverID.Name, *linkProps.PartnerDatabase)
+						if err != nil && !utils.ResponseWasNotFound(linksPossiblePrimary.Response) {
+							return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", *linkProps.PartnerDatabase, serverID.Name, serverID.ResourceGroup, err)
+						}
+						if err != nil && utils.ResponseWasNotFound(linksPossiblePrimary.Response) {
+							log.Printf("[INFO] no replication link found for Database %q (MsSql Server %q / Resource Group %q): %s", *linkProps.PartnerDatabase, serverID.Name, serverID.ResourceGroup, err)
+							continue
+						}
+
+						for _, linkPossiblePrimary := range *linksPossiblePrimary.Value {
+							linkPropsPossiblePrimary := *linkPossiblePrimary.ReplicationLinkProperties
+
+							// check if the database has a replication link for a primary role and specific partner location
+							if linkPropsPossiblePrimary.Role == sql.ReplicationRolePrimary && *linkPossiblePrimary.Location == *linkProps.PartnerLocation {
+								d.Set("creation_source_database_id", parse.NewDatabaseID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, *linkProps.PartnerDatabase).ID())
+							}
+						}
+					}
 					return []*pluginsdk.ResourceData{d}, nil
 				}
 			}
