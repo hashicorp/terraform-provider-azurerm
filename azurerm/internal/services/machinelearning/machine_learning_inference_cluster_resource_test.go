@@ -61,6 +61,21 @@ func TestAccInferenceCluster_complete(t *testing.T) {
 	})
 }
 
+func TestAccInferenceCluster_completeProduction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
+	r := InferenceClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeProduction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssl"),
+	})
+}
+
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	inferenceClusterClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.InferenceClusterID(state.ID)
@@ -80,7 +95,6 @@ func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Cl
 }
 
 func (r InferenceClusterResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -96,11 +110,10 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
 
 func (r InferenceClusterResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -121,11 +134,34 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   }
 
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateDevTest(data), data.RandomIntOfLength(8))
+}
+
+func (r InferenceClusterResource) completeProduction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_inference_cluster" "test" {
+  name                          = "AIC-%d"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "FastProd"
+  ssl {
+    cert  = file("testdata/cert.pem")
+    key   = file("testdata/key.pem")
+    cname = "www.contoso.com"
+  }
+
+  tags = {
+    ENV = "Production"
+  }
+
+}
+`, r.templateFastProd(data), data.RandomIntOfLength(8))
 }
 
 func (r InferenceClusterResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -138,10 +174,17 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
 
   tags = azurerm_machine_learning_inference_cluster.test.tags
 }
-`, template)
+`, r.basic(data))
 }
 
-func (r InferenceClusterResource) template(data acceptance.TestData) string {
+func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) string {
+	return r.template(data, "SStandard_D3_v2", 3)
+}
+func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
+	return r.template(data, "Standard_DS2_v2", 1)
+}
+
+func (r InferenceClusterResource) template(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -219,8 +262,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    node_count     = %d
+    vm_size        = "%s"
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
@@ -230,5 +273,5 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
 }
