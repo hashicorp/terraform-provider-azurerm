@@ -137,8 +137,22 @@ func resourceArmSqlMiServer() *schema.Resource {
 			},
 
 			"proxy_override": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(sql.ManagedInstanceProxyOverrideDefault),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.ManagedInstanceProxyOverrideDefault),
+					string(sql.ManagedInstanceProxyOverrideRedirect),
+					string(sql.ManagedInstanceProxyOverrideProxy),
+				}, false),
+			},
 
-			}
+			"timezone_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "UTC",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
 			"fqdn": {
 				Type:     schema.TypeString,
@@ -191,6 +205,8 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			Collation:                 utils.String(d.Get("collation").(string)),
 			PublicDataEndpointEnabled: utils.Bool(d.Get("public_data_endpoint_enabled").(bool)),
 			MinimalTLSVersion:         utils.String(d.Get("minimum_tls_version").(string)),
+			ProxyOverride:             sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
+			TimezoneID:                utils.String(d.Get("timezone_id").(string)),
 		},
 	}
 
@@ -259,6 +275,8 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("collation", props.Collation)
 		d.Set("public_data_endpoint_enabled", props.PublicDataEndpointEnabled)
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		d.Set("proxy_override", props.ProxyOverride)
+		d.Set("timezone_id", props.TimezoneID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

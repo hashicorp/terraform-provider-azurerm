@@ -37,6 +37,50 @@ func TestAccAzureRMSqlMiServer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlMiServer_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	r := SqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"administrator_login_password"},
+		},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"administrator_login_password"},
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"administrator_login_password"},
+		},
+	})
+}
+
 func (r SqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceID(state.ID)
 	if err != nil {
@@ -53,7 +97,7 @@ func (r SqlManagedInstanceResource) Exists(ctx context.Context, client *clients.
 	return utils.Bool(true), nil
 }
 
-func (SqlManagedInstanceResource) basic(data acceptance.TestData) string {
+func (SqlManagedInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1192,7 +1236,11 @@ resource "azurerm_subnet_route_table_association" "test" {
 	subnet_id      = "${azurerm_subnet.test.id}"
 	route_table_id = "${azurerm_route_table.test.id}"
 }
- 
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SqlManagedInstanceResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_sql_managed_instance" "test" {
   name                         = "acctestsqlserver%d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
@@ -1215,5 +1263,37 @@ resource "azurerm_sql_managed_instance" "test" {
 	database    = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger)
+}
+
+func (SqlManagedInstanceResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_sql_managed_instance" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type				   = "BasePrice"
+  subnet_id					   = "${azurerm_subnet.test.id}"
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+  public_data_endpoint_enabled = true
+  proxy_override               = "Proxy"
+  timezone_id                  = "Pacific Standard Time"
+  minimum_tls_version          = "1.0"
+  collation                    = "SQL_1xCompat_CP850_CI_AS"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+	environment = "staging"
+	database    = "test"
+  }
+}
+`, data.RandomInteger)
 }
