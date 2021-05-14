@@ -209,18 +209,18 @@ func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"dimension": {
-									Type:          schema.TypeList,
-									MaxItems:      1,
-									Optional:      true,
+									Type:         schema.TypeList,
+									MaxItems:     1,
+									Optional:     true,
 									ExactlyOneOf: []string{"filter.0.not.0.tag"},
-									Elem:          SchemaConsumptionBudgetFilterDimensionElement(),
+									Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
 								},
 								"tag": {
-									Type:          schema.TypeList,
-									MaxItems:      1,
-									Optional:      true,
+									Type:         schema.TypeList,
+									MaxItems:     1,
+									Optional:     true,
 									ExactlyOneOf: []string{"filter.0.not.0.dimension"},
-									Elem:          SchemaConsumptionBudgetFilterTagElement(),
+									Elem:         SchemaConsumptionBudgetFilterTagElement(),
 								},
 							},
 						},
