@@ -62,44 +62,6 @@ func TestAccComputeCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccComputeCluster_basicUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.0.node_idle_time_before_scale_down").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.0.node_idle_time_before_scale_down").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.ComputeClusterID(state.ID)
@@ -135,32 +97,6 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 	min_node_count = 0
 	max_node_count = 1
 	node_idle_time_before_scale_down = "PT30S" # 30 seconds
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, template, data.RandomIntOfLength(8))
-}
-
-func (r ComputeClusterResource) basicUpdate(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_machine_learning_compute_cluster" "test" {
-  name                          = "CC-%d"
-  location                      = azurerm_resource_group.test.location
-  vm_priority                   = "LowPriority"
-  vm_size                       = "STANDARD_DS2_V2"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  subnet_resource_id            = azurerm_subnet.test.id
-
-  scale_settings {
-	min_node_count = 1
-	max_node_count = 2
-	node_idle_time_before_scale_down = "PT60S" # 60 seconds
   }
 
   identity {
