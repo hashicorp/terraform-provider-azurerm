@@ -140,7 +140,9 @@ func resourceComputeClusterCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 
 	// Get Machine Learning Workspace Name and Resource Group from ID
-	workspaceID, err := parse.WorkspaceID(d.Get("machine_learning_workspace_id").(string))
+	unparsedWorkspaceID := d.Get("machine_learning_workspace_id").(string)
+
+	workspaceID, err := parse.WorkspaceID(unparsedWorkspaceID)
 	if err != nil {
 		return err
 	}
@@ -160,7 +162,8 @@ func resourceComputeClusterCreate(d *schema.ResourceData, meta interface{}) erro
 	vmSize := d.Get("vm_size").(string)
 	vmPriority := d.Get("vm_priority").(string)
 
-	scaleSettings := expandScaleSettings(d.Get("scale_settings").([]interface{}))
+	inputScaleSettings := d.Get("scale_settings").([]interface{})
+	scaleSettings := expandScaleSettings(inputScaleSettings)
 
 	subnetResourceId := d.Get("subnet_resource_id").(string)
 
@@ -245,9 +248,21 @@ func resourceComputeClusterCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error waiting for creation of Compute Cluster %q in workspace %q (Resource Group %q): %+v",
 			name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
+	resp, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+	if err != nil {
+		return fmt.Errorf("error retrieving Compute Cluster Compute %q in workspace %q (Resource Group %q): %+v",
+			name, workspaceID.Name, workspaceID.ResourceGroup, err)
+	}
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewComputeClusterID(subscriptionId, workspaceID.ResourceGroup, workspaceID.Name, name)
+	if resp.ID == nil {
+		return fmt.Errorf("cannot read Compute Cluster ID %q in workspace %q (Resource Group %q) ID",
+			name, workspaceID.Name, workspaceID.ResourceGroup)
+	}
+
+	id, err := parse.ComputeClusterID(*resp.ID)
+	if err != nil {
+		return err
+	}
 	d.SetId(id.ID())
 
 	return resourceComputeClusterRead(d, meta)
