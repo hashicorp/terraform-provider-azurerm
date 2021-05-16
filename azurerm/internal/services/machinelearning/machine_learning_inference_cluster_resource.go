@@ -203,8 +203,8 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	// Retrieve Machine Learning Workspace ID
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
- 	workspaceId := parse.NewWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName)
- 	d.Set("machine_learning_workspace_id", workspaceId.ID())
+	workspaceId := parse.NewWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName)
+	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
 	// use ComputeResource to get to AKS Cluster ID and other properties
 	aksComputeProperties, isAks := (machinelearningservices.BasicCompute).AsAKS(computeResource.Properties)
