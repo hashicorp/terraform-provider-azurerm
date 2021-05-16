@@ -98,7 +98,7 @@ resource "azurerm_databox_edge_device" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Edge-Standard"
+  sku_name = "EdgeP_Base-Standard"
 }
 `, data.RandomInteger, "eastus", data.RandomString)
 }

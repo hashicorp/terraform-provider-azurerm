@@ -144,6 +144,26 @@ func dataSourceKubernetesCluster() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+									"ingress_application_gateway_identity": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"client_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -815,7 +835,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			workspaceID = *v
 		}
 
-		omsagentIdentity, err := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
+		omsagentIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(omsAgent.Identity)
 		if err != nil {
 			return err
 		}
@@ -883,12 +903,18 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			subnetId = *v
 		}
 
+		ingressApplicationGatewayIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(ingressApplicationGateway.Identity)
+		if err != nil {
+			return err
+		}
+
 		output := map[string]interface{}{
-			"enabled":              enabled,
-			"gateway_id":           gatewayId,
-			"effective_gateway_id": effectiveGatewayId,
-			"subnet_cidr":          subnetCIDR,
-			"subnet_id":            subnetId,
+			"enabled":                              enabled,
+			"gateway_id":                           gatewayId,
+			"effective_gateway_id":                 effectiveGatewayId,
+			"subnet_cidr":                          subnetCIDR,
+			"subnet_id":                            subnetId,
+			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
 		}
 		ingressApplicationGateways = append(ingressApplicationGateways, output)
 	}
@@ -897,7 +923,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) ([]interface{}, error) {
+func flattenKubernetesClusterDataSourceAddOnIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
 	}

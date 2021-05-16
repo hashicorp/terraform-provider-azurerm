@@ -131,6 +131,10 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
+
+* `routing` - (Optional) A `routing` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -142,6 +146,8 @@ A `blob_properties` block supports the following:
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
+
+* `change_feed_enabled` - (Optional) Is the blob service properties for change feed events enabled? Default to `false`.
 
 * `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
 
@@ -239,6 +245,8 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
+* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
+
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
 ~> **NOTE:** Network Rules can be defined either directly on the `azurerm_storage_account` resource, or using the `azurerm_storage_account_network_rules` resource - but the two cannot be used together. If both are used against the same Storage Account, spurious changes will occur. When managing Network Rules using this resource, to change from a `default_action` of `Deny` to `Allow` requires defining, rather than removing, the block.
@@ -246,6 +254,48 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
+---
+
+A `private_link_access` block supports the following:
+
+* `endpoint_resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
+
+* `endpoint_tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
+
+---
+
+A `azure_files_authentication` block supports the following:
+
+* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
+
+* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
+
+---
+
+A `active_directory` block supports the following:
+
+* `storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
+
+* `domain_name` - (Required) Specifies the primary domain that the AD DNS server is authoritative for.
+
+* `domain_sid` - (Required) Specifies the security identifier (SID).
+
+* `domain_guid` - (Required) Specifies the domain GUID.
+
+* `forest_name` - (Required) Specifies the Active Directory forest.
+
+* `netbios_domain_name` - (Required) Specifies the NetBIOS domain name.
+
+---
+
+A `routing` block supports the following:
+
+* `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
+
+* `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
+
+* `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 
 ---
 

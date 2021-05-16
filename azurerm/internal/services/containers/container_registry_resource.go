@@ -20,6 +20,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/migration"
 	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	identityParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	identityValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -140,6 +143,67 @@ func resourceContainerRegistry() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerregistry.ResourceIdentityTypeSystemAssigned),
+								string(containerregistry.ResourceIdentityTypeUserAssigned),
+								string(containerregistry.ResourceIdentityTypeSystemAssignedUserAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: identityValidate.UserAssignedIdentityID,
+							},
+						},
+					},
+				},
+			},
+
+			"encryption": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"identity_client_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"key_vault_key_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+					},
+				},
 			},
 
 			"network_rule_set": {
@@ -280,6 +344,10 @@ func resourceContainerRegistry() *schema.Resource {
 				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
 			}
 
+			encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
+			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+			}
 			return nil
 		}),
 	}
@@ -340,6 +408,12 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
+	identityRaw := d.Get("identity").([]interface{})
+	identity := expandIdentityProperties(identityRaw)
+
 	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
@@ -350,6 +424,7 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 			Name: containerregistry.SkuName(sku),
 			Tier: containerregistry.SkuTier(sku),
 		},
+		Identity: identity,
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
@@ -359,6 +434,7 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 				TrustPolicy:      trustPolicy,
 			},
 			PublicNetworkAccess: publicNetworkAccess,
+			Encryption:          encryption,
 		},
 
 		Tags: tags.Expand(t),
@@ -463,6 +539,9 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
 	}
 
+	identityRaw := d.Get("identity").([]interface{})
+	identity := expandIdentityProperties(identityRaw)
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
@@ -474,7 +553,8 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 			PublicNetworkAccess: publicNetworkAccess,
 		},
-		Tags: tags.Expand(t),
+		Identity: identity,
+		Tags:     tags.Expand(t),
 	}
 
 	// geo replication is only supported by Premium Sku
@@ -630,6 +710,11 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `network_rule_set`: %+v", err)
 	}
 
+	identity, _ := flattenIdentityProperties(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
 	if properties := resp.RegistryProperties; properties != nil {
 		if err := d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("Error setting `quarantine_policy`: %+v", err)
@@ -639,6 +724,9 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 		}
 		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("Error setting `trust_policy`: %+v", err)
+		}
+		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
+			return fmt.Errorf("Error setting `encryption`: %+v", err)
 		}
 	}
 
@@ -833,6 +921,79 @@ func expandReplications(p []interface{}) []*containerregistry.Replication {
 		})
 	}
 	return replications
+}
+
+func expandIdentityProperties(e []interface{}) *containerregistry.IdentityProperties {
+	identityProperties := containerregistry.IdentityProperties{}
+	identityProperties.Type = containerregistry.ResourceIdentityTypeNone
+	if len(e) > 0 {
+		v := e[0].(map[string]interface{})
+		identityPropertType := containerregistry.ResourceIdentityType(v["type"].(string))
+		identityProperties.Type = identityPropertType
+		if identityPropertType == containerregistry.ResourceIdentityTypeUserAssigned || identityPropertType == containerregistry.ResourceIdentityTypeSystemAssignedUserAssigned {
+			identityIds := make(map[string]*containerregistry.UserIdentityProperties)
+			for _, id := range v["identity_ids"].([]interface{}) {
+				identityIds[id.(string)] = &containerregistry.UserIdentityProperties{}
+			}
+			identityProperties.UserAssignedIdentities = identityIds
+		}
+	}
+	return &identityProperties
+}
+
+func expandEncryption(e []interface{}) *containerregistry.EncryptionProperty {
+	encryptionProperty := containerregistry.EncryptionProperty{
+		Status: containerregistry.EncryptionStatusDisabled,
+	}
+	if len(e) > 0 {
+		v := e[0].(map[string]interface{})
+		enabled := v["enabled"].(bool)
+		if enabled {
+			encryptionProperty.Status = containerregistry.EncryptionStatusEnabled
+			keyId := v["key_vault_key_id"].(string)
+			identityClientId := v["identity_client_id"].(string)
+			encryptionProperty.KeyVaultProperties = &containerregistry.KeyVaultProperties{
+				KeyIdentifier: &keyId,
+				Identity:      &identityClientId,
+			}
+		}
+	}
+
+	return &encryptionProperty
+}
+
+func flattenEncryption(encryptionProperty *containerregistry.EncryptionProperty) []interface{} {
+	if encryptionProperty == nil {
+		return nil
+	}
+	encryption := make(map[string]interface{})
+	encryption["enabled"] = strings.EqualFold(string(encryptionProperty.Status), string(containerregistry.EncryptionStatusEnabled))
+	if encryptionProperty.KeyVaultProperties != nil {
+		encryption["key_vault_key_id"] = encryptionProperty.KeyVaultProperties.KeyIdentifier
+		encryption["identity_client_id"] = encryptionProperty.KeyVaultProperties.Identity
+	}
+
+	return []interface{}{encryption}
+}
+
+func flattenIdentityProperties(identityProperties *containerregistry.IdentityProperties) ([]interface{}, error) {
+	if identityProperties == nil {
+		return make([]interface{}, 0), nil
+	}
+	identity := make(map[string]interface{})
+	identity["type"] = string(identityProperties.Type)
+	if identityProperties.UserAssignedIdentities != nil {
+		identityIds := make([]string, 0)
+		for key := range identityProperties.UserAssignedIdentities {
+			parsedId, err := identityParse.UserAssignedIdentityIDInsensitively(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+		identity["identity_ids"] = identityIds
+	}
+	return []interface{}{identity}, nil
 }
 
 func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {

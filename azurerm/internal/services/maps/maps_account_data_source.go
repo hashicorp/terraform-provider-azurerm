@@ -82,7 +82,7 @@ func dataSourceMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 	if props := resp.Properties; props != nil {
-		d.Set("x_ms_client_id", props.XMsClientID)
+		d.Set("x_ms_client_id", props.UniqueID)
 	}
 
 	keysResp, err := client.ListKeys(ctx, resourceGroup, name)

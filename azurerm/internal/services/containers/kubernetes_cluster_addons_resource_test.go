@@ -279,6 +279,9 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
 					check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id"),
 				),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
 		data.ImportStep(),

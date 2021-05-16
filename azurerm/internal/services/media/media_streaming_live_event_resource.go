@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -140,8 +140,8 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(media.RTMP),
-								string(media.FragmentedMP4),
+								string(media.LiveEventInputProtocolRTMP),
+								string(media.LiveEventInputProtocolFragmentedMP4),
 							}, false),
 							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
 								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
@@ -513,7 +513,7 @@ func resourceMediaLiveEventDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 	if props := resp.LiveEventProperties; props != nil {
-		if props.ResourceState == media.Running {
+		if props.ResourceState == media.LiveEventResourceStateRunning {
 			stopFuture, err := client.Stop(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, media.LiveEventActionInput{RemoveOutputsOnStop: utils.Bool(false)})
 			if err != nil {
 				return fmt.Errorf("stopping %s: %+v", id, err)

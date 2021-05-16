@@ -97,7 +97,7 @@ func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *schema.ResourceDa
 			SubscriptionID: &subscriptionId,
 			DataTypes: &securityinsight.AlertsDataTypeOfDataConnector{
 				Alerts: &securityinsight.AlertsDataTypeOfDataConnectorAlerts{
-					State: securityinsight.Enabled,
+					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
 		},

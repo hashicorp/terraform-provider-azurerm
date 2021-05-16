@@ -192,6 +192,26 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
+							"ingress_application_gateway_identity": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"client_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"object_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"user_assigned_identity_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -421,7 +441,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			}
 		}
 
-		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
+		omsagentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"enabled":                    enabled,
@@ -457,12 +477,15 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			subnetId = *v
 		}
 
+		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
-			"enabled":              enabled,
-			"gateway_id":           gatewayId,
-			"effective_gateway_id": effectiveGatewayId,
-			"subnet_cidr":          subnetCIDR,
-			"subnet_id":            subnetId,
+			"enabled":                              enabled,
+			"gateway_id":                           gatewayId,
+			"effective_gateway_id":                 effectiveGatewayId,
+			"subnet_cidr":                          subnetCIDR,
+			"subnet_id":                            subnetId,
+			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
 		})
 	}
 
@@ -483,7 +506,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 }
 
-func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+func flattenKubernetesClusterAddOnIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}

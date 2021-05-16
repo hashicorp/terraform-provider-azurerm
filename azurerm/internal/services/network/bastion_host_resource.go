@@ -61,16 +61,19 @@ func resourceBastionHost() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.BastionIPConfigName,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},

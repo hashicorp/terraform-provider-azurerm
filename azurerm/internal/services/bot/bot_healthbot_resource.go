@@ -144,7 +144,7 @@ func resourceHealthbotServiceRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.Properties; props != nil {
-		d.Set("bot_management_portal_link", props.BotManagementPortalLink)
+		d.Set("bot_management_portal_url", props.BotManagementPortalLink)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

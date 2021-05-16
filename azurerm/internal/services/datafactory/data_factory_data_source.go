@@ -46,6 +46,13 @@ func dataSourceDataFactory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -153,23 +160,27 @@ func dataSourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeFactoryVSTSConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryGitHubConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryRepoConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenDataFactoryIdentity(resp.Identity)); err != nil {
+	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	if err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

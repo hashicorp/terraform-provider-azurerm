@@ -138,6 +138,8 @@ func dataSourceSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interf
 	}
 
 	switch template := resp.(type) {
+	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
+		err = setForMLBehaviorAnalyticsAlertRuleTemplate(d, &template)
 	case securityinsight.FusionAlertRuleTemplate:
 		err = setForFusionAlertRuleTemplate(d, &template)
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
@@ -173,6 +175,10 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 		template := templates.Value()
 		switch template := template.(type) {
 		case securityinsight.FusionAlertRuleTemplate:
+			if template.DisplayName != nil && *template.DisplayName == name {
+				results = append(results, templates.Value())
+			}
+		case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == name {
 				results = append(results, templates.Value())
 			}
@@ -229,6 +235,20 @@ func setForMsSecurityIncidentAlertRuleTemplate(d *schema.ResourceData, template 
 }
 
 func setForFusionAlertRuleTemplate(d *schema.ResourceData, template *securityinsight.FusionAlertRuleTemplate) error {
+	if template.ID == nil || *template.ID == "" {
+		return errors.New("empty or nil ID")
+	}
+	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID())
+	d.Set("name", template.Name)
+	d.Set("display_name", template.DisplayName)
+	return nil
+}
+
+func setForMLBehaviorAnalyticsAlertRuleTemplate(d *schema.ResourceData, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) error {
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}

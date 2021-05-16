@@ -97,7 +97,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *schema.ResourceD
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.AlertsDataTypeOfDataConnector{
 				Alerts: &securityinsight.AlertsDataTypeOfDataConnectorAlerts{
-					State: securityinsight.Enabled,
+					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
 		},

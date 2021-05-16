@@ -322,6 +322,30 @@ func TestAccManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccManagedDisk_attachedTierUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tierUpdateWhileAttached(data, "P10"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("P10"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tierUpdateWhileAttached(data, "P20"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("P20"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMManagedDisk_networkPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
@@ -1021,6 +1045,33 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   caching            = "None"
 }
 `, r.templateAttached(data), data.RandomInteger, diskSize)
+}
+
+func (r ManagedDiskResource) tierUpdateWhileAttached(data acceptance.TestData, tier string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%d-disk1"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+  tier                 = "%s"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+`, r.templateAttached(data), data.RandomInteger, tier)
 }
 
 func (r ManagedDiskResource) storageTypeUpdateWhilstAttached(data acceptance.TestData, storageAccountType string) string {

@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -486,10 +486,9 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 	accessControlResult := new(media.StreamingEndpointAccessControl)
 	accessControl := accessControls[0].(map[string]interface{})
 	// Get IP information
-	if raw, ok := accessControl["ip_allow"]; ok {
-		ipAllowsList := raw.([]interface{})
+	if ipAllowsList := accessControl["ip_allow"].([]interface{}); len(ipAllowsList) > 0 {
 		ipRanges := make([]media.IPRange, 0)
-		for index, ipAllow := range ipAllowsList {
+		for _, ipAllow := range ipAllowsList {
 			if ipAllow == nil {
 				continue
 			}
@@ -505,15 +504,14 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 			if subnetPrefixLengthRaw != "" {
 				ipRange.SubnetPrefixLength = utils.Int32(int32(subnetPrefixLengthRaw.(int)))
 			}
-			ipRanges[index] = ipRange
+			ipRanges = append(ipRanges, ipRange)
 		}
 		accessControlResult.IP = &media.IPAccessControl{
 			Allow: &ipRanges,
 		}
 	}
 	// Get Akamai information
-	if raw, ok := accessControl["akamai_signature_header_authentication_key"]; ok {
-		akamaiSignatureKeyList := raw.([]interface{})
+	if akamaiSignatureKeyList := accessControl["akamai_signature_header_authentication_key"].([]interface{}); len(akamaiSignatureKeyList) > 0 {
 		akamaiSignatureHeaderAuthenticationKeyList := make([]media.AkamaiSignatureHeaderAuthenticationKey, 0)
 		for _, akamaiSignatureKey := range akamaiSignatureKeyList {
 			if akamaiSignatureKey == nil {
@@ -538,9 +536,9 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 				}
 			}
 			akamaiSignatureHeaderAuthenticationKeyList = append(akamaiSignatureHeaderAuthenticationKeyList, akamaiSignatureHeaderAuthenticationKey)
-			accessControlResult.Akamai = &media.AkamaiAccessControl{
-				AkamaiSignatureHeaderAuthenticationKeyList: &akamaiSignatureHeaderAuthenticationKeyList,
-			}
+		}
+		accessControlResult.Akamai = &media.AkamaiAccessControl{
+			AkamaiSignatureHeaderAuthenticationKeyList: &akamaiSignatureHeaderAuthenticationKeyList,
 		}
 	}
 

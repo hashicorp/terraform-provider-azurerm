@@ -96,7 +96,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	params := securityinsight.FusionAlertRule{
-		Kind: securityinsight.KindFusion,
+		Kind: securityinsight.KindBasicAlertRuleKindFusion,
 		FusionAlertRuleProperties: &securityinsight.FusionAlertRuleProperties{
 			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_guid").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),

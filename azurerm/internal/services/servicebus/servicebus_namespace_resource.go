@@ -27,7 +27,10 @@ import (
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
-var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+var (
+	serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+	serviceBusNamespaceResourceName             = "azurerm_servicebus_namespace"
+)
 
 func resourceServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{

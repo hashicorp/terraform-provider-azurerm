@@ -32,6 +32,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_monitor_aad_diagnostic_setting":      resourceMonitorAADDiagnosticSetting(),
 		"azurerm_monitor_autoscale_setting":           resourceMonitorAutoScaleSetting(),
 		"azurerm_monitor_action_group":                resourceMonitorActionGroup(),
 		"azurerm_monitor_action_rule_action_group":    resourceMonitorActionRuleActionGroup(),

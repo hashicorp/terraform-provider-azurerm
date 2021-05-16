@@ -613,8 +613,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -629,24 +628,21 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledUpdate(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -661,8 +657,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledWithCMK(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -677,8 +672,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -732,6 +726,42 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherLicenseTypeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.otherLicenseTypeDefault(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.otherLicenseType(data, "Windows_Client"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue("Windows_Client"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.otherLicenseTypeDefault(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
 		),
 	})
 }
@@ -2793,4 +2823,83 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   depends_on = [azurerm_lb_rule.test]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherLicenseTypeDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherLicenseType(data acceptance.TestData, licenseType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  license_type        = %q
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), licenseType)
 }

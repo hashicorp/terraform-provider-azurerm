@@ -104,6 +104,7 @@ func databaseV0V1Schema() *schema.Resource {
 				Computed: true,
 			},
 
+			//lintignore:XS003
 			"long_term_retention_policy": {
 				Type:     schema.TypeList,
 				Optional: true,

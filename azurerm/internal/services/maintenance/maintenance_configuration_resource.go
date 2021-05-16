@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -26,6 +27,11 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 		Read:   resourceArmMaintenanceConfigurationRead,
 		Update: resourceArmMaintenanceConfigurationCreateUpdate,
 		Delete: resourceArmMaintenanceConfigurationDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ConfigurationV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -49,6 +55,7 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			// TODO use `azure.SchemaResourceGroupName()` in version 3.0
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/8653
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -82,51 +89,38 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 
 func resourceArmMaintenanceConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failure checking for present of existing MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_maintenance_configuration", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	scope := d.Get("scope").(string)
-
 	configuration := maintenance.Configuration{
-		Name:     utils.String(name),
-		Location: utils.String(location),
+		Name:     utils.String(id.Name),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ConfigurationProperties: &maintenance.ConfigurationProperties{
-			MaintenanceScope: maintenance.Scope(scope),
+			MaintenanceScope: maintenance.Scope(d.Get("scope").(string)),
 			Namespace:        utils.String("Microsoft.Maintenance"),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, configuration); err != nil {
-		return fmt.Errorf("failure creating/updating MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, configuration); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("failure retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read MaintenanceConfiguration %q (Resource Group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceArmMaintenanceConfigurationRead(d, meta)
 }
 
@@ -147,10 +141,10 @@ func resourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failure retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
@@ -170,7 +164,7 @@ func resourceArmMaintenanceConfigurationDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("failure deleting MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }

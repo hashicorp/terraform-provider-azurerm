@@ -324,7 +324,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -448,7 +448,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -1494,7 +1494,7 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 
 func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Computed: true,
 		Elem: &schema.Resource{

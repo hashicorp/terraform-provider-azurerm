@@ -1,13 +1,80 @@
-## 2.58.0 (Unreleased)
+## 2.60.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` [GH-11484]
-* **New Resource:** `azurerm_storage_blob_inventory_policy` [GH-11533]
+ENHANCEMENTS:
+
+* `azurerm_cosmosdb_mongo_collection` - support for the `analytical_storage_ttl` property [GAH-11735]
+* `azurerm_media_services_account` - support for the `key_delivery_access_control` block [GH-11726]
+
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
+* `azurerm_windows_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
+* `azurerm_windows_virtual_machine_scale_set` - changing the `license_type` will no longer create a new resource [GH-11731]
+
+## 2.59.0 (May 14, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_consumption_budget_resource_group` ([#9201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9201))
+* **New Resource:** `azurerm_consumption_budget_subscription` ([#9201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9201))
+* **New Resource:** `azurerm_monitor_aad_diagnostic_setting` ([#11660](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11660))
+* **New Resource:** `azurerm_sentinel_alert_rule_machine_learning_behavior_analytics` ([#11552](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11552))
+* **New Resource:** `azurerm_servicebus_namespace_disaster_recovery_config` ([#11638](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11638))
 
 ENHANCEMENTS:
 
-* dependencies: updating `network-db` to API version `2020-07-01` [GH-10767]
+* dependencies: updating to `v54.4.0` of `github.com/Azure/azure-sdk-for-go` ([#11593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11593))
+* dependencies: updating `databox` to API version `2020-12-01` ([#11626](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11626))
+* dependencies: updating `maps` to API version `2021-02-01` ([#11676](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11676))
+* Data Source: `azurerm_kubernetes_cluster` - Add `ingress_application_gateway_identity` export for add-on `ingress_application_gateway` ([#11622](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11622))
+* `azurerm_cosmosdb_account` - support for the `identity` and `cors_rule` blocks ([#11653](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11653))
+* `azurerm_cosmosdb_account` - support for the `backup` property ([#11597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11597))
+* `azurerm_cosmosdb_sql_container` - support for the `analytical_storage_ttl` property ([#11655](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11655))
+* `azurerm_container_registry` - support for the `identity` and `encryption` blocks ([#11661](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11661))
+* `azurerm_frontdoor_custom_https_configuration` - Add support for resource import. ([#11642](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11642))
+* `azurerm_kubernetes_cluster` - export the `ingress_application_gateway_identity` attribute for the `ingress_application_gateway` add-on ([#11622](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11622))
+* `azurerm_managed_disk` - support for the `tier` property ([#11634](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11634))
+* `azurerm_storage_account` - support for the `azure_files_identity_based_authentication` and `routing_preference` blocks ([#11485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11485))
+* `azurerm_storage_account` - support for the `private_link_access` property ([#11629](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11629))
+* `azurerm_storage_account` - support for the `change_feed_enabled` property ([#11695](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11695))
+
+BUG FIXES
+
+* Data Source: `azurerm_container_registry_token` - updating the validation for the `name` field ([#11607](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11607))
+* `azurerm_bastion_host` - updating the `ip_configuration` block properties now forces a new resource ([#11700](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11700))
+* `azurerm_container_registry_token` - updating the validation for the `name` field ([#11607](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11607))
+* `azurerm_mssql_database` - wil now correctly import the `creation_source_database_id` property for Secondary databases ([#11703](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11703))
+* `azurerm_storage_account` - allow empty/blank values for the `allowed_headers` and `exposed_headers` properties ([#11692](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11692))
+
+## 2.58.0 (May 07, 2021)
+
+UPGRADE NOTES
+
+* `azurerm_frontdoor` - The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been deprecated and has been removed as they are no longer supported. ([#11456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11456))
+* `azurerm_frontdoor_custom_https_configuration` - The `resource_group_name` has been deprecated and has been removed as it is no longer supported. ([#11456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11456))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_storage_table_entity` ([#11562](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11562))
+* **New Resource:** `azurerm_app_service_environment_v3` ([#11174](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11174))
+* **New Resource:** `azurerm_cosmosdb_notebook_workspace` ([#11536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11536))
+* **New Resource:** `azurerm_cosmosdb_sql_trigger` ([#11535](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11535))
+* **New Resource:** `azurerm_cosmosdb_sql_user_defined_function` ([#11537](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11537))
+* **New Resource:** `azurerm_iot_time_series_insights_event_source_iothub` ([#11484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11484))
+* **New Resource:** `azurerm_storage_blob_inventory_policy` ([#11533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11533))
+
+ENHANCEMENTS:
+
+* dependencies: updating `network-db` to API version `2020-07-01` ([#10767](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10767))
+* `azurerm_cosmosdb_account` - support for the `access_key_metadata_writes_enabled`, `mongo_server_version`, and `network_acl_bypass` properties ([#11486](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11486))
+* `azurerm_data_factory` - support for the `customer_managed_key_id` property ([#10502](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10502))
+* `azurerm_data_factory_pipeline` - support for the `folder` property ([#11575](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11575))
+* `azurerm_frontdoor` - Fix for Frontdoor resource elements being returned out of order. ([#11456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11456))
+* `azurerm_hdinsight_*_cluster` - support for autoscale  #8104 ([#11547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11547))
+* `azurerm_network_security_rule` - support for the protocols `Ah` and `Esp` ([#11581](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11581))
+* `azurerm_network_connection_monitor` - support for the `coverage_level`, `excluded_ip_addresses`, `included_ip_addresses`, `target_resource_id`, and `resource_type` propeties ([#11540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11540))
 
 ## 2.57.0 (April 30, 2021)
 

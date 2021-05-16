@@ -30,6 +30,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_sentinel_alert_rule_fusion":                                            resourceSentinelAlertRuleFusion(),
+		"azurerm_sentinel_alert_rule_machine_learning_behavior_analytics":               resourceSentinelAlertRuleMLBehaviorAnalytics(),
 		"azurerm_sentinel_alert_rule_ms_security_incident":                              resourceSentinelAlertRuleMsSecurityIncident(),
 		"azurerm_sentinel_alert_rule_scheduled":                                         resourceSentinelAlertRuleScheduled(),
 		"azurerm_sentinel_data_connector_aws_cloud_trail":                               resourceSentinelDataConnectorAwsCloudTrail(),

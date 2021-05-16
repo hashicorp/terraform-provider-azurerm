@@ -1,56 +1,91 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = WorkspaceId{}
+
+func TestWorkspaceIDFormatter(t *testing.T) {
+	actual := NewWorkspaceID("00000000-0000-0000-0000-000000000000", "resGroup1", "workspace1").ID()
+	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestWorkspaceID(t *testing.T) {
 	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *WorkspaceId
+		Input    string
+		Error    bool
+		Expected *WorkspaceId
 	}{
+
 		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Value",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1",
+			// missing Name
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Workspace Value",
+			// missing value for Name
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/",
 			Error: true,
 		},
+
 		{
-			Name:  "Machine Learning Workspace ID",
+			// valid
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1",
-			Error: false,
-			Expect: &WorkspaceId{
-				ResourceGroup: "resGroup1",
-				Name:          "workspace1",
+			Expected: &WorkspaceId{
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resGroup1",
+				Name:           "workspace1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.MACHINELEARNINGSERVICES/WORKSPACES/WORKSPACE1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := WorkspaceID(v.Input)
 		if err != nil {
@@ -58,82 +93,20 @@ func TestWorkspaceID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %+v", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-	}
-}
-
-func TestAccountIDCaseDiffSuppress(t *testing.T) {
-	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *parse.StorageAccountId
-	}{
-		{
-			Name:  "Empty",
-			Input: "",
-			Error: true,
-		},
-		{
-			Name:  "No Resource Group Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Error: true,
-		},
-		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
-			Error: true,
-		},
-		{
-			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1",
-			Error: true,
-		},
-		{
-			Name:  "Account ID with right casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/storageAccounts/account1",
-			Expect: &parse.StorageAccountId{
-				Name:          "account1",
-				ResourceGroup: "resGroup1",
-			},
-		},
-		{
-			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resgroup1/storageaccounts/account1",
-			Expect: &parse.StorageAccountId{
-				Name:          "account1",
-				ResourceGroup: "resgroup1",
-			},
-		},
-	}
-
-	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
-
-		actual, err := AccountIDCaseDiffSuppress(v.Input)
-		if err != nil {
-			if v.Error {
-				continue
-			}
-
-			t.Fatalf("Expected a value but got an error: %+v", err)
-		}
-
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
-		}
-
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

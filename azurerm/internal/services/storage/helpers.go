@@ -40,18 +40,18 @@ func schemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
 					Type:     schema.TypeList,
 					Required: true,
 					MaxItems: 64,
+					MinItems: 1,
 					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type: schema.TypeString,
 					},
 				},
 				"allowed_headers": {
 					Type:     schema.TypeList,
 					Required: true,
 					MaxItems: 64,
+					MinItems: 1,
 					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type: schema.TypeString,
 					},
 				},
 				"allowed_methods": {

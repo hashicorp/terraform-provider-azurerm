@@ -56,6 +56,7 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
 				check.That(data.ResourceName).Key("description").HasValue("test description2"),
 				check.That(data.ResourceName).Key("variables.%").HasValue("3"),
+				check.That(data.ResourceName).Key("folder").HasValue("test-folder"),
 			),
 		},
 		data.ImportStep(),
@@ -218,6 +219,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   annotations         = ["test1", "test2"]
   description         = "test description2"
+  folder              = "test-folder"
 
   parameters = {
     test  = "testparameter"

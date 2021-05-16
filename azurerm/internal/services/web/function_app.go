@@ -70,7 +70,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 10),
+					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
 				"scm_ip_restriction": schemaAppServiceIpRestriction(),

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -76,35 +76,47 @@ func resourceMediaAssetFilter() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
+								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 
 						"force_end": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
+								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 
 						"live_backoff_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
+								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 
 						"presentation_window_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
+								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 
 						"start_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
+								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 
 						"unit_timescale_in_miliseconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
+							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
+								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 					},
 				},
@@ -115,17 +127,18 @@ func resourceMediaAssetFilter() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"condition": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"operation": {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.Equal),
-											string(media.NotEqual),
+											string(media.FilterTrackPropertyCompareOperationEqual),
+											string(media.FilterTrackPropertyCompareOperationNotEqual),
 										}, false),
 									},
 
@@ -365,6 +378,9 @@ func expandTracks(input []interface{}) *[]media.FilterTrackSelection {
 			trackSelectionList := rawSelection.([]interface{})
 			filterTrackSelections := make([]media.FilterTrackPropertyCondition, 0)
 			for _, trackSelection := range trackSelectionList {
+				if trackSelection == nil {
+					continue
+				}
 				filterTrackSelection := media.FilterTrackPropertyCondition{}
 				track := trackSelection.(map[string]interface{})
 
