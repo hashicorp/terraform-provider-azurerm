@@ -4,6 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_media_services_account` - support for the `key_delivery_access_control` blck [GH-11726]
+
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
