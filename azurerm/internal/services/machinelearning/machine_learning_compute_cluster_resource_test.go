@@ -116,7 +116,7 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
 	location                      = azurerm_machine_learning_compute_cluster.test.location
 	vm_priority                   = azurerm_machine_learning_compute_cluster.test.vm_priority
 	vm_size                       = azurerm_machine_learning_compute_cluster.test.vm_size
-	machine_learning_workspace_id = azurerm_machine_learning_compute_cluster.test.id
+	machine_learning_workspace_id = azurerm_machine_learning_compute_cluster.test.machine_learning_workspace_id
 
 	scale_settings {
 		min_node_count = 0
