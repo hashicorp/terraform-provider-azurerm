@@ -153,8 +153,8 @@ resource "azurerm_data_factory_linked_service_odata" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
   basic_authentication {
-    username            = "emma"
-    password            = "Ch4ngeM3!"
+    username = "emma"
+    password = "Ch4ngeM3!"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

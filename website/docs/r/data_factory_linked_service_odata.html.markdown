@@ -39,8 +39,8 @@ resource "azurerm_data_factory_linked_service_odata" "basic_auth" {
   data_factory_name   = azurerm_data_factory.example.name
   url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
   basic_authentication {
-    username            = "emma"
-    password            = "Ch4ngeM3!"
+    username = "emma"
+    password = "Ch4ngeM3!"
   }
 }
 ```
