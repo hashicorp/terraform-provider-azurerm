@@ -94,8 +94,9 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"analytical_storage_ttl": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"default_ttl": {

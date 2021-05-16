@@ -83,6 +83,12 @@ func resourceCosmosDbMongoCollection() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
+			"analytical_storage_ttl": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -172,6 +178,10 @@ func resourceCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interfac
 		},
 	}
 
+	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
+	}
+
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
 			db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
@@ -239,6 +249,10 @@ func resourceCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interfac
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
+	}
+
+	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -337,6 +351,8 @@ func resourceCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{
 			if err := d.Set("system_indexes", systemIndexes); err != nil {
 				return fmt.Errorf("failed to set `system_indexes`: %+v", err)
 			}
+
+			d.Set("analytical_storage_ttl", res.AnalyticalStorageTTL)
 		}
 	}
 
