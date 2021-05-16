@@ -8,6 +8,7 @@ BUG FIXES:
 
 * `azurerm_linux_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
 * `azurerm_windows_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
+* `azurerm_windows_virtual_machine_scale_set` - changing the `license_type` will no longer create a new resource [GH-11731]
 
 ## 2.59.0 (May 14, 2021)
 
