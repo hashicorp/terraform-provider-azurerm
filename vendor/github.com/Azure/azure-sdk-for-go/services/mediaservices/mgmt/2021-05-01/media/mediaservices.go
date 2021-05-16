@@ -76,7 +76,7 @@ func (client MediaservicesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -155,7 +155,7 @@ func (client MediaservicesClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -230,7 +230,7 @@ func (client MediaservicesClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -252,80 +252,6 @@ func (client MediaservicesClient) GetSender(req *http.Request) (*http.Response, 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client MediaservicesClient) GetResponder(resp *http.Response) (result Service, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetBySubscription get the details of a Media Services account
-// Parameters:
-// accountName - the Media Services account name.
-func (client MediaservicesClient) GetBySubscription(ctx context.Context, accountName string) (result Service, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MediaservicesClient.GetBySubscription")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.GetBySubscriptionPreparer(ctx, accountName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "GetBySubscription", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetBySubscriptionSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "GetBySubscription", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetBySubscriptionResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "GetBySubscription", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// GetBySubscriptionPreparer prepares the GetBySubscription request.
-func (client MediaservicesClient) GetBySubscriptionPreparer(ctx context.Context, accountName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"accountName":    autorest.Encode("path", accountName),
-		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-05-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Media/mediaservices/{accountName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetBySubscriptionSender sends the GetBySubscription request. The method will close the
-// http.Response Body if it receives an error.
-func (client MediaservicesClient) GetBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetBySubscriptionResponder handles the response to the GetBySubscription request. The method always
-// closes the http.Response Body.
-func (client MediaservicesClient) GetBySubscriptionResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -383,7 +309,7 @@ func (client MediaservicesClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -496,7 +422,7 @@ func (client MediaservicesClient) ListBySubscriptionPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -610,7 +536,7 @@ func (client MediaservicesClient) ListEdgePoliciesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -689,7 +615,7 @@ func (client MediaservicesClient) SyncStorageKeysPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -726,7 +652,7 @@ func (client MediaservicesClient) SyncStorageKeysResponder(resp *http.Response) 
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
 // parameters - the request parameters
-func (client MediaservicesClient) Update(ctx context.Context, resourceGroupName string, accountName string, parameters Service) (result Service, err error) {
+func (client MediaservicesClient) Update(ctx context.Context, resourceGroupName string, accountName string, parameters ServiceUpdate) (result Service, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/MediaservicesClient.Update")
 		defer func() {
@@ -760,19 +686,18 @@ func (client MediaservicesClient) Update(ctx context.Context, resourceGroupName 
 }
 
 // UpdatePreparer prepares the Update request.
-func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, parameters Service) (*http.Request, error) {
+func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, parameters ServiceUpdate) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-05-01"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

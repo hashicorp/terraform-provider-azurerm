@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -115,6 +115,34 @@ func resourceMediaServicesAccount() *schema.Resource {
 				}, true),
 			},
 
+			"key_delivery_access_control": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"default_action": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(media.DefaultActionDeny),
+								string(media.DefaultActionAllow),
+							}, true),
+						},
+
+						"ip_allow_list": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -162,6 +190,10 @@ func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("storage_authentication_type"); ok {
 		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
+	}
+
+	if keyDelivery, ok := d.GetOk("key_delivery_access_control"); ok {
+		parameters.KeyDelivery = expandKeyDelivery(keyDelivery.([]interface{}))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
@@ -212,6 +244,10 @@ func resourceMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("flattening `identity`: %s", err)
 	}
 
+	if err := d.Set("key_delivery_access_control", flattenKeyDelivery(resp.KeyDelivery)); err != nil {
+		return fmt.Errorf("flattening `key_delivery_access_control`: %s", err)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -245,13 +281,13 @@ func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]media.St
 
 		id := accountMap["id"].(string)
 
-		storageType := media.Secondary
+		storageType := media.StorageAccountTypeSecondary
 		if accountMap["is_primary"].(bool) {
 			if foundPrimary {
 				return nil, fmt.Errorf("Only one Storage Account can be set as Primary")
 			}
 
-			storageType = media.Primary
+			storageType = media.StorageAccountTypePrimary
 			foundPrimary = true
 		}
 
@@ -279,7 +315,7 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 			output["id"] = *storageAccount.ID
 		}
 
-		output["is_primary"] = storageAccount.Type == media.Primary
+		output["is_primary"] = storageAccount.Type == media.StorageAccountTypePrimary
 
 		results = append(results, output)
 	}
@@ -314,4 +350,39 @@ func flattenAzureRmMediaServicedentity(identity *media.ServiceIdentity) []interf
 	}
 
 	return []interface{}{result}
+}
+
+func expandKeyDelivery(input []interface{}) *media.KeyDelivery {
+	if len(input) == 0 {
+		return nil
+	}
+
+	keyDelivery := input[0].(map[string]interface{})
+	defaultAction := keyDelivery["default_action"].(string)
+
+	var ipAllowList *[]string
+	if v := keyDelivery["ip_allow_list"]; v != nil {
+		ips := keyDelivery["ip_allow_list"].(*schema.Set).List()
+		ipAllowList = utils.ExpandStringSlice(ips)
+	}
+
+	return &media.KeyDelivery{
+		AccessControl: &media.AccessControl{
+			DefaultAction: media.DefaultAction(defaultAction),
+			IPAllowList:   ipAllowList,
+		},
+	}
+}
+
+func flattenKeyDelivery(input *media.KeyDelivery) []interface{} {
+	if input == nil && input.AccessControl != nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"default_action": string(input.AccessControl.DefaultAction),
+			"ip_allow_list":  utils.FlattenStringSlice(input.AccessControl.IPAllowList),
+		},
+	}
 }
