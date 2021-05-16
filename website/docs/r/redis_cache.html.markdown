@@ -69,6 +69,10 @@ The following arguments are supported:
 
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
+* `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
+
+~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
+
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
 * `subnet_id` - (Optional) *Only available when using the Premium SKU* The ID of the Subnet within which the Redis Cache should be deployed. This Subnet must only contain Azure Cache for Redis instances without any other type of resources. Changing this forces a new resource to be created.

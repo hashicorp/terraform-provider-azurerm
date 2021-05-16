@@ -397,6 +397,20 @@ func TestAccRedisCache_WithoutAuth(t *testing.T) {
 	})
 }
 
+func TestAccRedisCache_ReplicasPerMaster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.replicasPerMaster(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CacheID(state.ID)
 	if err != nil {
@@ -1000,6 +1014,30 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (RedisCacheResource) replicasPerMaster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-redis-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 3
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  replicas_per_master = 3
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) resource.TestCheckFunc {
