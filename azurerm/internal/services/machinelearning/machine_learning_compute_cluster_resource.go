@@ -25,6 +25,7 @@ func resourceComputeCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceComputeClusterCreate,
 		Read:   resourceComputeClusterRead,
+		Update: resourceComputeClusterUpdate,
 		Delete: resourceComputeClusterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -35,6 +36,7 @@ func resourceComputeCluster() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -75,7 +77,6 @@ func resourceComputeCluster() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(machinelearningservices.SystemAssigned),
 							}, false),
@@ -83,12 +84,10 @@ func resourceComputeCluster() *schema.Resource {
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-							ForceNew: true,
 						},
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -97,24 +96,20 @@ func resourceComputeCluster() *schema.Resource {
 			"scale_settings": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"max_node_count": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"min_node_count": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"node_idle_time_before_scale_down": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -123,7 +118,6 @@ func resourceComputeCluster() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"subnet_resource_id": {
@@ -132,7 +126,7 @@ func resourceComputeCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -162,44 +156,93 @@ func resourceComputeClusterCreate(d *schema.ResourceData, meta interface{}) erro
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", *existing.ID)
 	}
 
-	computeClusterProperties := machinelearningservices.AmlCompute{
-		Properties: &machinelearningservices.AmlComputeProperties{
-			VMSize:        utils.String(d.Get("vm_size").(string)),
-			VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
-			ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
-			Subnet:        &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))},
-		},
-		ComputeLocation: utils.String(d.Get("location").(string)),
-		Description:     utils.String(d.Get("description").(string)),
-		ComputeType:     "ComputeTypeAmlCompute1",
-	}
+	// AML Compute Cluster configuration (not needed here presumably)
+	vmSize := d.Get("vm_size").(string)
+	vmPriority := d.Get("vm_priority").(string)
 
-	amlComputeProperties, isAmlCompute := (machinelearningservices.BasicCompute).AsAmlCompute(computeClusterProperties)
-	if !isAmlCompute {
-		return fmt.Errorf("no compute cluster")
-	}
+	scaleSettings := expandScaleSettings(d.Get("scale_settings").([]interface{}))
+
+	subnetResourceId := d.Get("subnet_resource_id").(string)
+
+	description := d.Get("description").(string)
+
+	location := d.Get("location").(string)
+
+	identity := d.Get("identity").([]interface{})
 
 	// Get SKU from Workspace
 	workspace, err := mlWorkspacesClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name)
 	if err != nil {
 		return err
 	}
+	sku := workspace.Sku
+
+	t := d.Get("tags").(map[string]interface{})
+
+	subnetId := machinelearningservices.ResourceID{ID: utils.String(subnetResourceId)}
+
+	computeClusterProperties := machinelearningservices.AmlCompute{
+		// Properties - AML Compute properties
+		Properties: &machinelearningservices.AmlComputeProperties{
+			// VMSize - Virtual Machine Size
+			VMSize: utils.String(vmSize),
+			// VMPriority - Virtual Machine priority. Possible values include: 'Dedicated', 'LowPriority'
+			VMPriority: machinelearningservices.VMPriority(vmPriority),
+			// ScaleSettings - Scale settings for AML Compute
+			ScaleSettings: scaleSettings,
+			// UserAccountCredentials - Credentials for an administrator user account that will be created on each compute node.
+			// Subnet - Virtual network subnet resource ID the compute nodes belong to.
+			Subnet: &subnetId,
+			// RemoteLoginPortPublicAccess - State of the public SSH port. Possible values are: Disabled - Indicates that the public ssh port is closed on all nodes of the cluster. Enabled - Indicates that the public ssh port is open on all nodes of the cluster. NotSpecified - Indicates that the public ssh port is closed on all nodes of the cluster if VNet is defined, else is open all public nodes. It can be default only during cluster creation time, after creation it will be either enabled or disabled. Possible values include: 'RemoteLoginPortPublicAccessEnabled', 'RemoteLoginPortPublicAccessDisabled', 'RemoteLoginPortPublicAccessNotSpecified'
+			// AllocationState - READ-ONLY; Allocation state of the compute. Possible values are: steady - Indicates that the compute is not resizing. There are no changes to the number of compute nodes in the compute in progress. A compute enters this state when it is created and when no operations are being performed on the compute to change the number of compute nodes. resizing - Indicates that the compute is resizing; that is, compute nodes are being added to or removed from the compute. Possible values include: 'Steady', 'Resizing'
+			// AllocationStateTransitionTime - READ-ONLY; The time at which the compute entered its current allocation state.
+			// Errors - READ-ONLY; Collection of errors encountered by various compute nodes during node setup.
+			// CurrentNodeCount - READ-ONLY; The number of compute nodes currently assigned to the compute.
+			// TargetNodeCount - READ-ONLY; The target number of compute nodes for the compute. If the allocationState is resizing, this property denotes the target node count for the ongoing resize operation. If the allocationState is steady, this property denotes the target node count for the previous resize operation.
+			// NodeStateCounts - READ-ONLY; Counts of various node states on the compute.
+		},
+		// ComputeLocation - Location for the underlying compute
+		ComputeLocation: &location,
+		// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
+		// Description - The description of the Machine Learning compute.
+		Description: &description,
+		// CreatedOn - READ-ONLY; The date and time when the compute was created.
+		// ModifiedOn - READ-ONLY; The date and time when the compute was last modified.
+		// ResourceID - ARM resource id of the underlying compute
+		// ProvisioningErrors - READ-ONLY; Errors during provisioning
+		// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
+		// ComputeType - Possible values include: 'ComputeTypeCompute', 'ComputeTypeAKS1', 'ComputeTypeAmlCompute1', 'ComputeTypeVirtualMachine1', 'ComputeTypeHDInsight1', 'ComputeTypeDataFactory1', 'ComputeTypeDatabricks1', 'ComputeTypeDataLakeAnalytics1'
+		ComputeType: "ComputeTypeAmlCompute1",
+	}
+
+	amlComputeProperties, isAmlCompute := (machinelearningservices.BasicCompute).AsAmlCompute(computeClusterProperties)
+	if !isAmlCompute {
+		return fmt.Errorf("error: No Compute cluster")
+	}
 
 	computeClusterParameters := machinelearningservices.ComputeResource{
+		// Properties - Compute properties
 		Properties: amlComputeProperties,
-		Identity:   expandComputeClusterIdentity(d.Get("identity").([]interface{})),
-		Location:   computeClusterProperties.ComputeLocation,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
-		Sku:        workspace.Sku,
+		// ID - READ-ONLY; Specifies the resource ID.
+		// Name - READ-ONLY; Specifies the name of the resource.
+		// Identity - The identity of the resource.
+		Identity: expandComputeClusterIdentity(identity),
+		// Location - Specifies the location of the resource.
+		Location: &location,
+		// Type - READ-ONLY; Specifies the type of the resource.
+		// Tags - Contains resource tags defined as key/value pairs.
+		Tags: tags.Expand(t),
+		// Sku - The sku of the workspace.
+		Sku: sku,
 	}
 
 	future, err := mlComputeClient.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, computeClusterParameters)
 	if err != nil {
-		return fmt.Errorf("creating Compute Cluster %q in workspace %q (Resource Group %q): %+v",
+		return fmt.Errorf("error creating Compute Cluster %q in workspace %q (Resource Group %q): %+v",
 			name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Compute Cluster %q in workspace %q (Resource Group %q): %+v",
+		return fmt.Errorf("error waiting for creation of Compute Cluster %q in workspace %q (Resource Group %q): %+v",
 			name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
 
@@ -218,7 +261,7 @@ func resourceComputeClusterRead(d *schema.ResourceData, meta interface{}) error 
 
 	id, err := parse.ComputeClusterID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
+		return fmt.Errorf("error parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
 	}
 
 	computeResource, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
@@ -227,17 +270,17 @@ func resourceComputeClusterRead(d *schema.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Compute Cluster %q in Workspace %q (Resource Group %q): %+v",
+		return fmt.Errorf("error making Read request on Compute Cluster %q in Workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ComputeName)
 
-	workspace, err := mlWorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+	workspaceResp, err := mlWorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
 		return err
 	}
-	d.Set("machine_learning_workspace_id", workspace.ID)
+	d.Set("machine_learning_workspace_id", workspaceResp.ID)
 
 	// use ComputeResource to get to AKS Cluster ID and other properties
 	computeCluster, isComputeCluster := (machinelearningservices.BasicCompute).AsAmlCompute(computeResource.Properties)
@@ -247,7 +290,9 @@ func resourceComputeClusterRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("vm_size", computeCluster.Properties.VMSize)
 	d.Set("vm_priority", computeCluster.Properties.VMPriority)
+
 	d.Set("scale_settings", flattenScaleSettings(computeCluster.Properties.ScaleSettings))
+
 	d.Set("subnet_resource_id", computeCluster.Properties.Subnet.ID)
 
 	if location := computeResource.Location; location != nil {
@@ -255,11 +300,37 @@ func resourceComputeClusterRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if err := d.Set("identity", flattenComputeClusterIdentity(computeResource.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Workspace %q (Resource Group %q): %+v",
+		return fmt.Errorf("error flattening identity on Workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.ResourceGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, computeResource.Tags)
+}
+
+func resourceComputeClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ComputeClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	update := machinelearningservices.ClusterUpdateParameters{
+		ClusterUpdateProperties: &machinelearningservices.ClusterUpdateProperties{},
+	}
+
+	if d.HasChange("scale_settings") {
+		scaleSettings := d.Get("scale_settings").([]interface{})
+		update.ScaleSettings = expandScaleSettings(scaleSettings)
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, update); err != nil {
+		return fmt.Errorf("error updating Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+	}
+
+	return resourceComputeClusterRead(d, meta)
 }
 
 func resourceComputeClusterDelete(d *schema.ResourceData, meta interface{}) error {
@@ -268,14 +339,15 @@ func resourceComputeClusterDelete(d *schema.ResourceData, meta interface{}) erro
 	defer cancel()
 	id, err := parse.ComputeClusterID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
+		return fmt.Errorf("error parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
 	}
-	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.Detach)
+	underlying_resource_action := machinelearningservices.Detach
+	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, underlying_resource_action)
 	if err != nil {
-		return fmt.Errorf("deleting Compute Cluster %q in workspace %q (Resource Group %q): %+v", id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("error deleting Compute Cluster %q in workspace %q (Resource Group %q): %+v", id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Compute Cluster %q in workspace %q (Resource Group %q): %+v", id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("error waiting for deletion of Compute Cluster %q in workspace %q (Resource Group %q): %+v", id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	return nil
 }
@@ -329,6 +401,8 @@ func flattenComputeClusterIdentity(identity *machinelearningservices.Identity) [
 		return []interface{}{}
 	}
 
+	t := string(identity.Type)
+
 	principalID := ""
 	if identity.PrincipalID != nil {
 		principalID = *identity.PrincipalID
@@ -341,7 +415,7 @@ func flattenComputeClusterIdentity(identity *machinelearningservices.Identity) [
 
 	return []interface{}{
 		map[string]interface{}{
-			"type":         string(identity.Type),
+			"type":         t,
 			"principal_id": principalID,
 			"tenant_id":    tenantID,
 		},
