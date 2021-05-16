@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -88,15 +88,12 @@ func TestAccDataFactoryLinkedServiceOData_basic_update(t *testing.T) {
 }
 
 func (t LinkedServiceODataResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Data Factory Linked Service OData (%s): %+v", id, err)
 	}
