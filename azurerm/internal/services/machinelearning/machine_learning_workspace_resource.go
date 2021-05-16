@@ -1,13 +1,10 @@
 package machinelearning
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -169,34 +166,26 @@ func resourceMachineLearningWorkspaceCreate(d *schema.ResourceData, meta interfa
 	existing, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for existing AML Workspace %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("checking for existing AML Workspace %q (Resource Group %q): %s", name, resGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
 		return tf.ImportAsExistsError("azurerm_machine_learning_workspace", *existing.ID)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	storageAccountId := d.Get("storage_account_id").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
-	applicationInsightsId := d.Get("application_insights_id").(string)
-	skuName := d.Get("sku_name").(string)
-
-	t := d.Get("tags").(map[string]interface{})
-
 	workspace := machinelearningservices.Workspace{
-		Name:     &name,
-		Location: &location,
-		Tags:     tags.Expand(t),
+		Name:     utils.String(name),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningservices.Sku{
-			Name: utils.String(skuName),
-			Tier: utils.String(skuName),
+			Name: utils.String(d.Get("sku_name").(string)),
+			Tier: utils.String(d.Get("sku_name").(string)),
 		},
 		Identity: expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{})),
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
-			StorageAccount:      &storageAccountId,
-			ApplicationInsights: &applicationInsightsId,
-			KeyVault:            &keyVaultId,
+			StorageAccount:      utils.String(d.Get("storage_account_id").(string)),
+			ApplicationInsights: utils.String(d.Get("application_insights_id").(string)),
+			KeyVault:            utils.String(d.Get("key_vault_id").(string)),
 		},
 	}
 
@@ -216,35 +205,18 @@ func resourceMachineLearningWorkspaceCreate(d *schema.ResourceData, meta interfa
 		workspace.HbiWorkspace = utils.Bool(v.(bool))
 	}
 
-	accountsClient := meta.(*clients.Client).Storage.AccountsClient
-	if err := validateStorageAccount(ctx, *accountsClient, storageAccountId); err != nil {
-		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	registriesClient := meta.(*clients.Client).Containers.RegistriesClient
-	if err := validateContainerRegistry(ctx, *registriesClient, workspace.ContainerRegistry); err != nil {
-		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, workspace)
 	if err != nil {
-		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation of Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Machine Learning Workspace %q (Resource Group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewWorkspaceID(subscriptionId, resGroup, name)
+	d.SetId(id.ID())
 
 	return resourceMachineLearningWorkspaceRead(d, meta)
 }
@@ -256,7 +228,7 @@ func resourceMachineLearningWorkspaceRead(d *schema.ResourceData, meta interface
 
 	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
+		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -265,7 +237,7 @@ func resourceMachineLearningWorkspaceRead(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -290,7 +262,7 @@ func resourceMachineLearningWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -331,7 +303,7 @@ func resourceMachineLearningWorkspaceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
-		return fmt.Errorf("Error updating Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceMachineLearningWorkspaceRead(d, meta)
@@ -344,67 +316,16 @@ func resourceMachineLearningWorkspaceDelete(d *schema.ResourceData, meta interfa
 
 	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
+		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	return nil
-}
-
-func validateStorageAccount(ctx context.Context, client storage.AccountsClient, accountID string) error {
-	if accountID == "" {
-		return fmt.Errorf("Error validating Storage Account: Empty ID")
-	}
-
-	// TODO -- use parse function "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers".ParseAccountID
-	// when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-	id, err := parse.AccountIDCaseDiffSuppress(accountID)
-	if err != nil {
-		return fmt.Errorf("Error validating Storage Account: %+v", err)
-	}
-
-	account, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
-	if err != nil {
-		return fmt.Errorf("Error validating Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	if sku := account.Sku; sku != nil {
-		if sku.Tier == storage.Premium {
-			return fmt.Errorf("Error validating Storage Account %q (Resource Group %q): The associated Storage Account must not be Premium", id.Name, id.ResourceGroup)
-		}
-	}
-
-	return nil
-}
-
-func validateContainerRegistry(ctx context.Context, client containerregistry.RegistriesClient, acrID *string) error {
-	if acrID == nil {
-		return nil
-	}
-
-	// TODO: use container registry's custom ID parse function when implemented
-	id, err := azure.ParseAzureResourceID(*acrID)
-	if err != nil {
-		return fmt.Errorf("Error validating Container Registry: %+v", err)
-	}
-
-	acrName := id.Path["registries"]
-	resourceGroup := id.ResourceGroup
-	client.SubscriptionID = id.SubscriptionID
-
-	acr, err := client.Get(ctx, resourceGroup, acrName)
-	if err != nil {
-		return fmt.Errorf("Error validating Container Registry %q (Resource Group %q): %+v", acrName, resourceGroup, err)
-	}
-	if acr.AdminUserEnabled == nil || !*acr.AdminUserEnabled {
-		return fmt.Errorf("Error validating Container Registry%q (Resource Group %q): The associated Container Registry must set `admin_enabled` to true", acrName, resourceGroup)
+		return fmt.Errorf("waiting for deletion of Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -417,21 +338,15 @@ func expandMachineLearningWorkspaceIdentity(input []interface{}) *machinelearnin
 
 	v := input[0].(map[string]interface{})
 
-	identityType := machinelearningservices.ResourceIdentityType(v["type"].(string))
-
-	identity := machinelearningservices.Identity{
-		Type: identityType,
+	return &machinelearningservices.Identity{
+		Type: machinelearningservices.ResourceIdentityType(v["type"].(string)),
 	}
-
-	return &identity
 }
 
 func flattenMachineLearningWorkspaceIdentity(identity *machinelearningservices.Identity) []interface{} {
 	if identity == nil {
 		return []interface{}{}
 	}
-
-	t := string(identity.Type)
 
 	principalID := ""
 	if identity.PrincipalID != nil {
@@ -445,7 +360,7 @@ func flattenMachineLearningWorkspaceIdentity(identity *machinelearningservices.I
 
 	return []interface{}{
 		map[string]interface{}{
-			"type":         t,
+			"type":         string(identity.Type),
 			"principal_id": principalID,
 			"tenant_id":    tenantID,
 		},
