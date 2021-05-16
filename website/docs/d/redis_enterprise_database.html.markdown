@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about an existing Redis Enterprise Database
 
+!> **NOTE:** If you are using a this data source in the same configuration file where the Redis Enterprise Database resource is defined you will need to add a `depends_on` referece to the Redis Enterprise Database resource in the data source definition HCL to avoid a race condition in the Terraform Dependency Graph creation (e.g. depends_on = [azurerm_redis_enterprise_database.example]).
+
 ## Example Usage
 
 ```hcl
