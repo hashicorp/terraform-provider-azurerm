@@ -94,9 +94,9 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   subnet_resource_id            = azurerm_subnet.test.id
 
   scale_settings {
-	min_node_count = 0
-	max_node_count = 1
-	node_idle_time_before_scale_down = "PT30S" # 30 seconds
+    min_node_count                   = 0
+    max_node_count                   = 1
+    node_idle_time_before_scale_down = "PT30S" # 30 seconds
   }
 
   identity {
@@ -112,21 +112,21 @@ func (r ComputeClusterResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_machine_learning_compute_cluster" "import" {
-	name                          = azurerm_machine_learning_compute_cluster.test.name
-	location                      = azurerm_machine_learning_compute_cluster.test.location
-	vm_priority                   = azurerm_machine_learning_compute_cluster.test.vm_priority
-	vm_size                       = azurerm_machine_learning_compute_cluster.test.vm_size
-	machine_learning_workspace_id = azurerm_machine_learning_compute_cluster.test.machine_learning_workspace_id
+  name                          = azurerm_machine_learning_compute_cluster.test.name
+  location                      = azurerm_machine_learning_compute_cluster.test.location
+  vm_priority                   = azurerm_machine_learning_compute_cluster.test.vm_priority
+  vm_size                       = azurerm_machine_learning_compute_cluster.test.vm_size
+  machine_learning_workspace_id = azurerm_machine_learning_compute_cluster.test.machine_learning_workspace_id
 
-	scale_settings {
-		min_node_count = 0
-		max_node_count = 1
-		node_idle_time_before_scale_down = "PT2M" # 120 seconds
-	}
-  
-	identity {
-	  type = "SystemAssigned"
-	}
+  scale_settings {
+    min_node_count                   = 0
+    max_node_count                   = 1
+    node_idle_time_before_scale_down = "PT2M" # 120 seconds
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 `, template)
@@ -135,70 +135,70 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
 func (r ComputeClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
-	}
-	  
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
-	  
+
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-ml-%[1]d"
-	location = "%[2]s"
-	tags = {
-		"stage" = "test"
-	}
+  name     = "acctestRG-ml-%[1]d"
+  location = "%[2]s"
+  tags = {
+    "stage" = "test"
+  }
 }
-	  
+
 resource "azurerm_application_insights" "test" {
-	name                = "acctestai-%[1]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	application_type    = "web"
+  name                = "acctestai-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
 }
-	  
+
 resource "azurerm_key_vault" "test" {
-	name                = "acctestvault%[3]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	tenant_id           = data.azurerm_client_config.current.tenant_id
-	  
-	sku_name = "standard"
-	  
-	purge_protection_enabled = true
+  name                = "acctestvault%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  purge_protection_enabled = true
 }
-	  
+
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%[4]d"
-	location                 = azurerm_resource_group.test.location
-	resource_group_name      = azurerm_resource_group.test.name
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%[4]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
-	  
+
 resource "azurerm_machine_learning_workspace" "test" {
-	name                    = "acctest-MLW%[5]d"
-	location                = azurerm_resource_group.test.location
-	resource_group_name     = azurerm_resource_group.test.name
-	application_insights_id = azurerm_application_insights.test.id
-	key_vault_id            = azurerm_key_vault.test.id
-	storage_account_id      = azurerm_storage_account.test.id
-		
-	identity {
-		type = "SystemAssigned"
-	}
+  name                    = "acctest-MLW%[5]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
-	  
+
 resource "azurerm_virtual_network" "test" {
-	name                = "acctestvirtnet%[6]d"
-	address_space       = ["10.1.0.0/16"]
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%[6]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
-		
+
 resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%[7]d"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefix       = "10.1.0.0/24"
+  name                 = "acctestsubnet%[7]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),

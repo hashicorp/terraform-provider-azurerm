@@ -83,12 +83,10 @@ func resourceComputeCluster() *schema.Resource {
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-							ForceNew: true,
 						},
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-							ForceNew: true,
 						},
 					},
 				},
