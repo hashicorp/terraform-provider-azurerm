@@ -107,6 +107,12 @@ func resourceHDInsightKafkaCluster() *schema.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
+			"encryption_in_transit_enabled": {
+				Type:     schema.TypeBool,
+				ForceNew: true,
+				Optional: true,
+			},
+
 			"roles": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -251,6 +257,12 @@ func resourceHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{
 		Identity: identity,
 	}
 
+	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
+		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
+			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		}
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("failure creating HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -360,6 +372,10 @@ func resourceHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("ssh_endpoint", sshEndpoint)
 		kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
 		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
+
+		if props.EncryptionInTransitProperties != nil {
+			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+		}
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
