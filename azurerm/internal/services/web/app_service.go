@@ -874,6 +874,7 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					}, false),
 				},
 
+				//lintignore:XS003
 				"headers": {
 					Type:       schema.TypeList,
 					Optional:   true,
