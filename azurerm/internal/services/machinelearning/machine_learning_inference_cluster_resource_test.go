@@ -178,7 +178,7 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
 }
 
 func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) string {
-	return r.template(data, "SStandard_D3_v2", 3)
+	return r.template(data, "Standard_D3_v2", 3)
 }
 func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
 	return r.template(data, "Standard_DS2_v2", 1)

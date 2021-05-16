@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -69,7 +70,12 @@ func resourceAksInferenceCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "FastProd",
+				Default:  string(machinelearningservices.FastProd),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(machinelearningservices.DenseProd),
+					string(machinelearningservices.FastProd),
+					string(machinelearningservices.DenseProd),
+				}, false),
 			},
 
 			"description": {
