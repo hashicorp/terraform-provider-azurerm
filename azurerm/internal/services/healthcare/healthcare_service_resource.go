@@ -188,6 +188,16 @@ func resourceHealthcareService() *schema.Resource {
 				},
 			},
 
+			"public_network_access": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(healthcareapis.Enabled),
+					string(healthcareapis.Disabled),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -236,6 +246,10 @@ func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interfac
 			CorsConfiguration:           expandAzureRMhealthcareapisCorsConfiguration(d),
 			AuthenticationConfiguration: expandAzureRMhealthcareapisAuthentication(d),
 		},
+	}
+
+	if publicNetworkAccess, ok := d.GetOk("public_network_access"); ok {
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.PublicNetworkAccess(publicNetworkAccess.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
@@ -307,6 +321,7 @@ func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) err
 		}
 		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
+		d.Set("public_network_access", props.PublicNetworkAccess)
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
