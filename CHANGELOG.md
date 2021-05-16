@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 * `azurerm_cosmosdb_mongo_collection` - support for the `analytical_storage_ttl` property [GAH-11735]
 * `azurerm_media_services_account` - support for the `key_delivery_access_control` block [GH-11726]
+* `azurerm_redis_cache` - suppot for the `replicas_per_master` peoperty [GH-11714]
 
 BUG FIXES:
 
