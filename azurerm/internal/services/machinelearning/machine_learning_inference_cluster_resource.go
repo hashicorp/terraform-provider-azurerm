@@ -179,7 +179,6 @@ func resourceAksInferenceClusterCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) error {
-	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.WorkspacesClient
 	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,11 +202,9 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Retrieve Machine Learning Workspace ID
-	mlResp, err := mlWorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
-	if err != nil {
-		return err
-	}
-	d.Set("machine_learning_workspace_id", mlResp.ID)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+ 	workspaceId := parse.NewWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName)
+ 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
 	// use ComputeResource to get to AKS Cluster ID and other properties
 	aksComputeProperties, isAks := (machinelearningservices.BasicCompute).AsAKS(computeResource.Properties)
