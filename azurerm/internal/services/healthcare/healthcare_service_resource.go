@@ -191,7 +191,7 @@ func resourceHealthcareService() *schema.Resource {
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"tags": tags.Schema(),
@@ -244,12 +244,11 @@ func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	if publicNetworkAccess, ok := d.GetOk("public_network_access_enabled"); ok {
-		if publicNetworkAccess.(bool) {
-			healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Enabled
-		} else {
-			healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Disabled
-		}
+	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
+	if !publicNetworkAccess {
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Disabled
+	} else {
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Enabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
