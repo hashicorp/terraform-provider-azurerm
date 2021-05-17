@@ -109,6 +109,7 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 						string(securityinsight.AttackTacticLateralMovement),
 						string(securityinsight.AttackTacticPersistence),
 						string(securityinsight.AttackTacticPrivilegeEscalation),
+						string(securityinsight.AttackTacticPreAttack),
 					}, false),
 				},
 			},
