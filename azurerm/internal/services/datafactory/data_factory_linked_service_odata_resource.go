@@ -274,7 +274,7 @@ func authenticationProperties(d *schema.ResourceData) *datafactory.ODataLinkedSe
 	if basic_authentication != nil {
 		raw := basic_authentication[0].(map[string]interface{})
 		return &datafactory.ODataLinkedServiceTypeProperties{
-			AuthenticationType: datafactory.ODataAuthenticationType(datafactory.ODataAuthenticationTypeBasic),
+			AuthenticationType: datafactory.ODataAuthenticationTypeBasic,
 			URL:                url,
 			UserName:           raw["username"].(string),
 			Password: datafactory.SecureString{
@@ -286,7 +286,7 @@ func authenticationProperties(d *schema.ResourceData) *datafactory.ODataLinkedSe
 
 	// default: anonymous authentication
 	return &datafactory.ODataLinkedServiceTypeProperties{
-		AuthenticationType: datafactory.ODataAuthenticationType(datafactory.ODataAuthenticationTypeAnonymous),
+		AuthenticationType: datafactory.ODataAuthenticationTypeAnonymous,
 		URL:                url,
 	}
 }
