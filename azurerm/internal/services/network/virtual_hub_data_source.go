@@ -45,29 +45,29 @@ func dataSourceVirtualHub() *schema.Resource {
 
 			"default_route_table": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"labels": {
 							Type:     schema.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
 						"route": {
 							Type:     schema.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Computed: true,
 									},
 
 									"destinations": {
 										Type:     schema.TypeSet,
-										Required: true,
+										Computed: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
@@ -75,17 +75,17 @@ func dataSourceVirtualHub() *schema.Resource {
 
 									"destinations_type": {
 										Type:     schema.TypeString,
-										Required: true,
+										Computed: true,
 									},
 
 									"next_hop": {
 										Type:     schema.TypeString,
-										Required: true,
+										Computed: true,
 									},
 
 									"next_hop_type": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
