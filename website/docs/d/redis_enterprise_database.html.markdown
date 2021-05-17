@@ -11,8 +11,6 @@ description: |-
 
 Use this data source to access information about an existing Redis Enterprise Database
 
-!> **NOTE:** If you are using a this data source in the same configuration file where the Redis Enterprise Database resource is defined you will need to add a `depends_on` referece to the Redis Enterprise Database resource in the data source definition HCL to avoid a race condition in the Terraform Dependency Graph creation (e.g. depends_on = [azurerm_redis_enterprise_database.example]).
-
 ## Example Usage
 
 ```hcl
@@ -20,21 +18,6 @@ data "azurerm_redis_enterprise_database" "example" {
   name                = "default"
   resource_group_name = azurerm_resource_group.example.name
   cluster_id          = azurerm_redis_enterprise_cluster.example.id
-}
-
-output "redis_enterprise_database_name" {
-  value       = data.azurerm_redis_enterprise_database.example.name
-  description = "The Name of The Redis Enterprise Database"
-}
-
-output "redis_enterprise_database_cluster_id" {
-  value       = data.azurerm_redis_enterprise_database.example.cluster_id
-  description = "The Redis Enterprise Cluster ID that is hosting the Redis Enterprise DB instance."
-}
-
-output "redis_enterprise_database_id" {
-  value       = data.azurerm_redis_enterprise_database.example.id
-  description = "The Redis Enterprise DB ID."
 }
 
 output "redis_enterprise_database_primary_key" {
