@@ -361,7 +361,7 @@ resource "azurerm_healthcare_service" "test" {
   cosmosdb_throughput                   = 400
   cosmosdb_key_vault_key_versionless_id = azurerm_key_vault_key.test.versionless_id
 
-  public_network_access = "Disabled"
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, location, data.RandomString, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }
