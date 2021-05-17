@@ -284,7 +284,7 @@ func expandScaleSettings(input []interface{}) *machinelearningservices.ScaleSett
 
 	max_node_count := int32(v["max_node_count"].(int))
 	min_node_count := int32(v["min_node_count"].(int))
-	node_idle_time_before_scale_down := string(v["node_idle_time_before_scale_down"].(string))
+	node_idle_time_before_scale_down := v["node_idle_time_before_scale_down"].(string)
 
 	return &machinelearningservices.ScaleSettings{
 		MaxNodeCount:                &max_node_count,
