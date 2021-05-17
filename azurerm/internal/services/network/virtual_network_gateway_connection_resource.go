@@ -341,6 +341,18 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("Error waiting for completion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
+	if properties.SharedKey != nil && !d.IsNewResource() {
+		future, err := client.SetSharedKey(ctx, resGroup, name, network.ConnectionSharedKey{
+			Value: properties.SharedKey,
+		})
+		if err != nil {
+			return fmt.Errorf("Updating Shared Key for Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Waiting for updating Shared Key for Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
