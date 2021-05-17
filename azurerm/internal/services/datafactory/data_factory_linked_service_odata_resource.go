@@ -144,7 +144,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 
 	odataLinkedService := &datafactory.ODataLinkedService{
 		Description:                      utils.String(d.Get("description").(string)),
-		Type:                             datafactory.TypeOData,
+		Type:                             datafactory.TypeBasicLinkedServiceTypeOData,
 		ODataLinkedServiceTypeProperties: authenticationProperties(d),
 	}
 
@@ -213,7 +213,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 
 	odata, ok := resp.Properties.AsODataLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeOData, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeOData, *resp.Type)
 	}
 
 	props := odata.ODataLinkedServiceTypeProperties
@@ -279,7 +279,7 @@ func authenticationProperties(d *schema.ResourceData) *datafactory.ODataLinkedSe
 			UserName:           raw["username"].(string),
 			Password: datafactory.SecureString{
 				Value: utils.String(raw["password"].(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		}
 	}
