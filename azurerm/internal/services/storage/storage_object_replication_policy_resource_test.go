@@ -47,7 +47,6 @@ func TestAccStorageObjectReplicationPolicy_requiresImport(t *testing.T) {
 }
 
 func TestAccStorageObjectReplicationPolicy_complete(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
 	r := StorageObjectReplicationPolicyResource{}
 	data.ResourceTest(t, r, []resource.TestStep{

@@ -2,8 +2,9 @@ package validate
 
 import (
 	"fmt"
-	"github.com/Azure/go-autorest/autorest/date"
 	"time"
+
+	"github.com/Azure/go-autorest/autorest/date"
 )
 
 func ObjectReplicationPolicyCopyOverFromTime(i interface{}, k string) (warnings []string, errors []error) {
