@@ -14,6 +14,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
+* `azurerm_virtual_network_gateway_connection` - fix a bug where `shared_key` was not being updated [GH-11742]
 * `azurerm_windows_virtual_machine_scale_set` - the `extension` blocks are now a set [GH-11425]
 * `azurerm_windows_virtual_machine_scale_set` - changing the `license_type` will no longer create a new resource [GH-11731]
 
