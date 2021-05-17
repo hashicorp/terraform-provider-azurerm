@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_redis_enterprise_database` [GH-11734]
+
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_mongo_collection` - support for the `analytical_storage_ttl` property [GAH-11735]
