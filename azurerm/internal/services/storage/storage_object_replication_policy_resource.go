@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"log"
 	"time"
 
@@ -69,21 +70,20 @@ func resourceStorageObjectReplicationPolicy() *schema.Resource {
 							ValidateFunc: validate.StorageContainerName,
 						},
 
+						// Possible values are "" means "OnlyNewObjects", "1601-01-01T00:00:00Z" means "Everything" and timeStamp "2020-10-21T16:00:00Z"
 						"copy_over_from_time": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "OnlyNewObjects",
 							ValidateFunc: validate.ObjectReplicationPolicyCopyOverFromTime,
 						},
-						//"1601-01-01T00:00:00Z" Everything
-						//only new change
-						//"minCreationTime": "2020-10-21T16:00:00Z"
 
 						"filter_prefix_matches": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -96,6 +96,7 @@ func resourceStorageObjectReplicationPolicy() *schema.Resource {
 			},
 
 			// there will be two ids, the destination and source storage account object replication policy ids, we keep the destination one as the resource id
+			// and we keep the source one here
 			"source_object_replication_policy_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -125,7 +126,7 @@ func resourceStorageObjectReplicationPolicyCreate(d *schema.ResourceData, meta i
 		}
 	}
 	for _, existing := range *existingList.Value {
-		if existing.ID != nil && *existing.ID != "" && *existing.SourceAccount == srcAccount.Name && *existing.DestinationAccount == dstAccount.Name {
+		if existing.ID != nil && *existing.ID != "" && existing.SourceAccount != nil && *existing.SourceAccount == srcAccount.Name && existing.DestinationAccount != nil && *existing.DestinationAccount == dstAccount.Name {
 			return tf.ImportAsExistsError("azurerm_storage_object_replication_policy", *existing.ID)
 		}
 	}
@@ -149,6 +150,7 @@ func resourceStorageObjectReplicationPolicyCreate(d *schema.ResourceData, meta i
 	}
 
 	// here the id is computed from the service
+	// we keep the destination ORP ID as the resource id
 	d.SetId(*resp.ID)
 
 	if resp.Name == nil || *resp.Name == "" {
@@ -225,6 +227,8 @@ func resourceStorageObjectReplicationPolicyRead(d *schema.ResourceData, meta int
 	}
 
 	if props := resp.ObjectReplicationPolicyProperties; props != nil {
+		// in import an existing resource, the source storage account resource group is not returned in response
+		// so we need to find the source storage account id by its name
 		srcAccount, err := storageClient.FindAccount(ctx, *props.SourceAccount)
 		if err != nil {
 			return fmt.Errorf("retrieving Source Account %q for %q: %s", *props.SourceAccount, id, err)
