@@ -102,7 +102,7 @@ An `indexing_policy` block supports the following:
 
 A `spatial_index` block supports the following:
 
-* `path` - (Required) Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to. All spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path. 
 
 ---
 

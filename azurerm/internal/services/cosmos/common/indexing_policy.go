@@ -71,6 +71,7 @@ func expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]d
 		return nil
 	}
 	indexes := make([]documentdb.SpatialSpec, 0)
+	// no matter what spatial types are updated, all types will be set and returned from service
 	spatialTypes := []documentdb.SpatialType{
 		documentdb.SpatialTypeLineString,
 		documentdb.SpatialTypeMultiPolygon,
