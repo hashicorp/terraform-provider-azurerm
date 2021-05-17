@@ -57,7 +57,7 @@ func TestAccDataFactoryLinkedServiceOData_basic_auth(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceOData_basic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odata", "test")
-	r := LinkedServiceWebResource{}
+	r := LinkedServiceODataResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -175,7 +175,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_odata" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlsodata%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   url                 = "https://services.odata.org/v4/TripPinServiceRW/"
@@ -213,7 +213,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_odata" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlsodata%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
