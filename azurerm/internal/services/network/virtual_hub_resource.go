@@ -114,7 +114,8 @@ func resourceVirtualHub() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 						"route": {
