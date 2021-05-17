@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 
 // BasicAdvancedFilter this is the base type that represents an advanced filter. To configure an advanced filter, do
 // not directly instantiate an object of this class. Instead, instantiate an object of a derived class such as
@@ -37,6 +37,13 @@ type BasicAdvancedFilter interface {
 	AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool)
 	AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool)
 	AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool)
+	AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool)
+	AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool)
+	AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool)
+	AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool)
+	AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool)
+	AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool)
+	AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool)
 	AsAdvancedFilter() (*AdvancedFilter, bool)
 }
 
@@ -47,7 +54,7 @@ type BasicAdvancedFilter interface {
 type AdvancedFilter struct {
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -107,6 +114,34 @@ func unmarshalBasicAdvancedFilter(body []byte) (BasicAdvancedFilter, error) {
 		var scaf StringContainsAdvancedFilter
 		err := json.Unmarshal(body, &scaf)
 		return scaf, err
+	case string(OperatorTypeNumberInRange):
+		var niraf NumberInRangeAdvancedFilter
+		err := json.Unmarshal(body, &niraf)
+		return niraf, err
+	case string(OperatorTypeNumberNotInRange):
+		var nniraf NumberNotInRangeAdvancedFilter
+		err := json.Unmarshal(body, &nniraf)
+		return nniraf, err
+	case string(OperatorTypeStringNotBeginsWith):
+		var snbwaf StringNotBeginsWithAdvancedFilter
+		err := json.Unmarshal(body, &snbwaf)
+		return snbwaf, err
+	case string(OperatorTypeStringNotEndsWith):
+		var snewaf StringNotEndsWithAdvancedFilter
+		err := json.Unmarshal(body, &snewaf)
+		return snewaf, err
+	case string(OperatorTypeStringNotContains):
+		var sncaf StringNotContainsAdvancedFilter
+		err := json.Unmarshal(body, &sncaf)
+		return sncaf, err
+	case string(OperatorTypeIsNullOrUndefined):
+		var inouaf IsNullOrUndefinedAdvancedFilter
+		err := json.Unmarshal(body, &inouaf)
+		return inouaf, err
+	case string(OperatorTypeIsNotNull):
+		var innaf IsNotNullAdvancedFilter
+		err := json.Unmarshal(body, &innaf)
+		return innaf, err
 	default:
 		var af AdvancedFilter
 		err := json.Unmarshal(body, &af)
@@ -202,6 +237,41 @@ func (af AdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvanc
 
 // AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
 func (af AdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for AdvancedFilter.
+func (af AdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
 	return nil, false
 }
 
@@ -324,6 +394,58 @@ type AzureFunctionEventSubscriptionDestinationProperties struct {
 	MaxEventsPerBatch *int32 `json:"maxEventsPerBatch,omitempty"`
 	// PreferredBatchSizeInKilobytes - Preferred batch size in Kilobytes.
 	PreferredBatchSizeInKilobytes *int32 `json:"preferredBatchSizeInKilobytes,omitempty"`
+	// DeliveryAttributeMappings - Delivery attribute details.
+	DeliveryAttributeMappings *[]BasicDeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for AzureFunctionEventSubscriptionDestinationProperties struct.
+func (afesdp *AzureFunctionEventSubscriptionDestinationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "resourceId":
+			if v != nil {
+				var resourceID string
+				err = json.Unmarshal(*v, &resourceID)
+				if err != nil {
+					return err
+				}
+				afesdp.ResourceID = &resourceID
+			}
+		case "maxEventsPerBatch":
+			if v != nil {
+				var maxEventsPerBatch int32
+				err = json.Unmarshal(*v, &maxEventsPerBatch)
+				if err != nil {
+					return err
+				}
+				afesdp.MaxEventsPerBatch = &maxEventsPerBatch
+			}
+		case "preferredBatchSizeInKilobytes":
+			if v != nil {
+				var preferredBatchSizeInKilobytes int32
+				err = json.Unmarshal(*v, &preferredBatchSizeInKilobytes)
+				if err != nil {
+					return err
+				}
+				afesdp.PreferredBatchSizeInKilobytes = &preferredBatchSizeInKilobytes
+			}
+		case "deliveryAttributeMappings":
+			if v != nil {
+				deliveryAttributeMappings, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				afesdp.DeliveryAttributeMappings = &deliveryAttributeMappings
+			}
+		}
+	}
+
+	return nil
 }
 
 // BoolEqualsAdvancedFilter boolEquals Advanced Filter.
@@ -332,7 +454,7 @@ type BoolEqualsAdvancedFilter struct {
 	Value *bool `json:"value,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -409,6 +531,41 @@ func (beaf BoolEqualsAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEn
 
 // AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
 func (beaf BoolEqualsAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for BoolEqualsAdvancedFilter.
+func (beaf BoolEqualsAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
 	return nil, false
 }
 
@@ -552,6 +709,125 @@ func (dlwri *DeadLetterWithResourceIdentity) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// DeliveryAttributeListResult result of the Get delivery attributes operation.
+type DeliveryAttributeListResult struct {
+	autorest.Response `json:"-"`
+	// Value - A collection of DeliveryAttributeMapping
+	Value *[]BasicDeliveryAttributeMapping `json:"value,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for DeliveryAttributeListResult struct.
+func (dalr *DeliveryAttributeListResult) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "value":
+			if v != nil {
+				value, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				dalr.Value = &value
+			}
+		}
+	}
+
+	return nil
+}
+
+// BasicDeliveryAttributeMapping delivery attribute mapping details.
+type BasicDeliveryAttributeMapping interface {
+	AsStaticDeliveryAttributeMapping() (*StaticDeliveryAttributeMapping, bool)
+	AsDynamicDeliveryAttributeMapping() (*DynamicDeliveryAttributeMapping, bool)
+	AsDeliveryAttributeMapping() (*DeliveryAttributeMapping, bool)
+}
+
+// DeliveryAttributeMapping delivery attribute mapping details.
+type DeliveryAttributeMapping struct {
+	// Name - Name of the delivery attribute or header.
+	Name *string `json:"name,omitempty"`
+	// Type - Possible values include: 'TypeDeliveryAttributeMapping', 'TypeStatic', 'TypeDynamic'
+	Type Type `json:"type,omitempty"`
+}
+
+func unmarshalBasicDeliveryAttributeMapping(body []byte) (BasicDeliveryAttributeMapping, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["type"] {
+	case string(TypeStatic):
+		var sdam StaticDeliveryAttributeMapping
+		err := json.Unmarshal(body, &sdam)
+		return sdam, err
+	case string(TypeDynamic):
+		var ddam DynamicDeliveryAttributeMapping
+		err := json.Unmarshal(body, &ddam)
+		return ddam, err
+	default:
+		var dam DeliveryAttributeMapping
+		err := json.Unmarshal(body, &dam)
+		return dam, err
+	}
+}
+func unmarshalBasicDeliveryAttributeMappingArray(body []byte) ([]BasicDeliveryAttributeMapping, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	damArray := make([]BasicDeliveryAttributeMapping, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		dam, err := unmarshalBasicDeliveryAttributeMapping(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		damArray[index] = dam
+	}
+	return damArray, nil
+}
+
+// MarshalJSON is the custom marshaler for DeliveryAttributeMapping.
+func (dam DeliveryAttributeMapping) MarshalJSON() ([]byte, error) {
+	dam.Type = TypeDeliveryAttributeMapping
+	objectMap := make(map[string]interface{})
+	if dam.Name != nil {
+		objectMap["name"] = dam.Name
+	}
+	if dam.Type != "" {
+		objectMap["type"] = dam.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsStaticDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DeliveryAttributeMapping.
+func (dam DeliveryAttributeMapping) AsStaticDeliveryAttributeMapping() (*StaticDeliveryAttributeMapping, bool) {
+	return nil, false
+}
+
+// AsDynamicDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DeliveryAttributeMapping.
+func (dam DeliveryAttributeMapping) AsDynamicDeliveryAttributeMapping() (*DynamicDeliveryAttributeMapping, bool) {
+	return nil, false
+}
+
+// AsDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DeliveryAttributeMapping.
+func (dam DeliveryAttributeMapping) AsDeliveryAttributeMapping() (*DeliveryAttributeMapping, bool) {
+	return &dam, true
+}
+
+// AsBasicDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DeliveryAttributeMapping.
+func (dam DeliveryAttributeMapping) AsBasicDeliveryAttributeMapping() (BasicDeliveryAttributeMapping, bool) {
+	return &dam, true
+}
+
 // DeliveryWithResourceIdentity information about the delivery for an event subscription with resource
 // identity.
 type DeliveryWithResourceIdentity struct {
@@ -609,9 +885,9 @@ type Domain struct {
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1153,9 +1429,9 @@ type DomainTopic struct {
 	*DomainTopicProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1554,16 +1830,112 @@ func (dup *DomainUpdateParameters) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// DynamicDeliveryAttributeMapping dynamic delivery attribute mapping details.
+type DynamicDeliveryAttributeMapping struct {
+	// DynamicDeliveryAttributeMappingProperties - Properties of dynamic delivery attribute mapping.
+	*DynamicDeliveryAttributeMappingProperties `json:"properties,omitempty"`
+	// Name - Name of the delivery attribute or header.
+	Name *string `json:"name,omitempty"`
+	// Type - Possible values include: 'TypeDeliveryAttributeMapping', 'TypeStatic', 'TypeDynamic'
+	Type Type `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DynamicDeliveryAttributeMapping.
+func (ddam DynamicDeliveryAttributeMapping) MarshalJSON() ([]byte, error) {
+	ddam.Type = TypeDynamic
+	objectMap := make(map[string]interface{})
+	if ddam.DynamicDeliveryAttributeMappingProperties != nil {
+		objectMap["properties"] = ddam.DynamicDeliveryAttributeMappingProperties
+	}
+	if ddam.Name != nil {
+		objectMap["name"] = ddam.Name
+	}
+	if ddam.Type != "" {
+		objectMap["type"] = ddam.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsStaticDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DynamicDeliveryAttributeMapping.
+func (ddam DynamicDeliveryAttributeMapping) AsStaticDeliveryAttributeMapping() (*StaticDeliveryAttributeMapping, bool) {
+	return nil, false
+}
+
+// AsDynamicDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DynamicDeliveryAttributeMapping.
+func (ddam DynamicDeliveryAttributeMapping) AsDynamicDeliveryAttributeMapping() (*DynamicDeliveryAttributeMapping, bool) {
+	return &ddam, true
+}
+
+// AsDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DynamicDeliveryAttributeMapping.
+func (ddam DynamicDeliveryAttributeMapping) AsDeliveryAttributeMapping() (*DeliveryAttributeMapping, bool) {
+	return nil, false
+}
+
+// AsBasicDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for DynamicDeliveryAttributeMapping.
+func (ddam DynamicDeliveryAttributeMapping) AsBasicDeliveryAttributeMapping() (BasicDeliveryAttributeMapping, bool) {
+	return &ddam, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for DynamicDeliveryAttributeMapping struct.
+func (ddam *DynamicDeliveryAttributeMapping) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dynamicDeliveryAttributeMappingProperties DynamicDeliveryAttributeMappingProperties
+				err = json.Unmarshal(*v, &dynamicDeliveryAttributeMappingProperties)
+				if err != nil {
+					return err
+				}
+				ddam.DynamicDeliveryAttributeMappingProperties = &dynamicDeliveryAttributeMappingProperties
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ddam.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar Type
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ddam.Type = typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// DynamicDeliveryAttributeMappingProperties properties of dynamic delivery attribute mapping.
+type DynamicDeliveryAttributeMappingProperties struct {
+	// SourceField - JSON path in the event which contains attribute value.
+	SourceField *string `json:"sourceField,omitempty"`
+}
+
 // EventChannel event Channel.
 type EventChannel struct {
 	autorest.Response `json:"-"`
 	// EventChannelProperties - Properties of the EventChannel.
 	*EventChannelProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1593,6 +1965,15 @@ func (ec *EventChannel) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ec.EventChannelProperties = &eventChannelProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				ec.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -1641,6 +2022,8 @@ type EventChannelDestination struct {
 
 // EventChannelFilter filter for the Event Channel.
 type EventChannelFilter struct {
+	// EnableAdvancedFilteringOnArrays - Allows advanced filters to be evaluated against an array of values instead of expecting a singular value.
+	EnableAdvancedFilteringOnArrays *bool `json:"enableAdvancedFilteringOnArrays,omitempty"`
 	// AdvancedFilters - An array of advanced filters that are used for filtering event channels.
 	AdvancedFilters *[]BasicAdvancedFilter `json:"advancedFilters,omitempty"`
 }
@@ -1654,6 +2037,15 @@ func (ecf *EventChannelFilter) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "enableAdvancedFilteringOnArrays":
+			if v != nil {
+				var enableAdvancedFilteringOnArrays bool
+				err = json.Unmarshal(*v, &enableAdvancedFilteringOnArrays)
+				if err != nil {
+					return err
+				}
+				ecf.EnableAdvancedFilteringOnArrays = &enableAdvancedFilteringOnArrays
+			}
 		case "advancedFilters":
 			if v != nil {
 				advancedFilters, err := unmarshalBasicAdvancedFilterArray(*v)
@@ -2016,6 +2408,40 @@ func (ehesd *EventHubEventSubscriptionDestination) UnmarshalJSON(body []byte) er
 type EventHubEventSubscriptionDestinationProperties struct {
 	// ResourceID - The Azure Resource Id that represents the endpoint of an Event Hub destination of an event subscription.
 	ResourceID *string `json:"resourceId,omitempty"`
+	// DeliveryAttributeMappings - Delivery attribute details.
+	DeliveryAttributeMappings *[]BasicDeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for EventHubEventSubscriptionDestinationProperties struct.
+func (ehesdp *EventHubEventSubscriptionDestinationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "resourceId":
+			if v != nil {
+				var resourceID string
+				err = json.Unmarshal(*v, &resourceID)
+				if err != nil {
+					return err
+				}
+				ehesdp.ResourceID = &resourceID
+			}
+		case "deliveryAttributeMappings":
+			if v != nil {
+				deliveryAttributeMappings, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				ehesdp.DeliveryAttributeMappings = &deliveryAttributeMappings
+			}
+		}
+	}
+
+	return nil
 }
 
 // EventSubscription event Subscription
@@ -2023,11 +2449,13 @@ type EventSubscription struct {
 	autorest.Response `json:"-"`
 	// EventSubscriptionProperties - Properties of the event subscription.
 	*EventSubscriptionProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2057,6 +2485,15 @@ func (es *EventSubscription) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				es.EventSubscriptionProperties = &eventSubscriptionProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				es.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -2239,6 +2676,8 @@ type EventSubscriptionFilter struct {
 	// IsSubjectCaseSensitive - Specifies if the SubjectBeginsWith and SubjectEndsWith properties of the filter
 	// should be compared in a case sensitive manner.
 	IsSubjectCaseSensitive *bool `json:"isSubjectCaseSensitive,omitempty"`
+	// EnableAdvancedFilteringOnArrays - Allows advanced filters to be evaluated against an array of values instead of expecting a singular value.
+	EnableAdvancedFilteringOnArrays *bool `json:"enableAdvancedFilteringOnArrays,omitempty"`
 	// AdvancedFilters - An array of advanced filters that are used for filtering event subscriptions.
 	AdvancedFilters *[]BasicAdvancedFilter `json:"advancedFilters,omitempty"`
 }
@@ -2287,6 +2726,15 @@ func (esf *EventSubscriptionFilter) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				esf.IsSubjectCaseSensitive = &isSubjectCaseSensitive
+			}
+		case "enableAdvancedFilteringOnArrays":
+			if v != nil {
+				var enableAdvancedFilteringOnArrays bool
+				err = json.Unmarshal(*v, &enableAdvancedFilteringOnArrays)
+				if err != nil {
+					return err
+				}
+				esf.EnableAdvancedFilteringOnArrays = &enableAdvancedFilteringOnArrays
 			}
 		case "advancedFilters":
 			if v != nil {
@@ -2896,9 +3344,9 @@ type EventType struct {
 	*EventTypeProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2981,6 +3429,14 @@ type EventTypesListResult struct {
 	Value *[]EventType `json:"value,omitempty"`
 }
 
+// ExtendedLocation definition of an Extended Location
+type ExtendedLocation struct {
+	// Name - Fully qualified name of the extended location.
+	Name *string `json:"name,omitempty"`
+	// Type - Type of the extended location.
+	Type *string `json:"type,omitempty"`
+}
+
 // ExtensionTopic event grid Extension Topic. This is used for getting Event Grid related metrics for Azure
 // resources.
 type ExtensionTopic struct {
@@ -2989,9 +3445,9 @@ type ExtensionTopic struct {
 	*ExtensionTopicProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3168,6 +3624,40 @@ func (hcesd *HybridConnectionEventSubscriptionDestination) UnmarshalJSON(body []
 type HybridConnectionEventSubscriptionDestinationProperties struct {
 	// ResourceID - The Azure Resource ID of an hybrid connection that is the destination of an event subscription.
 	ResourceID *string `json:"resourceId,omitempty"`
+	// DeliveryAttributeMappings - Delivery attribute details.
+	DeliveryAttributeMappings *[]BasicDeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for HybridConnectionEventSubscriptionDestinationProperties struct.
+func (hcesdp *HybridConnectionEventSubscriptionDestinationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "resourceId":
+			if v != nil {
+				var resourceID string
+				err = json.Unmarshal(*v, &resourceID)
+				if err != nil {
+					return err
+				}
+				hcesdp.ResourceID = &resourceID
+			}
+		case "deliveryAttributeMappings":
+			if v != nil {
+				deliveryAttributeMappings, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				hcesdp.DeliveryAttributeMappings = &deliveryAttributeMappings
+			}
+		}
+	}
+
+	return nil
 }
 
 // IdentityInfo the identity information for the resource.
@@ -3288,6 +3778,258 @@ func (ism InputSchemaMapping) AsBasicInputSchemaMapping() (BasicInputSchemaMappi
 	return &ism, true
 }
 
+// IsNotNullAdvancedFilter isNotNull Advanced Filter.
+type IsNotNullAdvancedFilter struct {
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) MarshalJSON() ([]byte, error) {
+	innaf.OperatorType = OperatorTypeIsNotNull
+	objectMap := make(map[string]interface{})
+	if innaf.Key != nil {
+		objectMap["key"] = innaf.Key
+	}
+	if innaf.OperatorType != "" {
+		objectMap["operatorType"] = innaf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return &innaf, true
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for IsNotNullAdvancedFilter.
+func (innaf IsNotNullAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &innaf, true
+}
+
+// IsNullOrUndefinedAdvancedFilter isNullOrUndefined Advanced Filter.
+type IsNullOrUndefinedAdvancedFilter struct {
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) MarshalJSON() ([]byte, error) {
+	inouaf.OperatorType = OperatorTypeIsNullOrUndefined
+	objectMap := make(map[string]interface{})
+	if inouaf.Key != nil {
+		objectMap["key"] = inouaf.Key
+	}
+	if inouaf.OperatorType != "" {
+		objectMap["operatorType"] = inouaf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return &inouaf, true
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for IsNullOrUndefinedAdvancedFilter.
+func (inouaf IsNullOrUndefinedAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &inouaf, true
+}
+
 // JSONField this is used to express the source of an input schema mapping for a single target field in the
 // Event Grid Event schema. This is currently used in the mappings for the 'id', 'topic' and 'eventtime'
 // properties. This represents a field in the input event schema.
@@ -3401,7 +4143,7 @@ type NumberGreaterThanAdvancedFilter struct {
 	Value *float64 `json:"value,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -3481,6 +4223,41 @@ func (ngtaf NumberGreaterThanAdvancedFilter) AsStringContainsAdvancedFilter() (*
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
+func (ngtaf NumberGreaterThanAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanAdvancedFilter.
 func (ngtaf NumberGreaterThanAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -3497,7 +4274,7 @@ type NumberGreaterThanOrEqualsAdvancedFilter struct {
 	Value *float64 `json:"value,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -3577,6 +4354,41 @@ func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsStringContainsAdvancedF
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
+func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberGreaterThanOrEqualsAdvancedFilter.
 func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -3593,7 +4405,7 @@ type NumberInAdvancedFilter struct {
 	Values *[]float64 `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -3673,6 +4485,41 @@ func (niaf NumberInAdvancedFilter) AsStringContainsAdvancedFilter() (*StringCont
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
+func (niaf NumberInAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInAdvancedFilter.
 func (niaf NumberInAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -3683,13 +4530,144 @@ func (niaf NumberInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter,
 	return &niaf, true
 }
 
+// NumberInRangeAdvancedFilter numberInRange Advanced Filter.
+type NumberInRangeAdvancedFilter struct {
+	// Values - The set of filter values.
+	Values *[][]float64 `json:"values,omitempty"`
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) MarshalJSON() ([]byte, error) {
+	niraf.OperatorType = OperatorTypeNumberInRange
+	objectMap := make(map[string]interface{})
+	if niraf.Values != nil {
+		objectMap["values"] = niraf.Values
+	}
+	if niraf.Key != nil {
+		objectMap["key"] = niraf.Key
+	}
+	if niraf.OperatorType != "" {
+		objectMap["operatorType"] = niraf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return &niraf, true
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for NumberInRangeAdvancedFilter.
+func (niraf NumberInRangeAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &niraf, true
+}
+
 // NumberLessThanAdvancedFilter numberLessThan Advanced Filter.
 type NumberLessThanAdvancedFilter struct {
 	// Value - The filter value.
 	Value *float64 `json:"value,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -3769,6 +4747,41 @@ func (nltaf NumberLessThanAdvancedFilter) AsStringContainsAdvancedFilter() (*Str
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
+func (nltaf NumberLessThanAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanAdvancedFilter.
 func (nltaf NumberLessThanAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -3785,7 +4798,7 @@ type NumberLessThanOrEqualsAdvancedFilter struct {
 	Value *float64 `json:"value,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -3865,6 +4878,41 @@ func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsStringContainsAdvancedFilt
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
+func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberLessThanOrEqualsAdvancedFilter.
 func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -3881,7 +4929,7 @@ type NumberNotInAdvancedFilter struct {
 	Values *[]float64 `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -3961,6 +5009,41 @@ func (nniaf NumberNotInAdvancedFilter) AsStringContainsAdvancedFilter() (*String
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
+func (nniaf NumberNotInAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
 func (nniaf NumberNotInAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -3969,6 +5052,137 @@ func (nniaf NumberNotInAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool
 // AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInAdvancedFilter.
 func (nniaf NumberNotInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
 	return &nniaf, true
+}
+
+// NumberNotInRangeAdvancedFilter numberNotInRange Advanced Filter.
+type NumberNotInRangeAdvancedFilter struct {
+	// Values - The set of filter values.
+	Values *[][]float64 `json:"values,omitempty"`
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) MarshalJSON() ([]byte, error) {
+	nniraf.OperatorType = OperatorTypeNumberNotInRange
+	objectMap := make(map[string]interface{})
+	if nniraf.Values != nil {
+		objectMap["values"] = nniraf.Values
+	}
+	if nniraf.Key != nil {
+		objectMap["key"] = nniraf.Key
+	}
+	if nniraf.OperatorType != "" {
+		objectMap["operatorType"] = nniraf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return &nniraf, true
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for NumberNotInRangeAdvancedFilter.
+func (nniraf NumberNotInRangeAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &nniraf, true
 }
 
 // Operation represents an operation returned by the GetOperations request
@@ -4007,15 +5221,17 @@ type PartnerNamespace struct {
 	autorest.Response `json:"-"`
 	// PartnerNamespaceProperties - Properties of the partner namespace.
 	*PartnerNamespaceProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource.
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4051,6 +5267,15 @@ func (pn *PartnerNamespace) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				pn.PartnerNamespaceProperties = &partnerNamespaceProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				pn.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -4440,15 +5665,17 @@ type PartnerRegistration struct {
 	autorest.Response `json:"-"`
 	// PartnerRegistrationProperties - Properties of the partner registration.
 	*PartnerRegistrationProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource.
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4484,6 +5711,15 @@ func (pr *PartnerRegistration) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				pr.PartnerRegistrationProperties = &partnerRegistrationProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				pr.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -4838,15 +6074,19 @@ type PartnerTopic struct {
 	autorest.Response `json:"-"`
 	// PartnerTopicProperties - Properties of the partner topic.
 	*PartnerTopicProperties `json:"properties,omitempty"`
+	// Identity - Identity information for the resource.
+	Identity *IdentityInfo `json:"identity,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource.
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4855,6 +6095,9 @@ func (pt PartnerTopic) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if pt.PartnerTopicProperties != nil {
 		objectMap["properties"] = pt.PartnerTopicProperties
+	}
+	if pt.Identity != nil {
+		objectMap["identity"] = pt.Identity
 	}
 	if pt.Location != nil {
 		objectMap["location"] = pt.Location
@@ -4882,6 +6125,24 @@ func (pt *PartnerTopic) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				pt.PartnerTopicProperties = &partnerTopicProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity IdentityInfo
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				pt.Identity = &identity
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				pt.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -5293,9 +6554,9 @@ type PartnerTopicType struct {
 	*PartnerTopicTypeProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5411,9 +6672,9 @@ type PrivateEndpointConnection struct {
 	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5736,9 +6997,9 @@ type PrivateLinkResource struct {
 	*PrivateLinkResourceProperties `json:"properties,omitempty"`
 	// ID - Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5983,9 +7244,9 @@ func NewPrivateLinkResourcesListResultPage(cur PrivateLinkResourcesListResult, g
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6108,6 +7369,40 @@ func (sbqesd *ServiceBusQueueEventSubscriptionDestination) UnmarshalJSON(body []
 type ServiceBusQueueEventSubscriptionDestinationProperties struct {
 	// ResourceID - The Azure Resource Id that represents the endpoint of the Service Bus destination of an event subscription.
 	ResourceID *string `json:"resourceId,omitempty"`
+	// DeliveryAttributeMappings - Delivery attribute details.
+	DeliveryAttributeMappings *[]BasicDeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServiceBusQueueEventSubscriptionDestinationProperties struct.
+func (sbqesdp *ServiceBusQueueEventSubscriptionDestinationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "resourceId":
+			if v != nil {
+				var resourceID string
+				err = json.Unmarshal(*v, &resourceID)
+				if err != nil {
+					return err
+				}
+				sbqesdp.ResourceID = &resourceID
+			}
+		case "deliveryAttributeMappings":
+			if v != nil {
+				deliveryAttributeMappings, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				sbqesdp.DeliveryAttributeMappings = &deliveryAttributeMappings
+			}
+		}
+	}
+
+	return nil
 }
 
 // ServiceBusTopicEventSubscriptionDestination information about the service bus topic destination for an
@@ -6215,6 +7510,136 @@ func (sbtesd *ServiceBusTopicEventSubscriptionDestination) UnmarshalJSON(body []
 type ServiceBusTopicEventSubscriptionDestinationProperties struct {
 	// ResourceID - The Azure Resource Id that represents the endpoint of the Service Bus Topic destination of an event subscription.
 	ResourceID *string `json:"resourceId,omitempty"`
+	// DeliveryAttributeMappings - Delivery attribute details.
+	DeliveryAttributeMappings *[]BasicDeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServiceBusTopicEventSubscriptionDestinationProperties struct.
+func (sbtesdp *ServiceBusTopicEventSubscriptionDestinationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "resourceId":
+			if v != nil {
+				var resourceID string
+				err = json.Unmarshal(*v, &resourceID)
+				if err != nil {
+					return err
+				}
+				sbtesdp.ResourceID = &resourceID
+			}
+		case "deliveryAttributeMappings":
+			if v != nil {
+				deliveryAttributeMappings, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				sbtesdp.DeliveryAttributeMappings = &deliveryAttributeMappings
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticDeliveryAttributeMapping static delivery attribute mapping details.
+type StaticDeliveryAttributeMapping struct {
+	// StaticDeliveryAttributeMappingProperties - Properties of static delivery attribute mapping.
+	*StaticDeliveryAttributeMappingProperties `json:"properties,omitempty"`
+	// Name - Name of the delivery attribute or header.
+	Name *string `json:"name,omitempty"`
+	// Type - Possible values include: 'TypeDeliveryAttributeMapping', 'TypeStatic', 'TypeDynamic'
+	Type Type `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticDeliveryAttributeMapping.
+func (sdam StaticDeliveryAttributeMapping) MarshalJSON() ([]byte, error) {
+	sdam.Type = TypeStatic
+	objectMap := make(map[string]interface{})
+	if sdam.StaticDeliveryAttributeMappingProperties != nil {
+		objectMap["properties"] = sdam.StaticDeliveryAttributeMappingProperties
+	}
+	if sdam.Name != nil {
+		objectMap["name"] = sdam.Name
+	}
+	if sdam.Type != "" {
+		objectMap["type"] = sdam.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsStaticDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for StaticDeliveryAttributeMapping.
+func (sdam StaticDeliveryAttributeMapping) AsStaticDeliveryAttributeMapping() (*StaticDeliveryAttributeMapping, bool) {
+	return &sdam, true
+}
+
+// AsDynamicDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for StaticDeliveryAttributeMapping.
+func (sdam StaticDeliveryAttributeMapping) AsDynamicDeliveryAttributeMapping() (*DynamicDeliveryAttributeMapping, bool) {
+	return nil, false
+}
+
+// AsDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for StaticDeliveryAttributeMapping.
+func (sdam StaticDeliveryAttributeMapping) AsDeliveryAttributeMapping() (*DeliveryAttributeMapping, bool) {
+	return nil, false
+}
+
+// AsBasicDeliveryAttributeMapping is the BasicDeliveryAttributeMapping implementation for StaticDeliveryAttributeMapping.
+func (sdam StaticDeliveryAttributeMapping) AsBasicDeliveryAttributeMapping() (BasicDeliveryAttributeMapping, bool) {
+	return &sdam, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticDeliveryAttributeMapping struct.
+func (sdam *StaticDeliveryAttributeMapping) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticDeliveryAttributeMappingProperties StaticDeliveryAttributeMappingProperties
+				err = json.Unmarshal(*v, &staticDeliveryAttributeMappingProperties)
+				if err != nil {
+					return err
+				}
+				sdam.StaticDeliveryAttributeMappingProperties = &staticDeliveryAttributeMappingProperties
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sdam.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar Type
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sdam.Type = typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticDeliveryAttributeMappingProperties properties of static delivery attribute mapping.
+type StaticDeliveryAttributeMappingProperties struct {
+	// Value - Value of the delivery attribute.
+	Value *string `json:"value,omitempty"`
+	// IsSecret - Boolean flag to tell if the attribute contains sensitive information .
+	IsSecret *bool `json:"isSecret,omitempty"`
 }
 
 // StorageBlobDeadLetterDestination information about the storage blob based dead letter destination.
@@ -6400,6 +7825,8 @@ type StorageQueueEventSubscriptionDestinationProperties struct {
 	ResourceID *string `json:"resourceId,omitempty"`
 	// QueueName - The name of the Storage queue under a storage account that is the destination of an event subscription.
 	QueueName *string `json:"queueName,omitempty"`
+	// QueueMessageTimeToLiveInSeconds - Storage queue message time to live in seconds.
+	QueueMessageTimeToLiveInSeconds *int64 `json:"queueMessageTimeToLiveInSeconds,omitempty"`
 }
 
 // StringBeginsWithAdvancedFilter stringBeginsWith Advanced Filter.
@@ -6408,7 +7835,7 @@ type StringBeginsWithAdvancedFilter struct {
 	Values *[]string `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -6488,6 +7915,41 @@ func (sbwaf StringBeginsWithAdvancedFilter) AsStringContainsAdvancedFilter() (*S
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
+func (sbwaf StringBeginsWithAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for StringBeginsWithAdvancedFilter.
 func (sbwaf StringBeginsWithAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -6504,7 +7966,7 @@ type StringContainsAdvancedFilter struct {
 	Values *[]string `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -6584,6 +8046,41 @@ func (scaf StringContainsAdvancedFilter) AsStringContainsAdvancedFilter() (*Stri
 	return &scaf, true
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
+func (scaf StringContainsAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for StringContainsAdvancedFilter.
 func (scaf StringContainsAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -6600,7 +8097,7 @@ type StringEndsWithAdvancedFilter struct {
 	Values *[]string `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -6680,6 +8177,41 @@ func (sewaf StringEndsWithAdvancedFilter) AsStringContainsAdvancedFilter() (*Str
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
+func (sewaf StringEndsWithAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for StringEndsWithAdvancedFilter.
 func (sewaf StringEndsWithAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -6696,7 +8228,7 @@ type StringInAdvancedFilter struct {
 	Values *[]string `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -6776,6 +8308,41 @@ func (siaf StringInAdvancedFilter) AsStringContainsAdvancedFilter() (*StringCont
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
+func (siaf StringInAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for StringInAdvancedFilter.
 func (siaf StringInAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -6786,13 +8353,406 @@ func (siaf StringInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter,
 	return &siaf, true
 }
 
+// StringNotBeginsWithAdvancedFilter stringNotBeginsWith Advanced Filter.
+type StringNotBeginsWithAdvancedFilter struct {
+	// Values - The set of filter values.
+	Values *[]string `json:"values,omitempty"`
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) MarshalJSON() ([]byte, error) {
+	snbwaf.OperatorType = OperatorTypeStringNotBeginsWith
+	objectMap := make(map[string]interface{})
+	if snbwaf.Values != nil {
+		objectMap["values"] = snbwaf.Values
+	}
+	if snbwaf.Key != nil {
+		objectMap["key"] = snbwaf.Key
+	}
+	if snbwaf.OperatorType != "" {
+		objectMap["operatorType"] = snbwaf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return &snbwaf, true
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for StringNotBeginsWithAdvancedFilter.
+func (snbwaf StringNotBeginsWithAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &snbwaf, true
+}
+
+// StringNotContainsAdvancedFilter stringNotContains Advanced Filter.
+type StringNotContainsAdvancedFilter struct {
+	// Values - The set of filter values.
+	Values *[]string `json:"values,omitempty"`
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) MarshalJSON() ([]byte, error) {
+	sncaf.OperatorType = OperatorTypeStringNotContains
+	objectMap := make(map[string]interface{})
+	if sncaf.Values != nil {
+		objectMap["values"] = sncaf.Values
+	}
+	if sncaf.Key != nil {
+		objectMap["key"] = sncaf.Key
+	}
+	if sncaf.OperatorType != "" {
+		objectMap["operatorType"] = sncaf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return &sncaf, true
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for StringNotContainsAdvancedFilter.
+func (sncaf StringNotContainsAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &sncaf, true
+}
+
+// StringNotEndsWithAdvancedFilter stringNotEndsWith Advanced Filter.
+type StringNotEndsWithAdvancedFilter struct {
+	// Values - The set of filter values.
+	Values *[]string `json:"values,omitempty"`
+	// Key - The field/property in the event based on which you want to filter.
+	Key *string `json:"key,omitempty"`
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
+	OperatorType OperatorType `json:"operatorType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) MarshalJSON() ([]byte, error) {
+	snewaf.OperatorType = OperatorTypeStringNotEndsWith
+	objectMap := make(map[string]interface{})
+	if snewaf.Values != nil {
+		objectMap["values"] = snewaf.Values
+	}
+	if snewaf.Key != nil {
+		objectMap["key"] = snewaf.Key
+	}
+	if snewaf.OperatorType != "" {
+		objectMap["operatorType"] = snewaf.OperatorType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNumberInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberLessThanAdvancedFilter() (*NumberLessThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberGreaterThanAdvancedFilter() (*NumberGreaterThanAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberLessThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberLessThanOrEqualsAdvancedFilter() (*NumberLessThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberGreaterThanOrEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberGreaterThanOrEqualsAdvancedFilter() (*NumberGreaterThanOrEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBoolEqualsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsBoolEqualsAdvancedFilter() (*BoolEqualsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringInAdvancedFilter() (*StringInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotInAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringNotInAdvancedFilter() (*StringNotInAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringBeginsWithAdvancedFilter() (*StringBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringEndsWithAdvancedFilter() (*StringEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringContainsAdvancedFilter() (*StringContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return &snewaf, true
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsBasicAdvancedFilter is the BasicAdvancedFilter implementation for StringNotEndsWithAdvancedFilter.
+func (snewaf StringNotEndsWithAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
+	return &snewaf, true
+}
+
 // StringNotInAdvancedFilter stringNotIn Advanced Filter.
 type StringNotInAdvancedFilter struct {
 	// Values - The set of filter values.
 	Values *[]string `json:"values,omitempty"`
 	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
-	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
+	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains', 'OperatorTypeNumberInRange', 'OperatorTypeNumberNotInRange', 'OperatorTypeStringNotBeginsWith', 'OperatorTypeStringNotEndsWith', 'OperatorTypeStringNotContains', 'OperatorTypeIsNullOrUndefined', 'OperatorTypeIsNotNull'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
 }
 
@@ -6872,6 +8832,41 @@ func (sniaf StringNotInAdvancedFilter) AsStringContainsAdvancedFilter() (*String
 	return nil, false
 }
 
+// AsNumberInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsNumberInRangeAdvancedFilter() (*NumberInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsNumberNotInRangeAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsNumberNotInRangeAdvancedFilter() (*NumberNotInRangeAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotBeginsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsStringNotBeginsWithAdvancedFilter() (*StringNotBeginsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotEndsWithAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsStringNotEndsWithAdvancedFilter() (*StringNotEndsWithAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsStringNotContainsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsStringNotContainsAdvancedFilter() (*StringNotContainsAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNullOrUndefinedAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsIsNullOrUndefinedAdvancedFilter() (*IsNullOrUndefinedAdvancedFilter, bool) {
+	return nil, false
+}
+
+// AsIsNotNullAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
+func (sniaf StringNotInAdvancedFilter) AsIsNotNullAdvancedFilter() (*IsNotNullAdvancedFilter, bool) {
+	return nil, false
+}
+
 // AsAdvancedFilter is the BasicAdvancedFilter implementation for StringNotInAdvancedFilter.
 func (sniaf StringNotInAdvancedFilter) AsAdvancedFilter() (*AdvancedFilter, bool) {
 	return nil, false
@@ -6882,20 +8877,40 @@ func (sniaf StringNotInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFil
 	return &sniaf, true
 }
 
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
 // SystemTopic eventGrid System Topic.
 type SystemTopic struct {
 	autorest.Response `json:"-"`
 	// SystemTopicProperties - Properties of the system topic.
 	*SystemTopicProperties `json:"properties,omitempty"`
+	// Identity - Identity information for the resource.
+	Identity *IdentityInfo `json:"identity,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource.
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6904,6 +8919,9 @@ func (st SystemTopic) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if st.SystemTopicProperties != nil {
 		objectMap["properties"] = st.SystemTopicProperties
+	}
+	if st.Identity != nil {
+		objectMap["identity"] = st.Identity
 	}
 	if st.Location != nil {
 		objectMap["location"] = st.Location
@@ -6931,6 +8949,24 @@ func (st *SystemTopic) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				st.SystemTopicProperties = &systemTopicProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity IdentityInfo
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				st.Identity = &identity
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				st.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -7416,6 +9452,8 @@ func (future *SystemTopicsUpdateFuture) result(client SystemTopicsClient) (st Sy
 type SystemTopicUpdateParameters struct {
 	// Tags - Tags of the system topic.
 	Tags map[string]*string `json:"tags"`
+	// Identity - Resource identity information.
+	Identity *IdentityInfo `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SystemTopicUpdateParameters.
@@ -7423,6 +9461,9 @@ func (stup SystemTopicUpdateParameters) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if stup.Tags != nil {
 		objectMap["tags"] = stup.Tags
+	}
+	if stup.Identity != nil {
+		objectMap["identity"] = stup.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -7436,15 +9477,19 @@ type Topic struct {
 	Sku *ResourceSku `json:"sku,omitempty"`
 	// Identity - Identity information for the resource.
 	Identity *IdentityInfo `json:"identity,omitempty"`
+	// Kind - Kind of the resource. Possible values include: 'Azure', 'AzureArc'
+	Kind ResourceKind `json:"kind,omitempty"`
+	// ExtendedLocation - Extended location of the resource.
+	ExtendedLocation *ExtendedLocation `json:"extendedLocation,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource.
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7459,6 +9504,12 @@ func (t Topic) MarshalJSON() ([]byte, error) {
 	}
 	if t.Identity != nil {
 		objectMap["identity"] = t.Identity
+	}
+	if t.Kind != "" {
+		objectMap["kind"] = t.Kind
+	}
+	if t.ExtendedLocation != nil {
+		objectMap["extendedLocation"] = t.ExtendedLocation
 	}
 	if t.Location != nil {
 		objectMap["location"] = t.Location
@@ -7504,6 +9555,24 @@ func (t *Topic) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				t.Identity = &identity
+			}
+		case "kind":
+			if v != nil {
+				var kind ResourceKind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				t.Kind = kind
+			}
+		case "extendedLocation":
+			if v != nil {
+				var extendedLocation ExtendedLocation
+				err = json.Unmarshal(*v, &extendedLocation)
+				if err != nil {
+					return err
+				}
+				t.ExtendedLocation = &extendedLocation
 			}
 		case "location":
 			if v != nil {
@@ -7934,6 +10003,49 @@ func NewTopicsListResultPage(cur TopicsListResult, getNextPage func(context.Cont
 	}
 }
 
+// TopicsRegenerateKeyFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type TopicsRegenerateKeyFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(TopicsClient) (TopicSharedAccessKeys, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *TopicsRegenerateKeyFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for TopicsRegenerateKeyFuture.Result.
+func (future *TopicsRegenerateKeyFuture) result(client TopicsClient) (tsak TopicSharedAccessKeys, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.TopicsRegenerateKeyFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		tsak.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsRegenerateKeyFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsak.Response.Response, err = future.GetResult(sender); err == nil && tsak.Response.Response.StatusCode != http.StatusNoContent {
+		tsak, err = client.RegenerateKeyResponder(tsak.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.TopicsRegenerateKeyFuture", "Result", tsak.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // TopicsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type TopicsUpdateFuture struct {
 	azure.FutureAPI
@@ -7983,9 +10095,9 @@ type TopicTypeInfo struct {
 	*TopicTypeProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8065,6 +10177,8 @@ type TopicTypeProperties struct {
 	SupportedLocations *[]string `json:"supportedLocations,omitempty"`
 	// SourceResourceFormat - Source resource format.
 	SourceResourceFormat *string `json:"sourceResourceFormat,omitempty"`
+	// SupportedScopesForSource - Supported source scopes.
+	SupportedScopesForSource *[]string `json:"supportedScopesForSource,omitempty"`
 }
 
 // TopicTypesListResult result of the List Topic Types operation
@@ -8172,9 +10286,9 @@ type TrackedResource struct {
 	Tags map[string]*string `json:"tags"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource
+	// Name - READ-ONLY; Name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource
+	// Type - READ-ONLY; Type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8312,6 +10426,8 @@ type WebHookEventSubscriptionDestinationProperties struct {
 	AzureActiveDirectoryTenantID *string `json:"azureActiveDirectoryTenantId,omitempty"`
 	// AzureActiveDirectoryApplicationIDOrURI - The Azure Active Directory Application ID or URI to get the access token that will be included as the bearer token in delivery requests.
 	AzureActiveDirectoryApplicationIDOrURI *string `json:"azureActiveDirectoryApplicationIdOrUri,omitempty"`
+	// DeliveryAttributeMappings - Delivery attribute details.
+	DeliveryAttributeMappings *[]BasicDeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WebHookEventSubscriptionDestinationProperties.
@@ -8332,5 +10448,85 @@ func (whesdp WebHookEventSubscriptionDestinationProperties) MarshalJSON() ([]byt
 	if whesdp.AzureActiveDirectoryApplicationIDOrURI != nil {
 		objectMap["azureActiveDirectoryApplicationIdOrUri"] = whesdp.AzureActiveDirectoryApplicationIDOrURI
 	}
+	if whesdp.DeliveryAttributeMappings != nil {
+		objectMap["deliveryAttributeMappings"] = whesdp.DeliveryAttributeMappings
+	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for WebHookEventSubscriptionDestinationProperties struct.
+func (whesdp *WebHookEventSubscriptionDestinationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "endpointUrl":
+			if v != nil {
+				var endpointURL string
+				err = json.Unmarshal(*v, &endpointURL)
+				if err != nil {
+					return err
+				}
+				whesdp.EndpointURL = &endpointURL
+			}
+		case "endpointBaseUrl":
+			if v != nil {
+				var endpointBaseURL string
+				err = json.Unmarshal(*v, &endpointBaseURL)
+				if err != nil {
+					return err
+				}
+				whesdp.EndpointBaseURL = &endpointBaseURL
+			}
+		case "maxEventsPerBatch":
+			if v != nil {
+				var maxEventsPerBatch int32
+				err = json.Unmarshal(*v, &maxEventsPerBatch)
+				if err != nil {
+					return err
+				}
+				whesdp.MaxEventsPerBatch = &maxEventsPerBatch
+			}
+		case "preferredBatchSizeInKilobytes":
+			if v != nil {
+				var preferredBatchSizeInKilobytes int32
+				err = json.Unmarshal(*v, &preferredBatchSizeInKilobytes)
+				if err != nil {
+					return err
+				}
+				whesdp.PreferredBatchSizeInKilobytes = &preferredBatchSizeInKilobytes
+			}
+		case "azureActiveDirectoryTenantId":
+			if v != nil {
+				var azureActiveDirectoryTenantID string
+				err = json.Unmarshal(*v, &azureActiveDirectoryTenantID)
+				if err != nil {
+					return err
+				}
+				whesdp.AzureActiveDirectoryTenantID = &azureActiveDirectoryTenantID
+			}
+		case "azureActiveDirectoryApplicationIdOrUri":
+			if v != nil {
+				var azureActiveDirectoryApplicationIDOrURI string
+				err = json.Unmarshal(*v, &azureActiveDirectoryApplicationIDOrURI)
+				if err != nil {
+					return err
+				}
+				whesdp.AzureActiveDirectoryApplicationIDOrURI = &azureActiveDirectoryApplicationIDOrURI
+			}
+		case "deliveryAttributeMappings":
+			if v != nil {
+				deliveryAttributeMappings, err := unmarshalBasicDeliveryAttributeMappingArray(*v)
+				if err != nil {
+					return err
+				}
+				whesdp.DeliveryAttributeMappings = &deliveryAttributeMappings
+			}
+		}
+	}
+
+	return nil
 }

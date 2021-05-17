@@ -35,6 +35,24 @@ func TestAccEventGridSystemTopic_basic(t *testing.T) {
 	})
 }
 
+func TestAccEventGridSystemTopic_policyStates(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
+	r := EventGridSystemTopicResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.policyStates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("topic_type").Exists(),
+				check.That(data.ResourceName).Key("metric_arm_resource_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridSystemTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicResource{}
@@ -161,4 +179,31 @@ resource "azurerm_eventgrid_system_topic" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
+}
+
+func (EventGridSystemTopicResource) policyStates(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctestEGST%d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = format("/subscriptions/%%s", data.azurerm_subscription.current.subscription_id)
+  topic_type             = "Microsoft.PolicyInsights.PolicyStates"
+
+  tags = {
+    "Foo" = "Bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(10))
 }

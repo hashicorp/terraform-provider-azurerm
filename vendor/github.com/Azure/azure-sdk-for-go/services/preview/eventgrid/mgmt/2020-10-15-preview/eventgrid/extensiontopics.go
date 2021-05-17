@@ -77,7 +77,7 @@ func (client ExtensionTopicsClient) GetPreparer(ctx context.Context, scope strin
 		"scope": autorest.Encode("path", scope),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

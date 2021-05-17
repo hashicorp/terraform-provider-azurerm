@@ -15,30 +15,30 @@ import (
 	"net/http"
 )
 
-// TopicsClient is the azure EventGrid Management Client
-type TopicsClient struct {
+// DomainsClient is the azure EventGrid Management Client
+type DomainsClient struct {
 	BaseClient
 }
 
-// NewTopicsClient creates an instance of the TopicsClient client.
-func NewTopicsClient(subscriptionID string) TopicsClient {
-	return NewTopicsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewDomainsClient creates an instance of the DomainsClient client.
+func NewDomainsClient(subscriptionID string) DomainsClient {
+	return NewDomainsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTopicsClientWithBaseURI creates an instance of the TopicsClient client using a custom endpoint.  Use this when
+// NewDomainsClientWithBaseURI creates an instance of the DomainsClient client using a custom endpoint.  Use this when
 // interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewTopicsClientWithBaseURI(baseURI string, subscriptionID string) TopicsClient {
-	return TopicsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewDomainsClientWithBaseURI(baseURI string, subscriptionID string) DomainsClient {
+	return DomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate asynchronously creates a new topic with the specified parameters.
+// CreateOrUpdate asynchronously creates or updates a new domain with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic.
-// topicInfo - topic information.
-func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, topicName string, topicInfo Topic) (result TopicsCreateOrUpdateFuture, err error) {
+// domainName - name of the domain.
+// domainInfo - domain information.
+func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, domainName string, domainInfo Domain) (result DomainsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -47,15 +47,15 @@ func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, topicName, topicInfo)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, domainName, domainInfo)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -63,14 +63,14 @@ func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, topicName string, topicInfo Topic) (*http.Request, error) {
+func (client DomainsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, domainName string, domainInfo Domain) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -79,15 +79,15 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}", pathParameters),
-		autorest.WithJSON(topicInfo),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
+		autorest.WithJSON(domainInfo),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (future TopicsCreateOrUpdateFuture, err error) {
+func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future DomainsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -102,7 +102,7 @@ func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (future Topic
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result Topic, err error) {
+func (client DomainsClient) CreateOrUpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -112,13 +112,13 @@ func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
-// Delete delete existing topic.
+// Delete delete existing domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic.
-func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string, topicName string) (result TopicsDeleteFuture, err error) {
+// domainName - name of the domain.
+func (client DomainsClient) Delete(ctx context.Context, resourceGroupName string, domainName string) (result DomainsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -127,15 +127,15 @@ func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, topicName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, domainName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -143,14 +143,14 @@ func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string,
 }
 
 // DeletePreparer prepares the Delete request.
-func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName string, topicName string) (*http.Request, error) {
+func (client DomainsClient) DeletePreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,14 +158,14 @@ func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) DeleteSender(req *http.Request) (future TopicsDeleteFuture, err error) {
+func (client DomainsClient) DeleteSender(req *http.Request) (future DomainsDeleteFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -180,7 +180,7 @@ func (client TopicsClient) DeleteSender(req *http.Request) (future TopicsDeleteF
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client DomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -189,13 +189,13 @@ func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest
 	return
 }
 
-// Get get properties of a topic.
+// Get get properties of a domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic.
-func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, topicName string) (result Topic, err error) {
+// domainName - name of the domain.
+func (client DomainsClient) Get(ctx context.Context, resourceGroupName string, domainName string) (result Domain, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -204,22 +204,22 @@ func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, to
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, topicName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, domainName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -227,14 +227,14 @@ func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, to
 }
 
 // GetPreparer prepares the Get request.
-func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName string, topicName string) (*http.Request, error) {
+func (client DomainsClient) GetPreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -242,20 +242,20 @@ func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName st
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) GetResponder(resp *http.Response) (result Topic, err error) {
+func (client DomainsClient) GetResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -265,7 +265,7 @@ func (client TopicsClient) GetResponder(resp *http.Response) (result Topic, err 
 	return
 }
 
-// ListByResourceGroup list all the topics under a resource group.
+// ListByResourceGroup list all the domains under a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
@@ -276,13 +276,13 @@ func (client TopicsClient) GetResponder(resp *http.Response) (result Topic, err 
 // 'westus'.
 // top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
 // 100. If not specified, the default number of results to be returned is 20 items per page.
-func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, top *int32) (result TopicsListResultPage, err error) {
+func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, top *int32) (result DomainsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListByResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.tlr.Response.Response != nil {
-				sc = result.tlr.Response.Response.StatusCode
+			if result.dlr.Response.Response != nil {
+				sc = result.dlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -290,23 +290,23 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.tlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", resp, "Failure sending request")
+		result.dlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result.tlr, err = client.ListByResourceGroupResponder(resp)
+	result.dlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
 		return
 	}
-	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -315,13 +315,13 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 }
 
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
-func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, top *int32) (*http.Request, error) {
+func (client DomainsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,20 +335,20 @@ func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) ListByResourceGroupResponder(resp *http.Response) (result TopicsListResult, err error) {
+func (client DomainsClient) ListByResourceGroupResponder(resp *http.Response) (result DomainsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -359,10 +359,10 @@ func (client TopicsClient) ListByResourceGroupResponder(resp *http.Response) (re
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client TopicsClient) listByResourceGroupNextResults(ctx context.Context, lastResults TopicsListResult) (result TopicsListResult, err error) {
-	req, err := lastResults.topicsListResultPreparer(ctx)
+func (client DomainsClient) listByResourceGroupNextResults(ctx context.Context, lastResults DomainsListResult) (result DomainsListResult, err error) {
+	req, err := lastResults.domainsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -370,19 +370,19 @@ func (client TopicsClient) listByResourceGroupNextResults(ctx context.Context, l
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TopicsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, top *int32) (result TopicsListResultIterator, err error) {
+func (client DomainsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, top *int32) (result DomainsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListByResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -395,7 +395,7 @@ func (client TopicsClient) ListByResourceGroupComplete(ctx context.Context, reso
 	return
 }
 
-// ListBySubscription list all the topics under an Azure subscription.
+// ListBySubscription list all the domains under an Azure subscription.
 // Parameters:
 // filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
 // 'name' property only and with limited number of OData operations. These operations are: the 'contains'
@@ -405,13 +405,13 @@ func (client TopicsClient) ListByResourceGroupComplete(ctx context.Context, reso
 // 'westus'.
 // top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
 // 100. If not specified, the default number of results to be returned is 20 items per page.
-func (client TopicsClient) ListBySubscription(ctx context.Context, filter string, top *int32) (result TopicsListResultPage, err error) {
+func (client DomainsClient) ListBySubscription(ctx context.Context, filter string, top *int32) (result DomainsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListBySubscription")
 		defer func() {
 			sc := -1
-			if result.tlr.Response.Response != nil {
-				sc = result.tlr.Response.Response.StatusCode
+			if result.dlr.Response.Response != nil {
+				sc = result.dlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -419,23 +419,23 @@ func (client TopicsClient) ListBySubscription(ctx context.Context, filter string
 	result.fn = client.listBySubscriptionNextResults
 	req, err := client.ListBySubscriptionPreparer(ctx, filter, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.tlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", resp, "Failure sending request")
+		result.dlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.tlr, err = client.ListBySubscriptionResponder(resp)
+	result.dlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", resp, "Failure responding to request")
 		return
 	}
-	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -444,12 +444,12 @@ func (client TopicsClient) ListBySubscription(ctx context.Context, filter string
 }
 
 // ListBySubscriptionPreparer prepares the ListBySubscription request.
-func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
+func (client DomainsClient) ListBySubscriptionPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -463,20 +463,20 @@ func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context, filte
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.EventGrid/topics", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.EventGrid/domains", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) ListBySubscriptionResponder(resp *http.Response) (result TopicsListResult, err error) {
+func (client DomainsClient) ListBySubscriptionResponder(resp *http.Response) (result DomainsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -487,10 +487,10 @@ func (client TopicsClient) ListBySubscriptionResponder(resp *http.Response) (res
 }
 
 // listBySubscriptionNextResults retrieves the next set of results, if any.
-func (client TopicsClient) listBySubscriptionNextResults(ctx context.Context, lastResults TopicsListResult) (result TopicsListResult, err error) {
-	req, err := lastResults.topicsListResultPreparer(ctx)
+func (client DomainsClient) listBySubscriptionNextResults(ctx context.Context, lastResults DomainsListResult) (result DomainsListResult, err error) {
+	req, err := lastResults.domainsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -498,19 +498,19 @@ func (client TopicsClient) listBySubscriptionNextResults(ctx context.Context, la
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TopicsClient) ListBySubscriptionComplete(ctx context.Context, filter string, top *int32) (result TopicsListResultIterator, err error) {
+func (client DomainsClient) ListBySubscriptionComplete(ctx context.Context, filter string, top *int32) (result DomainsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListBySubscription")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -523,15 +523,13 @@ func (client TopicsClient) ListBySubscriptionComplete(ctx context.Context, filte
 	return
 }
 
-// ListEventTypes list event types for a topic.
+// ListSharedAccessKeys list the two keys used to publish to a domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// providerNamespace - namespace of the provider of the topic.
-// resourceTypeName - name of the topic type.
-// resourceName - name of the topic.
-func (client TopicsClient) ListEventTypes(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (result EventTypesListResult, err error) {
+// domainName - name of the domain.
+func (client DomainsClient) ListSharedAccessKeys(ctx context.Context, resourceGroupName string, domainName string) (result DomainSharedAccessKeys, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListEventTypes")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListSharedAccessKeys")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -540,100 +538,22 @@ func (client TopicsClient) ListEventTypes(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListEventTypesPreparer(ctx, resourceGroupName, providerNamespace, resourceTypeName, resourceName)
+	req, err := client.ListSharedAccessKeysPreparer(ctx, resourceGroupName, domainName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListEventTypes", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListEventTypesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListEventTypes", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListEventTypesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListEventTypes", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// ListEventTypesPreparer prepares the ListEventTypes request.
-func (client TopicsClient) ListEventTypesPreparer(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"providerNamespace": autorest.Encode("path", providerNamespace),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"resourceName":      autorest.Encode("path", resourceName),
-		"resourceTypeName":  autorest.Encode("path", resourceTypeName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-04-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{providerNamespace}/{resourceTypeName}/{resourceName}/providers/Microsoft.EventGrid/eventTypes", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListEventTypesSender sends the ListEventTypes request. The method will close the
-// http.Response Body if it receives an error.
-func (client TopicsClient) ListEventTypesSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListEventTypesResponder handles the response to the ListEventTypes request. The method always
-// closes the http.Response Body.
-func (client TopicsClient) ListEventTypesResponder(resp *http.Response) (result EventTypesListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// ListSharedAccessKeys list the two keys used to publish to a topic.
-// Parameters:
-// resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic.
-func (client TopicsClient) ListSharedAccessKeys(ctx context.Context, resourceGroupName string, topicName string) (result TopicSharedAccessKeys, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListSharedAccessKeys")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.ListSharedAccessKeysPreparer(ctx, resourceGroupName, topicName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListSharedAccessKeys", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSharedAccessKeysSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListSharedAccessKeys", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListSharedAccessKeysResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListSharedAccessKeys", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", resp, "Failure responding to request")
 		return
 	}
 
@@ -641,14 +561,14 @@ func (client TopicsClient) ListSharedAccessKeys(ctx context.Context, resourceGro
 }
 
 // ListSharedAccessKeysPreparer prepares the ListSharedAccessKeys request.
-func (client TopicsClient) ListSharedAccessKeysPreparer(ctx context.Context, resourceGroupName string, topicName string) (*http.Request, error) {
+func (client DomainsClient) ListSharedAccessKeysPreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -656,20 +576,20 @@ func (client TopicsClient) ListSharedAccessKeysPreparer(ctx context.Context, res
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}/listKeys", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}/listKeys", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSharedAccessKeysSender sends the ListSharedAccessKeys request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) ListSharedAccessKeysSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) ListSharedAccessKeysSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSharedAccessKeysResponder handles the response to the ListSharedAccessKeys request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) ListSharedAccessKeysResponder(resp *http.Response) (result TopicSharedAccessKeys, err error) {
+func (client DomainsClient) ListSharedAccessKeysResponder(resp *http.Response) (result DomainSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -679,14 +599,14 @@ func (client TopicsClient) ListSharedAccessKeysResponder(resp *http.Response) (r
 	return
 }
 
-// RegenerateKey regenerate a shared access key for a topic.
+// RegenerateKey regenerate a shared access key for a domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic.
+// domainName - name of the domain.
 // regenerateKeyRequest - request body to regenerate key.
-func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName string, topicName string, regenerateKeyRequest TopicRegenerateKeyRequest) (result TopicSharedAccessKeys, err error) {
+func (client DomainsClient) RegenerateKey(ctx context.Context, resourceGroupName string, domainName string, regenerateKeyRequest DomainRegenerateKeyRequest) (result DomainSharedAccessKeys, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.RegenerateKey")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.RegenerateKey")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -698,25 +618,25 @@ func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName 
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: regenerateKeyRequest,
 			Constraints: []validation.Constraint{{Target: "regenerateKeyRequest.KeyName", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("eventgrid.TopicsClient", "RegenerateKey", err.Error())
+		return result, validation.NewError("eventgrid.DomainsClient", "RegenerateKey", err.Error())
 	}
 
-	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, topicName, regenerateKeyRequest)
+	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, domainName, regenerateKeyRequest)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "RegenerateKey", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.RegenerateKeySender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "RegenerateKey", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "RegenerateKey", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", resp, "Failure responding to request")
 		return
 	}
 
@@ -724,14 +644,14 @@ func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName 
 }
 
 // RegenerateKeyPreparer prepares the RegenerateKey request.
-func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGroupName string, topicName string, regenerateKeyRequest TopicRegenerateKeyRequest) (*http.Request, error) {
+func (client DomainsClient) RegenerateKeyPreparer(ctx context.Context, resourceGroupName string, domainName string, regenerateKeyRequest DomainRegenerateKeyRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -740,7 +660,7 @@ func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGr
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}/regenerateKey", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}/regenerateKey", pathParameters),
 		autorest.WithJSON(regenerateKeyRequest),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -748,13 +668,13 @@ func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGr
 
 // RegenerateKeySender sends the RegenerateKey request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateKeyResponder handles the response to the RegenerateKey request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) RegenerateKeyResponder(resp *http.Response) (result TopicSharedAccessKeys, err error) {
+func (client DomainsClient) RegenerateKeyResponder(resp *http.Response) (result DomainSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -764,14 +684,14 @@ func (client TopicsClient) RegenerateKeyResponder(resp *http.Response) (result T
 	return
 }
 
-// Update asynchronously updates a topic with the specified parameters.
+// Update asynchronously updates a domain with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic.
-// topicUpdateParameters - topic update information.
-func (client TopicsClient) Update(ctx context.Context, resourceGroupName string, topicName string, topicUpdateParameters TopicUpdateParameters) (result TopicsUpdateFuture, err error) {
+// domainName - name of the domain.
+// domainUpdateParameters - domain update information.
+func (client DomainsClient) Update(ctx context.Context, resourceGroupName string, domainName string, domainUpdateParameters DomainUpdateParameters) (result DomainsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Update")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -780,15 +700,15 @@ func (client TopicsClient) Update(ctx context.Context, resourceGroupName string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, topicName, topicUpdateParameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, domainName, domainUpdateParameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -796,14 +716,14 @@ func (client TopicsClient) Update(ctx context.Context, resourceGroupName string,
 }
 
 // UpdatePreparer prepares the Update request.
-func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, topicName string, topicUpdateParameters TopicUpdateParameters) (*http.Request, error) {
+func (client DomainsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, domainName string, domainUpdateParameters DomainUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -812,15 +732,15 @@ func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}", pathParameters),
-		autorest.WithJSON(topicUpdateParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
+		autorest.WithJSON(domainUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client TopicsClient) UpdateSender(req *http.Request) (future TopicsUpdateFuture, err error) {
+func (client DomainsClient) UpdateSender(req *http.Request) (future DomainsUpdateFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -835,7 +755,7 @@ func (client TopicsClient) UpdateSender(req *http.Request) (future TopicsUpdateF
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client TopicsClient) UpdateResponder(resp *http.Response) (result Topic, err error) {
+func (client DomainsClient) UpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
