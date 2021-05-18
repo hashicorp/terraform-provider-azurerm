@@ -43,57 +43,6 @@ func dataSourceVirtualHub() *schema.Resource {
 				Computed: true,
 			},
 
-			"default_route_table": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"labels": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"route": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
-									"destinations": {
-										Type:     schema.TypeSet,
-										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-
-									"destinations_type": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
-									"next_hop": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
-									"next_hop_type": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -101,7 +50,6 @@ func dataSourceVirtualHub() *schema.Resource {
 
 func dataSourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
-	routeTableClient := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -131,17 +79,6 @@ func dataSourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 			virtualWanId = props.VirtualWan.ID
 		}
 		d.Set("virtual_wan_id", virtualWanId)
-	}
-
-	defaultRouteResp, err := routeTableClient.Get(ctx, resourceGroup, *resp.Name, defaultRouteTable)
-	if err != nil {
-		if !utils.ResponseWasForbidden(defaultRouteResp.Response) && !utils.ResponseWasNotFound(defaultRouteResp.Response) {
-			return fmt.Errorf("retrieving `defaultRouteTable` for VirtualHub: %+v", err)
-		}
-	}
-	flattenedDefaultRouteTable := flattenDefaultRouteTable(defaultRouteResp.HubRouteTableProperties)
-	if err := d.Set("default_route_table", flattenedDefaultRouteTable); err != nil {
-		return fmt.Errorf("setting `default_route_table` for VirtualHub: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
