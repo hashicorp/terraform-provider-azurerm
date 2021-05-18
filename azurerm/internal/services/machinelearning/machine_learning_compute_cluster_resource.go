@@ -169,7 +169,6 @@ func resourceComputeClusterCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 		ComputeLocation: utils.String(d.Get("location").(string)),
 		Description:     utils.String(d.Get("description").(string)),
-		ComputeType:     "ComputeTypeAmlCompute1",
 	}
 
 	amlComputeProperties, isAmlCompute := (machinelearningservices.BasicCompute).AsAmlCompute(computeClusterProperties)
