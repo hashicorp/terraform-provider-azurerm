@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_kafka_cluster` - support for the `encryption_in_transit_enabled` property [GH-11737]
 * `azurerm_media_services_account` - support for the `key_delivery_access_control` block [GH-11726]
 * `azurerm_redis_cache` - suppot for the `replicas_per_master` peoperty [GH-11714]
+* `azurerm_spring_cloud_service` - support for the `required_network_traffic_rules` block [GH-11633]
 
 BUG FIXES:
 
