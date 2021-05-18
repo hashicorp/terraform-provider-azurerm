@@ -87,9 +87,9 @@ A `rules` block supports the following:
 
 * `destination_container_name` - (Required) The destination storage container name. Changing this forces a new Storage Object Replication Policy to be created.
 
-* `copy_over_from_time` - (Optional) The time from which to copy over. Possible values are `OnlyNewObjects`, `Everything` and time in RFC3339 format: `2006-01-02T15:04:00Z`.
+* `copy_over_from_time` - (Optional) The time from which to copy over the Blobs to the destination. Possible values are `OnlyNewObjects`, `Everything` and time in RFC3339 format: `2006-01-02T15:04:00Z`.
 
-* `filter_prefix_matches` - (Optional) Specifies a list of TODO.
+* `filter_prefix_matches` - (Optional) Specifies a list of filters prefixes blobs whose names begin with which will be replicated.
 
 ## Attributes Reference
 
