@@ -158,11 +158,11 @@ The following attributes are exported:
 
 * `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
 
-* `required_traffic` - A list of `required_traffic` blocks as defined below.
+* `required_network_traffic_rules` - A list of `required_network_traffic_rules` blocks as defined below.
 
 ---
 
-The `required_traffic` supports the following:
+The `required_network_traffic_rules` supports the following:
 
 * `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
 

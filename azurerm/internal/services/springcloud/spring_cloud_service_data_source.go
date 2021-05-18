@@ -111,6 +111,45 @@ func dataSourceSpringCloudService() *schema.Resource {
 				},
 			},
 
+			"required_network_traffic_rules": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"protocol": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"ip_addresses": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"fqdns": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"direction": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -152,6 +191,10 @@ func dataSourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) 
 		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
 		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
+		}
+
+		if err := d.Set("required_network_traffic_rules", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
 		}
 	}
 

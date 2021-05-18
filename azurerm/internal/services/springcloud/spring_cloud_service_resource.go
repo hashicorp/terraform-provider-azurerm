@@ -225,7 +225,7 @@ func resourceSpringCloudService() *schema.Resource {
 				},
 			},
 
-			"required_traffic": {
+			"required_network_traffic_rules": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -459,8 +459,8 @@ func resourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
 
-		if err := d.Set("required_traffic", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
-			return fmt.Errorf("setting `required_traffic`: %+v", err)
+		if err := d.Set("required_network_traffic_rules", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
 		}
 	}
 
