@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -225,7 +225,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("min_count", minCount)
 
-		mode := string(containerservice.User)
+		mode := string(containerservice.AgentPoolModeUser)
 		if props.Mode != "" {
 			mode = string(props.Mode)
 		}
@@ -252,7 +252,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 
-		osDiskType := containerservice.Managed
+		osDiskType := containerservice.OSDiskTypeManaged
 		if props.OsDiskType != "" {
 			osDiskType = props.OsDiskType
 		}
@@ -260,7 +260,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
-		priority := string(containerservice.Regular)
+		priority := string(containerservice.ScaleSetPriorityRegular)
 		if props.ScaleSetPriority != "" {
 			priority = string(props.ScaleSetPriority)
 		}
@@ -283,7 +283,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
-		d.Set("vm_size", string(props.VMSize))
+		d.Set("vm_size", props.VMSize)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
