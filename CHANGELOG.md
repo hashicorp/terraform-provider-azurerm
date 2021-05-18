@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `aks` to use API Version `2021-03-01` [GH-11708]
 * dependencies: updating `eventgrid` to use API Version `2020-10-15-preview` [GH-11746]
 * `azurerm_cosmosdb_mongo_collection` - support for the `analytical_storage_ttl` property [GH-11735]
 * `azurerm_hdinsight_kafka_cluster` - support for the `encryption_in_transit_enabled` property [GH-11737]
