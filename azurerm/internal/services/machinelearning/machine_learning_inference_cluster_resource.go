@@ -260,7 +260,6 @@ func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *schema.
 		ComputeLocation: aks.Location,
 		Description:     utils.String(d.Get("description").(string)),
 		ResourceID:      aks.ID,
-		ComputeType:     "ComputeTypeAKS1",
 	}
 }
 
