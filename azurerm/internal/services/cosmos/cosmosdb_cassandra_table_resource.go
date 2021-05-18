@@ -241,9 +241,11 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 				d.Set("default_ttl", defaultTTL)
 			}
 
-			if analyticalTTL := res.AnalyticalStorageTTL; analyticalTTL != nil {
-				d.Set("analytical_storage_ttl", analyticalTTL)
+			analyticalTTL := -2
+			if res.AnalyticalStorageTTL != nil {
+				analyticalTTL = int(*res.AnalyticalStorageTTL)
 			}
+			d.Set("analytical_storage_ttl", analyticalTTL)
 
 			if schema := res.Schema; schema != nil {
 				d.Set("schema", flattenTableSchema(schema))
