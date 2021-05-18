@@ -59,6 +59,14 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
+			"analytical_storage_ttl": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      -2,
+				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
 			"schema": common.CassandraTableSchemaPropertySchema(),
 
 			"throughput": {
@@ -113,6 +121,10 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
 		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+	}
+
+	if analyticalTTL := d.Get("analytical_storage_ttl").(int); analyticalTTL != -2 {
+		table.CassandraTableCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -184,7 +196,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("setting Throughput for %s: %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", *id, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later", *id, err)
 			}
 		}
 
@@ -228,6 +240,12 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
 				d.Set("default_ttl", defaultTTL)
 			}
+
+			analyticalTTL := -2
+			if res.AnalyticalStorageTTL != nil {
+				analyticalTTL = int(*res.AnalyticalStorageTTL)
+			}
+			d.Set("analytical_storage_ttl", analyticalTTL)
 
 			if schema := res.Schema; schema != nil {
 				d.Set("schema", flattenTableSchema(schema))
