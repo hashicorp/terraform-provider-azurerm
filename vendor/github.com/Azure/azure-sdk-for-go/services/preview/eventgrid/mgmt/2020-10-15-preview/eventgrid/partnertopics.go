@@ -75,7 +75,7 @@ func (client PartnerTopicsClient) ActivatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -151,7 +151,7 @@ func (client PartnerTopicsClient) DeactivatePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -220,7 +220,7 @@ func (client PartnerTopicsClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -304,7 +304,7 @@ func (client PartnerTopicsClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -391,7 +391,7 @@ func (client PartnerTopicsClient) ListByResourceGroupPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -519,7 +519,7 @@ func (client PartnerTopicsClient) ListBySubscriptionPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -639,7 +639,7 @@ func (client PartnerTopicsClient) UpdatePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

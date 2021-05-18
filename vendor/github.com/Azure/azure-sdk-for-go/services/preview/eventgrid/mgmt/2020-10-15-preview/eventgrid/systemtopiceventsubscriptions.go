@@ -74,11 +74,12 @@ func (client SystemTopicEventSubscriptionsClient) CreateOrUpdatePreparer(ctx con
 		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	eventSubscriptionInfo.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -157,7 +158,7 @@ func (client SystemTopicEventSubscriptionsClient) DeletePreparer(ctx context.Con
 		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,7 +245,7 @@ func (client SystemTopicEventSubscriptionsClient) GetPreparer(ctx context.Contex
 		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -266,6 +267,85 @@ func (client SystemTopicEventSubscriptionsClient) GetSender(req *http.Request) (
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client SystemTopicEventSubscriptionsClient) GetResponder(resp *http.Response) (result EventSubscription, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetDeliveryAttributes get all delivery attributes for an event subscription.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription.
+// systemTopicName - name of the system topic.
+// eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
+// between 3 and 100 characters in length and use alphanumeric letters only.
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributes(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (result DeliveryAttributeListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.GetDeliveryAttributes")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetDeliveryAttributesPreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetDeliveryAttributes", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetDeliveryAttributesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetDeliveryAttributes", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetDeliveryAttributesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetDeliveryAttributes", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetDeliveryAttributesPreparer prepares the GetDeliveryAttributes request.
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributesPreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
+	}
+
+	const APIVersion = "2020-10-15-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}/getDeliveryAttributes", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetDeliveryAttributesSender sends the GetDeliveryAttributes request. The method will close the
+// http.Response Body if it receives an error.
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetDeliveryAttributesResponder handles the response to the GetDeliveryAttributes request. The method always
+// closes the http.Response Body.
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributesResponder(resp *http.Response) (result DeliveryAttributeListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -323,7 +403,7 @@ func (client SystemTopicEventSubscriptionsClient) GetFullURLPreparer(ctx context
 		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -412,7 +492,7 @@ func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicPreparer(ctx 
 		"systemTopicName":   autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -528,7 +608,7 @@ func (client SystemTopicEventSubscriptionsClient) UpdatePreparer(ctx context.Con
 		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

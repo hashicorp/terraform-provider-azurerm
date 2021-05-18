@@ -77,11 +77,12 @@ func (client PartnerRegistrationsClient) CreateOrUpdatePreparer(ctx context.Cont
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	partnerRegistrationInfo.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -155,7 +156,7 @@ func (client PartnerRegistrationsClient) DeletePreparer(ctx context.Context, res
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -230,7 +231,7 @@ func (client PartnerRegistrationsClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -297,7 +298,7 @@ func (client PartnerRegistrationsClient) List(ctx context.Context) (result Partn
 
 // ListPreparer prepares the List request.
 func (client PartnerRegistrationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -384,7 +385,7 @@ func (client PartnerRegistrationsClient) ListByResourceGroupPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -512,7 +513,7 @@ func (client PartnerRegistrationsClient) ListBySubscriptionPreparer(ctx context.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -632,7 +633,7 @@ func (client PartnerRegistrationsClient) UpdatePreparer(ctx context.Context, res
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

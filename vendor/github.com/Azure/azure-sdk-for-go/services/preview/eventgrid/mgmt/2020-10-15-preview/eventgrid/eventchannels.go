@@ -78,11 +78,12 @@ func (client EventChannelsClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	eventChannelInfo.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -151,7 +152,7 @@ func (client EventChannelsClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -237,7 +238,7 @@ func (client EventChannelsClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -326,7 +327,7 @@ func (client EventChannelsClient) ListByPartnerNamespacePreparer(ctx context.Con
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01-preview"
+	const APIVersion = "2020-10-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
