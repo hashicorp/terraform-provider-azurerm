@@ -100,10 +100,12 @@ func resourceVirtualNetwork() *schema.Resource {
 				},
 			},
 
+			// TODO 3.0: Remove this property
 			"vm_protection_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Default:    false,
+				Deprecated: "This is deprecated in favor of `ddos_protection_plan`",
 			},
 
 			"guid": {
