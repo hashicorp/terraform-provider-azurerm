@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -105,6 +104,11 @@ func TestAccSpringCloudService_virtualNetwork(t *testing.T) {
 				check.That(data.ResourceName).Key("network.0.service_runtime_network_resource_group").Exists(),
 				check.That(data.ResourceName).Key("network.0.app_network_resource_group").Exists(),
 				check.That(data.ResourceName).Key("outbound_public_ip_addresses.0").Exists(),
+				check.That(data.ResourceName).Key("required_network_traffic_rules.0.protocol").Exists(),
+				check.That(data.ResourceName).Key("required_network_traffic_rules.0.port").Exists(),
+				check.That(data.ResourceName).Key("required_network_traffic_rules.0.ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("required_network_traffic_rules.0.fqdns.#").Exists(),
+				check.That(data.ResourceName).Key("required_network_traffic_rules.0.direction").Exists(),
 			),
 		},
 		data.ImportStep(
