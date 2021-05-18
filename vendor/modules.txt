@@ -278,12 +278,13 @@ github.com/hashicorp/go-cleanhttp
 ## explicit
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
-# github.com/hashicorp/go-hclog v0.9.2
+# github.com/hashicorp/go-hclog v0.14.1
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
 ## explicit
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-plugin v1.3.0
+# github.com/hashicorp/go-plugin v1.4.0
+## explicit
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
 # github.com/hashicorp/go-safetemp v1.0.0
@@ -400,9 +401,9 @@ github.com/klauspost/compress/huff0
 github.com/klauspost/compress/snappy
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/mattn/go-colorable v0.1.1
+# github.com/mattn/go-colorable v0.1.4
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.5
+# github.com/mattn/go-isatty v0.0.10
 github.com/mattn/go-isatty
 # github.com/mitchellh/cli v1.1.2
 github.com/mitchellh/cli

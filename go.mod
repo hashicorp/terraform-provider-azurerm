@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/go-azure-helpers v0.15.0
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/go-multierror v1.0.0
+	github.com/hashicorp/go-plugin v1.4.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
