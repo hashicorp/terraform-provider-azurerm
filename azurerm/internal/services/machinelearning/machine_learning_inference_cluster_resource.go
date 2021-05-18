@@ -72,7 +72,7 @@ func resourceAksInferenceCluster() *schema.Resource {
 				ForceNew: true,
 				Default:  string(machinelearningservices.FastProd),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningservices.DenseProd),
+					string(machinelearningservices.DevTest),
 					string(machinelearningservices.FastProd),
 					string(machinelearningservices.DenseProd),
 				}, false),
