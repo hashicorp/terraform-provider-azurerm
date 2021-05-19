@@ -28,6 +28,8 @@ func dataSourceEventHubCluster() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"location": azure.SchemaLocation(),
+
 			"sku_name": {
 				Type:     schema.TypeString,
 				Computed: true,
