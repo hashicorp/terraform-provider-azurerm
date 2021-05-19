@@ -45,7 +45,7 @@ resource "azurerm_eventhub_cluster" "test" {
 }
 
 data "azurerm_eventhub_cluster" "test" {
-  name                = azurerm_eventhub.test.name
+  name                = azurerm_eventhub_cluster.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
