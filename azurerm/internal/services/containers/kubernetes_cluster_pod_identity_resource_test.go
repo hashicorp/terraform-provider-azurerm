@@ -82,7 +82,7 @@ func TestAccKubernetesClusterPodIdentity_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.onlyPodException(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

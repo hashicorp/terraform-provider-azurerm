@@ -3,12 +3,12 @@ subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster_pod_identity"
 description: |-
-  Manages pod identities within a Azure Kubernetes Cluster.
+  Manages the Pod Identities within an Azure Kubernetes Cluster.
 ---
 
 # azurerm_kubernetes_cluster_pod_identity
 
-Manages pod identities within a Azure Kubernetes Cluster.
+Manages the Pod Identities within an Azure Kubernetes Cluster.
 
 ## Example Usage
 
