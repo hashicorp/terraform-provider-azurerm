@@ -13,7 +13,7 @@ type EventHubClusterDataSource struct {
 }
 
 func TestAccEventHubClusterDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_cluster", "test")
 	r := EventHubClusterDataSource{}
 
 	data.DataSourceTest(t, []resource.TestStep{
