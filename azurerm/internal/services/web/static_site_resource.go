@@ -112,8 +112,7 @@ func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 		Location:   &loc,
 	}
 
-	_, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope)
-	if err != nil {
+	if _, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope); err != nil {
 		return fmt.Errorf("failed creating %s: %+v", id, err)
 	}
 
