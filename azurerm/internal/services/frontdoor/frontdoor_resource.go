@@ -809,14 +809,18 @@ func resourceFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if future.Response() != nil {
+			if response.WasNotFound(future.Response()) {
+				return nil
+			}
 		}
 		return fmt.Errorf("deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if future.Response() != nil {
+			if !response.WasNotFound(future.Response()) {
+				return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
 		}
 	}
 
