@@ -117,6 +117,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 				Optional:     true,
 				Default:      "SQL_Latin1_General_CP1_CI_AS",
 				ValidateFunc: validation.StringIsNotEmpty,
+				ForceNew:     true,
 			},
 
 			"public_data_endpoint_enabled": {
@@ -152,6 +153,13 @@ func resourceArmSqlMiServer() *schema.Resource {
 				Optional:     true,
 				Default:      "UTC",
 				ValidateFunc: validation.StringIsNotEmpty,
+				ForceNew:     true,
+			},
+
+			"dns_zone_partner": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"fqdn": {
@@ -207,6 +215,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			MinimalTLSVersion:         utils.String(d.Get("minimum_tls_version").(string)),
 			ProxyOverride:             sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
 			TimezoneID:                utils.String(d.Get("timezone_id").(string)),
+			DNSZonePartner:            utils.String(d.Get("dns_zone_partner").(string)),
 		},
 	}
 
@@ -277,6 +286,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
+		d.Set("dns_zone_partner", props.DNSZonePartner)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

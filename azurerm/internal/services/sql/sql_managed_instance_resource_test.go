@@ -81,6 +81,26 @@ func TestAccAzureRMSqlMiServer_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlMiServer_dnsZonePartner(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	r := SqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dnsZonePartner(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"administrator_login_password"},
+		},
+	})
+}
+
 func (r SqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceID(state.ID)
 	if err != nil {
@@ -95,6 +115,121 @@ func (r SqlManagedInstanceResource) Exists(ctx context.Context, client *clients.
 		return nil, fmt.Errorf("retrieving SQL Managed Instance %q: %+v", id.ID(), err)
 	}
 	return utils.Bool(true), nil
+}
+
+func (r SqlManagedInstanceResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_managed_instance" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type				   = "BasePrice"
+  subnet_id					   = "${azurerm_subnet.test.id}"
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+	environment = "staging"
+	database    = "test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SqlManagedInstanceResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_managed_instance" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type				   = "BasePrice"
+  subnet_id					   = "${azurerm_subnet.test.id}"
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+  public_data_endpoint_enabled = true
+  proxy_override               = "Proxy"
+  timezone_id                  = "Pacific Standard Time"
+  minimum_tls_version          = "1.0"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+	environment = "staging"
+	database    = "test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SqlManagedInstanceResource) dnsZonePartner(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_managed_instance" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type				   = "BasePrice"
+  subnet_id					   = "${azurerm_subnet.test.id}"
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+	environment = "staging"
+	database    = "test"
+  }
+}
+
+resource "azurerm_sql_managed_instance" "test2" {
+  name                         = "acctestsqlserver2%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type				   = "BasePrice"
+  subnet_id					   = azurerm_subnet.test.id
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+  dns_zone_partner             = azurerm_sql_managed_instance.test.id
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+	environment = "staging"
+	database    = "test"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (SqlManagedInstanceResource) template(data acceptance.TestData) string {
@@ -255,7 +390,20 @@ resource "azurerm_route_table" "test" {
   location                      = "${azurerm_resource_group.test.location}"
   resource_group_name           = "${azurerm_resource_group.test.name}"
   disable_bgp_route_propagation = false
-  
+
+  depends_on = [
+    azurerm_subnet.test,
+  ]
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+	subnet_id      = "${azurerm_subnet.test.id}"
+	route_table_id = "${azurerm_route_table.test.id}"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+/*
   route {
     name           = "subnet-to-vnetlocal"
     address_prefix = "10.0.0.0/24"
@@ -1190,19 +1338,19 @@ resource "azurerm_route_table" "test" {
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus2"
     next_hop_type          = "Internet"
   }
-  
+
   route {
     address_prefix         = "Storage.westcentralus"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westcentralus"
     next_hop_type          = "Internet"
   }
-  
+
   route {
     address_prefix         = "Storage.westus2"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus2"
     next_hop_type          = "Internet"
   }
-  
+
   route {
     address_prefix         = "EventHub.westcentralus"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westcentralus"
@@ -1214,7 +1362,7 @@ resource "azurerm_route_table" "test" {
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus2"
     next_hop_type          = "Internet"
   }
-  
+
   route {
     address_prefix         = "Sql.westcentralus"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westcentralus"
@@ -1226,78 +1374,4 @@ resource "azurerm_route_table" "test" {
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus2"
     next_hop_type          = "Internet"
   }
-
-  depends_on = [
-    azurerm_subnet.test,
-  ]
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-	subnet_id      = "${azurerm_subnet.test.id}"
-	route_table_id = "${azurerm_route_table.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r SqlManagedInstanceResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_sql_managed_instance" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = "${azurerm_subnet.test.id}"
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.test,
-    azurerm_subnet_route_table_association.test,
-  ]
-
-  tags = {
-	environment = "staging"
-	database    = "test"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SqlManagedInstanceResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_sql_managed_instance" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = "${azurerm_subnet.test.id}"
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-  public_data_endpoint_enabled = true
-  proxy_override               = "Proxy"
-  timezone_id                  = "Pacific Standard Time"
-  minimum_tls_version          = "1.0"
-  collation                    = "SQL_1xCompat_CP850_CI_AS"
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.test,
-    azurerm_subnet_route_table_association.test,
-  ]
-
-  tags = {
-	environment = "staging"
-	database    = "test"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
+*/
