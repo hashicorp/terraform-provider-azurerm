@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_eventhub_cluster` [GH-11763]
 * **New Data Source:** `azurerm_redis_enterprise_database` [GH-11734]
 * **New Resource:** `azurerm_static_site` [GH-7150]
 
