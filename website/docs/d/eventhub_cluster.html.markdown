@@ -39,6 +39,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - SKU name of the EventHub Cluster.
 
+* `location` - Location of the EventHub Cluster.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
