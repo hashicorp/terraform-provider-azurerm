@@ -390,20 +390,7 @@ resource "azurerm_route_table" "test" {
   location                      = "${azurerm_resource_group.test.location}"
   resource_group_name           = "${azurerm_resource_group.test.name}"
   disable_bgp_route_propagation = false
-
-  depends_on = [
-    azurerm_subnet.test,
-  ]
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-	subnet_id      = "${azurerm_subnet.test.id}"
-	route_table_id = "${azurerm_route_table.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-/*
+  
   route {
     name           = "subnet-to-vnetlocal"
     address_prefix = "10.0.0.0/24"
@@ -1338,19 +1325,19 @@ resource "azurerm_subnet_route_table_association" "test" {
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus2"
     next_hop_type          = "Internet"
   }
-
+  
   route {
     address_prefix         = "Storage.westcentralus"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westcentralus"
     next_hop_type          = "Internet"
   }
-
+  
   route {
     address_prefix         = "Storage.westus2"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus2"
     next_hop_type          = "Internet"
   }
-
+  
   route {
     address_prefix         = "EventHub.westcentralus"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westcentralus"
@@ -1362,7 +1349,7 @@ resource "azurerm_subnet_route_table_association" "test" {
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus2"
     next_hop_type          = "Internet"
   }
-
+  
   route {
     address_prefix         = "Sql.westcentralus"
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westcentralus"
@@ -1374,4 +1361,15 @@ resource "azurerm_subnet_route_table_association" "test" {
     name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus2"
     next_hop_type          = "Internet"
   }
-*/
+
+  depends_on = [
+    azurerm_subnet.test,
+  ]
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+	subnet_id      = "${azurerm_subnet.test.id}"
+	route_table_id = "${azurerm_route_table.test.id}"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
