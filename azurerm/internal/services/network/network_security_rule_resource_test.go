@@ -63,7 +63,7 @@ func TestAccNetworkSecurityRule_disappears(t *testing.T) {
 }
 
 func TestAccNetworkSecurityRule_addingRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	r := NetworkSecurityRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
