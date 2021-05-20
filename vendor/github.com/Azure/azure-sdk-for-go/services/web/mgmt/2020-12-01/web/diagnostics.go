@@ -95,7 +95,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -200,7 +200,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSlotPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -303,7 +303,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -408,7 +408,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -509,7 +509,7 @@ func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponsePreparer(ct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -606,7 +606,7 @@ func (client DiagnosticsClient) GetSiteAnalysisPreparer(ctx context.Context, res
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -696,7 +696,7 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -784,7 +784,7 @@ func (client DiagnosticsClient) GetSiteDetectorPreparer(ctx context.Context, res
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -876,7 +876,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponsePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -979,7 +979,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponseSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1078,7 +1078,7 @@ func (client DiagnosticsClient) GetSiteDetectorSlotPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1164,7 +1164,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategoryPreparer(ctx context.Co
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1252,7 +1252,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotPreparer(ctx contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1341,7 +1341,7 @@ func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesPreparer(
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1469,7 +1469,7 @@ func (client DiagnosticsClient) ListSiteAnalysesPreparer(ctx context.Context, re
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1599,7 +1599,7 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotPreparer(ctx context.Context
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1725,7 +1725,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1853,7 +1853,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1981,7 +1981,7 @@ func (client DiagnosticsClient) ListSiteDetectorsPreparer(ctx context.Context, r
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2111,7 +2111,7 @@ func (client DiagnosticsClient) ListSiteDetectorsSlotPreparer(ctx context.Contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2237,7 +2237,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2365,7 +2365,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

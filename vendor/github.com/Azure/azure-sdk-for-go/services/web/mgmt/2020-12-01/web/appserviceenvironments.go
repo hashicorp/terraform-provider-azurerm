@@ -32,6 +32,95 @@ func NewAppServiceEnvironmentsClientWithBaseURI(baseURI string, subscriptionID s
 	return AppServiceEnvironmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// ApproveOrRejectPrivateEndpointConnection description for Approves or rejects a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (result AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ApproveOrRejectPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ApproveOrRejectPrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.ApproveOrRejectPrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName, privateEndpointWrapper)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ApproveOrRejectPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ApproveOrRejectPrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ApproveOrRejectPrivateEndpointConnection", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ApproveOrRejectPrivateEndpointConnectionPreparer prepares the ApproveOrRejectPrivateEndpointConnection request.
+func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(privateEndpointWrapper),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ApproveOrRejectPrivateEndpointConnectionSender sends the ApproveOrRejectPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionSender(req *http.Request) (future AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// ApproveOrRejectPrivateEndpointConnectionResponder handles the response to the ApproveOrRejectPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionResponder(resp *http.Response) (result RemotePrivateEndpointConnectionARMResource, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ChangeVnet description for Move an App Service Environment to a different VNET.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -52,7 +141,9 @@ func (client AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, resou
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: vnetInfo,
+			Constraints: []validation.Constraint{{Target: "vnetInfo.ID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ChangeVnet", err.Error())
 	}
 
@@ -79,7 +170,7 @@ func (client AppServiceEnvironmentsClient) ChangeVnetPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,10 +278,8 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdate(ctx context.Context, r
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: hostingEnvironmentEnvelope,
 			Constraints: []validation.Constraint{{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment.Name", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment.Location", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment.VirtualNetwork", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment.WorkerPools", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment.VirtualNetwork", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "hostingEnvironmentEnvelope.AppServiceEnvironment.VirtualNetwork.ID", Name: validation.Null, Rule: true, Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("web.AppServiceEnvironmentsClient", "CreateOrUpdate", err.Error())
 	}
@@ -218,7 +307,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdatePreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -307,7 +396,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePoolPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -398,7 +487,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateWorkerPoolPreparer(ctx 
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -488,7 +577,7 @@ func (client AppServiceEnvironmentsClient) DeletePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -527,6 +616,93 @@ func (client AppServiceEnvironmentsClient) DeleteResponder(resp *http.Response) 
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// DeletePrivateEndpointConnection description for Deletes a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) DeletePrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (result AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.DeletePrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "DeletePrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.DeletePrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "DeletePrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DeletePrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "DeletePrivateEndpointConnection", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DeletePrivateEndpointConnectionPreparer prepares the DeletePrivateEndpointConnection request.
+func (client AppServiceEnvironmentsClient) DeletePrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeletePrivateEndpointConnectionSender sends the DeletePrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) DeletePrivateEndpointConnectionSender(req *http.Request) (future AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// DeletePrivateEndpointConnectionResponder handles the response to the DeletePrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) DeletePrivateEndpointConnectionResponder(resp *http.Response) (result SetObject, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -583,7 +759,7 @@ func (client AppServiceEnvironmentsClient) GetPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -605,6 +781,90 @@ func (client AppServiceEnvironmentsClient) GetSender(req *http.Request) (*http.R
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client AppServiceEnvironmentsClient) GetResponder(resp *http.Response) (result AppServiceEnvironmentResource, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAseV3NetworkingConfiguration description for Get networking configuration of an App Service Environment
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) GetAseV3NetworkingConfiguration(ctx context.Context, resourceGroupName string, name string) (result AseV3NetworkingConfiguration, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.GetAseV3NetworkingConfiguration")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "GetAseV3NetworkingConfiguration", err.Error())
+	}
+
+	req, err := client.GetAseV3NetworkingConfigurationPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetAseV3NetworkingConfiguration", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAseV3NetworkingConfigurationSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetAseV3NetworkingConfiguration", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAseV3NetworkingConfigurationResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetAseV3NetworkingConfiguration", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAseV3NetworkingConfigurationPreparer prepares the GetAseV3NetworkingConfiguration request.
+func (client AppServiceEnvironmentsClient) GetAseV3NetworkingConfigurationPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/configurations/networking", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAseV3NetworkingConfigurationSender sends the GetAseV3NetworkingConfiguration request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) GetAseV3NetworkingConfigurationSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAseV3NetworkingConfigurationResponder handles the response to the GetAseV3NetworkingConfiguration request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) GetAseV3NetworkingConfigurationResponder(resp *http.Response) (result AseV3NetworkingConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -669,7 +929,7 @@ func (client AppServiceEnvironmentsClient) GetDiagnosticsItemPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -759,7 +1019,7 @@ func (client AppServiceEnvironmentsClient) GetInboundNetworkDependenciesEndpoint
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -880,7 +1140,7 @@ func (client AppServiceEnvironmentsClient) GetMultiRolePoolPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -970,7 +1230,7 @@ func (client AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpoin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1038,6 +1298,303 @@ func (client AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpoin
 	return
 }
 
+// GetPrivateEndpointConnection description for Gets a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+// privateEndpointConnectionName - name of the private endpoint connection.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (result RemotePrivateEndpointConnectionARMResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.GetPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.GetPrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateEndpointConnectionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnection", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateEndpointConnectionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnection", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetPrivateEndpointConnectionPreparer prepares the GetPrivateEndpointConnection request.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateEndpointConnectionSender sends the GetPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateEndpointConnectionResponder handles the response to the GetPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionResponder(resp *http.Response) (result RemotePrivateEndpointConnectionARMResource, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateEndpointConnectionList description for Gets the list of private endpoints associated with a hosting
+// environment
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionList(ctx context.Context, resourceGroupName string, name string) (result PrivateEndpointConnectionCollectionPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.GetPrivateEndpointConnectionList")
+		defer func() {
+			sc := -1
+			if result.pecc.Response.Response != nil {
+				sc = result.pecc.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnectionList", err.Error())
+	}
+
+	result.fn = client.getPrivateEndpointConnectionListNextResults
+	req, err := client.GetPrivateEndpointConnectionListPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnectionList", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateEndpointConnectionListSender(req)
+	if err != nil {
+		result.pecc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnectionList", resp, "Failure sending request")
+		return
+	}
+
+	result.pecc, err = client.GetPrivateEndpointConnectionListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateEndpointConnectionList", resp, "Failure responding to request")
+		return
+	}
+	if result.pecc.hasNextLink() && result.pecc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetPrivateEndpointConnectionListPreparer prepares the GetPrivateEndpointConnectionList request.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionListPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/privateEndpointConnections", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateEndpointConnectionListSender sends the GetPrivateEndpointConnectionList request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionListSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateEndpointConnectionListResponder handles the response to the GetPrivateEndpointConnectionList request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionListResponder(resp *http.Response) (result PrivateEndpointConnectionCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getPrivateEndpointConnectionListNextResults retrieves the next set of results, if any.
+func (client AppServiceEnvironmentsClient) getPrivateEndpointConnectionListNextResults(ctx context.Context, lastResults PrivateEndpointConnectionCollection) (result PrivateEndpointConnectionCollection, err error) {
+	req, err := lastResults.privateEndpointConnectionCollectionPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "getPrivateEndpointConnectionListNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetPrivateEndpointConnectionListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "getPrivateEndpointConnectionListNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetPrivateEndpointConnectionListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "getPrivateEndpointConnectionListNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetPrivateEndpointConnectionListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AppServiceEnvironmentsClient) GetPrivateEndpointConnectionListComplete(ctx context.Context, resourceGroupName string, name string) (result PrivateEndpointConnectionCollectionIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.GetPrivateEndpointConnectionList")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetPrivateEndpointConnectionList(ctx, resourceGroupName, name)
+	return
+}
+
+// GetPrivateLinkResources description for Gets the private link resources
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) GetPrivateLinkResources(ctx context.Context, resourceGroupName string, name string) (result PrivateLinkResourcesWrapper, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.GetPrivateLinkResources")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "GetPrivateLinkResources", err.Error())
+	}
+
+	req, err := client.GetPrivateLinkResourcesPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateLinkResources", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateLinkResourcesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateLinkResources", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateLinkResourcesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetPrivateLinkResources", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetPrivateLinkResourcesPreparer prepares the GetPrivateLinkResources request.
+func (client AppServiceEnvironmentsClient) GetPrivateLinkResourcesPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/privateLinkResources", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateLinkResourcesSender sends the GetPrivateLinkResources request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) GetPrivateLinkResourcesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateLinkResourcesResponder handles the response to the GetPrivateLinkResources request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) GetPrivateLinkResourcesResponder(resp *http.Response) (result PrivateLinkResourcesWrapper, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetVipInfo description for Get IP addresses assigned to an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -1091,7 +1648,7 @@ func (client AppServiceEnvironmentsClient) GetVipInfoPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1177,7 +1734,7 @@ func (client AppServiceEnvironmentsClient) GetWorkerPoolPreparer(ctx context.Con
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1253,7 +1810,7 @@ func (client AppServiceEnvironmentsClient) ListPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1379,7 +1936,7 @@ func (client AppServiceEnvironmentsClient) ListAppServicePlansPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1503,7 +2060,7 @@ func (client AppServiceEnvironmentsClient) ListByResourceGroupPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1629,7 +2186,7 @@ func (client AppServiceEnvironmentsClient) ListCapacitiesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1750,7 +2307,7 @@ func (client AppServiceEnvironmentsClient) ListDiagnosticsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1840,7 +2397,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleMetricDefinitionsPrepare
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1969,7 +2526,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricDefini
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2095,7 +2652,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolsPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2221,7 +2778,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolSkusPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2347,7 +2904,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleUsagesPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2468,7 +3025,7 @@ func (client AppServiceEnvironmentsClient) ListOperationsPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2560,7 +3117,7 @@ func (client AppServiceEnvironmentsClient) ListUsagesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2690,7 +3247,7 @@ func (client AppServiceEnvironmentsClient) ListWebAppsPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2822,7 +3379,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitionsPrepare
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2950,7 +3507,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerUsagesPreparer(ctx conte
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3081,7 +3638,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricDefinitio
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3207,7 +3764,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3335,7 +3892,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolSkusPreparer(ctx contex
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3456,7 +4013,7 @@ func (client AppServiceEnvironmentsClient) RebootPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3532,7 +4089,7 @@ func (client AppServiceEnvironmentsClient) ResumePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3659,7 +4216,7 @@ func (client AppServiceEnvironmentsClient) SuspendPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3794,7 +4351,7 @@ func (client AppServiceEnvironmentsClient) UpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3821,6 +4378,92 @@ func (client AppServiceEnvironmentsClient) UpdateResponder(resp *http.Response) 
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateAseNetworkingConfiguration description for Update networking configuration of an App Service Environment
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) UpdateAseNetworkingConfiguration(ctx context.Context, resourceGroupName string, name string, aseNetworkingConfiguration AseV3NetworkingConfiguration) (result AseV3NetworkingConfiguration, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.UpdateAseNetworkingConfiguration")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "UpdateAseNetworkingConfiguration", err.Error())
+	}
+
+	req, err := client.UpdateAseNetworkingConfigurationPreparer(ctx, resourceGroupName, name, aseNetworkingConfiguration)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "UpdateAseNetworkingConfiguration", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateAseNetworkingConfigurationSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "UpdateAseNetworkingConfiguration", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateAseNetworkingConfigurationResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "UpdateAseNetworkingConfiguration", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdateAseNetworkingConfigurationPreparer prepares the UpdateAseNetworkingConfiguration request.
+func (client AppServiceEnvironmentsClient) UpdateAseNetworkingConfigurationPreparer(ctx context.Context, resourceGroupName string, name string, aseNetworkingConfiguration AseV3NetworkingConfiguration) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/configurations/networking", pathParameters),
+		autorest.WithJSON(aseNetworkingConfiguration),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateAseNetworkingConfigurationSender sends the UpdateAseNetworkingConfiguration request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) UpdateAseNetworkingConfigurationSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateAseNetworkingConfigurationResponder handles the response to the UpdateAseNetworkingConfiguration request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) UpdateAseNetworkingConfigurationResponder(resp *http.Response) (result AseV3NetworkingConfiguration, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -3881,7 +4524,7 @@ func (client AppServiceEnvironmentsClient) UpdateMultiRolePoolPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3970,7 +4613,7 @@ func (client AppServiceEnvironmentsClient) UpdateWorkerPoolPreparer(ctx context.
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

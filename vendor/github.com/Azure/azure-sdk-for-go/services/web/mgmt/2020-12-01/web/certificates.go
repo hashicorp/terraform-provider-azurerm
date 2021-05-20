@@ -51,10 +51,7 @@ func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
-		{TargetValue: certificateEnvelope,
-			Constraints: []validation.Constraint{{Target: "certificateEnvelope.CertificateProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "certificateEnvelope.CertificateProperties.Password", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("web.CertificatesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -88,7 +85,7 @@ func (client CertificatesClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +171,7 @@ func (client CertificatesClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -257,7 +254,7 @@ func (client CertificatesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -289,7 +286,10 @@ func (client CertificatesClient) GetResponder(resp *http.Response) (result Certi
 }
 
 // List description for Get all certificates for a subscription.
-func (client CertificatesClient) List(ctx context.Context) (result CertificateCollectionPage, err error) {
+// Parameters:
+// filter - return only information specified in the filter (using OData syntax). For example:
+// $filter=KeyVaultId eq 'KeyVaultId'
+func (client CertificatesClient) List(ctx context.Context, filter string) (result CertificateCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificatesClient.List")
 		defer func() {
@@ -301,7 +301,7 @@ func (client CertificatesClient) List(ctx context.Context) (result CertificateCo
 		}()
 	}
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx)
+	req, err := client.ListPreparer(ctx, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificatesClient", "List", nil, "Failure preparing request")
 		return
@@ -328,14 +328,17 @@ func (client CertificatesClient) List(ctx context.Context) (result CertificateCo
 }
 
 // ListPreparer prepares the List request.
-func (client CertificatesClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client CertificatesClient) ListPreparer(ctx context.Context, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = filter
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -386,7 +389,7 @@ func (client CertificatesClient) listNextResults(ctx context.Context, lastResult
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client CertificatesClient) ListComplete(ctx context.Context) (result CertificateCollectionIterator, err error) {
+func (client CertificatesClient) ListComplete(ctx context.Context, filter string) (result CertificateCollectionIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificatesClient.List")
 		defer func() {
@@ -397,7 +400,7 @@ func (client CertificatesClient) ListComplete(ctx context.Context) (result Certi
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx)
+	result.page, err = client.List(ctx, filter)
 	return
 }
 
@@ -457,7 +460,7 @@ func (client CertificatesClient) ListByResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -579,7 +582,7 @@ func (client CertificatesClient) UpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

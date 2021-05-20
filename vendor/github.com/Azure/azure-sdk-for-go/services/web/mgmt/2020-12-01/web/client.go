@@ -1,4 +1,4 @@
-// Package web implements the Azure ARM Web service API version 2020-06-01.
+// Package web implements the Azure ARM Web service API version 2020-12-01.
 //
 // WebSite Management Client
 package web
@@ -93,7 +93,7 @@ func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -117,6 +117,83 @@ func (client BaseClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
 // closes the http.Response Body.
 func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GenerateGithubAccessTokenForAppserviceCLIAsync description for Exchange code for GitHub access token for AppService
+// CLI
+func (client BaseClient) GenerateGithubAccessTokenForAppserviceCLIAsync(ctx context.Context, request AppserviceGithubTokenRequest) (result AppserviceGithubToken, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GenerateGithubAccessTokenForAppserviceCLIAsync")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: request,
+			Constraints: []validation.Constraint{{Target: "request.Code", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "request.State", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.BaseClient", "GenerateGithubAccessTokenForAppserviceCLIAsync", err.Error())
+	}
+
+	req, err := client.GenerateGithubAccessTokenForAppserviceCLIAsyncPreparer(ctx, request)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "GenerateGithubAccessTokenForAppserviceCLIAsync", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GenerateGithubAccessTokenForAppserviceCLIAsyncSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "GenerateGithubAccessTokenForAppserviceCLIAsync", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GenerateGithubAccessTokenForAppserviceCLIAsyncResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "GenerateGithubAccessTokenForAppserviceCLIAsync", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GenerateGithubAccessTokenForAppserviceCLIAsyncPreparer prepares the GenerateGithubAccessTokenForAppserviceCLIAsync request.
+func (client BaseClient) GenerateGithubAccessTokenForAppserviceCLIAsyncPreparer(ctx context.Context, request AppserviceGithubTokenRequest) (*http.Request, error) {
+	const APIVersion = "2020-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPath("/providers/Microsoft.Web/generateGithubAccessTokenForAppserviceCLI"),
+		autorest.WithJSON(request),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GenerateGithubAccessTokenForAppserviceCLIAsyncSender sends the GenerateGithubAccessTokenForAppserviceCLIAsync request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GenerateGithubAccessTokenForAppserviceCLIAsyncSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GenerateGithubAccessTokenForAppserviceCLIAsyncResponder handles the response to the GenerateGithubAccessTokenForAppserviceCLIAsync request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GenerateGithubAccessTokenForAppserviceCLIAsyncResponder(resp *http.Response) (result AppserviceGithubToken, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -162,7 +239,7 @@ func (client BaseClient) GetPublishingUser(ctx context.Context) (result User, er
 
 // GetPublishingUserPreparer prepares the GetPublishingUser request.
 func (client BaseClient) GetPublishingUserPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,7 +312,7 @@ func (client BaseClient) GetSourceControlPreparer(ctx context.Context, sourceCon
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -306,7 +383,7 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsPreparer(ctx context.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -385,7 +462,7 @@ func (client BaseClient) ListBillingMetersPreparer(ctx context.Context, billingL
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -512,7 +589,7 @@ func (client BaseClient) ListGeoRegionsPreparer(ctx context.Context, sku SkuName
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -637,7 +714,7 @@ func (client BaseClient) ListPremierAddOnOffersPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -752,7 +829,7 @@ func (client BaseClient) ListSiteIdentifiersAssignedToHostNamePreparer(ctx conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -862,7 +939,7 @@ func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -934,7 +1011,7 @@ func (client BaseClient) ListSourceControls(ctx context.Context) (result SourceC
 
 // ListSourceControlsPreparer prepares the ListSourceControls request.
 func (client BaseClient) ListSourceControlsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1060,7 +1137,7 @@ func (client BaseClient) MovePreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1137,7 +1214,7 @@ func (client BaseClient) UpdatePublishingUser(ctx context.Context, userDetails U
 
 // UpdatePublishingUserPreparer prepares the UpdatePublishingUser request.
 func (client BaseClient) UpdatePublishingUserPreparer(ctx context.Context, userDetails User) (*http.Request, error) {
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1213,7 +1290,7 @@ func (client BaseClient) UpdateSourceControlPreparer(ctx context.Context, source
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1272,6 +1349,10 @@ func (client BaseClient) Validate(ctx context.Context, resourceGroupName string,
 				{Target: "validateRequest.ValidateProperties", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
+						{Target: "validateRequest.ValidateProperties.AppServiceEnvironment", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.AppServiceEnvironment.VirtualNetwork", Name: validation.Null, Rule: true,
+								Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.AppServiceEnvironment.VirtualNetwork.ID", Name: validation.Null, Rule: true, Chain: nil}}},
+							}},
 					}}}}}); err != nil {
 		return result, validation.NewError("web.BaseClient", "Validate", err.Error())
 	}
@@ -1305,7 +1386,7 @@ func (client BaseClient) ValidatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1396,7 +1477,7 @@ func (client BaseClient) ValidateMovePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1471,7 +1552,7 @@ func (client BaseClient) VerifyHostingEnvironmentVnetPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

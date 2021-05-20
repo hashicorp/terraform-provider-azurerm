@@ -20,7 +20,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-12-01/web"
 
 // AbnormalTimePeriod class representing Abnormal Time Period identified in diagnosis
 type AbnormalTimePeriod struct {
@@ -353,6 +353,276 @@ type APIDefinitionInfo struct {
 	URL *string `json:"url,omitempty"`
 }
 
+// APIKVReference description of site key vault references.
+type APIKVReference struct {
+	autorest.Response `json:"-"`
+	// APIKVReferenceProperties - ApiKVReference resource specific properties
+	*APIKVReferenceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIKVReference.
+func (akr APIKVReference) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if akr.APIKVReferenceProperties != nil {
+		objectMap["properties"] = akr.APIKVReferenceProperties
+	}
+	if akr.Kind != nil {
+		objectMap["kind"] = akr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for APIKVReference struct.
+func (akr *APIKVReference) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var aPIKVReferenceProperties APIKVReferenceProperties
+				err = json.Unmarshal(*v, &aPIKVReferenceProperties)
+				if err != nil {
+					return err
+				}
+				akr.APIKVReferenceProperties = &aPIKVReferenceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				akr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				akr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				akr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				akr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// APIKVReferenceCollection ...
+type APIKVReferenceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]APIKVReference `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIKVReferenceCollection.
+func (akrc APIKVReferenceCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if akrc.Value != nil {
+		objectMap["value"] = akrc.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// APIKVReferenceCollectionIterator provides access to a complete listing of APIKVReference values.
+type APIKVReferenceCollectionIterator struct {
+	i    int
+	page APIKVReferenceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *APIKVReferenceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIKVReferenceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *APIKVReferenceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter APIKVReferenceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter APIKVReferenceCollectionIterator) Response() APIKVReferenceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter APIKVReferenceCollectionIterator) Value() APIKVReference {
+	if !iter.page.NotDone() {
+		return APIKVReference{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the APIKVReferenceCollectionIterator type.
+func NewAPIKVReferenceCollectionIterator(page APIKVReferenceCollectionPage) APIKVReferenceCollectionIterator {
+	return APIKVReferenceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (akrc APIKVReferenceCollection) IsEmpty() bool {
+	return akrc.Value == nil || len(*akrc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (akrc APIKVReferenceCollection) hasNextLink() bool {
+	return akrc.NextLink != nil && len(*akrc.NextLink) != 0
+}
+
+// aPIKVReferenceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (akrc APIKVReferenceCollection) aPIKVReferenceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !akrc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(akrc.NextLink)))
+}
+
+// APIKVReferenceCollectionPage contains a page of APIKVReference values.
+type APIKVReferenceCollectionPage struct {
+	fn  func(context.Context, APIKVReferenceCollection) (APIKVReferenceCollection, error)
+	arc APIKVReferenceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *APIKVReferenceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIKVReferenceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.arc)
+		if err != nil {
+			return err
+		}
+		page.arc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *APIKVReferenceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page APIKVReferenceCollectionPage) NotDone() bool {
+	return !page.arc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page APIKVReferenceCollectionPage) Response() APIKVReferenceCollection {
+	return page.arc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page APIKVReferenceCollectionPage) Values() []APIKVReference {
+	if page.arc.IsEmpty() {
+		return nil
+	}
+	return *page.arc.Value
+}
+
+// Creates a new instance of the APIKVReferenceCollectionPage type.
+func NewAPIKVReferenceCollectionPage(cur APIKVReferenceCollection, getNextPage func(context.Context, APIKVReferenceCollection) (APIKVReferenceCollection, error)) APIKVReferenceCollectionPage {
+	return APIKVReferenceCollectionPage{
+		fn:  getNextPage,
+		arc: cur,
+	}
+}
+
+// APIKVReferenceProperties apiKVReference resource specific properties
+type APIKVReferenceProperties struct {
+	Reference *string `json:"reference,omitempty"`
+	// Status - Possible values include: 'Initialized', 'Resolved', 'InvalidSyntax', 'MSINotEnabled', 'VaultNotFound', 'SecretNotFound', 'SecretVersionNotFound', 'AccessToKeyVaultDenied', 'OtherReasons', 'FetchTimedOut', 'UnauthorizedClient'
+	Status        ResolveStatus           `json:"status,omitempty"`
+	VaultName     *string                 `json:"vaultName,omitempty"`
+	SecretName    *string                 `json:"secretName,omitempty"`
+	SecretVersion *string                 `json:"secretVersion,omitempty"`
+	IdentityType  *ManagedServiceIdentity `json:"identityType,omitempty"`
+	Details       *string                 `json:"details,omitempty"`
+	// Source - Possible values include: 'KeyVault'
+	Source        ConfigReferenceSource `json:"source,omitempty"`
+	ActiveVersion *string               `json:"activeVersion,omitempty"`
+}
+
 // APIManagementConfig azure API management (APIM) configuration linked to the app.
 type APIManagementConfig struct {
 	// ID - APIM-Api Identifier.
@@ -527,6 +797,14 @@ func NewAppCollectionPage(cur AppCollection, getNextPage func(context.Context, A
 	}
 }
 
+// AppInsightsWebAppStackSettings app Insights Web App stack settings.
+type AppInsightsWebAppStackSettings struct {
+	// IsSupported - READ-ONLY; <code>true</code> if remote Application Insights is supported for the stack; otherwise, <code>false</code>.
+	IsSupported *bool `json:"isSupported,omitempty"`
+	// IsDefaultOff - READ-ONLY; <code>true</code> if Application Insights is disabled by default for the stack; otherwise, <code>false</code>.
+	IsDefaultOff *bool `json:"isDefaultOff,omitempty"`
+}
+
 // AppInstanceStatusCollection collection of app instances.
 type AppInstanceStatusCollection struct {
 	autorest.Response `json:"-"`
@@ -695,6 +973,191 @@ func NewAppInstanceStatusCollectionPage(cur AppInstanceStatusCollection, getNext
 	}
 }
 
+// Apple ...
+type Apple struct {
+	// AppleProperties - Apple resource specific properties
+	*AppleProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Apple.
+func (a Apple) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if a.AppleProperties != nil {
+		objectMap["properties"] = a.AppleProperties
+	}
+	if a.Kind != nil {
+		objectMap["kind"] = a.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Apple struct.
+func (a *Apple) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var appleProperties AppleProperties
+				err = json.Unmarshal(*v, &appleProperties)
+				if err != nil {
+					return err
+				}
+				a.AppleProperties = &appleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				a.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				a.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				a.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				a.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AppleProperties apple resource specific properties
+type AppleProperties struct {
+	Enabled      *bool              `json:"enabled,omitempty"`
+	Registration *AppleRegistration `json:"registration,omitempty"`
+	Login        *LoginScopes       `json:"login,omitempty"`
+}
+
+// AppleRegistration ...
+type AppleRegistration struct {
+	// AppleRegistrationProperties - AppleRegistration resource specific properties
+	*AppleRegistrationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppleRegistration.
+func (ar AppleRegistration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ar.AppleRegistrationProperties != nil {
+		objectMap["properties"] = ar.AppleRegistrationProperties
+	}
+	if ar.Kind != nil {
+		objectMap["kind"] = ar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AppleRegistration struct.
+func (ar *AppleRegistration) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var appleRegistrationProperties AppleRegistrationProperties
+				err = json.Unmarshal(*v, &appleRegistrationProperties)
+				if err != nil {
+					return err
+				}
+				ar.AppleRegistrationProperties = &appleRegistrationProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AppleRegistrationProperties appleRegistration resource specific properties
+type AppleRegistrationProperties struct {
+	ClientID                *string `json:"clientId,omitempty"`
+	ClientSecretSettingName *string `json:"clientSecretSettingName,omitempty"`
+}
+
 // ApplicationLogsConfig application logs configuration.
 type ApplicationLogsConfig struct {
 	// FileSystem - Application logs to file system configuration.
@@ -717,6 +1180,8 @@ type ApplicationStack struct {
 	MajorVersions *[]StackMajorVersion `json:"majorVersions,omitempty"`
 	// Frameworks - List of frameworks associated with application stack.
 	Frameworks *[]ApplicationStack `json:"frameworks,omitempty"`
+	// IsDeprecated - <code>true</code> if this is the stack is deprecated; otherwise, <code>false</code>.
+	IsDeprecated *[]ApplicationStack `json:"isDeprecated,omitempty"`
 }
 
 // ApplicationStackCollection collection of Application Stacks
@@ -974,6 +1439,26 @@ func (asr *ApplicationStackResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AppMajorVersion web App stack major version.
+type AppMajorVersion struct {
+	// DisplayText - READ-ONLY; Web App stack major version (display only).
+	DisplayText *string `json:"displayText,omitempty"`
+	// Value - READ-ONLY; Web App stack major version name.
+	Value *string `json:"value,omitempty"`
+	// MinorVersions - READ-ONLY; Minor versions associated with the major version.
+	MinorVersions *[]AppMinorVersion `json:"minorVersions,omitempty"`
+}
+
+// AppMinorVersion web App stack minor version.
+type AppMinorVersion struct {
+	// DisplayText - READ-ONLY; Web App stack minor version (display only).
+	DisplayText *string `json:"displayText,omitempty"`
+	// Value - READ-ONLY; Web App stack major version name.
+	Value *string `json:"value,omitempty"`
+	// StackSettings - READ-ONLY; Settings associated with the minor version.
+	StackSettings *AppRuntimes `json:"stackSettings,omitempty"`
+}
+
 // AppRegistration ...
 type AppRegistration struct {
 	// AppRegistrationProperties - AppRegistration resource specific properties
@@ -1066,13 +1551,49 @@ type AppRegistrationProperties struct {
 	AppSecretSettingName *string `json:"appSecretSettingName,omitempty"`
 }
 
+// AppRuntimes web App stack runtimes.
+type AppRuntimes struct {
+	// LinuxRuntimeSettings - READ-ONLY; Linux-specific settings associated with the minor version.
+	LinuxRuntimeSettings *AppRuntimeSettings `json:"linuxRuntimeSettings,omitempty"`
+	// WindowsRuntimeSettings - READ-ONLY; Windows-specific settings associated with the minor version.
+	WindowsRuntimeSettings *AppRuntimeSettings `json:"windowsRuntimeSettings,omitempty"`
+	// LinuxContainerSettings - READ-ONLY; Linux-specific settings associated with the Java container minor version.
+	LinuxContainerSettings *LinuxJavaContainerSettings `json:"linuxContainerSettings,omitempty"`
+	// WindowsContainerSettings - READ-ONLY; Windows-specific settings associated with the Java container minor version.
+	WindowsContainerSettings *WindowsJavaContainerSettings `json:"windowsContainerSettings,omitempty"`
+}
+
+// AppRuntimeSettings web App runtime settings.
+type AppRuntimeSettings struct {
+	// RuntimeVersion - READ-ONLY; Web App stack minor version (runtime only).
+	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
+	// RemoteDebuggingSupported - READ-ONLY; <code>true</code> if remote debugging is supported for the stack; otherwise, <code>false</code>.
+	RemoteDebuggingSupported *bool `json:"remoteDebuggingSupported,omitempty"`
+	// AppInsightsSettings - READ-ONLY; Application Insights settings associated with the minor version.
+	AppInsightsSettings *AppInsightsWebAppStackSettings `json:"appInsightsSettings,omitempty"`
+	// GitHubActionSettings - READ-ONLY; GitHub Actions settings associated with the minor version.
+	GitHubActionSettings *GitHubActionWebAppStackSettings `json:"gitHubActionSettings,omitempty"`
+	// IsPreview - READ-ONLY; <code>true</code> if the stack is in preview; otherwise, <code>false</code>.
+	IsPreview *bool `json:"isPreview,omitempty"`
+	// IsDeprecated - READ-ONLY; <code>true</code> if the stack is deprecated; otherwise, <code>false</code>.
+	IsDeprecated *bool `json:"isDeprecated,omitempty"`
+	// IsHidden - READ-ONLY; <code>true</code> if the stack should be hidden; otherwise, <code>false</code>.
+	IsHidden *bool `json:"isHidden,omitempty"`
+	// EndOfLifeDate - READ-ONLY; End-of-life date for the minor version.
+	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
+	// IsAutoUpdate - READ-ONLY; <code>true</code> if the stack version is auto-updated; otherwise, <code>false</code>.
+	IsAutoUpdate *bool `json:"isAutoUpdate,omitempty"`
+	// IsEarlyAccess - READ-ONLY; <code>true</code> if the minor version is early-access; otherwise, <code>false</code>.
+	IsEarlyAccess *bool `json:"isEarlyAccess,omitempty"`
+}
+
 // AppsApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type AppsApproveOrRejectPrivateEndpointConnectionFuture struct {
 	azure.FutureAPI
 	// Result returns the result of the asynchronous operation.
 	// If the operation has not completed it will return an error.
-	Result func(AppsClient) (PrivateEndpointConnectionResource, error)
+	Result func(AppsClient) (RemotePrivateEndpointConnectionARMResource, error)
 }
 
 // UnmarshalJSON is the custom unmarshaller for CreateFuture.
@@ -1087,7 +1608,7 @@ func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) UnmarshalJSON(
 }
 
 // result is the default implementation for AppsApproveOrRejectPrivateEndpointConnectionFuture.Result.
-func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) result(client AppsClient) (pecr PrivateEndpointConnectionResource, err error) {
+func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) result(client AppsClient) (rpecar RemotePrivateEndpointConnectionARMResource, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
@@ -1095,31 +1616,31 @@ func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) result(client 
 		return
 	}
 	if !done {
-		pecr.Response.Response = future.Response()
+		rpecar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("web.AppsApproveOrRejectPrivateEndpointConnectionFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pecr.Response.Response, err = future.GetResult(sender); err == nil && pecr.Response.Response.StatusCode != http.StatusNoContent {
-		pecr, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(pecr.Response.Response)
+	if rpecar.Response.Response, err = future.GetResult(sender); err == nil && rpecar.Response.Response.StatusCode != http.StatusNoContent {
+		rpecar, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(rpecar.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", pecr.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", rpecar.Response.Response, "Failure responding to request")
 		}
 	}
 	return
 }
 
-// AppsCopyProductionSlotFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type AppsCopyProductionSlotFuture struct {
+// AppsApproveOrRejectPrivateEndpointConnectionSlotFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type AppsApproveOrRejectPrivateEndpointConnectionSlotFuture struct {
 	azure.FutureAPI
 	// Result returns the result of the asynchronous operation.
 	// If the operation has not completed it will return an error.
-	Result func(AppsClient) (autorest.Response, error)
+	Result func(AppsClient) (RemotePrivateEndpointConnectionARMResource, error)
 }
 
 // UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *AppsCopyProductionSlotFuture) UnmarshalJSON(body []byte) error {
+func (future *AppsApproveOrRejectPrivateEndpointConnectionSlotFuture) UnmarshalJSON(body []byte) error {
 	var azFuture azure.Future
 	if err := json.Unmarshal(body, &azFuture); err != nil {
 		return err
@@ -1129,57 +1650,26 @@ func (future *AppsCopyProductionSlotFuture) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// result is the default implementation for AppsCopyProductionSlotFuture.Result.
-func (future *AppsCopyProductionSlotFuture) result(client AppsClient) (ar autorest.Response, err error) {
+// result is the default implementation for AppsApproveOrRejectPrivateEndpointConnectionSlotFuture.Result.
+func (future *AppsApproveOrRejectPrivateEndpointConnectionSlotFuture) result(client AppsClient) (rpecar RemotePrivateEndpointConnectionARMResource, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCopyProductionSlotFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionSlotFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("web.AppsCopyProductionSlotFuture")
+		rpecar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.AppsApproveOrRejectPrivateEndpointConnectionSlotFuture")
 		return
 	}
-	ar.Response = future.Response()
-	return
-}
-
-// AppsCopySlotSlotFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type AppsCopySlotSlotFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(AppsClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *AppsCopySlotSlotFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if rpecar.Response.Response, err = future.GetResult(sender); err == nil && rpecar.Response.Response.StatusCode != http.StatusNoContent {
+		rpecar, err = client.ApproveOrRejectPrivateEndpointConnectionSlotResponder(rpecar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionSlotFuture", "Result", rpecar.Response.Response, "Failure responding to request")
+		}
 	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for AppsCopySlotSlotFuture.Result.
-func (future *AppsCopySlotSlotFuture) result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCopySlotSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("web.AppsCopySlotSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
 	return
 }
 
@@ -1651,6 +2141,49 @@ func (future *AppsDeletePrivateEndpointConnectionFuture) result(client AppsClien
 		so, err = client.DeletePrivateEndpointConnectionResponder(so.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", so.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// AppsDeletePrivateEndpointConnectionSlotFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type AppsDeletePrivateEndpointConnectionSlotFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (SetObject, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *AppsDeletePrivateEndpointConnectionSlotFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for AppsDeletePrivateEndpointConnectionSlotFuture.Result.
+func (future *AppsDeletePrivateEndpointConnectionSlotFuture) result(client AppsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionSlotFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		so.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.AppsDeletePrivateEndpointConnectionSlotFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.DeletePrivateEndpointConnectionSlotResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionSlotFuture", "Result", so.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -2227,7 +2760,7 @@ type AppServiceCertificateOrderPatchResourceProperties struct {
 	DistinguishedName *string `json:"distinguishedName,omitempty"`
 	// DomainVerificationToken - READ-ONLY; Domain verification token.
 	DomainVerificationToken *string `json:"domainVerificationToken,omitempty"`
-	// ValidityInYears - Duration in years (must be between 1 and 3).
+	// ValidityInYears - Duration in years (must be 1).
 	ValidityInYears *int32 `json:"validityInYears,omitempty"`
 	// KeySize - Certificate key size.
 	KeySize *int32 `json:"keySize,omitempty"`
@@ -2259,6 +2792,8 @@ type AppServiceCertificateOrderPatchResourceProperties struct {
 	AppServiceCertificateNotRenewableReasons *[]string `json:"appServiceCertificateNotRenewableReasons,omitempty"`
 	// NextAutoRenewalTimeStamp - READ-ONLY; Time stamp when the certificate would be auto renewed next
 	NextAutoRenewalTimeStamp *date.Time `json:"nextAutoRenewalTimeStamp,omitempty"`
+	// Contact - READ-ONLY; Contact info
+	Contact *CertificateOrderContact `json:"contact,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServiceCertificateOrderPatchResourceProperties.
@@ -2296,7 +2831,7 @@ type AppServiceCertificateOrderProperties struct {
 	DistinguishedName *string `json:"distinguishedName,omitempty"`
 	// DomainVerificationToken - READ-ONLY; Domain verification token.
 	DomainVerificationToken *string `json:"domainVerificationToken,omitempty"`
-	// ValidityInYears - Duration in years (must be between 1 and 3).
+	// ValidityInYears - Duration in years (must be 1).
 	ValidityInYears *int32 `json:"validityInYears,omitempty"`
 	// KeySize - Certificate key size.
 	KeySize *int32 `json:"keySize,omitempty"`
@@ -2328,6 +2863,8 @@ type AppServiceCertificateOrderProperties struct {
 	AppServiceCertificateNotRenewableReasons *[]string `json:"appServiceCertificateNotRenewableReasons,omitempty"`
 	// NextAutoRenewalTimeStamp - READ-ONLY; Time stamp when the certificate would be auto renewed next
 	NextAutoRenewalTimeStamp *date.Time `json:"nextAutoRenewalTimeStamp,omitempty"`
+	// Contact - READ-ONLY; Contact info
+	Contact *CertificateOrderContact `json:"contact,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServiceCertificateOrderProperties.
@@ -2648,106 +3185,42 @@ func (ascr *AppServiceCertificateResource) UnmarshalJSON(body []byte) error {
 
 // AppServiceEnvironment description of an App Service Environment.
 type AppServiceEnvironment struct {
-	// Name - Name of the App Service Environment.
-	Name *string `json:"name,omitempty"`
-	// Location - Location of the App Service Environment, e.g. "West US".
-	Location *string `json:"location,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning state of the App Service Environment. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateInProgress', 'ProvisioningStateDeleting'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Status - READ-ONLY; Current status of the App Service Environment. Possible values include: 'Preparing', 'Ready', 'Scaling', 'Deleting'
 	Status HostingEnvironmentStatus `json:"status,omitempty"`
-	// VnetName - Name of the Virtual Network for the App Service Environment.
-	VnetName *string `json:"vnetName,omitempty"`
-	// VnetResourceGroupName - Resource group of the Virtual Network.
-	VnetResourceGroupName *string `json:"vnetResourceGroupName,omitempty"`
-	// VnetSubnetName - Subnet of the Virtual Network.
-	VnetSubnetName *string `json:"vnetSubnetName,omitempty"`
 	// VirtualNetwork - Description of the Virtual Network.
 	VirtualNetwork *VirtualNetworkProfile `json:"virtualNetwork,omitempty"`
 	// InternalLoadBalancingMode - Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values include: 'LoadBalancingModeNone', 'LoadBalancingModeWeb', 'LoadBalancingModePublishing', 'LoadBalancingModeWebPublishing'
 	InternalLoadBalancingMode LoadBalancingMode `json:"internalLoadBalancingMode,omitempty"`
 	// MultiSize - Front-end VM size, e.g. "Medium", "Large".
 	MultiSize *string `json:"multiSize,omitempty"`
-	// MultiRoleCount - Number of front-end instances.
+	// MultiRoleCount - READ-ONLY; Number of front-end instances.
 	MultiRoleCount *int32 `json:"multiRoleCount,omitempty"`
-	// WorkerPools - Description of worker pools with worker size IDs, VM sizes, and number of workers in each pool.
-	WorkerPools *[]WorkerPool `json:"workerPools,omitempty"`
 	// IpsslAddressCount - Number of IP SSL addresses reserved for the App Service Environment.
 	IpsslAddressCount *int32 `json:"ipsslAddressCount,omitempty"`
-	// DatabaseEdition - READ-ONLY; Edition of the metadata database for the App Service Environment, e.g. "Standard".
-	DatabaseEdition *string `json:"databaseEdition,omitempty"`
-	// DatabaseServiceObjective - READ-ONLY; Service objective of the metadata database for the App Service Environment, e.g. "S0".
-	DatabaseServiceObjective *string `json:"databaseServiceObjective,omitempty"`
-	// UpgradeDomains - READ-ONLY; Number of upgrade domains of the App Service Environment.
-	UpgradeDomains *int32 `json:"upgradeDomains,omitempty"`
-	// SubscriptionID - READ-ONLY; Subscription of the App Service Environment.
-	SubscriptionID *string `json:"subscriptionId,omitempty"`
 	// DNSSuffix - DNS suffix of the App Service Environment.
 	DNSSuffix *string `json:"dnsSuffix,omitempty"`
-	// LastAction - READ-ONLY; Last deployment action on the App Service Environment.
-	LastAction *string `json:"lastAction,omitempty"`
-	// LastActionResult - READ-ONLY; Result of the last deployment action on the App Service Environment.
-	LastActionResult *string `json:"lastActionResult,omitempty"`
-	// AllowedMultiSizes - READ-ONLY; List of comma separated strings describing which VM sizes are allowed for front-ends.
-	AllowedMultiSizes *string `json:"allowedMultiSizes,omitempty"`
-	// AllowedWorkerSizes - READ-ONLY; List of comma separated strings describing which VM sizes are allowed for workers.
-	AllowedWorkerSizes *string `json:"allowedWorkerSizes,omitempty"`
 	// MaximumNumberOfMachines - READ-ONLY; Maximum number of VMs in the App Service Environment.
 	MaximumNumberOfMachines *int32 `json:"maximumNumberOfMachines,omitempty"`
-	// VipMappings - READ-ONLY; Description of IP SSL mapping for the App Service Environment.
-	VipMappings *[]VirtualIPMapping `json:"vipMappings,omitempty"`
-	// EnvironmentCapacities - READ-ONLY; Current total, used, and available worker capacities.
-	EnvironmentCapacities *[]StampCapacity `json:"environmentCapacities,omitempty"`
-	// NetworkAccessControlList - Access control list for controlling traffic to the App Service Environment.
-	NetworkAccessControlList *[]NetworkAccessControlEntry `json:"networkAccessControlList,omitempty"`
-	// EnvironmentIsHealthy - READ-ONLY; True/false indicating whether the App Service Environment is healthy.
-	EnvironmentIsHealthy *bool `json:"environmentIsHealthy,omitempty"`
-	// EnvironmentStatus - READ-ONLY; Detailed message about with results of the last check of the App Service Environment.
-	EnvironmentStatus *string `json:"environmentStatus,omitempty"`
-	// ResourceGroup - READ-ONLY; Resource group of the App Service Environment.
-	ResourceGroup *string `json:"resourceGroup,omitempty"`
 	// FrontEndScaleFactor - Scale factor for front-ends.
 	FrontEndScaleFactor *int32 `json:"frontEndScaleFactor,omitempty"`
-	// DefaultFrontEndScaleFactor - READ-ONLY; Default Scale Factor for FrontEnds.
-	DefaultFrontEndScaleFactor *int32 `json:"defaultFrontEndScaleFactor,omitempty"`
-	// APIManagementAccountID - API Management Account associated with the App Service Environment.
-	APIManagementAccountID *string `json:"apiManagementAccountId,omitempty"`
-	// Suspended - <code>true</code> if the App Service Environment is suspended; otherwise, <code>false</code>. The environment can be suspended, e.g. when the management endpoint is no longer available
+	// Suspended - READ-ONLY; <code>true</code> if the App Service Environment is suspended; otherwise, <code>false</code>. The environment can be suspended, e.g. when the management endpoint is no longer available
 	//  (most likely because NSG blocked the incoming traffic).
 	Suspended *bool `json:"suspended,omitempty"`
-	// DynamicCacheEnabled - True/false indicating whether the App Service Environment is suspended. The environment can be suspended e.g. when the management endpoint is no longer available
-	// (most likely because NSG blocked the incoming traffic).
-	DynamicCacheEnabled *bool `json:"dynamicCacheEnabled,omitempty"`
 	// ClusterSettings - Custom settings for changing the behavior of the App Service Environment.
 	ClusterSettings *[]NameValuePair `json:"clusterSettings,omitempty"`
 	// UserWhitelistedIPRanges - User added ip ranges to whitelist on ASE db
 	UserWhitelistedIPRanges *[]string `json:"userWhitelistedIpRanges,omitempty"`
-	// HasLinuxWorkers - Flag that displays whether an ASE has linux workers or not
+	// HasLinuxWorkers - READ-ONLY; Flag that displays whether an ASE has linux workers or not
 	HasLinuxWorkers *bool `json:"hasLinuxWorkers,omitempty"`
-	// SslCertKeyVaultID - Key Vault ID for ILB App Service Environment default SSL certificate
-	SslCertKeyVaultID *string `json:"sslCertKeyVaultId,omitempty"`
-	// SslCertKeyVaultSecretName - Key Vault Secret Name for ILB App Service Environment default SSL certificate
-	SslCertKeyVaultSecretName *string `json:"sslCertKeyVaultSecretName,omitempty"`
+	// DedicatedHostCount - READ-ONLY; Dedicated Host Count
+	DedicatedHostCount *int32 `json:"dedicatedHostCount,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServiceEnvironment.
 func (ase AppServiceEnvironment) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ase.Name != nil {
-		objectMap["name"] = ase.Name
-	}
-	if ase.Location != nil {
-		objectMap["location"] = ase.Location
-	}
-	if ase.VnetName != nil {
-		objectMap["vnetName"] = ase.VnetName
-	}
-	if ase.VnetResourceGroupName != nil {
-		objectMap["vnetResourceGroupName"] = ase.VnetResourceGroupName
-	}
-	if ase.VnetSubnetName != nil {
-		objectMap["vnetSubnetName"] = ase.VnetSubnetName
-	}
 	if ase.VirtualNetwork != nil {
 		objectMap["virtualNetwork"] = ase.VirtualNetwork
 	}
@@ -2757,47 +3230,20 @@ func (ase AppServiceEnvironment) MarshalJSON() ([]byte, error) {
 	if ase.MultiSize != nil {
 		objectMap["multiSize"] = ase.MultiSize
 	}
-	if ase.MultiRoleCount != nil {
-		objectMap["multiRoleCount"] = ase.MultiRoleCount
-	}
-	if ase.WorkerPools != nil {
-		objectMap["workerPools"] = ase.WorkerPools
-	}
 	if ase.IpsslAddressCount != nil {
 		objectMap["ipsslAddressCount"] = ase.IpsslAddressCount
 	}
 	if ase.DNSSuffix != nil {
 		objectMap["dnsSuffix"] = ase.DNSSuffix
 	}
-	if ase.NetworkAccessControlList != nil {
-		objectMap["networkAccessControlList"] = ase.NetworkAccessControlList
-	}
 	if ase.FrontEndScaleFactor != nil {
 		objectMap["frontEndScaleFactor"] = ase.FrontEndScaleFactor
-	}
-	if ase.APIManagementAccountID != nil {
-		objectMap["apiManagementAccountId"] = ase.APIManagementAccountID
-	}
-	if ase.Suspended != nil {
-		objectMap["suspended"] = ase.Suspended
-	}
-	if ase.DynamicCacheEnabled != nil {
-		objectMap["dynamicCacheEnabled"] = ase.DynamicCacheEnabled
 	}
 	if ase.ClusterSettings != nil {
 		objectMap["clusterSettings"] = ase.ClusterSettings
 	}
 	if ase.UserWhitelistedIPRanges != nil {
 		objectMap["userWhitelistedIpRanges"] = ase.UserWhitelistedIPRanges
-	}
-	if ase.HasLinuxWorkers != nil {
-		objectMap["hasLinuxWorkers"] = ase.HasLinuxWorkers
-	}
-	if ase.SslCertKeyVaultID != nil {
-		objectMap["sslCertKeyVaultId"] = ase.SslCertKeyVaultID
-	}
-	if ase.SslCertKeyVaultSecretName != nil {
-		objectMap["sslCertKeyVaultSecretName"] = ase.SslCertKeyVaultSecretName
 	}
 	return json.Marshal(objectMap)
 }
@@ -3172,6 +3618,49 @@ func (aser *AppServiceEnvironmentResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (RemotePrivateEndpointConnectionARMResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture.Result.
+func (future *AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture) result(client AppServiceEnvironmentsClient) (rpecar RemotePrivateEndpointConnectionARMResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		rpecar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if rpecar.Response.Response, err = future.GetResult(sender); err == nil && rpecar.Response.Response.StatusCode != http.StatusNoContent {
+		rpecar, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(rpecar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture", "Result", rpecar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // AppServiceEnvironmentsChangeVnetAllFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsChangeVnetAllFuture struct {
@@ -3424,6 +3913,49 @@ func (future *AppServiceEnvironmentsDeleteFuture) result(client AppServiceEnviro
 	return
 }
 
+// AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (SetObject, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture.Result.
+func (future *AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture) result(client AppServiceEnvironmentsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		so.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.DeletePrivateEndpointConnectionResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsDeletePrivateEndpointConnectionFuture", "Result", so.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // AppServiceEnvironmentsResumeAllFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsResumeAllFuture struct {
@@ -3594,6 +4126,29 @@ func (future *AppServiceEnvironmentsSuspendFuture) result(client AppServiceEnvir
 		}
 	}
 	return
+}
+
+// AppserviceGithubToken github access token for Appservice CLI github integration.
+type AppserviceGithubToken struct {
+	autorest.Response `json:"-"`
+	// AccessToken - Github access token for Appservice CLI github integration
+	AccessToken *string `json:"accessToken,omitempty"`
+	// Scope - Scope of the github access token
+	Scope *string `json:"scope,omitempty"`
+	// TokenType - token type
+	TokenType *string `json:"tokenType,omitempty"`
+	// GotToken - True if valid github token received, False otherwise
+	GotToken *bool `json:"gotToken,omitempty"`
+	// ErrorMessage - Error message if unable to get token
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+}
+
+// AppserviceGithubTokenRequest appservice Github token request content.
+type AppserviceGithubTokenRequest struct {
+	// Code - Code string to exchange for Github Access token
+	Code *string `json:"code,omitempty"`
+	// State - State string used for verification.
+	State *string `json:"state,omitempty"`
 }
 
 // AppServicePlan app Service plan.
@@ -4007,7 +4562,7 @@ type AppServicePlanPatchResourceProperties struct {
 	FreeOfferExpirationTime *date.Time `json:"freeOfferExpirationTime,omitempty"`
 	// ResourceGroup - READ-ONLY; Resource group of the App Service plan.
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
-	// Reserved - This needs to set to <code>true</code> when creating a Linux App Service Plan, along with <code>kind</code> set to <code>Linux</code>. It should be <code>false</code> otherwise.
+	// Reserved - If Linux app service plan <code>true</code>, <code>false</code> otherwise.
 	Reserved *bool `json:"reserved,omitempty"`
 	// IsXenon - Obsolete: If Hyper-V container app service plan <code>true</code>, <code>false</code> otherwise.
 	IsXenon *bool `json:"isXenon,omitempty"`
@@ -4017,8 +4572,10 @@ type AppServicePlanPatchResourceProperties struct {
 	TargetWorkerCount *int32 `json:"targetWorkerCount,omitempty"`
 	// TargetWorkerSizeID - Scaling worker size ID.
 	TargetWorkerSizeID *int32 `json:"targetWorkerSizeId,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the App Service Environment. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateInProgress', 'ProvisioningStateDeleting'
+	// ProvisioningState - READ-ONLY; Provisioning state of the App Service Plan. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateInProgress', 'ProvisioningStateDeleting'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// KubeEnvironmentProfile - Specification for the Kubernetes Environment to use for the App Service plan.
+	KubeEnvironmentProfile *KubeEnvironmentProfile `json:"kubeEnvironmentProfile,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServicePlanPatchResourceProperties.
@@ -4059,6 +4616,9 @@ func (asppr AppServicePlanPatchResourceProperties) MarshalJSON() ([]byte, error)
 	}
 	if asppr.TargetWorkerSizeID != nil {
 		objectMap["targetWorkerSizeId"] = asppr.TargetWorkerSizeID
+	}
+	if asppr.KubeEnvironmentProfile != nil {
+		objectMap["kubeEnvironmentProfile"] = asppr.KubeEnvironmentProfile
 	}
 	return json.Marshal(objectMap)
 }
@@ -4102,8 +4662,10 @@ type AppServicePlanProperties struct {
 	TargetWorkerCount *int32 `json:"targetWorkerCount,omitempty"`
 	// TargetWorkerSizeID - Scaling worker size ID.
 	TargetWorkerSizeID *int32 `json:"targetWorkerSizeId,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the App Service Environment. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateInProgress', 'ProvisioningStateDeleting'
+	// ProvisioningState - READ-ONLY; Provisioning state of the App Service Plan. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateInProgress', 'ProvisioningStateDeleting'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// KubeEnvironmentProfile - Specification for the Kubernetes Environment to use for the App Service plan.
+	KubeEnvironmentProfile *KubeEnvironmentProfile `json:"kubeEnvironmentProfile,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServicePlanProperties.
@@ -4144,6 +4706,9 @@ func (asp AppServicePlanProperties) MarshalJSON() ([]byte, error) {
 	}
 	if asp.TargetWorkerSizeID != nil {
 		objectMap["targetWorkerSizeId"] = asp.TargetWorkerSizeID
+	}
+	if asp.KubeEnvironmentProfile != nil {
+		objectMap["kubeEnvironmentProfile"] = asp.KubeEnvironmentProfile
 	}
 	return json.Marshal(objectMap)
 }
@@ -4990,10 +5555,393 @@ func (future *AppsSwapSlotWithProductionFuture) result(client AppsClient) (ar au
 	return
 }
 
+// AppStack web App stack.
+type AppStack struct {
+	// Location - READ-ONLY; Web App stack location.
+	Location *string `json:"location,omitempty"`
+	// AppStackProperties - WebAppStack resource specific properties
+	*AppStackProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppStack.
+func (as AppStack) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if as.AppStackProperties != nil {
+		objectMap["properties"] = as.AppStackProperties
+	}
+	if as.Kind != nil {
+		objectMap["kind"] = as.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AppStack struct.
+func (as *AppStack) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				as.Location = &location
+			}
+		case "properties":
+			if v != nil {
+				var appStackProperties AppStackProperties
+				err = json.Unmarshal(*v, &appStackProperties)
+				if err != nil {
+					return err
+				}
+				as.AppStackProperties = &appStackProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				as.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				as.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				as.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				as.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AppStackCollection collection of Web app Stacks
+type AppStackCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]AppStack `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppStackCollection.
+func (asc AppStackCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asc.Value != nil {
+		objectMap["value"] = asc.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// AppStackCollectionIterator provides access to a complete listing of AppStack values.
+type AppStackCollectionIterator struct {
+	i    int
+	page AppStackCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AppStackCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppStackCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AppStackCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AppStackCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AppStackCollectionIterator) Response() AppStackCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AppStackCollectionIterator) Value() AppStack {
+	if !iter.page.NotDone() {
+		return AppStack{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AppStackCollectionIterator type.
+func NewAppStackCollectionIterator(page AppStackCollectionPage) AppStackCollectionIterator {
+	return AppStackCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (asc AppStackCollection) IsEmpty() bool {
+	return asc.Value == nil || len(*asc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (asc AppStackCollection) hasNextLink() bool {
+	return asc.NextLink != nil && len(*asc.NextLink) != 0
+}
+
+// appStackCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (asc AppStackCollection) appStackCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !asc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(asc.NextLink)))
+}
+
+// AppStackCollectionPage contains a page of AppStack values.
+type AppStackCollectionPage struct {
+	fn  func(context.Context, AppStackCollection) (AppStackCollection, error)
+	asc AppStackCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AppStackCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppStackCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.asc)
+		if err != nil {
+			return err
+		}
+		page.asc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AppStackCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AppStackCollectionPage) NotDone() bool {
+	return !page.asc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AppStackCollectionPage) Response() AppStackCollection {
+	return page.asc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AppStackCollectionPage) Values() []AppStack {
+	if page.asc.IsEmpty() {
+		return nil
+	}
+	return *page.asc.Value
+}
+
+// Creates a new instance of the AppStackCollectionPage type.
+func NewAppStackCollectionPage(cur AppStackCollection, getNextPage func(context.Context, AppStackCollection) (AppStackCollection, error)) AppStackCollectionPage {
+	return AppStackCollectionPage{
+		fn:  getNextPage,
+		asc: cur,
+	}
+}
+
+// AppStackProperties webAppStack resource specific properties
+type AppStackProperties struct {
+	// DisplayText - READ-ONLY; Web App stack (display only).
+	DisplayText *string `json:"displayText,omitempty"`
+	// Value - READ-ONLY; Web App stack name.
+	Value *string `json:"value,omitempty"`
+	// MajorVersions - READ-ONLY; List of major versions available.
+	MajorVersions *[]AppMajorVersion `json:"majorVersions,omitempty"`
+	// PreferredOs - READ-ONLY; Web App stack preferred OS. Possible values include: 'Windows', 'Linux'
+	PreferredOs StackPreferredOs `json:"preferredOs,omitempty"`
+}
+
 // ArmIDWrapper a wrapper for an ARM resource id
 type ArmIDWrapper struct {
 	// ID - READ-ONLY
 	ID *string `json:"id,omitempty"`
+}
+
+// AseV3NetworkingConfiguration full view of networking configuration for an ASE.
+type AseV3NetworkingConfiguration struct {
+	autorest.Response `json:"-"`
+	// AseV3NetworkingConfigurationProperties - AseV3NetworkingConfiguration resource specific properties
+	*AseV3NetworkingConfigurationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AseV3NetworkingConfiguration.
+func (avnc AseV3NetworkingConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if avnc.AseV3NetworkingConfigurationProperties != nil {
+		objectMap["properties"] = avnc.AseV3NetworkingConfigurationProperties
+	}
+	if avnc.Kind != nil {
+		objectMap["kind"] = avnc.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AseV3NetworkingConfiguration struct.
+func (avnc *AseV3NetworkingConfiguration) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var aseV3NetworkingConfigurationProperties AseV3NetworkingConfigurationProperties
+				err = json.Unmarshal(*v, &aseV3NetworkingConfigurationProperties)
+				if err != nil {
+					return err
+				}
+				avnc.AseV3NetworkingConfigurationProperties = &aseV3NetworkingConfigurationProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				avnc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				avnc.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				avnc.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				avnc.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AseV3NetworkingConfigurationProperties aseV3NetworkingConfiguration resource specific properties
+type AseV3NetworkingConfigurationProperties struct {
+	// WindowsOutboundIPAddresses - READ-ONLY
+	WindowsOutboundIPAddresses *[]string `json:"windowsOutboundIpAddresses,omitempty"`
+	// LinuxOutboundIPAddresses - READ-ONLY
+	LinuxOutboundIPAddresses *[]string `json:"linuxOutboundIpAddresses,omitempty"`
+	// AllowNewPrivateEndpointConnections - Property to enable and disable new private endpoint connection creation on ASE
+	AllowNewPrivateEndpointConnections *bool `json:"allowNewPrivateEndpointConnections,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AseV3NetworkingConfigurationProperties.
+func (avnc AseV3NetworkingConfigurationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if avnc.AllowNewPrivateEndpointConnections != nil {
+		objectMap["allowNewPrivateEndpointConnections"] = avnc.AllowNewPrivateEndpointConnections
+	}
+	return json.Marshal(objectMap)
 }
 
 // AuthPlatform ...
@@ -5125,8 +6073,12 @@ type AutoHealTriggers struct {
 	PrivateBytesInKB *int32 `json:"privateBytesInKB,omitempty"`
 	// StatusCodes - A rule based on status codes.
 	StatusCodes *[]StatusCodesBasedTrigger `json:"statusCodes,omitempty"`
+	// StatusCodesRange - A rule based on status codes ranges.
+	StatusCodesRange *[]StatusCodesRangeBasedTrigger `json:"statusCodesRange,omitempty"`
 	// SlowRequests - A rule based on request execution time.
 	SlowRequests *SlowRequestsBasedTrigger `json:"slowRequests,omitempty"`
+	// SlowRequestsWithPath - A rule based on multiple Slow Requests Rule with path
+	SlowRequestsWithPath *[]SlowRequestsBasedTrigger `json:"slowRequestsWithPath,omitempty"`
 }
 
 // AzureActiveDirectory ...
@@ -5526,6 +6478,189 @@ type AzureBlobStorageHTTPLogsConfig struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+// AzureStaticWebApps ...
+type AzureStaticWebApps struct {
+	// AzureStaticWebAppsProperties - AzureStaticWebApps resource specific properties
+	*AzureStaticWebAppsProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureStaticWebApps.
+func (aswa AzureStaticWebApps) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aswa.AzureStaticWebAppsProperties != nil {
+		objectMap["properties"] = aswa.AzureStaticWebAppsProperties
+	}
+	if aswa.Kind != nil {
+		objectMap["kind"] = aswa.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AzureStaticWebApps struct.
+func (aswa *AzureStaticWebApps) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var azureStaticWebAppsProperties AzureStaticWebAppsProperties
+				err = json.Unmarshal(*v, &azureStaticWebAppsProperties)
+				if err != nil {
+					return err
+				}
+				aswa.AzureStaticWebAppsProperties = &azureStaticWebAppsProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				aswa.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				aswa.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				aswa.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				aswa.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AzureStaticWebAppsProperties azureStaticWebApps resource specific properties
+type AzureStaticWebAppsProperties struct {
+	Enabled      *bool                           `json:"enabled,omitempty"`
+	Registration *AzureStaticWebAppsRegistration `json:"registration,omitempty"`
+}
+
+// AzureStaticWebAppsRegistration ...
+type AzureStaticWebAppsRegistration struct {
+	// AzureStaticWebAppsRegistrationProperties - AzureStaticWebAppsRegistration resource specific properties
+	*AzureStaticWebAppsRegistrationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureStaticWebAppsRegistration.
+func (aswar AzureStaticWebAppsRegistration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aswar.AzureStaticWebAppsRegistrationProperties != nil {
+		objectMap["properties"] = aswar.AzureStaticWebAppsRegistrationProperties
+	}
+	if aswar.Kind != nil {
+		objectMap["kind"] = aswar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AzureStaticWebAppsRegistration struct.
+func (aswar *AzureStaticWebAppsRegistration) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var azureStaticWebAppsRegistrationProperties AzureStaticWebAppsRegistrationProperties
+				err = json.Unmarshal(*v, &azureStaticWebAppsRegistrationProperties)
+				if err != nil {
+					return err
+				}
+				aswar.AzureStaticWebAppsRegistrationProperties = &azureStaticWebAppsRegistrationProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				aswar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				aswar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				aswar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				aswar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AzureStaticWebAppsRegistrationProperties azureStaticWebAppsRegistration resource specific properties
+type AzureStaticWebAppsRegistrationProperties struct {
+	ClientID *string `json:"clientId,omitempty"`
+}
+
 // AzureStorageInfoValue azure Files or Blob Storage access information value for dictionary storage.
 type AzureStorageInfoValue struct {
 	// Type - Type of storage. Possible values include: 'AzureFiles', 'AzureBlob'
@@ -5538,7 +6673,7 @@ type AzureStorageInfoValue struct {
 	AccessKey *string `json:"accessKey,omitempty"`
 	// MountPath - Path to mount the storage within the site's runtime environment.
 	MountPath *string `json:"mountPath,omitempty"`
-	// State - READ-ONLY; State of the storage account. Possible values include: 'Ok', 'InvalidCredentials', 'InvalidShare'
+	// State - READ-ONLY; State of the storage account. Possible values include: 'Ok', 'InvalidCredentials', 'InvalidShare', 'NotValidated'
 	State AzureStorageState `json:"state,omitempty"`
 }
 
@@ -6293,6 +7428,8 @@ type BillingMeterProperties struct {
 	ResourceType *string `json:"resourceType,omitempty"`
 	// OsType - App Service OS type meter used for
 	OsType *string `json:"osType,omitempty"`
+	// Multiplier - Meter Multiplier
+	Multiplier *float64 `json:"multiplier,omitempty"`
 }
 
 // BlobStorageTokenStore ...
@@ -6889,6 +8026,14 @@ type CertificateOrderActionProperties struct {
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 }
 
+// CertificateOrderContact ...
+type CertificateOrderContact struct {
+	Email     *string `json:"email,omitempty"`
+	NameFirst *string `json:"nameFirst,omitempty"`
+	NameLast  *string `json:"nameLast,omitempty"`
+	Phone     *string `json:"phone,omitempty"`
+}
+
 // CertificatePatchResource ARM resource for a certificate.
 type CertificatePatchResource struct {
 	// CertificatePatchResourceProperties - CertificatePatchResource resource specific properties
@@ -7017,6 +8162,8 @@ type CertificatePatchResourceProperties struct {
 	ServerFarmID *string `json:"serverFarmId,omitempty"`
 	// CanonicalName - CNAME of the certificate to be issued via free certificate
 	CanonicalName *string `json:"canonicalName,omitempty"`
+	// DomainValidationMethod - Method of domain validation for free cert
+	DomainValidationMethod *string `json:"domainValidationMethod,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CertificatePatchResourceProperties.
@@ -7042,6 +8189,9 @@ func (cpr CertificatePatchResourceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if cpr.CanonicalName != nil {
 		objectMap["canonicalName"] = cpr.CanonicalName
+	}
+	if cpr.DomainValidationMethod != nil {
+		objectMap["domainValidationMethod"] = cpr.DomainValidationMethod
 	}
 	return json.Marshal(objectMap)
 }
@@ -7088,6 +8238,8 @@ type CertificateProperties struct {
 	ServerFarmID *string `json:"serverFarmId,omitempty"`
 	// CanonicalName - CNAME of the certificate to be issued via free certificate
 	CanonicalName *string `json:"canonicalName,omitempty"`
+	// DomainValidationMethod - Method of domain validation for free cert
+	DomainValidationMethod *string `json:"domainValidationMethod,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CertificateProperties.
@@ -7113,6 +8265,9 @@ func (c CertificateProperties) MarshalJSON() ([]byte, error) {
 	}
 	if c.CanonicalName != nil {
 		objectMap["canonicalName"] = c.CanonicalName
+	}
+	if c.DomainValidationMethod != nil {
+		objectMap["domainValidationMethod"] = c.DomainValidationMethod
 	}
 	return json.Marshal(objectMap)
 }
@@ -7819,17 +8974,6 @@ type CorsSettings struct {
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Requests_with_credentials
 	// for more details.
 	SupportCredentials *bool `json:"supportCredentials,omitempty"`
-}
-
-// CsmCopySlotEntity copy deployment slot parameters.
-type CsmCopySlotEntity struct {
-	// TargetSlot - Destination deployment slot during copy operation.
-	TargetSlot *string `json:"targetSlot,omitempty"`
-	// SiteConfig - The site object which will be merged with the source slot site
-	// to produce new destination slot site object.
-	// <code>null</code> to just copy source slot content. Otherwise a <code>Site</code>
-	// object with properties to override source slot site.
-	SiteConfig *SiteConfig `json:"siteConfig,omitempty"`
 }
 
 // CsmMoveResourceEnvelope object with a list of the resources that need to be moved and the resource group
@@ -8656,6 +9800,22 @@ type DatabaseBackupSetting struct {
 	ConnectionStringName *string `json:"connectionStringName,omitempty"`
 	// ConnectionString - Contains a connection string to a database which is being backed up or restored. If the restore should happen to a new database, the database name inside is the new one.
 	ConnectionString *string `json:"connectionString,omitempty"`
+}
+
+// DataProviderMetadata additional configuration for a data providers
+type DataProviderMetadata struct {
+	ProviderName *string `json:"providerName,omitempty"`
+	// PropertyBag - READ-ONLY; Settings for the data provider
+	PropertyBag *[]KeyValuePairStringObject `json:"propertyBag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataProviderMetadata.
+func (dpm DataProviderMetadata) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dpm.ProviderName != nil {
+		objectMap["providerName"] = dpm.ProviderName
+	}
+	return json.Marshal(objectMap)
 }
 
 // DataSource class representing data source used by the detectors
@@ -9509,14 +10669,24 @@ type DetectorDefinitionProperties struct {
 
 // DetectorInfo definition of Detector
 type DetectorInfo struct {
-	// Description - READ-ONLY; Short description of the detector and its purpose
+	// ID - READ-ONLY; Id of detector
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Name of detector
+	Name *string `json:"name,omitempty"`
+	// Description - READ-ONLY; Short description of the detector and its purpose.
 	Description *string `json:"description,omitempty"`
-	// Category - READ-ONLY; Support Category
+	// Author - READ-ONLY; Author of the detector.
+	Author *string `json:"author,omitempty"`
+	// Category - READ-ONLY; Problem category. This serves for organizing group for detectors.
 	Category *string `json:"category,omitempty"`
-	// SubCategory - READ-ONLY; Support Sub Category
-	SubCategory *string `json:"subCategory,omitempty"`
-	// SupportTopicID - READ-ONLY; Support Topic Id
-	SupportTopicID *string `json:"supportTopicId,omitempty"`
+	// SupportTopicList - READ-ONLY; List of Support Topics for which this detector is enabled.
+	SupportTopicList *[]SupportTopic `json:"supportTopicList,omitempty"`
+	// AnalysisType - READ-ONLY; Analysis Types for which this detector should apply to.
+	AnalysisType *[]string `json:"analysisType,omitempty"`
+	// Type - READ-ONLY; Whether this detector is an Analysis Detector or not. Possible values include: 'Detector', 'Analysis', 'CategoryOverview'
+	Type DetectorType `json:"type,omitempty"`
+	// Score - READ-ONLY; Defines score of a detector to power ML based matching.
+	Score *float64 `json:"score,omitempty"`
 }
 
 // DetectorResponse class representing Response from Detector
@@ -9780,6 +10950,12 @@ type DetectorResponseProperties struct {
 	Metadata *DetectorInfo `json:"metadata,omitempty"`
 	// Dataset - Data Set
 	Dataset *[]DiagnosticData `json:"dataset,omitempty"`
+	// Status - Indicates status of the most severe insight.
+	Status *Status `json:"status,omitempty"`
+	// DataProvidersMetadata - Additional configuration for different data providers to be used by the UI
+	DataProvidersMetadata *[]DataProviderMetadata `json:"dataProvidersMetadata,omitempty"`
+	// SuggestedUtterances - Suggested utterances where the detector can be applicable.
+	SuggestedUtterances *QueryUtterancesResults `json:"suggestedUtterances,omitempty"`
 }
 
 // DiagnosticAnalysis class representing a diagnostic analysis done on an application
@@ -11869,6 +13045,349 @@ type ForwardProxyProperties struct {
 	CustomProtoHeaderName *string                `json:"customProtoHeaderName,omitempty"`
 }
 
+// FunctionAppMajorVersion function App stack major version.
+type FunctionAppMajorVersion struct {
+	// DisplayText - READ-ONLY; Function App stack major version (display only).
+	DisplayText *string `json:"displayText,omitempty"`
+	// Value - READ-ONLY; Function App stack major version name.
+	Value *string `json:"value,omitempty"`
+	// MinorVersions - READ-ONLY; Minor versions associated with the major version.
+	MinorVersions *[]FunctionAppMinorVersion `json:"minorVersions,omitempty"`
+}
+
+// FunctionAppMinorVersion function App stack minor version.
+type FunctionAppMinorVersion struct {
+	// DisplayText - READ-ONLY; Function App stack (display only).
+	DisplayText *string `json:"displayText,omitempty"`
+	// Value - READ-ONLY; Function App stack name.
+	Value *string `json:"value,omitempty"`
+	// StackSettings - READ-ONLY; Settings associated with the minor version.
+	StackSettings *FunctionAppRuntimes `json:"stackSettings,omitempty"`
+}
+
+// FunctionAppRuntimes function App stack runtimes.
+type FunctionAppRuntimes struct {
+	// LinuxRuntimeSettings - READ-ONLY; Linux-specific settings associated with the minor version.
+	LinuxRuntimeSettings *FunctionAppRuntimeSettings `json:"linuxRuntimeSettings,omitempty"`
+	// WindowsRuntimeSettings - READ-ONLY; Windows-specific settings associated with the minor version.
+	WindowsRuntimeSettings *FunctionAppRuntimeSettings `json:"windowsRuntimeSettings,omitempty"`
+}
+
+// FunctionAppRuntimeSettings function App runtime settings.
+type FunctionAppRuntimeSettings struct {
+	// RuntimeVersion - READ-ONLY; Function App stack minor version (runtime only).
+	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
+	// RemoteDebuggingSupported - READ-ONLY; <code>true</code> if remote debugging is supported for the stack; otherwise, <code>false</code>.
+	RemoteDebuggingSupported *bool `json:"remoteDebuggingSupported,omitempty"`
+	// AppInsightsSettings - READ-ONLY; Application Insights settings associated with the minor version.
+	AppInsightsSettings *AppInsightsWebAppStackSettings `json:"appInsightsSettings,omitempty"`
+	// GitHubActionSettings - READ-ONLY; GitHub Actions settings associated with the minor version.
+	GitHubActionSettings *GitHubActionWebAppStackSettings `json:"gitHubActionSettings,omitempty"`
+	// AppSettingsDictionary - READ-ONLY; Application settings associated with the minor version.
+	AppSettingsDictionary map[string]*string `json:"appSettingsDictionary"`
+	// SiteConfigPropertiesDictionary - READ-ONLY; Configuration settings associated with the minor version.
+	SiteConfigPropertiesDictionary *SiteConfigPropertiesDictionary `json:"siteConfigPropertiesDictionary,omitempty"`
+	// SupportedFunctionsExtensionVersions - READ-ONLY; List of supported Functions extension versions.
+	SupportedFunctionsExtensionVersions *[]string `json:"supportedFunctionsExtensionVersions,omitempty"`
+	// IsPreview - READ-ONLY; <code>true</code> if the stack is in preview; otherwise, <code>false</code>.
+	IsPreview *bool `json:"isPreview,omitempty"`
+	// IsDeprecated - READ-ONLY; <code>true</code> if the stack is deprecated; otherwise, <code>false</code>.
+	IsDeprecated *bool `json:"isDeprecated,omitempty"`
+	// IsHidden - READ-ONLY; <code>true</code> if the stack should be hidden; otherwise, <code>false</code>.
+	IsHidden *bool `json:"isHidden,omitempty"`
+	// EndOfLifeDate - READ-ONLY; End-of-life date for the minor version.
+	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
+	// IsAutoUpdate - READ-ONLY; <code>true</code> if the stack version is auto-updated; otherwise, <code>false</code>.
+	IsAutoUpdate *bool `json:"isAutoUpdate,omitempty"`
+	// IsEarlyAccess - READ-ONLY; <code>true</code> if the minor version is early-access; otherwise, <code>false</code>.
+	IsEarlyAccess *bool `json:"isEarlyAccess,omitempty"`
+	// IsDefault - READ-ONLY; <code>true</code> if the minor version the default; otherwise, <code>false</code>.
+	IsDefault *bool `json:"isDefault,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FunctionAppRuntimeSettings.
+func (fars FunctionAppRuntimeSettings) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// FunctionAppStack function App Stack.
+type FunctionAppStack struct {
+	// Location - READ-ONLY; Function App stack location.
+	Location *string `json:"location,omitempty"`
+	// FunctionAppStackProperties - FunctionAppStack resource specific properties
+	*FunctionAppStackProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FunctionAppStack.
+func (fas FunctionAppStack) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fas.FunctionAppStackProperties != nil {
+		objectMap["properties"] = fas.FunctionAppStackProperties
+	}
+	if fas.Kind != nil {
+		objectMap["kind"] = fas.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for FunctionAppStack struct.
+func (fas *FunctionAppStack) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				fas.Location = &location
+			}
+		case "properties":
+			if v != nil {
+				var functionAppStackProperties FunctionAppStackProperties
+				err = json.Unmarshal(*v, &functionAppStackProperties)
+				if err != nil {
+					return err
+				}
+				fas.FunctionAppStackProperties = &functionAppStackProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				fas.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				fas.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				fas.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				fas.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// FunctionAppStackCollection collection of Function app Stacks
+type FunctionAppStackCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]FunctionAppStack `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FunctionAppStackCollection.
+func (fasc FunctionAppStackCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fasc.Value != nil {
+		objectMap["value"] = fasc.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// FunctionAppStackCollectionIterator provides access to a complete listing of FunctionAppStack values.
+type FunctionAppStackCollectionIterator struct {
+	i    int
+	page FunctionAppStackCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *FunctionAppStackCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FunctionAppStackCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *FunctionAppStackCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter FunctionAppStackCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter FunctionAppStackCollectionIterator) Response() FunctionAppStackCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter FunctionAppStackCollectionIterator) Value() FunctionAppStack {
+	if !iter.page.NotDone() {
+		return FunctionAppStack{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the FunctionAppStackCollectionIterator type.
+func NewFunctionAppStackCollectionIterator(page FunctionAppStackCollectionPage) FunctionAppStackCollectionIterator {
+	return FunctionAppStackCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (fasc FunctionAppStackCollection) IsEmpty() bool {
+	return fasc.Value == nil || len(*fasc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (fasc FunctionAppStackCollection) hasNextLink() bool {
+	return fasc.NextLink != nil && len(*fasc.NextLink) != 0
+}
+
+// functionAppStackCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (fasc FunctionAppStackCollection) functionAppStackCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !fasc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(fasc.NextLink)))
+}
+
+// FunctionAppStackCollectionPage contains a page of FunctionAppStack values.
+type FunctionAppStackCollectionPage struct {
+	fn   func(context.Context, FunctionAppStackCollection) (FunctionAppStackCollection, error)
+	fasc FunctionAppStackCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *FunctionAppStackCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FunctionAppStackCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.fasc)
+		if err != nil {
+			return err
+		}
+		page.fasc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *FunctionAppStackCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page FunctionAppStackCollectionPage) NotDone() bool {
+	return !page.fasc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page FunctionAppStackCollectionPage) Response() FunctionAppStackCollection {
+	return page.fasc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page FunctionAppStackCollectionPage) Values() []FunctionAppStack {
+	if page.fasc.IsEmpty() {
+		return nil
+	}
+	return *page.fasc.Value
+}
+
+// Creates a new instance of the FunctionAppStackCollectionPage type.
+func NewFunctionAppStackCollectionPage(cur FunctionAppStackCollection, getNextPage func(context.Context, FunctionAppStackCollection) (FunctionAppStackCollection, error)) FunctionAppStackCollectionPage {
+	return FunctionAppStackCollectionPage{
+		fn:   getNextPage,
+		fasc: cur,
+	}
+}
+
+// FunctionAppStackProperties functionAppStack resource specific properties
+type FunctionAppStackProperties struct {
+	// DisplayText - READ-ONLY; Function App stack (display only).
+	DisplayText *string `json:"displayText,omitempty"`
+	// Value - READ-ONLY; Function App stack name.
+	Value *string `json:"value,omitempty"`
+	// MajorVersions - READ-ONLY; List of major versions available.
+	MajorVersions *[]FunctionAppMajorVersion `json:"majorVersions,omitempty"`
+	// PreferredOs - READ-ONLY; Function App stack preferred OS. Possible values include: 'Windows', 'Linux'
+	PreferredOs StackPreferredOs `json:"preferredOs,omitempty"`
+}
+
 // FunctionEnvelope function information.
 type FunctionEnvelope struct {
 	autorest.Response `json:"-"`
@@ -12556,6 +14075,46 @@ func (gh *GitHub) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// GitHubActionCodeConfiguration the GitHub action code configuration.
+type GitHubActionCodeConfiguration struct {
+	// RuntimeStack - Runtime stack is used to determine the workflow file content for code base apps.
+	RuntimeStack *string `json:"runtimeStack,omitempty"`
+	// RuntimeVersion - Runtime version is used to determine what build version to set in the workflow file.
+	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
+}
+
+// GitHubActionConfiguration the GitHub action configuration.
+type GitHubActionConfiguration struct {
+	// CodeConfiguration - GitHub Action code configuration.
+	CodeConfiguration *GitHubActionCodeConfiguration `json:"codeConfiguration,omitempty"`
+	// ContainerConfiguration - GitHub Action container configuration.
+	ContainerConfiguration *GitHubActionContainerConfiguration `json:"containerConfiguration,omitempty"`
+	// IsLinux - This will help determine the workflow configuration to select.
+	IsLinux *bool `json:"isLinux,omitempty"`
+	// GenerateWorkflowFile - Workflow option to determine whether the workflow file should be generated and written to the repository.
+	GenerateWorkflowFile *bool `json:"generateWorkflowFile,omitempty"`
+}
+
+// GitHubActionContainerConfiguration the GitHub action container configuration.
+type GitHubActionContainerConfiguration struct {
+	// ServerURL - The server URL for the container registry where the build will be hosted.
+	ServerURL *string `json:"serverUrl,omitempty"`
+	// ImageName - The image name for the build.
+	ImageName *string `json:"imageName,omitempty"`
+	// Username - The username used to upload the image to the container registry.
+	Username *string `json:"username,omitempty"`
+	// Password - The password used to upload the image to the container registry.
+	Password *string `json:"password,omitempty"`
+}
+
+// GitHubActionWebAppStackSettings gitHub Actions Web App stack settings.
+type GitHubActionWebAppStackSettings struct {
+	// IsSupported - READ-ONLY; <code>true</code> if GitHub Actions is supported for the stack; otherwise, <code>false</code>.
+	IsSupported *bool `json:"isSupported,omitempty"`
+	// SupportedVersion - READ-ONLY; The minor version that is supported for GitHub Actions.
+	SupportedVersion *string `json:"supportedVersion,omitempty"`
 }
 
 // GitHubProperties gitHub resource specific properties
@@ -14199,7 +15758,10 @@ type IdentityProvidersProperties struct {
 	Facebook                     *Facebook                               `json:"facebook,omitempty"`
 	GitHub                       *GitHub                                 `json:"gitHub,omitempty"`
 	Google                       *Google                                 `json:"google,omitempty"`
+	LegacyMicrosoftAccount       *LegacyMicrosoftAccount                 `json:"legacyMicrosoftAccount,omitempty"`
 	Twitter                      *Twitter                                `json:"twitter,omitempty"`
+	Apple                        *Apple                                  `json:"apple,omitempty"`
+	AzureStaticWebApps           *AzureStaticWebApps                     `json:"azureStaticWebApps,omitempty"`
 	CustomOpenIDConnectProviders map[string]*CustomOpenIDConnectProvider `json:"customOpenIdConnectProviders"`
 }
 
@@ -14218,8 +15780,17 @@ func (IP IdentityProvidersProperties) MarshalJSON() ([]byte, error) {
 	if IP.Google != nil {
 		objectMap["google"] = IP.Google
 	}
+	if IP.LegacyMicrosoftAccount != nil {
+		objectMap["legacyMicrosoftAccount"] = IP.LegacyMicrosoftAccount
+	}
 	if IP.Twitter != nil {
 		objectMap["twitter"] = IP.Twitter
+	}
+	if IP.Apple != nil {
+		objectMap["apple"] = IP.Apple
+	}
+	if IP.AzureStaticWebApps != nil {
+		objectMap["azureStaticWebApps"] = IP.AzureStaticWebApps
 	}
 	if IP.CustomOpenIDConnectProviders != nil {
 		objectMap["customOpenIdConnectProviders"] = IP.CustomOpenIDConnectProviders
@@ -14889,6 +16460,147 @@ type KeyInfo struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// KeyValuePairStringObject ...
+type KeyValuePairStringObject struct {
+	// Key - READ-ONLY
+	Key *string `json:"key,omitempty"`
+	// Value - READ-ONLY
+	Value interface{} `json:"value,omitempty"`
+}
+
+// KubeEnvironmentProfile specification for a Kubernetes Environment to use for this resource.
+type KubeEnvironmentProfile struct {
+	// ID - Resource ID of the Kubernetes Environment.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Name of the Kubernetes Environment.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type of the Kubernetes Environment.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KubeEnvironmentProfile.
+func (kep KubeEnvironmentProfile) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kep.ID != nil {
+		objectMap["id"] = kep.ID
+	}
+	return json.Marshal(objectMap)
+}
+
+// LegacyMicrosoftAccount ...
+type LegacyMicrosoftAccount struct {
+	// LegacyMicrosoftAccountProperties - LegacyMicrosoftAccount resource specific properties
+	*LegacyMicrosoftAccountProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LegacyMicrosoftAccount.
+func (lma LegacyMicrosoftAccount) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lma.LegacyMicrosoftAccountProperties != nil {
+		objectMap["properties"] = lma.LegacyMicrosoftAccountProperties
+	}
+	if lma.Kind != nil {
+		objectMap["kind"] = lma.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for LegacyMicrosoftAccount struct.
+func (lma *LegacyMicrosoftAccount) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var legacyMicrosoftAccountProperties LegacyMicrosoftAccountProperties
+				err = json.Unmarshal(*v, &legacyMicrosoftAccountProperties)
+				if err != nil {
+					return err
+				}
+				lma.LegacyMicrosoftAccountProperties = &legacyMicrosoftAccountProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				lma.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				lma.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				lma.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				lma.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// LegacyMicrosoftAccountProperties legacyMicrosoftAccount resource specific properties
+type LegacyMicrosoftAccountProperties struct {
+	Enabled      *bool                       `json:"enabled,omitempty"`
+	Registration *ClientRegistration         `json:"registration,omitempty"`
+	Login        *LoginScopes                `json:"login,omitempty"`
+	Validation   *AllowedAudiencesValidation `json:"validation,omitempty"`
+}
+
+// LinuxJavaContainerSettings linux Java Container settings.
+type LinuxJavaContainerSettings struct {
+	// Java11Runtime - READ-ONLY; Java 11 version (runtime only).
+	Java11Runtime *string `json:"java11Runtime,omitempty"`
+	// Java8Runtime - READ-ONLY; Java 8 version (runtime only).
+	Java8Runtime *string `json:"java8Runtime,omitempty"`
+	// IsPreview - READ-ONLY; <code>true</code> if the stack is in preview; otherwise, <code>false</code>.
+	IsPreview *bool `json:"isPreview,omitempty"`
+	// IsDeprecated - READ-ONLY; <code>true</code> if the stack is deprecated; otherwise, <code>false</code>.
+	IsDeprecated *bool `json:"isDeprecated,omitempty"`
+	// IsHidden - READ-ONLY; <code>true</code> if the stack should be hidden; otherwise, <code>false</code>.
+	IsHidden *bool `json:"isHidden,omitempty"`
+	// EndOfLifeDate - READ-ONLY; End-of-life date for the minor version.
+	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
+	// IsAutoUpdate - READ-ONLY; <code>true</code> if the stack version is auto-updated; otherwise, <code>false</code>.
+	IsAutoUpdate *bool `json:"isAutoUpdate,omitempty"`
+	// IsEarlyAccess - READ-ONLY; <code>true</code> if the minor version is early-access; otherwise, <code>false</code>.
+	IsEarlyAccess *bool `json:"isEarlyAccess,omitempty"`
+}
+
 // ListCapability ...
 type ListCapability struct {
 	autorest.Response `json:"-"`
@@ -14923,6 +16635,12 @@ type ListNetworkTrace struct {
 type ListOperation struct {
 	autorest.Response `json:"-"`
 	Value             *[]Operation `json:"value,omitempty"`
+}
+
+// ListSnapshot ...
+type ListSnapshot struct {
+	autorest.Response `json:"-"`
+	Value             *[]Snapshot `json:"value,omitempty"`
 }
 
 // ListVnetInfo ...
@@ -16000,18 +17718,6 @@ type NameValuePair struct {
 	Name *string `json:"name,omitempty"`
 	// Value - Pair value.
 	Value *string `json:"value,omitempty"`
-}
-
-// NetworkAccessControlEntry network access control entry.
-type NetworkAccessControlEntry struct {
-	// Action - Action object. Possible values include: 'Permit', 'Deny'
-	Action AccessControlEntryAction `json:"action,omitempty"`
-	// Description - Description of network access control entry.
-	Description *string `json:"description,omitempty"`
-	// Order - Order of precedence.
-	Order *int32 `json:"order,omitempty"`
-	// RemoteSubnet - Remote subnet.
-	RemoteSubnet *string `json:"remoteSubnet,omitempty"`
 }
 
 // NetworkFeatures full view of network features for an app (presently VNET integration and Hybrid
@@ -17612,91 +19318,174 @@ type PrivateAccessVirtualNetwork struct {
 	Subnets *[]PrivateAccessSubnet `json:"subnets,omitempty"`
 }
 
-// PrivateEndpointConnectionResource private Endpoint Connection ARM resource.
-type PrivateEndpointConnectionResource struct {
+// PrivateEndpointConnectionCollection ...
+type PrivateEndpointConnectionCollection struct {
 	autorest.Response `json:"-"`
-	// RemotePrivateEndpointConnection - Core resource properties
-	*RemotePrivateEndpointConnection `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
+	// Value - Collection of resources.
+	Value *[]RemotePrivateEndpointConnectionARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for PrivateEndpointConnectionResource.
-func (pecr PrivateEndpointConnectionResource) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionCollection.
+func (pecc PrivateEndpointConnectionCollection) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if pecr.RemotePrivateEndpointConnection != nil {
-		objectMap["properties"] = pecr.RemotePrivateEndpointConnection
-	}
-	if pecr.Kind != nil {
-		objectMap["kind"] = pecr.Kind
+	if pecc.Value != nil {
+		objectMap["value"] = pecc.Value
 	}
 	return json.Marshal(objectMap)
 }
 
-// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnectionResource struct.
-func (pecr *PrivateEndpointConnectionResource) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
+// PrivateEndpointConnectionCollectionIterator provides access to a complete listing of
+// RemotePrivateEndpointConnectionARMResource values.
+type PrivateEndpointConnectionCollectionIterator struct {
+	i    int
+	page PrivateEndpointConnectionCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateEndpointConnectionCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
+		iter.i--
 		return err
 	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var remotePrivateEndpointConnection RemotePrivateEndpointConnection
-				err = json.Unmarshal(*v, &remotePrivateEndpointConnection)
-				if err != nil {
-					return err
-				}
-				pecr.RemotePrivateEndpointConnection = &remotePrivateEndpointConnection
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateEndpointConnectionCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateEndpointConnectionCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateEndpointConnectionCollectionIterator) Response() PrivateEndpointConnectionCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateEndpointConnectionCollectionIterator) Value() RemotePrivateEndpointConnectionARMResource {
+	if !iter.page.NotDone() {
+		return RemotePrivateEndpointConnectionARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateEndpointConnectionCollectionIterator type.
+func NewPrivateEndpointConnectionCollectionIterator(page PrivateEndpointConnectionCollectionPage) PrivateEndpointConnectionCollectionIterator {
+	return PrivateEndpointConnectionCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (pecc PrivateEndpointConnectionCollection) IsEmpty() bool {
+	return pecc.Value == nil || len(*pecc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (pecc PrivateEndpointConnectionCollection) hasNextLink() bool {
+	return pecc.NextLink != nil && len(*pecc.NextLink) != 0
+}
+
+// privateEndpointConnectionCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (pecc PrivateEndpointConnectionCollection) privateEndpointConnectionCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !pecc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(pecc.NextLink)))
+}
+
+// PrivateEndpointConnectionCollectionPage contains a page of RemotePrivateEndpointConnectionARMResource
+// values.
+type PrivateEndpointConnectionCollectionPage struct {
+	fn   func(context.Context, PrivateEndpointConnectionCollection) (PrivateEndpointConnectionCollection, error)
+	pecc PrivateEndpointConnectionCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateEndpointConnectionCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
 			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				pecr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				pecr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				pecr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				pecr.Type = &typeVar
-			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.pecc)
+		if err != nil {
+			return err
+		}
+		page.pecc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
 		}
 	}
-
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateEndpointConnectionCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateEndpointConnectionCollectionPage) NotDone() bool {
+	return !page.pecc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateEndpointConnectionCollectionPage) Response() PrivateEndpointConnectionCollection {
+	return page.pecc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateEndpointConnectionCollectionPage) Values() []RemotePrivateEndpointConnectionARMResource {
+	if page.pecc.IsEmpty() {
+		return nil
+	}
+	return *page.pecc.Value
+}
+
+// Creates a new instance of the PrivateEndpointConnectionCollectionPage type.
+func NewPrivateEndpointConnectionCollectionPage(cur PrivateEndpointConnectionCollection, getNextPage func(context.Context, PrivateEndpointConnectionCollection) (PrivateEndpointConnectionCollection, error)) PrivateEndpointConnectionCollectionPage {
+	return PrivateEndpointConnectionCollectionPage{
+		fn:   getNextPage,
+		pecc: cur,
+	}
 }
 
 // PrivateLinkConnectionApprovalRequest a request to approve or reject a private endpoint connection
@@ -19270,6 +21059,22 @@ type PushSettingsProperties struct {
 	DynamicTagsJSON *string `json:"dynamicTagsJson,omitempty"`
 }
 
+// QueryUtterancesResult result for utterances query.
+type QueryUtterancesResult struct {
+	// SampleUtterance - A sample utterance.
+	SampleUtterance *SampleUtterance `json:"sampleUtterance,omitempty"`
+	// Score - Score of a sample utterance.
+	Score *float64 `json:"score,omitempty"`
+}
+
+// QueryUtterancesResults suggested utterances where the detector can be applicable
+type QueryUtterancesResults struct {
+	// Query - Search Query.
+	Query *string `json:"query,omitempty"`
+	// Results - Array of utterance results for search query.
+	Results *[]QueryUtterancesResult `json:"results,omitempty"`
+}
+
 // RampUpRule routing rules for ramp up testing. This rule allows to redirect static traffic % to a slot or
 // to gradually change routing % based on performance.
 type RampUpRule struct {
@@ -20032,30 +21837,123 @@ type RelayServiceConnectionEntityProperties struct {
 	BiztalkURI               *string `json:"biztalkUri,omitempty"`
 }
 
-// RemotePrivateEndpointConnection a remote private endpoint connection
-type RemotePrivateEndpointConnection struct {
+// RemotePrivateEndpointConnectionARMResource remote Private Endpoint Connection ARM resource.
+type RemotePrivateEndpointConnectionARMResource struct {
+	autorest.Response `json:"-"`
+	// RemotePrivateEndpointConnectionARMResourceProperties - RemotePrivateEndpointConnectionARMResource resource specific properties
+	*RemotePrivateEndpointConnectionARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RemotePrivateEndpointConnectionARMResource.
+func (rpecar RemotePrivateEndpointConnectionARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rpecar.RemotePrivateEndpointConnectionARMResourceProperties != nil {
+		objectMap["properties"] = rpecar.RemotePrivateEndpointConnectionARMResourceProperties
+	}
+	if rpecar.Kind != nil {
+		objectMap["kind"] = rpecar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for RemotePrivateEndpointConnectionARMResource struct.
+func (rpecar *RemotePrivateEndpointConnectionARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var remotePrivateEndpointConnectionARMResourceProperties RemotePrivateEndpointConnectionARMResourceProperties
+				err = json.Unmarshal(*v, &remotePrivateEndpointConnectionARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				rpecar.RemotePrivateEndpointConnectionARMResourceProperties = &remotePrivateEndpointConnectionARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				rpecar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				rpecar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				rpecar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				rpecar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// RemotePrivateEndpointConnectionARMResourceProperties remotePrivateEndpointConnectionARMResource resource
+// specific properties
+type RemotePrivateEndpointConnectionARMResourceProperties struct {
 	// ProvisioningState - READ-ONLY
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// PrivateEndpoint - PrivateEndpoint of a remote private endpoint connection
 	PrivateEndpoint                   *ArmIDWrapper               `json:"privateEndpoint,omitempty"`
 	PrivateLinkServiceConnectionState *PrivateLinkConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// IPAddresses - Private IPAddresses mapped to the remote private endpoint
+	IPAddresses *[]string `json:"ipAddresses,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for RemotePrivateEndpointConnection.
-func (rpec RemotePrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for RemotePrivateEndpointConnectionARMResourceProperties.
+func (rpecar RemotePrivateEndpointConnectionARMResourceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if rpec.PrivateEndpoint != nil {
-		objectMap["privateEndpoint"] = rpec.PrivateEndpoint
+	if rpecar.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = rpecar.PrivateEndpoint
 	}
-	if rpec.PrivateLinkServiceConnectionState != nil {
-		objectMap["privateLinkServiceConnectionState"] = rpec.PrivateLinkServiceConnectionState
+	if rpecar.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = rpecar.PrivateLinkServiceConnectionState
+	}
+	if rpecar.IPAddresses != nil {
+		objectMap["ipAddresses"] = rpecar.IPAddresses
 	}
 	return json.Marshal(objectMap)
 }
 
 // Rendering instructions for rendering the data
 type Rendering struct {
-	// Type - Rendering Type. Possible values include: 'NoGraph', 'Table', 'TimeSeries', 'TimeSeriesPerInstance'
+	// Type - Rendering Type. Possible values include: 'RenderingTypeNoGraph', 'RenderingTypeTable', 'RenderingTypeTimeSeries', 'RenderingTypeTimeSeriesPerInstance', 'RenderingTypePieChart', 'RenderingTypeDataSummary', 'RenderingTypeEmail', 'RenderingTypeInsights', 'RenderingTypeDynamicInsight', 'RenderingTypeMarkdown', 'RenderingTypeDetector', 'RenderingTypeDropDown', 'RenderingTypeCard', 'RenderingTypeSolution', 'RenderingTypeGuage', 'RenderingTypeForm', 'RenderingTypeChangeSets', 'RenderingTypeChangeAnalysisOnboarding', 'RenderingTypeChangesView', 'RenderingTypeAppInsight', 'RenderingTypeDependencyGraph', 'RenderingTypeDownTime', 'RenderingTypeSummaryCard', 'RenderingTypeSearchComponent', 'RenderingTypeAppInsightEnablement'
 	Type RenderingType `json:"type,omitempty"`
 	// Title - Title of data
 	Title *string `json:"title,omitempty"`
@@ -21054,6 +22952,16 @@ type RestoreRequestProperties struct {
 	HostingEnvironment *string `json:"hostingEnvironment,omitempty"`
 }
 
+// SampleUtterance sample utterance.
+type SampleUtterance struct {
+	// Text - Text attribute of sample utterance.
+	Text *string `json:"text,omitempty"`
+	// Links - Links attribute of sample utterance.
+	Links *[]string `json:"links,omitempty"`
+	// Qid - Question id of sample utterance (for stackoverflow questions titles).
+	Qid *string `json:"qid,omitempty"`
+}
+
 // ServiceSpecification resource metrics service provided by Microsoft.Insights resource provider.
 type ServiceSpecification struct {
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
@@ -21289,6 +23197,9 @@ type SiteAuthSettingsProperties struct {
 	// RuntimeVersion - The RuntimeVersion of the Authentication / Authorization feature in use for the current app.
 	// The setting in this value can control the behavior of certain features in the Authentication / Authorization module.
 	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
+	// ConfigVersion - The ConfigVersion of the Authentication / Authorization feature in use for the current app.
+	// The setting in this value can control the behavior of the control plane for Authentication / Authorization.
+	ConfigVersion *string `json:"configVersion,omitempty"`
 	// UnauthenticatedClientAction - The action to take when an unauthenticated client attempts to access the app. Possible values include: 'RedirectToLoginPage', 'AllowAnonymous'
 	UnauthenticatedClientAction UnauthenticatedClientAction `json:"unauthenticatedClientAction,omitempty"`
 	// TokenStoreEnabled - <code>true</code> to durably store platform-specific security tokens that are obtained during login flows; otherwise, <code>false</code>.
@@ -21567,6 +23478,8 @@ type SiteConfig struct {
 	PublishingUsername *string `json:"publishingUsername,omitempty"`
 	// AppSettings - Application settings.
 	AppSettings *[]NameValuePair `json:"appSettings,omitempty"`
+	// AzureStorageAccounts - List of Azure Storage Accounts.
+	AzureStorageAccounts map[string]*AzureStorageInfoValue `json:"azureStorageAccounts"`
 	// ConnectionStrings - Connection strings.
 	ConnectionStrings *[]ConnStringInfo `json:"connectionStrings,omitempty"`
 	// MachineKey - READ-ONLY; Site MachineKey.
@@ -21595,7 +23508,7 @@ type SiteConfig struct {
 	ManagedPipelineMode ManagedPipelineMode `json:"managedPipelineMode,omitempty"`
 	// VirtualApplications - Virtual applications.
 	VirtualApplications *[]VirtualApplication `json:"virtualApplications,omitempty"`
-	// LoadBalancing - Site load balancing. Possible values include: 'WeightedRoundRobin', 'LeastRequests', 'LeastResponseTime', 'WeightedTotalTraffic', 'RequestHash'
+	// LoadBalancing - Site load balancing. Possible values include: 'WeightedRoundRobin', 'LeastRequests', 'LeastResponseTime', 'WeightedTotalTraffic', 'RequestHash', 'PerSiteRoundRobin'
 	LoadBalancing SiteLoadBalancing `json:"loadBalancing,omitempty"`
 	// Experiments - This is work around for polymorphic types.
 	Experiments *Experiments `json:"experiments,omitempty"`
@@ -21629,6 +23542,8 @@ type SiteConfig struct {
 	ManagedServiceIdentityID *int32 `json:"managedServiceIdentityId,omitempty"`
 	// XManagedServiceIdentityID - Explicit Managed Service Identity Id
 	XManagedServiceIdentityID *int32 `json:"xManagedServiceIdentityId,omitempty"`
+	// KeyVaultReferenceIdentity - Identity to use for Key Vault Reference authentication.
+	KeyVaultReferenceIdentity *string `json:"keyVaultReferenceIdentity,omitempty"`
 	// IPSecurityRestrictions - IP security restrictions for main.
 	IPSecurityRestrictions *[]IPSecurityRestriction `json:"ipSecurityRestrictions,omitempty"`
 	// ScmIPSecurityRestrictions - IP security restrictions for scm.
@@ -21646,8 +23561,20 @@ type SiteConfig struct {
 	// PreWarmedInstanceCount - Number of preWarmed instances.
 	// This setting only applies to the Consumption and Elastic Plans
 	PreWarmedInstanceCount *int32 `json:"preWarmedInstanceCount,omitempty"`
+	// FunctionAppScaleLimit - Maximum number of workers that a site can scale out to.
+	// This setting only applies to the Consumption and Elastic Premium Plans
+	FunctionAppScaleLimit *int32 `json:"functionAppScaleLimit,omitempty"`
 	// HealthCheckPath - Health check path
 	HealthCheckPath *string `json:"healthCheckPath,omitempty"`
+	// FunctionsRuntimeScaleMonitoringEnabled - Gets or sets a value indicating whether functions runtime scale monitoring is enabled. When enabled,
+	// the ScaleController will not monitor event sources directly, but will instead call to the
+	// runtime to get scale status.
+	FunctionsRuntimeScaleMonitoringEnabled *bool `json:"functionsRuntimeScaleMonitoringEnabled,omitempty"`
+	// WebsiteTimeZone - Sets the time zone a site uses for generating timestamps. Compatible with Linux and Windows App Service. Setting the WEBSITE_TIME_ZONE app setting takes precedence over this config. For Linux, expects tz database values https://www.iana.org/time-zones (for a quick reference see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). For Windows, expects one of the time zones listed under HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones
+	WebsiteTimeZone *string `json:"websiteTimeZone,omitempty"`
+	// MinimumElasticInstanceCount - Number of minimum instance count for a site
+	// This setting only applies to the Elastic Plans
+	MinimumElasticInstanceCount *int32 `json:"minimumElasticInstanceCount,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SiteConfig.
@@ -21706,6 +23633,9 @@ func (sc SiteConfig) MarshalJSON() ([]byte, error) {
 	}
 	if sc.AppSettings != nil {
 		objectMap["appSettings"] = sc.AppSettings
+	}
+	if sc.AzureStorageAccounts != nil {
+		objectMap["azureStorageAccounts"] = sc.AzureStorageAccounts
 	}
 	if sc.ConnectionStrings != nil {
 		objectMap["connectionStrings"] = sc.ConnectionStrings
@@ -21797,6 +23727,9 @@ func (sc SiteConfig) MarshalJSON() ([]byte, error) {
 	if sc.XManagedServiceIdentityID != nil {
 		objectMap["xManagedServiceIdentityId"] = sc.XManagedServiceIdentityID
 	}
+	if sc.KeyVaultReferenceIdentity != nil {
+		objectMap["keyVaultReferenceIdentity"] = sc.KeyVaultReferenceIdentity
+	}
 	if sc.IPSecurityRestrictions != nil {
 		objectMap["ipSecurityRestrictions"] = sc.IPSecurityRestrictions
 	}
@@ -21821,10 +23754,34 @@ func (sc SiteConfig) MarshalJSON() ([]byte, error) {
 	if sc.PreWarmedInstanceCount != nil {
 		objectMap["preWarmedInstanceCount"] = sc.PreWarmedInstanceCount
 	}
+	if sc.FunctionAppScaleLimit != nil {
+		objectMap["functionAppScaleLimit"] = sc.FunctionAppScaleLimit
+	}
 	if sc.HealthCheckPath != nil {
 		objectMap["healthCheckPath"] = sc.HealthCheckPath
 	}
+	if sc.FunctionsRuntimeScaleMonitoringEnabled != nil {
+		objectMap["functionsRuntimeScaleMonitoringEnabled"] = sc.FunctionsRuntimeScaleMonitoringEnabled
+	}
+	if sc.WebsiteTimeZone != nil {
+		objectMap["websiteTimeZone"] = sc.WebsiteTimeZone
+	}
+	if sc.MinimumElasticInstanceCount != nil {
+		objectMap["minimumElasticInstanceCount"] = sc.MinimumElasticInstanceCount
+	}
 	return json.Marshal(objectMap)
+}
+
+// SiteConfigPropertiesDictionary site config properties dictionary.
+type SiteConfigPropertiesDictionary struct {
+	// Use32BitWorkerProcess - READ-ONLY; <code>true</code> if use32BitWorkerProcess should be set to true for the stack; otherwise, <code>false</code>.
+	Use32BitWorkerProcess *bool `json:"use32BitWorkerProcess,omitempty"`
+	// LinuxFxVersion - READ-ONLY; LinuxFxVersion configuration setting.
+	LinuxFxVersion *string `json:"linuxFxVersion,omitempty"`
+	// JavaVersion - READ-ONLY; JavaVersion configuration setting.
+	JavaVersion *string `json:"javaVersion,omitempty"`
+	// PowerShellVersion - READ-ONLY; PowerShellVersion configuration setting.
+	PowerShellVersion *string `json:"powerShellVersion,omitempty"`
 }
 
 // SiteConfigResource web app configuration ARM resource.
@@ -23036,7 +24993,7 @@ type SitePatchResourceProperties struct {
 	// ClientCertMode - This composes with ClientCertEnabled setting.
 	// - ClientCertEnabled: false means ClientCert is ignored.
 	// - ClientCertEnabled: true and ClientCertMode: Required means ClientCert is required.
-	// - ClientCertEnabled: true and ClientCertMode: Optional means ClientCert is optional or accepted. Possible values include: 'Required', 'Optional'
+	// - ClientCertEnabled: true and ClientCertMode: Optional means ClientCert is optional or accepted. Possible values include: 'Required', 'Optional', 'OptionalInteractiveUser'
 	ClientCertMode ClientCertMode `json:"clientCertMode,omitempty"`
 	// ClientCertExclusionPaths - client certificate authentication comma-separated exclusion paths
 	ClientCertExclusionPaths *string `json:"clientCertExclusionPaths,omitempty"`
@@ -23068,6 +25025,8 @@ type SitePatchResourceProperties struct {
 	DefaultHostName *string `json:"defaultHostName,omitempty"`
 	// SlotSwapStatus - READ-ONLY; Status of the last deployment slot swap operation.
 	SlotSwapStatus *SlotSwapStatus `json:"slotSwapStatus,omitempty"`
+	// KeyVaultReferenceIdentity - Identity to use for Key Vault Reference authentication.
+	KeyVaultReferenceIdentity *string `json:"keyVaultReferenceIdentity,omitempty"`
 	// HTTPSOnly - HttpsOnly: configures a web site to accept only https requests. Issues redirect for
 	// http requests
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
@@ -23075,6 +25034,8 @@ type SitePatchResourceProperties struct {
 	RedundancyMode RedundancyMode `json:"redundancyMode,omitempty"`
 	// InProgressOperationID - READ-ONLY; Specifies an operation id if this site has a pending operation.
 	InProgressOperationID *uuid.UUID `json:"inProgressOperationId,omitempty"`
+	// StorageAccountRequired - Checks if Customer provided storage account is required
+	StorageAccountRequired *bool `json:"storageAccountRequired,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SitePatchResourceProperties.
@@ -23134,11 +25095,17 @@ func (spr SitePatchResourceProperties) MarshalJSON() ([]byte, error) {
 	if spr.CloningInfo != nil {
 		objectMap["cloningInfo"] = spr.CloningInfo
 	}
+	if spr.KeyVaultReferenceIdentity != nil {
+		objectMap["keyVaultReferenceIdentity"] = spr.KeyVaultReferenceIdentity
+	}
 	if spr.HTTPSOnly != nil {
 		objectMap["httpsOnly"] = spr.HTTPSOnly
 	}
 	if spr.RedundancyMode != "" {
 		objectMap["redundancyMode"] = spr.RedundancyMode
+	}
+	if spr.StorageAccountRequired != nil {
+		objectMap["storageAccountRequired"] = spr.StorageAccountRequired
 	}
 	return json.Marshal(objectMap)
 }
@@ -23288,7 +25255,7 @@ type SiteProperties struct {
 	// ClientCertMode - This composes with ClientCertEnabled setting.
 	// - ClientCertEnabled: false means ClientCert is ignored.
 	// - ClientCertEnabled: true and ClientCertMode: Required means ClientCert is required.
-	// - ClientCertEnabled: true and ClientCertMode: Optional means ClientCert is optional or accepted. Possible values include: 'Required', 'Optional'
+	// - ClientCertEnabled: true and ClientCertMode: Optional means ClientCert is optional or accepted. Possible values include: 'Required', 'Optional', 'OptionalInteractiveUser'
 	ClientCertMode ClientCertMode `json:"clientCertMode,omitempty"`
 	// ClientCertExclusionPaths - client certificate authentication comma-separated exclusion paths
 	ClientCertExclusionPaths *string `json:"clientCertExclusionPaths,omitempty"`
@@ -23320,6 +25287,8 @@ type SiteProperties struct {
 	DefaultHostName *string `json:"defaultHostName,omitempty"`
 	// SlotSwapStatus - READ-ONLY; Status of the last deployment slot swap operation.
 	SlotSwapStatus *SlotSwapStatus `json:"slotSwapStatus,omitempty"`
+	// KeyVaultReferenceIdentity - Identity to use for Key Vault Reference authentication.
+	KeyVaultReferenceIdentity *string `json:"keyVaultReferenceIdentity,omitempty"`
 	// HTTPSOnly - HttpsOnly: configures a web site to accept only https requests. Issues redirect for
 	// http requests
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
@@ -23327,6 +25296,8 @@ type SiteProperties struct {
 	RedundancyMode RedundancyMode `json:"redundancyMode,omitempty"`
 	// InProgressOperationID - READ-ONLY; Specifies an operation id if this site has a pending operation.
 	InProgressOperationID *uuid.UUID `json:"inProgressOperationId,omitempty"`
+	// StorageAccountRequired - Checks if Customer provided storage account is required
+	StorageAccountRequired *bool `json:"storageAccountRequired,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SiteProperties.
@@ -23386,11 +25357,17 @@ func (s SiteProperties) MarshalJSON() ([]byte, error) {
 	if s.CloningInfo != nil {
 		objectMap["cloningInfo"] = s.CloningInfo
 	}
+	if s.KeyVaultReferenceIdentity != nil {
+		objectMap["keyVaultReferenceIdentity"] = s.KeyVaultReferenceIdentity
+	}
 	if s.HTTPSOnly != nil {
 		objectMap["httpsOnly"] = s.HTTPSOnly
 	}
 	if s.RedundancyMode != "" {
 		objectMap["redundancyMode"] = s.RedundancyMode
+	}
+	if s.StorageAccountRequired != nil {
+		objectMap["storageAccountRequired"] = s.StorageAccountRequired
 	}
 	return json.Marshal(objectMap)
 }
@@ -23511,6 +25488,8 @@ type SiteSourceControlProperties struct {
 	DeploymentRollbackEnabled *bool `json:"deploymentRollbackEnabled,omitempty"`
 	// IsMercurial - <code>true</code> for a Mercurial repository; <code>false</code> for a Git repository.
 	IsMercurial *bool `json:"isMercurial,omitempty"`
+	// GitHubActionConfiguration - If GitHub Action is selected, than the associated configuration.
+	GitHubActionConfiguration *GitHubActionConfiguration `json:"gitHubActionConfiguration,omitempty"`
 }
 
 // SkuCapacity description of the App Service plan scale options.
@@ -23519,6 +25498,8 @@ type SkuCapacity struct {
 	Minimum *int32 `json:"minimum,omitempty"`
 	// Maximum - Maximum number of workers for this App Service plan SKU.
 	Maximum *int32 `json:"maximum,omitempty"`
+	// ElasticMaximum - Maximum number of Elastic workers for this App Service plan SKU.
+	ElasticMaximum *int32 `json:"elasticMaximum,omitempty"`
 	// Default - Default number of workers for this App Service plan SKU.
 	Default *int32 `json:"default,omitempty"`
 	// ScaleType - Available scale configurations for an App Service plan.
@@ -24118,6 +26099,8 @@ type SlotSwapStatus struct {
 type SlowRequestsBasedTrigger struct {
 	// TimeTaken - Time taken.
 	TimeTaken *string `json:"timeTaken,omitempty"`
+	// Path - Request Path.
+	Path *string `json:"path,omitempty"`
 	// Count - Request Count.
 	Count *int32 `json:"count,omitempty"`
 	// TimeInterval - Time interval.
@@ -24795,12 +26778,58 @@ type StackMajorVersion struct {
 	MinorVersions *[]StackMinorVersion `json:"minorVersions,omitempty"`
 	// ApplicationInsights - <code>true</code> if this supports Application Insights; otherwise, <code>false</code>.
 	ApplicationInsights *bool `json:"applicationInsights,omitempty"`
+	// AppSettingsDictionary - <appSettings>
+	//  <appSetting name="FUNCTIONS_WORKER_RUNTIME" value="dotnet" />
+	// </appSettings>
+	//  Example: All the function apps need AppSetting: "FUNCTIONS_WORKER_RUNTIME" to be set stack name
+	AppSettingsDictionary map[string]interface{} `json:"appSettingsDictionary"`
+	// SiteConfigPropertiesDictionary - <siteConfigProperties>
+	//  <siteConfigProperty name="Use32BitWorkerProcess" value="false" />
+	// </siteConfigProperties>
+	//  Example: All Linux Function Apps, need Use32BitWorkerProcess to be set to 0
+	SiteConfigPropertiesDictionary map[string]interface{} `json:"siteConfigPropertiesDictionary"`
 	// IsPreview - <code>true</code> if this stack is in Preview, otherwise <code>false</code>.
 	IsPreview *bool `json:"isPreview,omitempty"`
 	// IsDeprecated - <code>true</code> if this stack has been deprecated, otherwise <code>false</code>.
 	IsDeprecated *bool `json:"isDeprecated,omitempty"`
 	// IsHidden - <code>true</code> if this stack should be hidden for new customers on portal, otherwise <code>false</code>.
 	IsHidden *bool `json:"isHidden,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StackMajorVersion.
+func (smv StackMajorVersion) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if smv.DisplayVersion != nil {
+		objectMap["displayVersion"] = smv.DisplayVersion
+	}
+	if smv.RuntimeVersion != nil {
+		objectMap["runtimeVersion"] = smv.RuntimeVersion
+	}
+	if smv.IsDefault != nil {
+		objectMap["isDefault"] = smv.IsDefault
+	}
+	if smv.MinorVersions != nil {
+		objectMap["minorVersions"] = smv.MinorVersions
+	}
+	if smv.ApplicationInsights != nil {
+		objectMap["applicationInsights"] = smv.ApplicationInsights
+	}
+	if smv.AppSettingsDictionary != nil {
+		objectMap["appSettingsDictionary"] = smv.AppSettingsDictionary
+	}
+	if smv.SiteConfigPropertiesDictionary != nil {
+		objectMap["siteConfigPropertiesDictionary"] = smv.SiteConfigPropertiesDictionary
+	}
+	if smv.IsPreview != nil {
+		objectMap["isPreview"] = smv.IsPreview
+	}
+	if smv.IsDeprecated != nil {
+		objectMap["isDeprecated"] = smv.IsDeprecated
+	}
+	if smv.IsHidden != nil {
+		objectMap["isHidden"] = smv.IsHidden
+	}
+	return json.Marshal(objectMap)
 }
 
 // StackMinorVersion application stack minor version.
@@ -24827,7 +26856,7 @@ type StampCapacity struct {
 	Unit *string `json:"unit,omitempty"`
 	// ComputeMode - Shared/dedicated workers. Possible values include: 'ComputeModeOptionsShared', 'ComputeModeOptionsDedicated', 'ComputeModeOptionsDynamic'
 	ComputeMode ComputeModeOptions `json:"computeMode,omitempty"`
-	// WorkerSize - Size of the machines. Possible values include: 'WorkerSizeOptionsSmall', 'WorkerSizeOptionsMedium', 'WorkerSizeOptionsLarge', 'WorkerSizeOptionsD1', 'WorkerSizeOptionsD2', 'WorkerSizeOptionsD3', 'WorkerSizeOptionsNestedSmall', 'WorkerSizeOptionsDefault'
+	// WorkerSize - Size of the machines. Possible values include: 'WorkerSizeOptionsSmall', 'WorkerSizeOptionsMedium', 'WorkerSizeOptionsLarge', 'WorkerSizeOptionsD1', 'WorkerSizeOptionsD2', 'WorkerSizeOptionsD3', 'WorkerSizeOptionsSmallV3', 'WorkerSizeOptionsMediumV3', 'WorkerSizeOptionsLargeV3', 'WorkerSizeOptionsNestedSmall', 'WorkerSizeOptionsNestedSmallLinux', 'WorkerSizeOptionsDefault'
 	WorkerSize WorkerSizeOptions `json:"workerSize,omitempty"`
 	// WorkerSizeID - Size ID of machines:
 	// 0 - Small
@@ -25021,12 +27050,22 @@ type StaticSite struct {
 	RepositoryURL *string `json:"repositoryUrl,omitempty"`
 	// Branch - The target branch in the repository.
 	Branch *string `json:"branch,omitempty"`
+	// Provider - READ-ONLY; The provider that submitted the last deployment to the primary environment of the static site.
+	Provider *string `json:"provider,omitempty"`
 	// CustomDomains - READ-ONLY; The custom domains associated with this static site.
 	CustomDomains *[]string `json:"customDomains,omitempty"`
 	// RepositoryToken - A user's github repository token. This is used to setup the Github Actions workflow file and API secrets.
 	RepositoryToken *string `json:"repositoryToken,omitempty"`
 	// BuildProperties - Build properties to configure on the repository.
 	BuildProperties *StaticSiteBuildProperties `json:"buildProperties,omitempty"`
+	// TemplateProperties - Template options for generating a new repository.
+	TemplateProperties *StaticSiteTemplateOptions `json:"templateProperties,omitempty"`
+	// ContentDistributionEndpoint - READ-ONLY; The content distribution endpoint for the static site.
+	ContentDistributionEndpoint *string `json:"contentDistributionEndpoint,omitempty"`
+	// KeyVaultReferenceIdentity - READ-ONLY; Identity to use for Key Vault Reference authentication.
+	KeyVaultReferenceIdentity *string `json:"keyVaultReferenceIdentity,omitempty"`
+	// UserProvidedFunctionApps - READ-ONLY; User provided function apps registered with the static site
+	UserProvidedFunctionApps *[]StaticSiteUserProvidedFunctionApp `json:"userProvidedFunctionApps,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StaticSite.
@@ -25044,6 +27083,9 @@ func (ss StaticSite) MarshalJSON() ([]byte, error) {
 	if ss.BuildProperties != nil {
 		objectMap["buildProperties"] = ss.BuildProperties
 	}
+	if ss.TemplateProperties != nil {
+		objectMap["templateProperties"] = ss.TemplateProperties
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -25052,7 +27094,8 @@ type StaticSiteARMResource struct {
 	autorest.Response `json:"-"`
 	// StaticSite - Core resource properties
 	*StaticSite `json:"properties,omitempty"`
-	Sku         *SkuDescription `json:"sku,omitempty"`
+	Sku         *SkuDescription         `json:"sku,omitempty"`
+	Identity    *ManagedServiceIdentity `json:"identity,omitempty"`
 	// ID - READ-ONLY; Resource Id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource Name.
@@ -25075,6 +27118,9 @@ func (ssar StaticSiteARMResource) MarshalJSON() ([]byte, error) {
 	}
 	if ssar.Sku != nil {
 		objectMap["sku"] = ssar.Sku
+	}
+	if ssar.Identity != nil {
+		objectMap["identity"] = ssar.Identity
 	}
 	if ssar.Kind != nil {
 		objectMap["kind"] = ssar.Kind
@@ -25114,6 +27160,15 @@ func (ssar *StaticSiteARMResource) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ssar.Sku = &sku
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				ssar.Identity = &identity
 			}
 		case "id":
 			if v != nil {
@@ -25278,6 +27333,8 @@ type StaticSiteBuildARMResourceProperties struct {
 	LastUpdatedOn *date.Time `json:"lastUpdatedOn,omitempty"`
 	// Status - READ-ONLY; The status of the static site build. Possible values include: 'BuildStatusWaitingForDeployment', 'BuildStatusUploading', 'BuildStatusDeploying', 'BuildStatusReady', 'BuildStatusFailed', 'BuildStatusDeleting', 'BuildStatusDetached'
 	Status BuildStatus `json:"status,omitempty"`
+	// UserProvidedFunctionApps - READ-ONLY; User provided function apps registered with the static site build
+	UserProvidedFunctionApps *[]StaticSiteUserProvidedFunctionApp `json:"userProvidedFunctionApps,omitempty"`
 }
 
 // StaticSiteBuildCollection collection of static site builds.
@@ -25455,8 +27512,18 @@ type StaticSiteBuildProperties struct {
 	AppLocation *string `json:"appLocation,omitempty"`
 	// APILocation - The path to the api code within the repository.
 	APILocation *string `json:"apiLocation,omitempty"`
-	// AppArtifactLocation - The path of the app artifacts after building.
+	// AppArtifactLocation - Deprecated: The path of the app artifacts after building (deprecated in favor of OutputLocation)
 	AppArtifactLocation *string `json:"appArtifactLocation,omitempty"`
+	// OutputLocation - The output path of the app after building.
+	OutputLocation *string `json:"outputLocation,omitempty"`
+	// AppBuildCommand - A custom command to run during deployment of the static content application.
+	AppBuildCommand *string `json:"appBuildCommand,omitempty"`
+	// APIBuildCommand - A custom command to run during deployment of the Azure Functions API application.
+	APIBuildCommand *string `json:"apiBuildCommand,omitempty"`
+	// SkipGithubActionWorkflowGeneration - Skip Github Action workflow generation.
+	SkipGithubActionWorkflowGeneration *bool `json:"skipGithubActionWorkflowGeneration,omitempty"`
+	// GithubActionSecretNameOverride - Github Action secret name override.
+	GithubActionSecretNameOverride *string `json:"githubActionSecretNameOverride,omitempty"`
 }
 
 // StaticSiteCollection collection of static sites.
@@ -25721,6 +27788,12 @@ type StaticSiteCustomDomainOverviewARMResourceProperties struct {
 	DomainName *string `json:"domainName,omitempty"`
 	// CreatedOn - READ-ONLY; The date and time on which the custom domain was created for the static site.
 	CreatedOn *date.Time `json:"createdOn,omitempty"`
+	// Status - READ-ONLY; The status of the custom domain. Possible values include: 'CustomDomainStatusRetrievingValidationToken', 'CustomDomainStatusValidating', 'CustomDomainStatusAdding', 'CustomDomainStatusReady', 'CustomDomainStatusFailed', 'CustomDomainStatusDeleting'
+	Status CustomDomainStatus `json:"status,omitempty"`
+	// ValidationToken - READ-ONLY; The TXT record validation token
+	ValidationToken *string `json:"validationToken,omitempty"`
+	// ErrorMessage - READ-ONLY
+	ErrorMessage *string `json:"errorMessage,omitempty"`
 }
 
 // StaticSiteCustomDomainOverviewCollection collection of static site custom domains.
@@ -25891,6 +27964,100 @@ func NewStaticSiteCustomDomainOverviewCollectionPage(cur StaticSiteCustomDomainO
 		fn:     getNextPage,
 		sscdoc: cur,
 	}
+}
+
+// StaticSiteCustomDomainRequestPropertiesARMResource static Site Custom Domain Request Properties ARM
+// resource.
+type StaticSiteCustomDomainRequestPropertiesARMResource struct {
+	// StaticSiteCustomDomainRequestPropertiesARMResourceProperties - StaticSiteCustomDomainRequestPropertiesARMResource resource specific properties
+	*StaticSiteCustomDomainRequestPropertiesARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteCustomDomainRequestPropertiesARMResource.
+func (sscdrpar StaticSiteCustomDomainRequestPropertiesARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sscdrpar.StaticSiteCustomDomainRequestPropertiesARMResourceProperties != nil {
+		objectMap["properties"] = sscdrpar.StaticSiteCustomDomainRequestPropertiesARMResourceProperties
+	}
+	if sscdrpar.Kind != nil {
+		objectMap["kind"] = sscdrpar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteCustomDomainRequestPropertiesARMResource struct.
+func (sscdrpar *StaticSiteCustomDomainRequestPropertiesARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteCustomDomainRequestPropertiesARMResourceProperties StaticSiteCustomDomainRequestPropertiesARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteCustomDomainRequestPropertiesARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				sscdrpar.StaticSiteCustomDomainRequestPropertiesARMResourceProperties = &staticSiteCustomDomainRequestPropertiesARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sscdrpar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sscdrpar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sscdrpar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sscdrpar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteCustomDomainRequestPropertiesARMResourceProperties
+// staticSiteCustomDomainRequestPropertiesARMResource resource specific properties
+type StaticSiteCustomDomainRequestPropertiesARMResourceProperties struct {
+	// ValidationMethod - Validation method for adding a custom domain
+	ValidationMethod *string `json:"validationMethod,omitempty"`
 }
 
 // StaticSiteFunctionOverviewARMResource static Site Function Overview ARM resource.
@@ -26339,6 +28506,523 @@ type StaticSiteResetPropertiesARMResourceProperties struct {
 	ShouldUpdateRepository *bool `json:"shouldUpdateRepository,omitempty"`
 }
 
+// StaticSitesApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type StaticSitesApproveOrRejectPrivateEndpointConnectionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (RemotePrivateEndpointConnectionARMResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesApproveOrRejectPrivateEndpointConnectionFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesApproveOrRejectPrivateEndpointConnectionFuture.Result.
+func (future *StaticSitesApproveOrRejectPrivateEndpointConnectionFuture) result(client StaticSitesClient) (rpecar RemotePrivateEndpointConnectionARMResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesApproveOrRejectPrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		rpecar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesApproveOrRejectPrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if rpecar.Response.Response, err = future.GetResult(sender); err == nil && rpecar.Response.Response.StatusCode != http.StatusNoContent {
+		rpecar, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(rpecar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.StaticSitesApproveOrRejectPrivateEndpointConnectionFuture", "Result", rpecar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (StaticSiteCustomDomainOverviewARMResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture.Result.
+func (future *StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture) result(client StaticSitesClient) (sscdoar StaticSiteCustomDomainOverviewARMResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		sscdoar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sscdoar.Response.Response, err = future.GetResult(sender); err == nil && sscdoar.Response.Response.StatusCode != http.StatusNoContent {
+		sscdoar, err = client.CreateOrUpdateStaticSiteCustomDomainResponder(sscdoar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture", "Result", sscdoar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StaticSitesCreateOrUpdateStaticSiteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type StaticSitesCreateOrUpdateStaticSiteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (StaticSiteARMResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesCreateOrUpdateStaticSiteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesCreateOrUpdateStaticSiteFuture.Result.
+func (future *StaticSitesCreateOrUpdateStaticSiteFuture) result(client StaticSitesClient) (ssar StaticSiteARMResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesCreateOrUpdateStaticSiteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ssar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesCreateOrUpdateStaticSiteFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ssar.Response.Response, err = future.GetResult(sender); err == nil && ssar.Response.Response.StatusCode != http.StatusNoContent {
+		ssar, err = client.CreateOrUpdateStaticSiteResponder(ssar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.StaticSitesCreateOrUpdateStaticSiteFuture", "Result", ssar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StaticSitesCreateZipDeploymentForStaticSiteBuildFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type StaticSitesCreateZipDeploymentForStaticSiteBuildFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesCreateZipDeploymentForStaticSiteBuildFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesCreateZipDeploymentForStaticSiteBuildFuture.Result.
+func (future *StaticSitesCreateZipDeploymentForStaticSiteBuildFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesCreateZipDeploymentForStaticSiteBuildFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesCreateZipDeploymentForStaticSiteBuildFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// StaticSitesCreateZipDeploymentForStaticSiteFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type StaticSitesCreateZipDeploymentForStaticSiteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesCreateZipDeploymentForStaticSiteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesCreateZipDeploymentForStaticSiteFuture.Result.
+func (future *StaticSitesCreateZipDeploymentForStaticSiteFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesCreateZipDeploymentForStaticSiteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesCreateZipDeploymentForStaticSiteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// StaticSitesDeletePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type StaticSitesDeletePrivateEndpointConnectionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (SetObject, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesDeletePrivateEndpointConnectionFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesDeletePrivateEndpointConnectionFuture.Result.
+func (future *StaticSitesDeletePrivateEndpointConnectionFuture) result(client StaticSitesClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		so.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesDeletePrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.DeletePrivateEndpointConnectionResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.StaticSitesDeletePrivateEndpointConnectionFuture", "Result", so.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StaticSitesDeleteStaticSiteBuildFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type StaticSitesDeleteStaticSiteBuildFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesDeleteStaticSiteBuildFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesDeleteStaticSiteBuildFuture.Result.
+func (future *StaticSitesDeleteStaticSiteBuildFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesDeleteStaticSiteBuildFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesDeleteStaticSiteBuildFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// StaticSitesDeleteStaticSiteCustomDomainFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type StaticSitesDeleteStaticSiteCustomDomainFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesDeleteStaticSiteCustomDomainFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesDeleteStaticSiteCustomDomainFuture.Result.
+func (future *StaticSitesDeleteStaticSiteCustomDomainFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesDeleteStaticSiteCustomDomainFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesDeleteStaticSiteCustomDomainFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// StaticSitesDeleteStaticSiteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type StaticSitesDeleteStaticSiteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesDeleteStaticSiteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesDeleteStaticSiteFuture.Result.
+func (future *StaticSitesDeleteStaticSiteFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesDeleteStaticSiteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesDeleteStaticSiteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// StaticSitesDetachStaticSiteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type StaticSitesDetachStaticSiteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesDetachStaticSiteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesDetachStaticSiteFuture.Result.
+func (future *StaticSitesDetachStaticSiteFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesDetachStaticSiteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesDetachStaticSiteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (StaticSiteUserProvidedFunctionAppARMResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture.Result.
+func (future *StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture) result(client StaticSitesClient) (ssupfaar StaticSiteUserProvidedFunctionAppARMResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ssupfaar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ssupfaar.Response.Response, err = future.GetResult(sender); err == nil && ssupfaar.Response.Response.StatusCode != http.StatusNoContent {
+		ssupfaar, err = client.RegisterUserProvidedFunctionAppWithStaticSiteBuildResponder(ssupfaar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture", "Result", ssupfaar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (StaticSiteUserProvidedFunctionAppARMResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture.Result.
+func (future *StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture) result(client StaticSitesClient) (ssupfaar StaticSiteUserProvidedFunctionAppARMResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ssupfaar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ssupfaar.Response.Response, err = future.GetResult(sender); err == nil && ssupfaar.Response.Response.StatusCode != http.StatusNoContent {
+		ssupfaar, err = client.RegisterUserProvidedFunctionAppWithStaticSiteResponder(ssupfaar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture", "Result", ssupfaar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StaticSitesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture.Result.
+func (future *StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture) result(client StaticSitesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("web.StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // StaticSitesWorkflowPreview preview for the Static Site Workflow to be generated
 type StaticSitesWorkflowPreview struct {
 	autorest.Response `json:"-"`
@@ -26529,6 +29213,20 @@ type StaticSitesWorkflowPreviewRequestProperties struct {
 	Branch *string `json:"branch,omitempty"`
 	// BuildProperties - Build properties to configure on the repository.
 	BuildProperties *StaticSiteBuildProperties `json:"buildProperties,omitempty"`
+}
+
+// StaticSiteTemplateOptions template Options for the static site.
+type StaticSiteTemplateOptions struct {
+	// TemplateRepositoryURL - URL of the template repository. The newly generated repository will be based on this one.
+	TemplateRepositoryURL *string `json:"templateRepositoryUrl,omitempty"`
+	// Owner - Owner of the newly generated repository.
+	Owner *string `json:"owner,omitempty"`
+	// RepositoryName - Name of the newly generated repository.
+	RepositoryName *string `json:"repositoryName,omitempty"`
+	// Description - Description of the newly generated repository.
+	Description *string `json:"description,omitempty"`
+	// IsPrivate - Whether or not the newly generated repository is a private repository. Defaults to false (i.e. public).
+	IsPrivate *bool `json:"isPrivate,omitempty"`
 }
 
 // StaticSiteUserARMResource static Site User ARM resource.
@@ -27005,6 +29703,503 @@ type StaticSiteUserInvitationResponseResourceProperties struct {
 	InvitationURL *string `json:"invitationUrl,omitempty"`
 }
 
+// StaticSiteUserProvidedFunctionApp a static site user provided function.
+type StaticSiteUserProvidedFunctionApp struct {
+	// StaticSiteUserProvidedFunctionAppProperties - StaticSiteUserProvidedFunctionApp resource specific properties
+	*StaticSiteUserProvidedFunctionAppProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserProvidedFunctionApp.
+func (ssupfa StaticSiteUserProvidedFunctionApp) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssupfa.StaticSiteUserProvidedFunctionAppProperties != nil {
+		objectMap["properties"] = ssupfa.StaticSiteUserProvidedFunctionAppProperties
+	}
+	if ssupfa.Kind != nil {
+		objectMap["kind"] = ssupfa.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteUserProvidedFunctionApp struct.
+func (ssupfa *StaticSiteUserProvidedFunctionApp) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteUserProvidedFunctionAppProperties StaticSiteUserProvidedFunctionAppProperties
+				err = json.Unmarshal(*v, &staticSiteUserProvidedFunctionAppProperties)
+				if err != nil {
+					return err
+				}
+				ssupfa.StaticSiteUserProvidedFunctionAppProperties = &staticSiteUserProvidedFunctionAppProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssupfa.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssupfa.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssupfa.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssupfa.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteUserProvidedFunctionAppARMResource static Site User Provided Function App ARM resource.
+type StaticSiteUserProvidedFunctionAppARMResource struct {
+	autorest.Response `json:"-"`
+	// StaticSiteUserProvidedFunctionAppARMResourceProperties - StaticSiteUserProvidedFunctionAppARMResource resource specific properties
+	*StaticSiteUserProvidedFunctionAppARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserProvidedFunctionAppARMResource.
+func (ssupfaar StaticSiteUserProvidedFunctionAppARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssupfaar.StaticSiteUserProvidedFunctionAppARMResourceProperties != nil {
+		objectMap["properties"] = ssupfaar.StaticSiteUserProvidedFunctionAppARMResourceProperties
+	}
+	if ssupfaar.Kind != nil {
+		objectMap["kind"] = ssupfaar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteUserProvidedFunctionAppARMResource struct.
+func (ssupfaar *StaticSiteUserProvidedFunctionAppARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteUserProvidedFunctionAppARMResourceProperties StaticSiteUserProvidedFunctionAppARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteUserProvidedFunctionAppARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssupfaar.StaticSiteUserProvidedFunctionAppARMResourceProperties = &staticSiteUserProvidedFunctionAppARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssupfaar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssupfaar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssupfaar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssupfaar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteUserProvidedFunctionAppARMResourceProperties staticSiteUserProvidedFunctionAppARMResource
+// resource specific properties
+type StaticSiteUserProvidedFunctionAppARMResourceProperties struct {
+	// FunctionAppResourceID - The resource id of the function app registered with the static site
+	FunctionAppResourceID *string `json:"functionAppResourceId,omitempty"`
+	// FunctionAppRegion - The region of the function app registered with the static site
+	FunctionAppRegion *string `json:"functionAppRegion,omitempty"`
+	// CreatedOn - READ-ONLY; The date and time on which the function app was registered with the static site.
+	CreatedOn *date.Time `json:"createdOn,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserProvidedFunctionAppARMResourceProperties.
+func (ssupfaar StaticSiteUserProvidedFunctionAppARMResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssupfaar.FunctionAppResourceID != nil {
+		objectMap["functionAppResourceId"] = ssupfaar.FunctionAppResourceID
+	}
+	if ssupfaar.FunctionAppRegion != nil {
+		objectMap["functionAppRegion"] = ssupfaar.FunctionAppRegion
+	}
+	return json.Marshal(objectMap)
+}
+
+// StaticSiteUserProvidedFunctionAppProperties staticSiteUserProvidedFunctionApp resource specific
+// properties
+type StaticSiteUserProvidedFunctionAppProperties struct {
+	// FunctionAppResourceID - The resource id of the function app registered with the static site
+	FunctionAppResourceID *string `json:"functionAppResourceId,omitempty"`
+	// FunctionAppRegion - The region of the function app registered with the static site
+	FunctionAppRegion *string `json:"functionAppRegion,omitempty"`
+	// CreatedOn - READ-ONLY; The date and time on which the function app was registered with the static site.
+	CreatedOn *date.Time `json:"createdOn,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserProvidedFunctionAppProperties.
+func (ssupfa StaticSiteUserProvidedFunctionAppProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssupfa.FunctionAppResourceID != nil {
+		objectMap["functionAppResourceId"] = ssupfa.FunctionAppResourceID
+	}
+	if ssupfa.FunctionAppRegion != nil {
+		objectMap["functionAppRegion"] = ssupfa.FunctionAppRegion
+	}
+	return json.Marshal(objectMap)
+}
+
+// StaticSiteUserProvidedFunctionAppsCollection collection of static site user provided function apps.
+type StaticSiteUserProvidedFunctionAppsCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]StaticSiteUserProvidedFunctionAppARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserProvidedFunctionAppsCollection.
+func (ssupfac StaticSiteUserProvidedFunctionAppsCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssupfac.Value != nil {
+		objectMap["value"] = ssupfac.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// StaticSiteUserProvidedFunctionAppsCollectionIterator provides access to a complete listing of
+// StaticSiteUserProvidedFunctionAppARMResource values.
+type StaticSiteUserProvidedFunctionAppsCollectionIterator struct {
+	i    int
+	page StaticSiteUserProvidedFunctionAppsCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StaticSiteUserProvidedFunctionAppsCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteUserProvidedFunctionAppsCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StaticSiteUserProvidedFunctionAppsCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StaticSiteUserProvidedFunctionAppsCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StaticSiteUserProvidedFunctionAppsCollectionIterator) Response() StaticSiteUserProvidedFunctionAppsCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StaticSiteUserProvidedFunctionAppsCollectionIterator) Value() StaticSiteUserProvidedFunctionAppARMResource {
+	if !iter.page.NotDone() {
+		return StaticSiteUserProvidedFunctionAppARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StaticSiteUserProvidedFunctionAppsCollectionIterator type.
+func NewStaticSiteUserProvidedFunctionAppsCollectionIterator(page StaticSiteUserProvidedFunctionAppsCollectionPage) StaticSiteUserProvidedFunctionAppsCollectionIterator {
+	return StaticSiteUserProvidedFunctionAppsCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssupfac StaticSiteUserProvidedFunctionAppsCollection) IsEmpty() bool {
+	return ssupfac.Value == nil || len(*ssupfac.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (ssupfac StaticSiteUserProvidedFunctionAppsCollection) hasNextLink() bool {
+	return ssupfac.NextLink != nil && len(*ssupfac.NextLink) != 0
+}
+
+// staticSiteUserProvidedFunctionAppsCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssupfac StaticSiteUserProvidedFunctionAppsCollection) staticSiteUserProvidedFunctionAppsCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !ssupfac.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssupfac.NextLink)))
+}
+
+// StaticSiteUserProvidedFunctionAppsCollectionPage contains a page of
+// StaticSiteUserProvidedFunctionAppARMResource values.
+type StaticSiteUserProvidedFunctionAppsCollectionPage struct {
+	fn      func(context.Context, StaticSiteUserProvidedFunctionAppsCollection) (StaticSiteUserProvidedFunctionAppsCollection, error)
+	ssupfac StaticSiteUserProvidedFunctionAppsCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StaticSiteUserProvidedFunctionAppsCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteUserProvidedFunctionAppsCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.ssupfac)
+		if err != nil {
+			return err
+		}
+		page.ssupfac = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StaticSiteUserProvidedFunctionAppsCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StaticSiteUserProvidedFunctionAppsCollectionPage) NotDone() bool {
+	return !page.ssupfac.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StaticSiteUserProvidedFunctionAppsCollectionPage) Response() StaticSiteUserProvidedFunctionAppsCollection {
+	return page.ssupfac
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StaticSiteUserProvidedFunctionAppsCollectionPage) Values() []StaticSiteUserProvidedFunctionAppARMResource {
+	if page.ssupfac.IsEmpty() {
+		return nil
+	}
+	return *page.ssupfac.Value
+}
+
+// Creates a new instance of the StaticSiteUserProvidedFunctionAppsCollectionPage type.
+func NewStaticSiteUserProvidedFunctionAppsCollectionPage(cur StaticSiteUserProvidedFunctionAppsCollection, getNextPage func(context.Context, StaticSiteUserProvidedFunctionAppsCollection) (StaticSiteUserProvidedFunctionAppsCollection, error)) StaticSiteUserProvidedFunctionAppsCollectionPage {
+	return StaticSiteUserProvidedFunctionAppsCollectionPage{
+		fn:      getNextPage,
+		ssupfac: cur,
+	}
+}
+
+// StaticSiteZipDeployment a static site zip deployment.
+type StaticSiteZipDeployment struct {
+	// AppZipURL - URL for the zipped app content
+	AppZipURL *string `json:"appZipUrl,omitempty"`
+	// APIZipURL - URL for the zipped api content
+	APIZipURL *string `json:"apiZipUrl,omitempty"`
+	// DeploymentTitle - A title to label the deployment
+	DeploymentTitle *string `json:"deploymentTitle,omitempty"`
+	// Provider - The provider submitting this deployment
+	Provider *string `json:"provider,omitempty"`
+	// FunctionLanguage - The language of the api content, if it exists
+	FunctionLanguage *string `json:"functionLanguage,omitempty"`
+}
+
+// StaticSiteZipDeploymentARMResource static site zip deployment ARM resource.
+type StaticSiteZipDeploymentARMResource struct {
+	// StaticSiteZipDeployment - Core resource properties
+	*StaticSiteZipDeployment `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteZipDeploymentARMResource.
+func (sszdar StaticSiteZipDeploymentARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sszdar.StaticSiteZipDeployment != nil {
+		objectMap["properties"] = sszdar.StaticSiteZipDeployment
+	}
+	if sszdar.Kind != nil {
+		objectMap["kind"] = sszdar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteZipDeploymentARMResource struct.
+func (sszdar *StaticSiteZipDeploymentARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteZipDeployment StaticSiteZipDeployment
+				err = json.Unmarshal(*v, &staticSiteZipDeployment)
+				if err != nil {
+					return err
+				}
+				sszdar.StaticSiteZipDeployment = &staticSiteZipDeployment
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sszdar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sszdar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sszdar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sszdar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// Status identify the status of the most severe insight generated by the detector.
+type Status struct {
+	// Message - Descriptive message.
+	Message *string `json:"message,omitempty"`
+	// StatusID - Level of the most severe insight generated by the detector. Possible values include: 'InsightStatusCritical', 'InsightStatusWarning', 'InsightStatusInfo', 'InsightStatusSuccess', 'InsightStatusNone'
+	StatusID InsightStatus `json:"statusId,omitempty"`
+}
+
 // StatusCodesBasedTrigger trigger based on status code.
 type StatusCodesBasedTrigger struct {
 	// Status - HTTP status code.
@@ -27013,6 +30208,19 @@ type StatusCodesBasedTrigger struct {
 	SubStatus *int32 `json:"subStatus,omitempty"`
 	// Win32Status - Win32 error code.
 	Win32Status *int32 `json:"win32Status,omitempty"`
+	// Path - Request Path
+	Path *string `json:"path,omitempty"`
+	// Count - Request Count.
+	Count *int32 `json:"count,omitempty"`
+	// TimeInterval - Time interval.
+	TimeInterval *string `json:"timeInterval,omitempty"`
+}
+
+// StatusCodesRangeBasedTrigger trigger based on range of status codes.
+type StatusCodesRangeBasedTrigger struct {
+	// StatusCodes - HTTP status code.
+	StatusCodes *string `json:"statusCodes,omitempty"`
+	Path        *string `json:"path,omitempty"`
 	// Count - Request Count.
 	Count *int32 `json:"count,omitempty"`
 	// TimeInterval - Time interval.
@@ -27241,6 +30449,41 @@ func (sd StringDictionary) MarshalJSON() ([]byte, error) {
 		objectMap["kind"] = sd.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// StringList string list resource.
+type StringList struct {
+	autorest.Response `json:"-"`
+	// Properties - List of string resources.
+	Properties *[]string `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StringList.
+func (sl StringList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sl.Properties != nil {
+		objectMap["properties"] = sl.Properties
+	}
+	if sl.Kind != nil {
+		objectMap["kind"] = sl.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// SupportTopic defines a unique Support Topic
+type SupportTopic struct {
+	// ID - READ-ONLY; Support Topic Id
+	ID *string `json:"id,omitempty"`
+	// PesID - READ-ONLY; Unique resource Id
+	PesID *string `json:"pesId,omitempty"`
 }
 
 // SwiftVirtualNetwork swift Virtual Network Contract. This is used to enable the new Swift way of doing
@@ -29158,13 +32401,15 @@ type ValidateProperties struct {
 	ContainerImageTag *string `json:"containerImageTag,omitempty"`
 	// ContainerImagePlatform - Platform (windows or linux)
 	ContainerImagePlatform *string `json:"containerImagePlatform,omitempty"`
+	// AppServiceEnvironment - App Service Environment Properties
+	AppServiceEnvironment *AppServiceEnvironment `json:"appServiceEnvironment,omitempty"`
 }
 
 // ValidateRequest resource validation request content.
 type ValidateRequest struct {
 	// Name - Resource name to verify.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type used for verification. Possible values include: 'ValidateResourceTypesServerFarm', 'ValidateResourceTypesSite'
+	// Type - Resource type used for verification. Possible values include: 'ValidateResourceTypesServerFarm', 'ValidateResourceTypesSite', 'ValidateResourceTypesMicrosoftWebhostingEnvironments'
 	Type ValidateResourceTypes `json:"type,omitempty"`
 	// Location - Expected location of the resource.
 	Location *string `json:"location,omitempty"`
@@ -29630,6 +32875,8 @@ type VnetParametersProperties struct {
 	VnetName *string `json:"vnetName,omitempty"`
 	// VnetSubnetName - The subnet name to be validated
 	VnetSubnetName *string `json:"vnetSubnetName,omitempty"`
+	// SubnetResourceID - The ARM Resource ID of the subnet to validate
+	SubnetResourceID *string `json:"subnetResourceId,omitempty"`
 }
 
 // VnetRoute virtual Network route contract used to pass routing information for a Virtual Network.
@@ -29822,10 +33069,14 @@ func (vvfd *VnetValidationFailureDetails) UnmarshalJSON(body []byte) error {
 
 // VnetValidationFailureDetailsProperties vnetValidationFailureDetails resource specific properties
 type VnetValidationFailureDetailsProperties struct {
+	// Message - Text describing the validation outcome.
+	Message *string `json:"message,omitempty"`
 	// Failed - A flag describing whether or not validation failed.
 	Failed *bool `json:"failed,omitempty"`
 	// FailedTests - A list of tests that failed in the validation.
 	FailedTests *[]VnetValidationTestFailure `json:"failedTests,omitempty"`
+	// Warnings - A list of warnings generated during validation.
+	Warnings *[]VnetValidationTestFailure `json:"warnings,omitempty"`
 }
 
 // VnetValidationTestFailure a class that describes a test that failed during NSG and UDR validation.
@@ -29920,6 +33171,26 @@ type VnetValidationTestFailureProperties struct {
 	TestName *string `json:"testName,omitempty"`
 	// Details - The details of what caused the failure, e.g. the blocking rule name, etc.
 	Details *string `json:"details,omitempty"`
+}
+
+// WindowsJavaContainerSettings windows Java Container settings.
+type WindowsJavaContainerSettings struct {
+	// JavaContainer - READ-ONLY; Java container (runtime only).
+	JavaContainer *string `json:"javaContainer,omitempty"`
+	// JavaContainerVersion - READ-ONLY; Java container version (runtime only).
+	JavaContainerVersion *string `json:"javaContainerVersion,omitempty"`
+	// IsPreview - READ-ONLY; <code>true</code> if the stack is in preview; otherwise, <code>false</code>.
+	IsPreview *bool `json:"isPreview,omitempty"`
+	// IsDeprecated - READ-ONLY; <code>true</code> if the stack is deprecated; otherwise, <code>false</code>.
+	IsDeprecated *bool `json:"isDeprecated,omitempty"`
+	// IsHidden - READ-ONLY; <code>true</code> if the stack should be hidden; otherwise, <code>false</code>.
+	IsHidden *bool `json:"isHidden,omitempty"`
+	// EndOfLifeDate - READ-ONLY; End-of-life date for the minor version.
+	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
+	// IsAutoUpdate - READ-ONLY; <code>true</code> if the stack version is auto-updated; otherwise, <code>false</code>.
+	IsAutoUpdate *bool `json:"isAutoUpdate,omitempty"`
+	// IsEarlyAccess - READ-ONLY; <code>true</code> if the minor version is early-access; otherwise, <code>false</code>.
+	IsEarlyAccess *bool `json:"isEarlyAccess,omitempty"`
 }
 
 // WorkerPool worker pool of an App Service Environment.

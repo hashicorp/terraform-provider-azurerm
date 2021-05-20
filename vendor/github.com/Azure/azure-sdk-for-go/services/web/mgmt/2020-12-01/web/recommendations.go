@@ -84,7 +84,7 @@ func (client RecommendationsClient) DisableAllForHostingEnvironmentPreparer(ctx 
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version":     APIVersion,
 		"environmentName": autorest.Encode("query", environmentName),
@@ -168,7 +168,7 @@ func (client RecommendationsClient) DisableAllForWebAppPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,7 +253,7 @@ func (client RecommendationsClient) DisableRecommendationForHostingEnvironmentPr
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version":     APIVersion,
 		"environmentName": autorest.Encode("query", environmentName),
@@ -339,7 +339,7 @@ func (client RecommendationsClient) DisableRecommendationForSitePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -413,7 +413,7 @@ func (client RecommendationsClient) DisableRecommendationForSubscriptionPreparer
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -501,7 +501,7 @@ func (client RecommendationsClient) GetRuleDetailsByHostingEnvironmentPreparer(c
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -596,7 +596,7 @@ func (client RecommendationsClient) GetRuleDetailsByWebAppPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -684,7 +684,7 @@ func (client RecommendationsClient) ListPreparer(ctx context.Context, featured *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -822,7 +822,7 @@ func (client RecommendationsClient) ListHistoryForHostingEnvironmentPreparer(ctx
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -959,7 +959,7 @@ func (client RecommendationsClient) ListHistoryForWebAppPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1095,7 +1095,7 @@ func (client RecommendationsClient) ListRecommendedRulesForHostingEnvironmentPre
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1231,7 +1231,7 @@ func (client RecommendationsClient) ListRecommendedRulesForWebAppPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1345,7 +1345,7 @@ func (client RecommendationsClient) ResetAllFiltersPreparer(ctx context.Context)
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1428,7 +1428,7 @@ func (client RecommendationsClient) ResetAllFiltersForHostingEnvironmentPreparer
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version":     APIVersion,
 		"environmentName": autorest.Encode("query", environmentName),
@@ -1512,7 +1512,7 @@ func (client RecommendationsClient) ResetAllFiltersForWebAppPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

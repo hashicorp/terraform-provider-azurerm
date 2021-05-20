@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-12-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -152,10 +152,10 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			}
 
 			envelope := web.AppServiceEnvironmentResource{
+				Name:     utils.String(id.HostingEnvironmentName),
 				Kind:     utils.String(KindASEV3),
 				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
-					Name: utils.String(id.HostingEnvironmentName),
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID:     utils.String(model.SubnetId),
 						Subnet: utils.String(subnet.Name),

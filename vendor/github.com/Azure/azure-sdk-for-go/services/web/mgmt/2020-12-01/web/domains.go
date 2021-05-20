@@ -73,7 +73,7 @@ func (client DomainsClient) CheckAvailabilityPreparer(ctx context.Context, ident
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -211,7 +211,7 @@ func (client DomainsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -254,7 +254,7 @@ func (client DomainsClient) CreateOrUpdateResponder(resp *http.Response) (result
 }
 
 // CreateOrUpdateOwnershipIdentifier description for Creates an ownership identifier for a domain or updates identifier
-// details for an existing identifer
+// details for an existing identifier
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // domainName - name of domain.
@@ -310,7 +310,7 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifierPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -398,7 +398,7 @@ func (client DomainsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -486,7 +486,7 @@ func (client DomainsClient) DeleteOwnershipIdentifierPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -569,7 +569,7 @@ func (client DomainsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -640,7 +640,7 @@ func (client DomainsClient) GetControlCenterSsoRequestPreparer(ctx context.Conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -726,7 +726,7 @@ func (client DomainsClient) GetOwnershipIdentifierPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -802,7 +802,7 @@ func (client DomainsClient) ListPreparer(ctx context.Context) (*http.Request, er
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -926,7 +926,7 @@ func (client DomainsClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1052,7 +1052,7 @@ func (client DomainsClient) ListOwnershipIdentifiersPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1167,7 +1167,7 @@ func (client DomainsClient) ListRecommendationsPreparer(ctx context.Context, par
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1290,7 +1290,7 @@ func (client DomainsClient) RenewPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1376,7 +1376,7 @@ func (client DomainsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1410,7 +1410,7 @@ func (client DomainsClient) UpdateResponder(resp *http.Response) (result Domain,
 }
 
 // UpdateOwnershipIdentifier description for Creates an ownership identifier for a domain or updates identifier details
-// for an existing identifer
+// for an existing identifier
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // domainName - name of domain.
@@ -1466,7 +1466,7 @@ func (client DomainsClient) UpdateOwnershipIdentifierPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
