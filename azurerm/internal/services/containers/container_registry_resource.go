@@ -200,7 +200,7 @@ func resourceContainerRegistry() *schema.Resource {
 						"key_vault_key_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 					},
 				},
@@ -542,6 +542,9 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 	identityRaw := d.Get("identity").([]interface{})
 	identity := expandIdentityProperties(identityRaw)
 
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
@@ -552,6 +555,7 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 				TrustPolicy:      trustPolicy,
 			},
 			PublicNetworkAccess: publicNetworkAccess,
+			Encryption:          encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
