@@ -164,8 +164,8 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   route {
-	address_prefixes    = ["172.0.1.0/24"]
-	next_hop_ip_address = "12.34.56.78"
+    address_prefixes    = ["172.0.1.0/24"]
+    next_hop_ip_address = "12.34.56.78"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -183,8 +183,8 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   route {
-	address_prefixes    = ["172.0.1.0/24"]
-	next_hop_ip_address = "87.65.43.21"
+    address_prefixes    = ["172.0.1.0/24"]
+    next_hop_ip_address = "87.65.43.21"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -202,15 +202,15 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   default_route_table {
-	labels = ["default"]
+    labels = ["default"]
 
-	route {
-	  name              = "acctestdefaultroute"
-	  destinations_type = "CIDR"
-	  destinations      = ["10.0.2.0/25"]
-	  next_hop_type     = "ResourceId"
-	  next_hop          = azurerm_virtual_hub_connection.test.id
-	}
+    route {
+      name              = "acctestdefaultroute"
+      destinations_type = "CIDR"
+      destinations      = ["10.0.2.0/25"]
+      next_hop_type     = "ResourceId"
+      next_hop          = azurerm_virtual_hub_connection.test.id
+    }
   }
 }
 
@@ -241,15 +241,15 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   default_route_table {
-	labels = ["default"]
+    labels = ["default"]
 
-	route {
-	  name              = "acctestdefaultroute"
-	  destinations_type = "CIDR"
-	  destinations      = ["10.0.2.128/25"]
-	  next_hop_type     = "ResourceId"
-	  next_hop          = azurerm_virtual_hub_connection.test.id
-	}
+    route {
+      name              = "acctestdefaultroute"
+      destinations_type = "CIDR"
+      destinations      = ["10.0.2.128/25"]
+      next_hop_type     = "ResourceId"
+      next_hop          = azurerm_virtual_hub_connection.test.id
+    }
   }
 }
 
@@ -280,7 +280,7 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   tags = {
-	Hello = "World"
+    Hello = "World"
   }
 }
 `, r.template(data), data.RandomInteger)
