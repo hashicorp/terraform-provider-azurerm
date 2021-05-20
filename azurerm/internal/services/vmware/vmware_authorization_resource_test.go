@@ -69,7 +69,7 @@ func (r VmwareAuthorizationResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_vmware_authorization" "test" {
   name             = "acctest-VmwareAuthorization-%d"
-  private_cloud_id = azurerm_avs_private_cloud.test.id
+  private_cloud_id = azurerm_vmware_private_cloud.test.id
 }
 `, VmwarePrivateCloudResource{}.basic(data), data.RandomInteger)
 }
@@ -80,7 +80,7 @@ func (r VmwareAuthorizationResource) requiresImport(data acceptance.TestData) st
 
 resource "azurerm_vmware_authorization" "import" {
   name             = azurerm_vmware_authorization.test.name
-  private_cloud_id = azurerm_avs_private_cloud.test.id
+  private_cloud_id = azurerm_vmware_private_cloud.test.id
 }
 `, r.basic(data))
 }
