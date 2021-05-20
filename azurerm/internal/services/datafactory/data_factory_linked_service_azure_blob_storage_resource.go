@@ -10,7 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,8 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceBlobStorageDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +39,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -175,14 +176,14 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	if v, ok := d.GetOk("connection_string"); ok {
 		blobStorageProperties.ConnectionString = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
 		blobStorageProperties.SasURI = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
@@ -193,7 +194,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
@@ -204,7 +205,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureBlobStorageLinkedServiceTypeProperties: blobStorageProperties,
-		Type: datafactory.TypeAzureBlobStorage,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -251,31 +252,28 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage, *resp.Type)
 	}
 
 	if blobStorage != nil {
@@ -297,7 +295,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 
 	annotations := flattenDataFactoryAnnotations(blobStorage.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Blob Storage %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Blob Storage %q (Data Factory %q) / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	parameters := flattenDataFactoryParameters(blobStorage.Parameters)
@@ -319,18 +317,15 @@ func resourceDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

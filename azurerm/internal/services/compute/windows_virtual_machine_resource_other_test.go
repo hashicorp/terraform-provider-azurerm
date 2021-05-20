@@ -722,7 +722,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherUltraSsdDefault(data),
+			Config: r.otherUltraSsd(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
@@ -740,7 +740,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherUltraSsdEnabled(data),
+			Config: r.otherUltraSsd(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
@@ -758,7 +758,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherUltraSsdDefault(data),
+			Config: r.otherUltraSsd(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
@@ -768,7 +768,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 			"admin_password",
 		),
 		{
-			Config: r.otherUltraSsdEnabled(data),
+			Config: r.otherUltraSsd(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
@@ -2136,7 +2136,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) otherUltraSsdDefault(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherUltraSsd(data acceptance.TestData, ultraSsdEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2144,38 +2144,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-  zone = 1
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data))
-}
-
-func (r WindowsVirtualMachineResource) otherUltraSsdEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -2196,10 +2165,10 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   additional_capabilities {
-    ultra_ssd_enabled = true
+    ultra_ssd_enabled = %t
   }
 }
-`, r.template(data))
+`, r.template(data), ultraSsdEnabled)
 }
 
 func (r WindowsVirtualMachineResource) otherWinRMHTTP(data acceptance.TestData) string {
@@ -2434,7 +2403,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS3_V2"
+  size                = "Standard_DS3_v2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [

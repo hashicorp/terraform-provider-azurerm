@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -45,7 +45,7 @@ func resourceEventGridEventSubscription() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EventSubscriptionID(id)
 			return err
 		}),

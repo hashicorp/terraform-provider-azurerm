@@ -23,6 +23,7 @@ func TestAccDataSourceDedicatedHostGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
 				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("2"),
+				check.That(data.ResourceName).Key("automatic_placement_enabled").HasValue("false"),
 			),
 		},
 	})

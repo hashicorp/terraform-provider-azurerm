@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,9 +21,8 @@ func resourceIotHubConsumerGroup() *schema.Resource {
 		Create: resourceIotHubConsumerGroupCreate,
 		Read:   resourceIotHubConsumerGroupRead,
 		Delete: resourceIotHubConsumerGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

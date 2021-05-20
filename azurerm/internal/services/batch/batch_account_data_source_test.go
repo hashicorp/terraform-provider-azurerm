@@ -164,7 +164,8 @@ resource "azurerm_key_vault" "test" {
       "get",
       "list",
       "set",
-      "delete"
+      "delete",
+      "recover"
     ]
 
   }

@@ -3,9 +3,12 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -28,18 +31,13 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 		Update: resourceCosmosDbGremlinGraphUpdate,
 		Delete: resourceCosmosDbGremlinGraphDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceGremlinGraphUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceGremlinGraphStateUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.GremlinGraphV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -85,11 +83,11 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
-			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
+			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"partition_key_path": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -106,14 +104,16 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 							Default:  true,
 						},
 
+						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
+						// todo: change to SDK constants and remove translation code in 3.0
 						"indexing_mode": {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.Consistent),
-								string(documentdb.Lazy),
-								string(documentdb.None),
+								"Consistent",
+								"Lazy",
+								"None",
 							}, false),
 						},
 
@@ -140,35 +140,7 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 				},
 			},
 
-			"conflict_resolution_policy": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"mode": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.LastWriterWins),
-								string(documentdb.Custom),
-							}, false),
-						},
-
-						"conflict_resolution_path": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"conflict_resolution_procedure": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
+			"conflict_resolution_policy": common.ConflictResolutionPolicy(),
 
 			"unique_key": {
 				Type:     schema.TypeSet,
@@ -221,7 +193,7 @@ func resourceCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}
 			Resource: &documentdb.GremlinGraphResource{
 				ID:                       &name,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
-				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
+				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -298,9 +270,8 @@ func resourceCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}
 	db := documentdb.GremlinGraphCreateUpdateParameters{
 		GremlinGraphCreateUpdateProperties: &documentdb.GremlinGraphCreateUpdateProperties{
 			Resource: &documentdb.GremlinGraphResource{
-				ID:                       &id.GraphName,
-				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
-				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
+				ID:             &id.GraphName,
+				IndexingPolicy: expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -394,7 +365,7 @@ func resourceCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 			if crp := props.ConflictResolutionPolicy; crp != nil {
-				if err := d.Set("conflict_resolution_policy", flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(props.ConflictResolutionPolicy)); err != nil {
+				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(crp)); err != nil {
 					return fmt.Errorf("Error setting `conflict_resolution_policy`: %+v", err)
 				}
 			}
@@ -459,7 +430,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 	input := i[0].(map[string]interface{})
 	indexingPolicy := input["indexing_mode"].(string)
 	policy := &documentdb.IndexingPolicy{
-		IndexingMode:  documentdb.IndexingMode(indexingPolicy),
+		IndexingMode:  documentdb.IndexingMode(strings.ToLower(indexingPolicy)),
 		IncludedPaths: expandAzureRmCosmosDbGrelimGraphIncludedPath(input),
 		ExcludedPaths: expandAzureRmCosmosDbGremlinGraphExcludedPath(input),
 	}
@@ -469,29 +440,6 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 	}
 
 	return policy
-}
-
-func expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d *schema.ResourceData) *documentdb.ConflictResolutionPolicy {
-	i := d.Get("conflict_resolution_policy").([]interface{})
-	if len(i) == 0 || i[0] == nil {
-		return nil
-	}
-
-	input := i[0].(map[string]interface{})
-	conflictResolutionMode := input["mode"].(string)
-	conflict := &documentdb.ConflictResolutionPolicy{
-		Mode: documentdb.ConflictResolutionMode(conflictResolutionMode),
-	}
-
-	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {
-		conflict.ConflictResolutionPath = utils.String(conflictResolutionPath)
-	}
-
-	if conflictResolutionProcedure, ok := input["conflict_resolution_procedure"].(string); ok {
-		conflict.ConflictResolutionProcedure = utils.String(conflictResolutionProcedure)
-	}
-
-	return conflict
 }
 
 func expandAzureRmCosmosDbGrelimGraphIncludedPath(input map[string]interface{}) *[]documentdb.IncludedPath {
@@ -554,7 +502,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	indexPolicy := make(map[string]interface{})
 
 	indexPolicy["automatic"] = input.Automatic
-	indexPolicy["indexing_mode"] = string(input.IndexingMode)
+	indexPolicy["indexing_mode"] = strings.Title(string(input.IndexingMode))
 	indexPolicy["included_paths"] = schema.NewSet(schema.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = schema.NewSet(schema.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
 
@@ -593,19 +541,6 @@ func flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input *[]documentdb.Exclude
 	}
 
 	return excludedPaths
-}
-
-func flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(input *documentdb.ConflictResolutionPolicy) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-	conflictResolutionPolicy := make(map[string]interface{})
-
-	conflictResolutionPolicy["mode"] = string(input.Mode)
-	conflictResolutionPolicy["conflict_resolution_path"] = input.ConflictResolutionPath
-	conflictResolutionPolicy["conflict_resolution_procedure"] = input.ConflictResolutionProcedure
-
-	return []interface{}{conflictResolutionPolicy}
 }
 
 func flattenCosmosGremlinGraphUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[string]interface{} {

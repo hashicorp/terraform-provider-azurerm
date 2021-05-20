@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,8 @@ func resourceKeyVaultAccessPolicy() *schema.Resource {
 		Read:   resourceKeyVaultAccessPolicyRead,
 		Update: resourceKeyVaultAccessPolicyUpdate,
 		Delete: resourceKeyVaultAccessPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

@@ -42,13 +42,32 @@ func TestAccMapsAccount_sku(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.sku(data),
+			Config: r.sku(data, "S1"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("S1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMapsAccount_skuG2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
+	r := MapsAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "G2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("sku_name").HasValue("G2"),
 			),
 		},
 		data.ImportStep(),
@@ -113,7 +132,7 @@ resource "azurerm_maps_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (MapsAccountResource) sku(data acceptance.TestData) string {
+func (MapsAccountResource) sku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -127,9 +146,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S1"
+  sku_name            = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
 func (MapsAccountResource) tags(data acceptance.TestData) string {

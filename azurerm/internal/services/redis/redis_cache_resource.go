@@ -24,7 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -36,7 +36,7 @@ func resourceRedisCache() *schema.Resource {
 		Read:   resourceRedisCacheRead,
 		Update: resourceRedisCacheUpdate,
 		Delete: resourceRedisCacheDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CacheID(id)
 			return err
 		}),
@@ -279,6 +279,13 @@ func resourceRedisCache() *schema.Resource {
 				Default:  true,
 			},
 
+			"replicas_per_master": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				// Can't make more than 3 replicas in portal, assuming it's a limitation
+				ValidateFunc: validation.IntBetween(1, 3),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -343,6 +350,10 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("shard_count"); ok {
 		shardCount := int32(v.(int))
 		parameters.ShardCount = &shardCount
+	}
+
+	if v, ok := d.GetOk("replicas_per_master"); ok {
+		parameters.ReplicasPerMaster = utils.Int32(int32(v.(int)))
 	}
 
 	if v, ok := d.GetOk("private_static_ip_address"); ok {
@@ -439,6 +450,12 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 		if d.HasChange("shard_count") {
 			shardCount := int32(v.(int))
 			parameters.ShardCount = &shardCount
+		}
+	}
+
+	if v, ok := d.GetOk("replicas_per_master"); ok {
+		if d.HasChange("replicas_per_master") {
+			parameters.ReplicasPerMaster = utils.Int32(int32(v.(int)))
 		}
 	}
 
@@ -562,6 +579,7 @@ func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("subnet_id", subnetId)
 
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.Enabled)
+		d.Set("replicas_per_master", props.ReplicasPerMaster)
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)

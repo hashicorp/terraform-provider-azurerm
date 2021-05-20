@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 		Update: resourceDataFactoryDatasetParquetCreateUpdate,
 		Delete: resourceDataFactoryDatasetParquetDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -291,7 +291,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *schema.ResourceData, meta 
 		parquetTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeParquet)
+	datasetType := string(datafactory.TypeBasicDatasetTypeParquet)
 	dataset := datafactory.DatasetResource{
 		Properties: &parquetTableset,
 		Type:       &datasetType,
@@ -332,7 +332,7 @@ func resourceDataFactoryDatasetParquetRead(d *schema.ResourceData, meta interfac
 
 	parquetTable, ok := resp.Properties.AsParquetDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeParquet, *resp.Type)
 	}
 
 	d.Set("additional_properties", parquetTable.AdditionalProperties)

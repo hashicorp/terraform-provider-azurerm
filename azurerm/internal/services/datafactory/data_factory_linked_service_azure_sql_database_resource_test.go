@@ -62,6 +62,39 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_managed_id(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
+	r := LinkedServiceAzureSQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managed_id(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_KeyVaultReference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
+	r := LinkedServiceAzureSQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.key_vault_reference(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_string").Exists(),
+				check.That(data.ResourceName).Key("key_vault_password.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("key_vault_password.0.secret_name").HasValue("secret"),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
+}
+
 func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
@@ -179,4 +212,81 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureSQLDatabaseResource) managed_id(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+data "azurerm_client_config" "current" {
+}
+resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
+  name                 = "acctestlssql%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  data_factory_name    = azurerm_data_factory.test.name
+  connection_string    = "data source=serverhostname;initial catalog=master;user id=testUser;Password=test;integrated security=False;encrypt=True;connection timeout=30"
+  use_managed_identity = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureSQLDatabaseResource) key_vault_reference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name                = "linkkv"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  key_vault_id        = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
+  name                = "acctestlssql%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  connection_string   = "data source=serverhostname;initial catalog=master;user id=testUser;integrated security=False;encrypt=True;connection timeout=30"
+
+  key_vault_password {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

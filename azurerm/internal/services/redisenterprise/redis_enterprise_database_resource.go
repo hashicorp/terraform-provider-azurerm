@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,7 +32,7 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.RedisEnterpriseDatabaseID(id)
 			return err
 		}),
@@ -175,6 +175,18 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 				Default:      10000,
 				ValidateFunc: validation.IntBetween(0, 65353),
 			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -259,6 +271,11 @@ func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("retrieving Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.DatabaseName, id.ResourceGroup, id.RedisEnterpriseName, err)
 	}
 
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.RedisEnterpriseName, id.DatabaseName)
+	if err != nil {
+		return fmt.Errorf("listing keys for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.DatabaseName, id.ResourceGroup, id.RedisEnterpriseName, err)
+	}
+
 	d.Set("name", id.DatabaseName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_id", parse.NewRedisEnterpriseClusterID(id.SubscriptionId, id.ResourceGroup, id.RedisEnterpriseName).ID())
@@ -275,6 +292,9 @@ func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{
 		// }
 		d.Set("port", props.Port)
 	}
+
+	d.Set("primary_access_key", keysResp.PrimaryKey)
+	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
 	return nil
 }
@@ -342,6 +362,14 @@ func flattenArmDatabaseModuleArray(input *[]redisenterprise.Module) []interface{
 		args := ""
 		if item.Args != nil {
 			args = *item.Args
+			// new behavior if you do not pass args the RP sets the args to "PARTITIONS AUTO" by default
+			// (for RediSearch) which causes the the database to be force new on every plan after creation
+			// feels like an RP bug, but I added this workaround...
+			// NOTE: You also cannot set the args to PARTITIONS AUTO by default else you will get an error on create:
+			// Code="InvalidRequestBody" Message="The value of the parameter 'properties.modules' is invalid."
+			if strings.EqualFold(args, "PARTITIONS AUTO") {
+				args = ""
+			}
 		}
 
 		var version string

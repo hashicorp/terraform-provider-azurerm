@@ -188,7 +188,7 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(t *testing.
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -205,7 +205,7 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(t *testing.T
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -222,7 +222,7 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -231,7 +231,7 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").IsEmpty(),
 			),
 		},
 		data.ImportStep(),

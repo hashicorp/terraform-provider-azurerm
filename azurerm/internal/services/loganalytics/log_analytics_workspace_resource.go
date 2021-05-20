@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -17,7 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,16 +31,16 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 		Update: resourceLogAnalyticsWorkspaceCreateUpdate,
 		Delete: resourceLogAnalyticsWorkspaceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsWorkspaceID(id)
 			return err
 		}),
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.WorkspaceV0ToV1(),
-			migration.WorkspaceV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WorkspaceV0ToV1{},
+			1: migration.WorkspaceV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

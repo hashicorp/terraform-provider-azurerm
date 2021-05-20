@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,8 @@ func resourceDataFactoryDatasetHTTP() *schema.Resource {
 		Update: resourceDataFactoryDatasetHTTPCreateUpdate,
 		Delete: resourceDataFactoryDatasetHTTPDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,7 +39,7 @@ func resourceDataFactoryDatasetHTTP() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -226,7 +226,7 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *schema.ResourceData, meta int
 		httpTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeHTTPFile)
+	datasetType := string(datafactory.TypeBasicDatasetTypeHTTPFile)
 	dataset := datafactory.DatasetResource{
 		Properties: &httpTableset,
 		Type:       &datasetType,
@@ -279,7 +279,7 @@ func resourceDataFactoryDatasetHTTPRead(d *schema.ResourceData, meta interface{}
 
 	httpTable, ok := resp.Properties.AsHTTPDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset HTTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset HTTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeHTTPFile, *resp.Type)
 	}
 
 	d.Set("additional_properties", httpTable.AdditionalProperties)

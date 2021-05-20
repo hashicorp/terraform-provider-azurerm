@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,9 +25,8 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 		Read:   resourceDataFactoryTriggerScheduleRead,
 		Update: resourceDataFactoryTriggerScheduleCreateUpdate,
 		Delete: resourceDataFactoryTriggerScheduleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -78,13 +78,13 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 			"frequency": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(datafactory.Minute),
+				Default:  string(datafactory.RecurrenceFrequencyMinute),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.Minute),
-					string(datafactory.Hour),
-					string(datafactory.Day),
-					string(datafactory.Week),
-					string(datafactory.Month),
+					string(datafactory.RecurrenceFrequencyMinute),
+					string(datafactory.RecurrenceFrequencyHour),
+					string(datafactory.RecurrenceFrequencyDay),
+					string(datafactory.RecurrenceFrequencyWeek),
+					string(datafactory.RecurrenceFrequencyMonth),
 				}, false),
 			},
 
@@ -234,7 +234,7 @@ func resourceDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interfa
 
 	scheduleTriggerProps, ok := resp.Properties.AsScheduleTrigger()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeScheduleTrigger, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
 	if scheduleTriggerProps != nil {

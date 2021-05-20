@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 
@@ -60,9 +61,8 @@ func resourceHDInsightKafkaCluster() *schema.Resource {
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
 		Delete: hdinsightClusterDelete("Kafka"),
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -106,6 +106,12 @@ func resourceHDInsightKafkaCluster() *schema.Resource {
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
+
+			"encryption_in_transit_enabled": {
+				Type:     schema.TypeBool,
+				ForceNew: true,
+				Optional: true,
+			},
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -231,7 +237,7 @@ func resourceHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
@@ -249,6 +255,12 @@ func resourceHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
+	}
+
+	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
+		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
+			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		}
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, params)
@@ -360,6 +372,10 @@ func resourceHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("ssh_endpoint", sshEndpoint)
 		kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
 		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
+
+		if props.EncryptionInTransitProperties != nil {
+			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+		}
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {

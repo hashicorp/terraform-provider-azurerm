@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +34,7 @@ func resourceEventGridSystemTopic() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SystemTopicID(id)
 			return err
 		}),
@@ -65,29 +65,10 @@ func resourceEventGridSystemTopic() *schema.Resource {
 			},
 
 			"topic_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Microsoft.AppConfiguration.ConfigurationStores",
-					"Microsoft.Communication.CommunicationServices",
-					"Microsoft.ContainerRegistry.Registries",
-					"Microsoft.Devices.IoTHubs",
-					"Microsoft.EventGrid.Domains",
-					"Microsoft.EventGrid.Topics",
-					"Microsoft.Eventhub.Namespaces",
-					"Microsoft.KeyVault.vaults",
-					"Microsoft.MachineLearningServices.Workspaces",
-					"Microsoft.Maps.Accounts",
-					"Microsoft.Media.MediaServices",
-					"Microsoft.Resources.ResourceGroups",
-					"Microsoft.Resources.Subscriptions",
-					"Microsoft.ServiceBus.Namespaces",
-					"Microsoft.SignalRService.SignalR",
-					"Microsoft.Storage.StorageAccounts",
-					"Microsoft.Web.ServerFarms",
-					"Microsoft.Web.Sites",
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"metric_arm_resource_id": {

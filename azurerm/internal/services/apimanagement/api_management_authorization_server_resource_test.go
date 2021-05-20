@@ -58,7 +58,7 @@ func TestAccApiManagementAuthorizationServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("client_secret"),
+		data.ImportStep("client_secret", "resource_owner_password", "resource_owner_username"),
 	})
 }
 

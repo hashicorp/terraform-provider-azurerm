@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"

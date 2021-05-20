@@ -6,6 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -18,15 +22,18 @@ import (
 
 func resourceStorageBlob() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceStorageBlobCreate,
-		Read:          resourceStorageBlobRead,
-		Update:        resourceStorageBlobUpdate,
-		Delete:        resourceStorageBlobDelete,
-		MigrateState:  ResourceStorageBlobMigrateState,
+		Create: resourceStorageBlobCreate,
+		Read:   resourceStorageBlobRead,
+		Update: resourceStorageBlobUpdate,
+		Delete: resourceStorageBlobDelete,
+
 		SchemaVersion: 1,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.BlobV0ToV1{},
+		}),
+
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -47,7 +54,7 @@ func resourceStorageBlob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"storage_container_name": {

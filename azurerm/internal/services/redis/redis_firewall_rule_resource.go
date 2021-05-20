@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +24,7 @@ func resourceRedisFirewallRule() *schema.Resource {
 		Read:   resourceRedisFirewallRuleRead,
 		Update: resourceRedisFirewallRuleCreateUpdate,
 		Delete: resourceRedisFirewallRuleDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
 			return err
 		}),

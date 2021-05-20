@@ -13,6 +13,11 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 )
 
+const (
+	ConfigFileName = "terraform_plugin_test.tf"
+	PlanFileName   = "tfplan"
+)
+
 // WorkingDir represents a distinct working directory that can be used for
 // running tests. Each test should construct its own WorkingDir by calling
 // NewWorkingDir or RequireNewWorkingDir on its package's singleton
@@ -25,9 +30,6 @@ type WorkingDir struct {
 
 	// baseArgs is arguments that should be appended to all commands
 	baseArgs []string
-
-	// configDir contains the singular config file generated for each test
-	configDir string
 
 	// tf is the instance of tfexec.Terraform used for running Terraform commands
 	tf *tfexec.Terraform
@@ -75,54 +77,31 @@ func (wd *WorkingDir) GetHelper() *Helper {
 	return wd.h
 }
 
-func (wd *WorkingDir) relativeConfigDir() (string, error) {
-	relPath, err := filepath.Rel(wd.baseDir, wd.configDir)
-	if err != nil {
-		return "", fmt.Errorf("Error determining relative path of configuration directory: %w", err)
-	}
-	return relPath, nil
-}
-
 // SetConfig sets a new configuration for the working directory.
 //
 // This must be called at least once before any call to Init, Plan, Apply, or
 // Destroy to establish the configuration. Any previously-set configuration is
 // discarded and any saved plan is cleared.
 func (wd *WorkingDir) SetConfig(cfg string) error {
-	// Each call to SetConfig creates a new directory under our baseDir.
-	// We create them within so that our final cleanup step will delete them
-	// automatically without any additional tracking.
-	configDir, err := ioutil.TempDir(wd.baseDir, "config")
-	if err != nil {
-		return err
-	}
-	configFilename := filepath.Join(configDir, "terraform_plugin_test.tf")
-	err = ioutil.WriteFile(configFilename, []byte(cfg), 0700)
-	if err != nil {
-		return err
-	}
-
-	tf, err := tfexec.NewTerraform(wd.baseDir, wd.terraformExec)
+	configFilename := filepath.Join(wd.baseDir, ConfigFileName)
+	err := ioutil.WriteFile(configFilename, []byte(cfg), 0700)
 	if err != nil {
 		return err
 	}
 
 	var mismatch *tfexec.ErrVersionMismatch
-	err = tf.SetDisablePluginTLS(true)
+	err = wd.tf.SetDisablePluginTLS(true)
 	if err != nil && !errors.As(err, &mismatch) {
 		return err
 	}
-	err = tf.SetSkipProviderVerify(true)
+	err = wd.tf.SetSkipProviderVerify(true)
 	if err != nil && !errors.As(err, &mismatch) {
 		return err
 	}
 
 	if p := os.Getenv("TF_ACC_LOG_PATH"); p != "" {
-		tf.SetLogPath(p)
+		wd.tf.SetLogPath(p)
 	}
-
-	wd.configDir = configDir
-	wd.tf = tf
 
 	// Changing configuration invalidates any saved plan.
 	err = wd.ClearPlan()
@@ -186,11 +165,15 @@ func (wd *WorkingDir) RequireClearPlan(t TestControl) {
 // Init runs "terraform init" for the given working directory, forcing Terraform
 // to use the current version of the plugin under test.
 func (wd *WorkingDir) Init() error {
-	if wd.configDir == "" {
+	if _, err := os.Stat(wd.configFilename()); err != nil {
 		return fmt.Errorf("must call SetConfig before Init")
 	}
 
-	return wd.tf.Init(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Dir(wd.configDir))
+	return wd.tf.Init(context.Background(), tfexec.Reattach(wd.reattachInfo))
+}
+
+func (wd *WorkingDir) configFilename() string {
+	return filepath.Join(wd.baseDir, ConfigFileName)
 }
 
 // RequireInit is a variant of Init that will fail the test via the given
@@ -204,13 +187,13 @@ func (wd *WorkingDir) RequireInit(t TestControl) {
 }
 
 func (wd *WorkingDir) planFilename() string {
-	return filepath.Join(wd.baseDir, "tfplan")
+	return filepath.Join(wd.baseDir, PlanFileName)
 }
 
 // CreatePlan runs "terraform plan" to create a saved plan file, which if successful
 // will then be used for the next call to Apply.
 func (wd *WorkingDir) CreatePlan() error {
-	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out("tfplan"), tfexec.Dir(wd.configDir))
+	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out(PlanFileName))
 	return err
 }
 
@@ -227,7 +210,7 @@ func (wd *WorkingDir) RequireCreatePlan(t TestControl) {
 // CreateDestroyPlan runs "terraform plan -destroy" to create a saved plan
 // file, which if successful will then be used for the next call to Apply.
 func (wd *WorkingDir) CreateDestroyPlan() error {
-	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out("tfplan"), tfexec.Destroy(true), tfexec.Dir(wd.configDir))
+	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out(PlanFileName), tfexec.Destroy(true))
 	return err
 }
 
@@ -238,18 +221,9 @@ func (wd *WorkingDir) CreateDestroyPlan() error {
 func (wd *WorkingDir) Apply() error {
 	args := []tfexec.ApplyOption{tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false)}
 	if wd.HasSavedPlan() {
-		args = append(args, tfexec.DirOrPlan("tfplan"))
-	} else {
-		// we need to use a relative config dir here or we get an
-		// error about Terraform not having any configuration. See
-		// https://github.com/hashicorp/terraform-plugin-sdk/issues/495
-		// for more info.
-		configDir, err := wd.relativeConfigDir()
-		if err != nil {
-			return err
-		}
-		args = append(args, tfexec.DirOrPlan(configDir))
+		args = append(args, tfexec.DirOrPlan(PlanFileName))
 	}
+
 	return wd.tf.Apply(context.Background(), args...)
 }
 
@@ -269,7 +243,7 @@ func (wd *WorkingDir) RequireApply(t TestControl) {
 // If destroy fails then remote objects might still exist, and continue to
 // exist after a particular test is concluded.
 func (wd *WorkingDir) Destroy() error {
-	return wd.tf.Destroy(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Dir(wd.configDir))
+	return wd.tf.Destroy(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false))
 }
 
 // RequireDestroy is a variant of Destroy that will fail the test via
@@ -371,7 +345,7 @@ func (wd *WorkingDir) RequireState(t TestControl) *tfjson.State {
 
 // Import runs terraform import
 func (wd *WorkingDir) Import(resource, id string) error {
-	return wd.tf.Import(context.Background(), resource, id, tfexec.Config(wd.configDir), tfexec.Reattach(wd.reattachInfo))
+	return wd.tf.Import(context.Background(), resource, id, tfexec.Config(wd.baseDir), tfexec.Reattach(wd.reattachInfo))
 }
 
 // RequireImport is a variant of Import that will fail the test via
@@ -386,7 +360,7 @@ func (wd *WorkingDir) RequireImport(t TestControl, resource, id string) {
 
 // Refresh runs terraform refresh
 func (wd *WorkingDir) Refresh() error {
-	return wd.tf.Refresh(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.State(filepath.Join(wd.baseDir, "terraform.tfstate")), tfexec.Dir(wd.configDir))
+	return wd.tf.Refresh(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.State(filepath.Join(wd.baseDir, "terraform.tfstate")))
 }
 
 // RequireRefresh is a variant of Refresh that will fail the test via

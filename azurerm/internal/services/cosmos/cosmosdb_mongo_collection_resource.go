@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -27,18 +29,13 @@ func resourceCosmosDbMongoCollection() *schema.Resource {
 		Update: resourceCosmosDbMongoCollectionUpdate,
 		Delete: resourceCosmosDbMongoCollectionDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceMongoDbCollectionUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceMongoDbCollectionStateUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.MongoCollectionV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -81,6 +78,12 @@ func resourceCosmosDbMongoCollection() *schema.Resource {
 
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
 			"default_ttl_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
+			"analytical_storage_ttl": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
@@ -175,6 +178,10 @@ func resourceCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interfac
 		},
 	}
 
+	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
+	}
+
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
 			db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
@@ -242,6 +249,10 @@ func resourceCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interfac
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
+	}
+
+	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -340,6 +351,8 @@ func resourceCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{
 			if err := d.Set("system_indexes", systemIndexes); err != nil {
 				return fmt.Errorf("failed to set `system_indexes`: %+v", err)
 			}
+
+			d.Set("analytical_storage_ttl", res.AnalyticalStorageTTL)
 		}
 	}
 

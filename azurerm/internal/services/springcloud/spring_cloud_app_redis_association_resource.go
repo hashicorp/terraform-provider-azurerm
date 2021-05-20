@@ -14,7 +14,7 @@ import (
 	redisValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +28,7 @@ func resourceSpringCloudAppRedisAssociation() *schema.Resource {
 		Update: resourceSpringCloudAppRedisAssociationCreateUpdate,
 		Delete: resourceSpringCloudAppRedisAssociationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SpringCloudAppAssociationID(id)
 			return err
 		}, importSpringCloudAppAssociation(springCloudAppAssociationTypeRedis)),

@@ -1,10 +1,13 @@
 package automation
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -28,9 +31,8 @@ func resourceAutomationSchedule() *schema.Resource {
 		Update: resourceAutomationScheduleCreateUpdate,
 		Delete: resourceAutomationScheduleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -172,7 +174,7 @@ func resourceAutomationSchedule() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
@@ -195,7 +197,7 @@ func resourceAutomationSchedule() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

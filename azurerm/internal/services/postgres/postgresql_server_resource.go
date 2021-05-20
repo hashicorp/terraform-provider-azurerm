@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -63,13 +64,29 @@ func resourcePostgreSQLServer() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.ServerID(d.Id()); err != nil {
+				client := meta.(*clients.Client).Postgres.ServersClient
+				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+				defer cancel()
+
+				id, err := parse.ServerID(d.Id())
+				if err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("reading PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+
 				d.Set("create_mode", "Default")
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
+				if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
+					d.Set("create_mode", resp.ReplicationRole)
+
+					masterServerId, err := parse.ServerID(*resp.MasterServerID)
+					if err != nil {
+						return []*schema.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
+					}
+					d.Set("creation_source_server_id", masterServerId.ID())
 				}
 
 				return []*schema.ResourceData{d}, nil
@@ -323,6 +340,10 @@ func resourcePostgreSQLServer() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"disabled_alerts": {
@@ -339,11 +360,19 @@ func resourcePostgreSQLServer() *schema.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_account_admins": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_addresses": {
@@ -354,12 +383,20 @@ func resourcePostgreSQLServer() *schema.Resource {
 								// todo email validation in code
 							},
 							Set: schema.HashString,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"retention_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_account_access_key": {
@@ -367,12 +404,20 @@ func resourcePostgreSQLServer() *schema.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 					},
 				},
@@ -386,11 +431,11 @@ func resourcePostgreSQLServer() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
 				oldTier := strings.Split(old.(string), "_")
 				newTier := strings.Split(new.(string), "_")
-				// If the sku tier was not changed, we don't need fornew
+				// If the sku tier was not changed, we don't need ForceNew
 				if oldTier[0] == newTier[0] {
 					return false
 				}
@@ -580,6 +625,25 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
+	if mode == postgresql.CreateModeReplica {
+		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+		properties := postgresql.ServerUpdateParameters{
+			ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
+				PublicNetworkAccess: publicAccess,
+			},
+		}
+
+		future, err := client.Update(ctx, resourceGroup, name, properties)
+		if err != nil {
+			return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourcePostgreSQLServerRead(d, meta)
 }
 
@@ -604,6 +668,20 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 	primaryID := id.String()
 	if mode == postgresql.CreateModeReplica {
 		primaryID = d.Get("creation_source_server_id").(string)
+
+		// Wait for possible restarts triggered by scaling primary (and its replicas)
+		log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", id.Name, id.ResourceGroup)
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{string(postgresql.ServerStateInaccessible), "Restarting"},
+			Target:     []string{string(postgresql.ServerStateReady)},
+			Refresh:    postgreSqlStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+			MinTimeout: 15 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutCreate),
+		}
+
+		if _, err = stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 	locks.ByID(primaryID)
 	defer locks.UnlockByID(primaryID)
@@ -628,13 +706,17 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 				Sku: sku,
 			}
 			for _, replica := range *listReplicas.Value {
-				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
+				replicaId, err := parse.ServerID(*replica.ID)
 				if err != nil {
-					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
+					return fmt.Errorf("parsing Postgres Server Replica ID : %v", err)
+				}
+				future, err := client.Update(ctx, replicaId.ResourceGroup, replicaId.Name, propertiesReplica)
+				if err != nil {
+					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
 				}
 			}
 		}
@@ -664,6 +746,9 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
+		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)

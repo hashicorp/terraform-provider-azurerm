@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -121,8 +121,24 @@ func TestAccCosmosDbMongoCollection_withIndex(t *testing.T) {
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("707"),
-				check.That(data.ResourceName).Key("index.#").HasValue("3"),
-				check.That(data.ResourceName).Key("system_indexes.#").HasValue("2"),
+				check.That(data.ResourceName).Key("index.#").HasValue("4"),
+				check.That(data.ResourceName).Key("system_indexes.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbMongoCollection_analyticalStorageTTL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+	r := CosmosMongoCollectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.analyticalStorageTTL(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("analytical_storage_ttl").HasValue("600"),
 			),
 		},
 		data.ImportStep(),
@@ -214,6 +230,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -227,6 +248,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 
   shard_key           = "seven"
   default_ttl_seconds = 707
@@ -244,6 +270,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+
   shard_key           = "seven"
   default_ttl_seconds = 70707
 }
@@ -260,6 +291,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+
   throughput = %[3]d
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger, throughput)
@@ -275,6 +311,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
   shard_key           = "seven"
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 
   autoscale_settings {
     max_throughput = %[3]d
@@ -307,6 +348,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   index {
     keys = ["month"]
+  }
+
+  index {
+    keys   = ["_id"]
+    unique = true
   }
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
@@ -358,4 +404,30 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 }
 `, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
+}
+
+func (CosmosMongoCollectionResource) analyticalStorageTTL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+
+  analytical_storage_ttl = 600
+}
+`, CosmosDBAccountResource{}.mongoAnalyticalStorage(data, documentdb.Eventual), data.RandomInteger, data.RandomInteger)
 }

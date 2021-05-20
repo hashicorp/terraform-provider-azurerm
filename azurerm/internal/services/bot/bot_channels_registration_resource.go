@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -15,7 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,13 +35,11 @@ func resourceBotChannelsRegistration() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
-			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-			defer cancel()
 
 			id, err := parse.BotServiceID(d.Id())
 			if err != nil {
@@ -59,7 +58,7 @@ func resourceBotChannelsRegistration() *schema.Resource {
 				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
 			}
 
-			return []*schema.ResourceData{d}, nil
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*schema.Schema{

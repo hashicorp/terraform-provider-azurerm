@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,13 +14,13 @@ type AppConfigurationDataSource struct {
 func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AppConfigurationResource{}.standard(data),
 		},
 		{
 			Config: AppConfigurationDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(AppConfigurationResource{}),
 				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),

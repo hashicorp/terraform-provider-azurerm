@@ -7,6 +7,7 @@ import (
 )
 
 func SchemaContainerGroupProbe() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -24,6 +25,7 @@ func SchemaContainerGroupProbe() *schema.Schema {
 					},
 				},
 
+				//lintignore:XS003
 				"http_get": {
 					Type:     schema.TypeList,
 					Optional: true,

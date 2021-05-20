@@ -27,7 +27,7 @@ func TestAccVirtualNetwork_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
-				check.That(data.ResourceName).Key("subnet.1472110187.id").Exists(),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -59,15 +59,16 @@ func TestAccVirtualNetwork_basicUpdated(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
-				check.That(data.ResourceName).Key("subnet.1472110187.id").Exists(),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("2"),
-				check.That(data.ResourceName).Key("subnet.1472110187.id").Exists(),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -131,7 +132,7 @@ func TestAccVirtualNetwork_withTags(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
-				check.That(data.ResourceName).Key("subnet.1472110187.id").Exists(),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
@@ -142,7 +143,7 @@ func TestAccVirtualNetwork_withTags(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
-				check.That(data.ResourceName).Key("subnet.1472110187.id").Exists(),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
 			),
@@ -187,42 +188,6 @@ func TestAccVirtualNetwork_bgpCommunity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.bgpCommunity(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccVirtualNetwork_vmProtection(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
-	r := VirtualNetworkResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.vmProtection(data, true),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.vmProtection(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -485,31 +450,4 @@ resource "azurerm_virtual_network" "test" {
   bgp_community = "12076:20000"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (VirtualNetworkResource) vmProtection(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  vm_protection_enabled = %t
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }

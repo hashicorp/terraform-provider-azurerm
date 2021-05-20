@@ -524,8 +524,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHost(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -540,24 +539,21 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.otherEncryptionAtHost(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.otherEncryptionAtHost(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -572,8 +568,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostWithCMK(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -588,8 +583,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
