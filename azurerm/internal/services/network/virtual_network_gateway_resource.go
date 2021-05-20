@@ -338,6 +338,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 						"peering_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MinItems: 1,
 							MaxItems: 2,
 							Elem: &schema.Resource{
