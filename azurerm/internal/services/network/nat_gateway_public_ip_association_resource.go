@@ -6,25 +6,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNATGatewayPublicIpAssociation() *schema.Resource {
+func resourceNATGatewayPublicIpAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNATGatewayPublicIpAssociationCreate,
-		Read:   resourceArmNATGatewayPublicIpAssociationRead,
-		Delete: resourceArmNATGatewayPublicIpAssociationDelete,
+		Create: resourceNATGatewayPublicIpAssociationCreate,
+		Read:   resourceNATGatewayPublicIpAssociationRead,
+		Delete: resourceNATGatewayPublicIpAssociationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NatGatewayPublicIPAddressAssociationID(id)
 			return err
 		}),
@@ -47,13 +47,13 @@ func resourceArmNATGatewayPublicIpAssociation() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PublicIPAddressID,
+				ValidateFunc: validate.PublicIpAddressID,
 			},
 		},
 	}
 }
 
-func resourceArmNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,10 +109,10 @@ func resourceArmNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 
 	d.SetId(id)
 
-	return resourceArmNATGatewayPublicIpAssociationRead(d, meta)
+	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
 
-func resourceArmNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceArmNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

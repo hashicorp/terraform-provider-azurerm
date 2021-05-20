@@ -7,24 +7,23 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsSrvRecord() *schema.Resource {
+func resourceDnsSrvRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsSrvRecordCreateUpdate,
-		Read:   resourceArmDnsSrvRecordRead,
-		Update: resourceArmDnsSrvRecordCreateUpdate,
-		Delete: resourceArmDnsSrvRecordDelete,
+		Create: resourceDnsSrvRecordCreateUpdate,
+		Read:   resourceDnsSrvRecordRead,
+		Update: resourceDnsSrvRecordCreateUpdate,
+		Delete: resourceDnsSrvRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,8 +31,8 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsSrvRecordID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SrvRecordID(id)
 			return err
 		}),
 		Schema: map[string]*schema.Schema{
@@ -76,7 +75,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmDnsSrvRecordHash,
+				Set: resourceDnsSrvRecordHash,
 			},
 
 			"ttl": {
@@ -94,14 +93,17 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	resourceId := parse.NewSrvRecordID(subscriptionId, resGroup, zoneName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.SRV)
@@ -134,42 +136,33 @@ func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating/updating DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.SRV)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
+	d.SetId(resourceId.ID())
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS SRV Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
-
-	return resourceArmDnsSrvRecordRead(d, meta)
+	return resourceDnsSrvRecordRead(d, meta)
 }
 
-func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsSrvRecordID(d.Id())
+	id, err := parse.SrvRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.SRV)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS SRV record %s: %v", id.Name, err)
+		return fmt.Errorf("Error reading DNS SRV record %s: %v", id.SRVName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.SRVName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -179,19 +172,19 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsSrvRecordID(d.Id())
+	id, err := parse.SrvRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.SRV, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", id.SRVName, err)
 	}
 
 	return nil
@@ -238,7 +231,7 @@ func expandAzureRmDnsSrvRecords(d *schema.ResourceData) *[]dns.SrvRecord {
 	return &records
 }
 
-func resourceArmDnsSrvRecordHash(v interface{}) int {
+func resourceDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -248,5 +241,5 @@ func resourceArmDnsSrvRecordHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

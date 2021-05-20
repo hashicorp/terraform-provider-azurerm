@@ -5,7 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -15,16 +19,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
+func resourceApiManagementOpenIDConnectProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementOpenIDConnectProviderCreateUpdate,
-		Read:   resourceArmApiManagementOpenIDConnectProviderRead,
-		Update: resourceArmApiManagementOpenIDConnectProviderCreateUpdate,
-		Delete: resourceArmApiManagementOpenIDConnectProviderDelete,
+		Create: resourceApiManagementOpenIDConnectProviderCreateUpdate,
+		Read:   resourceApiManagementOpenIDConnectProviderRead,
+		Update: resourceApiManagementOpenIDConnectProviderCreateUpdate,
+		Delete: resourceApiManagementOpenIDConnectProviderDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,11 +37,11 @@ func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementChildName(),
+			"name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"client_id": {
 				Type:         schema.TypeString,
@@ -74,7 +77,7 @@ func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementOpenIDConnectProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,21 +122,21 @@ func resourceArmApiManagementOpenIDConnectProviderCreateUpdate(d *schema.Resourc
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementOpenIDConnectProviderRead(d, meta)
+	return resourceApiManagementOpenIDConnectProviderRead(d, meta)
 }
 
-func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.OpenIDConnectProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["openidConnectProviders"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -159,18 +162,18 @@ func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmApiManagementOpenIDConnectProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.OpenIDConnectProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["openidConnectProviders"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

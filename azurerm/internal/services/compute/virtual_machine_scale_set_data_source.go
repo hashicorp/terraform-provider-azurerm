@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualMachineScaleSet() *schema.Resource {
+func dataSourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVirtualMachineScaleSetRead,
+		Read: dataSourceVirtualMachineScaleSetRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -30,6 +30,8 @@ func dataSourceArmVirtualMachineScaleSet() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
+
+			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -60,7 +62,7 @@ func dataSourceArmVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func dataSourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -82,7 +84,20 @@ func dataSourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interf
 	}
 	d.SetId(*resp.ID)
 
-	if err := d.Set("identity", FlattenVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
+	if profile := resp.VirtualMachineProfile; profile != nil {
+		if nwProfile := profile.NetworkProfile; nwProfile != nil {
+			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+			if err := d.Set("network_interface", flattenedNics); err != nil {
+				return fmt.Errorf("Error setting `network_interface`: %+v", err)
+			}
+		}
+	}
+
+	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 

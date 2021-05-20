@@ -2,8 +2,9 @@ package batch
 
 import (
 	"fmt"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -12,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBatchCertificate() *schema.Resource {
+func dataSourceBatchCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBatchCertificateRead,
+		Read: dataSourceBatchCertificateRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -24,13 +25,13 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureRMBatchCertificateName,
+				ValidateFunc: validate.CertificateName,
 			},
 
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -55,7 +56,7 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,13 +87,4 @@ func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-func validateAzureRMBatchCertificateName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[\w]+-[\w]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"must be made up of algorithm and thumbprint separated by a dash in %q: %q", k, value))
-	}
-
-	return warnings, errors
 }

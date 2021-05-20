@@ -20,7 +20,7 @@ data "azurerm_network_service_tags" "example" {
 }
 
 output "address_prefixes" {
-  value = data.azurerm_service_tags.example.address_prefixes
+  value = data.azurerm_network_service_tags.example.address_prefixes
 }
 ```
 

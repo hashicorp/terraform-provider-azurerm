@@ -45,6 +45,10 @@ The following attributes are exported:
 
 * `kind` - The Kind of the CosmosDB account.
 
+* `key_vault_key_id` - The Key Vault key URI for CMK encryption.
+
+~> **NOTE:** The CosmosDB service always uses the latest version of the specified key. 
+
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
 * `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
@@ -82,13 +86,13 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_master_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary master key for the CosmosDB Account.
 
-* `secondary_master_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary master key for the CosmosDB Account.
 
-* `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
 
-* `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
 
 ## Timeouts
 

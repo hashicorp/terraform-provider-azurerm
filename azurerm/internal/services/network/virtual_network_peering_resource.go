@@ -7,13 +7,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,15 +22,14 @@ import (
 // or deleted at the same time
 var peerMutex = &sync.Mutex{}
 
-func resourceArmVirtualNetworkPeering() *schema.Resource {
+func resourceVirtualNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkPeeringCreateUpdate,
-		Read:   resourceArmVirtualNetworkPeeringRead,
-		Update: resourceArmVirtualNetworkPeeringCreateUpdate,
-		Delete: resourceArmVirtualNetworkPeeringDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceVirtualNetworkPeeringCreateUpdate,
+		Read:   resourceVirtualNetworkPeeringRead,
+		Update: resourceVirtualNetworkPeeringCreateUpdate,
+		Delete: resourceVirtualNetworkPeeringDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -87,7 +86,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -98,7 +97,7 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, vnetName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -133,10 +132,10 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualNetworkPeeringRead(d, meta)
+	return resourceVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +175,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

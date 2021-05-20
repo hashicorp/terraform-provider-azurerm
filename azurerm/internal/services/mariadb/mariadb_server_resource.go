@@ -13,27 +13,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDbServer() *schema.Resource {
+func resourceMariaDbServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbServerCreate,
-		Read:   resourceArmMariaDbServerRead,
-		Update: resourceArmMariaDbServerUpdate,
-		Delete: resourceArmMariaDbServerDelete,
+		Create: resourceMariaDbServerCreate,
+		Read:   resourceMariaDbServerRead,
+		Update: resourceMariaDbServerUpdate,
+		Delete: resourceMariaDbServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.MariaDbServerServerID(d.Id()); err != nil {
+				if _, err := parse.ServerID(d.Id()); err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
@@ -58,7 +57,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MariaDbServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {
@@ -104,7 +103,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 			"creation_source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MariaDbServerServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"fqdn": {
@@ -202,6 +201,9 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.StorageAutogrowEnabled),
 								string(mariadb.StorageAutogrowDisabled),
 							}, false),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 
 						"backup_retention_days": {
@@ -211,6 +213,9 @@ func resourceArmMariaDbServer() *schema.Resource {
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc:  validation.IntBetween(7, 35),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 
 						"geo_redundant_backup": {
@@ -225,6 +230,9 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
 							}, false),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 
 						"storage_mb": {
@@ -236,6 +244,9 @@ func resourceArmMariaDbServer() *schema.Resource {
 								validation.IntBetween(5120, 4096000),
 								validation.IntDivisibleBy(1024),
 							),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 					},
 				},
@@ -256,7 +267,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +278,7 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -391,17 +402,17 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbServerRead(d, meta)
+	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server update.")
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}
@@ -455,15 +466,15 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbServerRead(d, meta)
+	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}
@@ -515,12 +526,12 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}

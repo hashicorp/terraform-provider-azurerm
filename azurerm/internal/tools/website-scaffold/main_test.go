@@ -98,6 +98,7 @@ A 'block3' block supports the following:
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						//lintignore:XS003
 						"block1": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
@@ -111,6 +112,7 @@ A 'block3' block supports the following:
 								},
 							},
 						},
+						//lintignore:XS003
 						"block3": {
 							Type:     schema.TypeList,
 							MinItems: 1,
@@ -173,7 +175,7 @@ func runTest(t *testing.T, expected, actual string) {
 }
 
 func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGenerator {
-	var toStrPtr = func(input string) *string {
+	toStrPtr := func(input string) *string {
 		return &input
 	}
 	return documentationGenerator{

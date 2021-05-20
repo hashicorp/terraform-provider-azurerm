@@ -9,22 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
+func resourceDataFactoryLinkedServiceMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceMySQLCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceMySQLRead,
-		Update: resourceArmDataFactoryLinkedServiceMySQLCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceMySQLDelete,
+		Create: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceMySQLRead,
+		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceMySQLDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +39,7 @@ func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -98,7 +99,7 @@ func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,7 +124,7 @@ func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData
 	connectionString := d.Get("connection_string").(string)
 	secureString := datafactory.SecureString{
 		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	mysqlProperties := &datafactory.MySQLLinkedServiceTypeProperties{
@@ -135,7 +136,7 @@ func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData
 	mysqlLinkedService := &datafactory.MySQLLinkedService{
 		Description:                      &description,
 		MySQLLinkedServiceTypeProperties: mysqlProperties,
-		Type:                             datafactory.TypeMySQL,
+		Type:                             datafactory.TypeBasicLinkedServiceTypeMySQL,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -174,39 +175,36 @@ func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceMySQLRead(d, meta)
+	return resourceDataFactoryLinkedServiceMySQLRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	mysql, ok := resp.Properties.AsMySQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeMySQL, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeMySQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysql.AdditionalProperties)
@@ -231,23 +229,20 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

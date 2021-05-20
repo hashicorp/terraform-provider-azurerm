@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -11,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNetAppPool() *schema.Resource {
+func dataSourceNetAppPool() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNetAppPoolRead,
+		Read: dataSourceNetAppPoolRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -23,7 +25,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -33,7 +35,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"service_level": {
@@ -49,7 +51,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 	}
 }
 
-func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

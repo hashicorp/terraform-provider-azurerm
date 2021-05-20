@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -13,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateLinkService() *schema.Resource {
+func dataSourcePrivateLinkService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateLinkServiceRead,
+		Read: dataSourcePrivateLinkServiceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,7 +28,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: validate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -94,7 +97,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,12 +136,12 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		}
 
 		if props.IPConfigurations != nil {
-			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+			if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {
-			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
@@ -152,7 +155,7 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
+func dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
 	results := make([]string, 0)
 	if input == nil {
 		return results

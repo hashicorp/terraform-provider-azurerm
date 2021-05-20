@@ -1,12 +1,15 @@
 package managedapplications
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -14,9 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,8 +31,8 @@ func resourceManagedApplication() *schema.Resource {
 		Update: resourceManagedApplicationCreateUpdate,
 		Delete: resourceManagedApplicationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ManagedApplicationID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApplicationID(id)
 			return err
 		}),
 
@@ -45,7 +48,7 @@ func resourceManagedApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedApplicationName,
+				ValidateFunc: validate.ApplicationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -67,15 +70,26 @@ func resourceManagedApplication() *schema.Resource {
 			"application_definition_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionID,
+				ValidateFunc: validate.ApplicationDefinitionID,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
-				Optional: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"parameter_values"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+
+			"parameter_values": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
+				ConflictsWith:    []string{"parameters"},
 			},
 
 			"plan": {
@@ -158,26 +172,20 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 			ManagedResourceGroupID: utils.String(targetResourceGroupId),
 		}
 	}
+
 	if v, ok := d.GetOk("application_definition_id"); ok {
 		parameters.ApplicationDefinitionID = utils.String(v.(string))
 	}
+
 	if v, ok := d.GetOk("plan"); ok {
 		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
 	}
-	if v, ok := d.GetOk("parameters"); ok {
-		params := v.(map[string]interface{})
 
-		newParams := make(map[string]interface{}, len(params))
-		for key, val := range params {
-			newParams[key] = struct {
-				Value interface{} `json:"value"`
-			}{
-				Value: val,
-			}
-		}
-
-		parameters.Parameters = &newParams
+	params, err := expandManagedApplicationParameters(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `parameters` or `parameter_values`: %+v", err)
 	}
+	parameters.Parameters = params
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
@@ -204,7 +212,7 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -227,13 +235,19 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 	if props := resp.ApplicationProperties; props != nil {
-		id, err := resource.ParseResourceGroupID(*props.ManagedResourceGroupID)
+		id, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}
 
-		d.Set("managed_resource_group_name", id.Name)
+		d.Set("managed_resource_group_name", id.ResourceGroup)
 		d.Set("application_definition_id", props.ApplicationDefinitionID)
+
+		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(props.Parameters)
+		if err != nil {
+			return fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
+		}
+		d.Set("parameter_values", parameterValues)
 
 		if err = d.Set("parameters", flattenManagedApplicationParametersOrOutputs(props.Parameters)); err != nil {
 			return err
@@ -252,7 +266,7 @@ func resourceManagedApplicationDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -282,6 +296,30 @@ func expandManagedApplicationPlan(input []interface{}) *managedapplications.Plan
 		Version:       utils.String(plan["version"].(string)),
 		PromotionCode: utils.String(plan["promotion_code"].(string)),
 	}
+}
+
+func expandManagedApplicationParameters(d *schema.ResourceData) (*map[string]interface{}, error) {
+	newParams := make(map[string]interface{})
+
+	if v, ok := d.GetOk("parameter_values"); ok {
+		if err := json.Unmarshal([]byte(v.(string)), &newParams); err != nil {
+			return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
+		}
+	}
+
+	if v, ok := d.GetOk("parameters"); ok {
+		params := v.(map[string]interface{})
+
+		for key, val := range params {
+			newParams[key] = struct {
+				Value interface{} `json:"value"`
+			}{
+				Value: val,
+			}
+		}
+	}
+
+	return &newParams, nil
 }
 
 func flattenManagedApplicationPlan(input *managedapplications.Plan) []interface{} {
@@ -335,4 +373,28 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]
 	}
 
 	return results
+}
+
+func flattenManagedApplicationParameterValuesValueToString(input interface{}) (string, error) {
+	if input == nil {
+		return "", nil
+	}
+
+	for k, v := range input.(map[string]interface{}) {
+		if v != nil {
+			delete(input.(map[string]interface{})[k].(map[string]interface{}), "type")
+		}
+	}
+
+	result, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	compactJson := bytes.Buffer{}
+	if err := json.Compact(&compactJson, result); err != nil {
+		return "", err
+	}
+
+	return compactJson.String(), nil
 }

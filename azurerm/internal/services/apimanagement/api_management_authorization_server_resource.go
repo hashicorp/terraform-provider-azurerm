@@ -5,7 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -15,15 +19,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementAuthorizationServer() *schema.Resource {
+func resourceApiManagementAuthorizationServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementAuthorizationServerCreateUpdate,
-		Read:   resourceArmApiManagementAuthorizationServerRead,
-		Update: resourceArmApiManagementAuthorizationServerCreateUpdate,
-		Delete: resourceArmApiManagementAuthorizationServerDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceApiManagementAuthorizationServerCreateUpdate,
+		Read:   resourceApiManagementAuthorizationServerRead,
+		Update: resourceApiManagementAuthorizationServerCreateUpdate,
+		Delete: resourceApiManagementAuthorizationServerDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,9 +36,9 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementChildName(),
+			"name": schemaz.SchemaApiManagementChildName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -183,7 +186,7 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,22 +277,22 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementAuthorizationServerRead(d, meta)
+	return resourceApiManagementAuthorizationServerRead(d, meta)
 }
 
-func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AuthorizationServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["authorizationServers"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -313,10 +316,12 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 		d.Set("default_scope", props.DefaultScope)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("resource_owner_password", props.ResourceOwnerPassword)
-		d.Set("resource_owner_username", props.ResourceOwnerUsername)
 		d.Set("support_state", props.SupportState)
 		d.Set("token_endpoint", props.TokenEndpoint)
+
+		// TODO: Read properties from api, https://github.com/Azure/azure-rest-api-specs/issues/14128
+		d.Set("resource_owner_password", d.Get("resource_owner_password").(string))
+		d.Set("resource_owner_username", d.Get("resource_owner_username").(string))
 
 		if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
 			return fmt.Errorf("flattening `authorization_methods`: %+v", err)
@@ -342,19 +347,19 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AuthorizationServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["authorizationServers"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

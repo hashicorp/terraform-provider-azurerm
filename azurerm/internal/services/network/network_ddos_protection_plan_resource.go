@@ -5,30 +5,29 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const azureNetworkDDoSProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 
-func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
+func resourceNetworkDDoSProtectionPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
-		Read:   resourceArmNetworkDDoSProtectionPlanRead,
-		Update: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
-		Delete: resourceArmNetworkDDoSProtectionPlanDelete,
+		Create: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Read:   resourceNetworkDDoSProtectionPlanRead,
+		Update: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Delete: resourceNetworkDDoSProtectionPlanDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -61,7 +60,7 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -71,7 +70,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -87,7 +86,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	vnetsToLock, err := expandArmNetworkDDoSProtectionPlanVnetNames(d)
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
@@ -123,10 +122,10 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*plan.ID)
 
-	return resourceArmNetworkDDoSProtectionPlanRead(d, meta)
+	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +155,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
-		vNetIDs := flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
+		vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
 		if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_ids`: %+v", err)
 		}
@@ -165,7 +164,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, plan.Tags)
 }
 
-func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +210,7 @@ func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta int
 	return err
 }
 
-func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]string, error) {
+func expandNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]string, error) {
 	vnetIDs := d.Get("virtual_network_ids").([]interface{})
 	vnetNames := make([]string, 0)
 
@@ -223,7 +222,7 @@ func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]str
 
 		vnetName := vnetResourceID.Path["virtualNetworks"]
 
-		if !azure.SliceContainsValue(vnetNames, vnetName) {
+		if !utils.SliceContainsValue(vnetNames, vnetName) {
 			vnetNames = append(vnetNames, vnetName)
 		}
 	}
@@ -231,7 +230,7 @@ func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]str
 	return &vnetNames, nil
 }
 
-func flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
+func flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
 	vnetIDs := make([]string, 0)
 	if input == nil {
 		return vnetIDs
@@ -259,7 +258,7 @@ func extractVnetNames(d *schema.ResourceData) (*[]string, error) {
 
 		vnetName := vnetResourceID.Path["virtualNetworks"]
 
-		if !azure.SliceContainsValue(vnetNames, vnetName) {
+		if !utils.SliceContainsValue(vnetNames, vnetName) {
 			vnetNames = append(vnetNames, vnetName)
 		}
 	}

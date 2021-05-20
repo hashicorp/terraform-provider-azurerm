@@ -2,9 +2,13 @@ package costmanagement
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
+
+	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -14,18 +18,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCostManagementExportResourceGroup() *schema.Resource {
+func resourceCostManagementExportResourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCostManagementExportResourceGroupCreateUpdate,
-		Read:   resourceArmCostManagementExportResourceGroupRead,
-		Update: resourceArmCostManagementExportResourceGroupCreateUpdate,
-		Delete: resourceArmCostManagementExportResourceGroupDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Create: resourceCostManagementExportResourceGroupCreateUpdate,
+		Read:   resourceCostManagementExportResourceGroupRead,
+		Update: resourceCostManagementExportResourceGroupCreateUpdate,
+		Delete: resourceCostManagementExportResourceGroupDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CostManagementExportResourceGroupID(id)
 			return err
 		}),
@@ -42,14 +45,14 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCostManagementExportName,
+				ValidateFunc: validate.ExportName,
 			},
 
 			"resource_group_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: resourceValidate.ResourceGroupID,
 			},
 
 			"active": {
@@ -97,7 +100,7 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validateCostManagementExportContainerName,
+							ValidateFunc: validate.ExportContainerName,
 						},
 						"root_folder_path": {
 							Type:         schema.TypeString,
@@ -140,7 +143,7 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 	}
 }
 
-func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,10 +211,10 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 
 	d.SetId(id)
 
-	return resourceArmCostManagementExportResourceGroupRead(d, meta)
+	return resourceCostManagementExportResourceGroupRead(d, meta)
 }
 
-func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +260,7 @@ func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmCostManagementExportResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -340,40 +343,4 @@ func flattenExportQuery(input *costmanagement.QueryDefinition) []interface{} {
 	attrs["time_frame"] = string(input.Timeframe)
 
 	return []interface{}{attrs}
-}
-
-func validateCostManagementExportName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
-	}
-
-	if len(name) < 3 || len(name) > 24 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
-}
-
-func validateCostManagementExportContainerName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
-	}
-
-	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
-	}
-
-	if len(name) < 3 || len(name) > 63 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }

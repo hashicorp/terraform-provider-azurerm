@@ -12,17 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func resourceArmLogicAppActionHTTP() *schema.Resource {
+func resourceLogicAppActionHTTP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppActionHTTPCreateUpdate,
-		Read:   resourceArmLogicAppActionHTTPRead,
-		Update: resourceArmLogicAppActionHTTPCreateUpdate,
-		Delete: resourceArmLogicAppActionHTTPDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceLogicAppActionHTTPCreateUpdate,
+		Read:   resourceLogicAppActionHTTPRead,
+		Update: resourceLogicAppActionHTTPCreateUpdate,
+		Delete: resourceLogicAppActionHTTPDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -101,7 +101,7 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
 	if err != nil {
@@ -134,10 +134,10 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	return resourceArmLogicAppActionHTTPRead(d, meta)
+	return resourceLogicAppActionHTTPRead(d, meta)
 }
 
-func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -211,7 +211,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

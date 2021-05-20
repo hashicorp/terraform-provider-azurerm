@@ -11,7 +11,7 @@ type ManagementGroupId struct {
 }
 
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
-	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/management[Gg]roups/`)
+	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
 	if !regex.MatchString(input) {
 		return nil, fmt.Errorf("Unable to parse Management Group ID %q", input)
 	}
@@ -35,4 +35,15 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	}
 
 	return &id, nil
+}
+
+func NewManagementGroupId(managementGroupName string) ManagementGroupId {
+	return ManagementGroupId{
+		Name: managementGroupName,
+	}
+}
+
+func (r ManagementGroupId) ID() string {
+	managementGroupIdFmt := "/providers/Microsoft.Management/managementGroups/%s"
+	return fmt.Sprintf(managementGroupIdFmt, r.Name)
 }

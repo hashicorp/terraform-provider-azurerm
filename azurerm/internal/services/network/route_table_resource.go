@@ -5,32 +5,35 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var routeTableResourceName = "azurerm_route_table"
 
-func resourceArmRouteTable() *schema.Resource {
+func resourceRouteTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteTableCreateUpdate,
-		Read:   resourceArmRouteTableRead,
-		Update: resourceArmRouteTableCreateUpdate,
-		Delete: resourceArmRouteTableDelete,
+		Create: resourceRouteTableCreateUpdate,
+		Read:   resourceRouteTableRead,
+		Update: resourceRouteTableCreateUpdate,
+		Delete: resourceRouteTableDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseRouteTableID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.RouteTableID(id)
 			return err
 		}),
 
@@ -46,7 +49,7 @@ func resourceArmRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateRouteTableName,
+				ValidateFunc: validate.RouteTableName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -63,7 +66,7 @@ func resourceArmRouteTable() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateRouteName,
+							ValidateFunc: validate.RouteName,
 						},
 
 						"address_prefix": {
@@ -112,7 +115,7 @@ func resourceArmRouteTable() *schema.Resource {
 	}
 }
 
-func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +127,7 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -167,15 +170,15 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmRouteTableRead(d, meta)
+	return resourceRouteTableRead(d, meta)
 }
 
-func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteTableID(d.Id())
+	id, err := parse.RouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -209,12 +212,12 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteTableID(d.Id())
+	id, err := parse.RouteTableID(d.Id())
 	if err != nil {
 		return err
 	}

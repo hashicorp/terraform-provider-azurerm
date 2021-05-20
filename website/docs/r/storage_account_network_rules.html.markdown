@@ -35,7 +35,7 @@ resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -80,11 +80,24 @@ The following arguments are supported:
 
 -> **NOTE** Small address ranges using "/31" or "/32" prefix sizes are not supported. These ranges should be configured using individual IP address rules without prefix specified.
 
+-> **NOTE** IP network rules have no effect on requests originating from the same Azure region as the storage account. Use Virtual network rules to allow same-region requests. Services deployed in the same region as the storage account use private Azure IP addresses for communication. Thus, you cannot restrict access to specific Azure services based on their public outbound IP address range.
+
 -> **NOTE** User has to explicitly set `ip_rules` to empty slice (`[]`) to remove it.
 
 * `virtual_network_subnet_ids` - (Optional) A list of virtual network subnet ids to to secure the storage account.
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
+
+* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
+
+---
+
+A `private_link_access` block supports the following:
+
+* `endpoint_resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
+
+* `endpoint_tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
+
 
 ## Attributes Reference
 

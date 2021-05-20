@@ -10,6 +10,8 @@ description: |-
 
 Manages a MS SQL Database.
 
+~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
+
 ## Example Usage
 
 ```hcl
@@ -30,7 +32,7 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_sql_server" "example" {
+resource "azurerm_mssql_server" "example" {
   name                         = "example-sqlserver"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
@@ -41,7 +43,7 @@ resource "azurerm_sql_server" "example" {
 
 resource "azurerm_mssql_database" "test" {
   name           = "acctest-db-d"
-  server_id      = azurerm_sql_server.example.id
+  server_id      = azurerm_mssql_server.example.id
   collation      = "SQL_Latin1_General_CP1_CI_AS"
   license_type   = "LicenseIncluded"
   max_size_gb    = 4
@@ -76,7 +78,7 @@ The following arguments are supported:
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of `-1` means that automatic pause is disabled. This property is only settable for General Purpose Serverless databases.
 
-* `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. 
+* `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. 
 
 * `creation_source_database_id` - (Optional) The id of the source database to be referred to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
 
@@ -86,13 +88,25 @@ The following arguments are supported:
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
+* `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. 
+
+~> **NOTE** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
+
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
-* `max_size_gb` - (Optional) The max size of the database in gigabytes. 
+* `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
+
+* `max_size_gb` - (Optional) The max size of the database in gigabytes.
+
+~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-scale#geo-replicated-database).
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for General Purpose Serverless databases.
 
 * `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore`  databases.
+
+* `recover_database_id` - (Optional) The ID of the database to be recovered. This property is only applicable when the `create_mode` is `Recovery`.
+
+* `restore_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only applicable when the `create_mode` is `Restore`.
 
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 
@@ -100,9 +114,13 @@ The following arguments are supported:
 
 * `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
-* `sku_name` - (Optional) Specifies the name of the sku used by the database. Only changing this from tier `Hyperscale` to another tier will force a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
+* `short_term_retention_policy` - (Optional) A `short_term_retention_policy` block as defined below.
+
+* `sku_name` - (Optional) Specifies the name of the sku used by the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
 
 ~> **NOTE** The default sku_name value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity.
+
+* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created.  Possible values are `GRS`, `LRS` and `ZRS`.  The default value is `GRS`.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
@@ -126,16 +144,33 @@ a `threat_detection_policy` block supports the following:
 
 A `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_eventhub). 
+
+---
+
+A `long_term_retention_policy` block supports the following:
+
+* `weekly_retention` - (Optional) The weekly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 520 weeks. e.g. `P1Y`, `P1M`, `P1W` or `P7D`.
+* `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`.
+* `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`.
+* `week_of_year` - (Optional) The week of year to take the yearly backup in an ISO 8601 format. Value has to be between `1` and `52`.
+
+---
+
+A `short_term_retention_policy` block supports the following:
+
+* `retention_days` - (Required) Point In Time Restore configuration. Value has to be between `7` and `35`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the MS SQL Database.
+* `name` - The Name of the MS SQL Database.
 
 ## Timeouts
 

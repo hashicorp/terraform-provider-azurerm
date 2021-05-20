@@ -5,25 +5,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
+func resourceSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetNetworkSecurityGroupAssociationCreate,
-		Read:   resourceArmSubnetNetworkSecurityGroupAssociationRead,
-		Delete: resourceArmSubnetNetworkSecurityGroupAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceSubnetNetworkSecurityGroupAssociationCreate,
+		Read:   resourceSubnetNetworkSecurityGroupAssociationRead,
+		Delete: resourceSubnetNetworkSecurityGroupAssociationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -50,7 +50,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -65,7 +65,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
-	parsedNetworkSecurityGroupId, err := ParseNetworkSecurityGroupID(networkSecurityGroupId)
+	parsedNetworkSecurityGroupId, err := parse.NetworkSecurityGroupID(networkSecurityGroupId)
 	if err != nil {
 		return err
 	}
@@ -86,19 +86,17 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet %q (Virtual Network %q / Resource Group %q) was not found!", subnetName, virtualNetworkName, resourceGroup)
+			return fmt.Errorf("subnet %q (Virtual Network %q / Resource Group %q) was not found", subnetName, virtualNetworkName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if features.ShouldResourcesBeImported() {
-			if nsg := props.NetworkSecurityGroup; nsg != nil {
-				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
-				if nsg.ID != nil && subnet.ID != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.ID)
-				}
+		if nsg := props.NetworkSecurityGroup; nsg != nil {
+			// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
+			if nsg.ID != nil && subnet.ID != nil {
+				return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.ID)
 			}
 		}
 
@@ -109,24 +107,24 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
 	if err != nil {
-		return fmt.Errorf("Error updating Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("updating Network Security Group Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Route Table Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Network Security Group  Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmSubnetNetworkSecurityGroupAssociationRead(d, meta)
+	return resourceSubnetNetworkSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,19 +138,18 @@ func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData
 	subnetName := id.Path["subnets"]
 
 	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	props := resp.SubnetPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
+		return fmt.Errorf("`properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
 	}
 
 	securityGroup := props.NetworkSecurityGroup
@@ -168,7 +165,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +186,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	props := read.SubnetPropertiesFormat
@@ -203,7 +200,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 	}
 
 	// once we have the network security group id to lock on, lock on that
-	parsedNetworkSecurityGroupId, err := ParseNetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
+	parsedNetworkSecurityGroupId, err := parse.NetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
 	if err != nil {
 		return err
 	}
@@ -225,18 +222,18 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
 	if err != nil {
-		return fmt.Errorf("Error removing Network Security Group Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("removing Network Security Group Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Network Security Group Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Network Security Group Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	return nil

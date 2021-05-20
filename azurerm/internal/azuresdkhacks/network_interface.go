@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/Azure/go-autorest/autorest"
 )
+
+// TODO: move this into the network package
 
 // UpdateNetworkInterfaceAllowingRemovalOfNSG patches our way around a design flaw in the Azure
 // Resource Manager API <-> Azure SDK for Go where it's not possible to remove a Network Security Group
@@ -74,7 +76,7 @@ func withJsonWorkingAroundTheBrokenNetworkAPI(v network.Interface) autorest.Prep
 					b, err = json.Marshal(out)
 					if err == nil {
 						r.ContentLength = int64(len(b))
-						r.Body = ioutil.NopCloser(bytes.NewReader(b))
+						r.Body = io.NopCloser(bytes.NewReader(b))
 					}
 				}
 			}

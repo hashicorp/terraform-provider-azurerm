@@ -19,8 +19,8 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_network_security_group" "example" {
@@ -77,9 +77,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
 
-* `address_space` - (Required) The address space that is used the virtual network. You can supply more than one address space. 
+* `address_space` - (Required) The address space that is used the virtual network. You can supply more than one address space.
 
 * `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
+
+* `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
+
+-> **NOTE** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.
 
 * `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
@@ -95,7 +99,7 @@ The following arguments are supported:
 
 A `ddos_protection_plan` block supports the following:
 
-* `id` - (Required) The Resource ID of DDoS Protection Plan.
+* `id` - (Required) The ID of DDoS Protection Plan.
 
 * `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network.
 
@@ -121,7 +125,7 @@ The following attributes are exported:
 
 * `location` - The location/region where the virtual network is created.
 
-* `address_space` - The address space that is used the virtual network.
+* `address_space` - The list of address spaces used by the virtual network.
 
 * `guid` - The GUID of the virtual network.
 

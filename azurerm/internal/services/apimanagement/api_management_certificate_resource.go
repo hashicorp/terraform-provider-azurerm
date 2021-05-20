@@ -5,25 +5,30 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementCertificate() *schema.Resource {
+func resourceApiManagementCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementCertificateCreateUpdate,
-		Read:   resourceArmApiManagementCertificateRead,
-		Update: resourceArmApiManagementCertificateCreateUpdate,
-		Delete: resourceArmApiManagementCertificateDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceApiManagementCertificateCreateUpdate,
+		Read:   resourceApiManagementCertificateRead,
+		Update: resourceApiManagementCertificateCreateUpdate,
+		Delete: resourceApiManagementCertificateDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,23 +38,41 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementChildName(),
+			"name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"data": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsBase64,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsBase64,
+				AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
+				ConflictsWith: []string{"key_vault_secret_id", "key_vault_identity_client_id"},
 			},
 
 			"password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				RequiredWith: []string{"data"},
+			},
+
+			"key_vault_secret_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
+				AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
+				ConflictsWith: []string{"data", "password"},
+			},
+
+			"key_vault_identity_client_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+				RequiredWith: []string{"key_vault_secret_id"},
 			},
 
 			"expiration": {
@@ -70,7 +93,7 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,6 +103,8 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 	serviceName := d.Get("api_management_name").(string)
 	data := d.Get("data").(string)
 	password := d.Get("password").(string)
+	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
+	keyVaultIdentity := d.Get("key_vault_identity_client_id").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -95,10 +120,27 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 	}
 
 	parameters := apimanagement.CertificateCreateOrUpdateParameters{
-		CertificateCreateOrUpdateProperties: &apimanagement.CertificateCreateOrUpdateProperties{
-			Data:     utils.String(data),
-			Password: utils.String(password),
-		},
+		CertificateCreateOrUpdateProperties: &apimanagement.CertificateCreateOrUpdateProperties{},
+	}
+
+	if keyVaultSecretId != "" {
+		parsedSecretId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultSecretId)
+		if err != nil {
+			return err
+		}
+
+		parameters.KeyVault = &apimanagement.KeyVaultContractCreateProperties{
+			SecretIdentifier: utils.String(parsedSecretId.ID()),
+		}
+
+		if keyVaultIdentity != "" {
+			parameters.KeyVault.IdentityClientID = utils.String(keyVaultIdentity)
+		}
+	}
+
+	if data != "" {
+		parameters.Data = utils.String(data)
+		parameters.Password = utils.String(password)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
@@ -110,25 +152,25 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("retrieving Certificate %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Certificate %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
+		return fmt.Errorf("cannot read ID for Certificate %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementCertificateRead(d, meta)
+	return resourceApiManagementCertificateRead(d, meta)
 }
 
-func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["certificates"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -150,26 +192,30 @@ func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interf
 			formatted := expiration.Format(time.RFC3339)
 			d.Set("expiration", formatted)
 		}
-
 		d.Set("subject", props.Thumbprint)
 		d.Set("thumbprint", props.Thumbprint)
+
+		if keyvault := props.KeyVault; keyvault != nil {
+			d.Set("key_vault_secret_id", keyvault.SecretIdentifier)
+			d.Set("key_vault_identity_client_id", keyvault.IdentityClientID)
+		}
 	}
 
 	return nil
 }
 
-func resourceArmApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["certificates"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

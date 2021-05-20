@@ -76,7 +76,7 @@ output "action_group_id" {
 `azure_function_receiver` supports the following:
 
 * `name` - The name of the Azure Function receiver.
-* `function_app_resouce_id` - The Azure resource ID of the function app.
+* `function_app_resource_id` - The Azure resource ID of the function app.
 * `function_name` - The function name in the function app.
 * `http_trigger_url` - The http trigger url where http request sent to.
 * `use_common_alert_schema` - Indicates whether to use common alert schema.

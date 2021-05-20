@@ -6,10 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -23,13 +24,13 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := azure.ParseAzureResourceID(d.Id())
+		id, err := parse.ClusterID(d.Id())
 		if err != nil {
 			return err
 		}
 
 		resourceGroup := id.ResourceGroup
-		name := id.Path["clusters"]
+		name := id.Name
 
 		if d.HasChange("tags") {
 			t := d.Get("tags").(map[string]interface{})
@@ -47,18 +48,37 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			roles := rolesRaw[0].(map[string]interface{})
 			workerNodes := roles["worker_node"].([]interface{})
 			workerNode := workerNodes[0].(map[string]interface{})
-			targetInstanceCount := workerNode["target_instance_count"].(int)
-			params := hdinsight.ClusterResizeParameters{
-				TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
+			if d.HasChange("roles.0.worker_node.0.target_instance_count") {
+				targetInstanceCount := workerNode["target_instance_count"].(int)
+				params := hdinsight.ClusterResizeParameters{
+					TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
+				}
+
+				future, err := client.Resize(ctx, resourceGroup, name, params)
+				if err != nil {
+					return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				}
 			}
 
-			future, err := client.Resize(ctx, resourceGroup, name, params)
-			if err != nil {
-				return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
-			}
+			if d.HasChange("roles.0.worker_node.0.autoscale") {
+				autoscale := ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
+				params := hdinsight.AutoscaleConfigurationUpdateParameter{
+					Autoscale: autoscale,
+				}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
+
+				if err != nil {
+					return fmt.Errorf("Error changing autoscale of the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("Error waiting for changing autoscale of the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				}
 			}
 		}
 
@@ -131,7 +151,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				UserName:            utils.String(username),
 				Password:            utils.String(password),
 			})
-
 			if err != nil {
 				return err
 			}
@@ -151,13 +170,13 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := azure.ParseAzureResourceID(d.Id())
+		id, err := parse.ClusterID(d.Id())
 		if err != nil {
 			return err
 		}
 
 		resourceGroup := id.ResourceGroup
-		name := id.Path["clusters"]
+		name := id.Name
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -173,29 +192,30 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 }
 
 type hdInsightRoleDefinition struct {
-	HeadNodeDef      azure.HDInsightNodeDefinition
-	WorkerNodeDef    azure.HDInsightNodeDefinition
-	ZookeeperNodeDef azure.HDInsightNodeDefinition
-	EdgeNodeDef      *azure.HDInsightNodeDefinition
+	HeadNodeDef            HDInsightNodeDefinition
+	WorkerNodeDef          HDInsightNodeDefinition
+	ZookeeperNodeDef       HDInsightNodeDefinition
+	KafkaManagementNodeDef *HDInsightNodeDefinition
+	EdgeNodeDef            *HDInsightNodeDefinition
 }
 
 func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinition) (*[]hdinsight.Role, error) {
 	v := input[0].(map[string]interface{})
 
 	headNodeRaw := v["head_node"].([]interface{})
-	headNode, err := azure.ExpandHDInsightNodeDefinition("headnode", headNodeRaw, definition.HeadNodeDef)
+	headNode, err := ExpandHDInsightNodeDefinition("headnode", headNodeRaw, definition.HeadNodeDef)
 	if err != nil {
 		return nil, fmt.Errorf("Error expanding `head_node`: %+v", err)
 	}
 
 	workerNodeRaw := v["worker_node"].([]interface{})
-	workerNode, err := azure.ExpandHDInsightNodeDefinition("workernode", workerNodeRaw, definition.WorkerNodeDef)
+	workerNode, err := ExpandHDInsightNodeDefinition("workernode", workerNodeRaw, definition.WorkerNodeDef)
 	if err != nil {
 		return nil, fmt.Errorf("Error expanding `worker_node`: %+v", err)
 	}
 
 	zookeeperNodeRaw := v["zookeeper_node"].([]interface{})
-	zookeeperNode, err := azure.ExpandHDInsightNodeDefinition("zookeepernode", zookeeperNodeRaw, definition.ZookeeperNodeDef)
+	zookeeperNode, err := ExpandHDInsightNodeDefinition("zookeepernode", zookeeperNodeRaw, definition.ZookeeperNodeDef)
 	if err != nil {
 		return nil, fmt.Errorf("Error expanding `zookeeper_node`: %+v", err)
 	}
@@ -208,11 +228,23 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 
 	if definition.EdgeNodeDef != nil {
 		edgeNodeRaw := v["edge_node"].([]interface{})
-		edgeNode, err := azure.ExpandHDInsightNodeDefinition("edgenode", edgeNodeRaw, *definition.EdgeNodeDef)
+		edgeNode, err := ExpandHDInsightNodeDefinition("edgenode", edgeNodeRaw, *definition.EdgeNodeDef)
 		if err != nil {
 			return nil, fmt.Errorf("Error expanding `edge_node`: %+v", err)
 		}
 		roles = append(roles, *edgeNode)
+	}
+
+	if definition.KafkaManagementNodeDef != nil {
+		kafkaManagementNodeRaw := v["kafka_management_node"].([]interface{})
+		// "kafka_management_node" is optional, we expand it only when user has specified it.
+		if len(kafkaManagementNodeRaw) != 0 {
+			kafkaManagementNode, err := ExpandHDInsightNodeDefinition("kafkamanagementnode", kafkaManagementNodeRaw, *definition.KafkaManagementNodeDef)
+			if err != nil {
+				return nil, fmt.Errorf("Error expanding `kafka_management_node`: %+v", err)
+			}
+			roles = append(roles, *kafkaManagementNode)
+		}
 	}
 
 	return &roles, nil
@@ -223,7 +255,7 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 		return []interface{}{}
 	}
 
-	var existingEdgeNodes, existingHeadNodes, existingWorkerNodes, existingZookeeperNodes []interface{}
+	var existingKafkaManagementNodes, existingEdgeNodes, existingHeadNodes, existingWorkerNodes, existingZookeeperNodes []interface{}
 
 	existingVs := d.Get("roles").([]interface{})
 	if len(existingVs) > 0 {
@@ -233,19 +265,23 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 			existingEdgeNodes = existingV["edge_node"].([]interface{})
 		}
 
+		if definition.KafkaManagementNodeDef != nil {
+			existingKafkaManagementNodes = existingV["kafka_management_node"].([]interface{})
+		}
+
 		existingHeadNodes = existingV["head_node"].([]interface{})
 		existingWorkerNodes = existingV["worker_node"].([]interface{})
 		existingZookeeperNodes = existingV["zookeeper_node"].([]interface{})
 	}
 
-	headNode := azure.FindHDInsightRole(input.Roles, "headnode")
-	headNodes := azure.FlattenHDInsightNodeDefinition(headNode, existingHeadNodes, definition.HeadNodeDef)
+	headNode := FindHDInsightRole(input.Roles, "headnode")
+	headNodes := FlattenHDInsightNodeDefinition(headNode, existingHeadNodes, definition.HeadNodeDef)
 
-	workerNode := azure.FindHDInsightRole(input.Roles, "workernode")
-	workerNodes := azure.FlattenHDInsightNodeDefinition(workerNode, existingWorkerNodes, definition.WorkerNodeDef)
+	workerNode := FindHDInsightRole(input.Roles, "workernode")
+	workerNodes := FlattenHDInsightNodeDefinition(workerNode, existingWorkerNodes, definition.WorkerNodeDef)
 
-	zookeeperNode := azure.FindHDInsightRole(input.Roles, "zookeepernode")
-	zookeeperNodes := azure.FlattenHDInsightNodeDefinition(zookeeperNode, existingZookeeperNodes, definition.ZookeeperNodeDef)
+	zookeeperNode := FindHDInsightRole(input.Roles, "zookeepernode")
+	zookeeperNodes := FlattenHDInsightNodeDefinition(zookeeperNode, existingZookeeperNodes, definition.ZookeeperNodeDef)
 
 	result := map[string]interface{}{
 		"head_node":      headNodes,
@@ -254,9 +290,15 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 	}
 
 	if definition.EdgeNodeDef != nil {
-		edgeNode := azure.FindHDInsightRole(input.Roles, "edgenode")
-		edgeNodes := azure.FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
+		edgeNode := FindHDInsightRole(input.Roles, "edgenode")
+		edgeNodes := FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
 		result["edge_node"] = edgeNodes
+	}
+
+	if definition.KafkaManagementNodeDef != nil {
+		kafkaManagementNode := FindHDInsightRole(input.Roles, "kafkamanagementnode")
+		kafkaManagementNodes := FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
+		result["kafka_management_node"] = kafkaManagementNodes
 	}
 
 	return []interface{}{
@@ -296,7 +338,6 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 
 func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string) error {
 	future, err := client.Delete(ctx, resourceGroup, name, name)
-
 	if err != nil {
 		return fmt.Errorf("Error deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -317,19 +358,19 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	config := map[string]interface{}{}
 
 	if hiveRaw, ok := v["hive"]; ok {
-		for k, val := range azure.ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
+		for k, val := range ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
 			config[k] = val
 		}
 	}
 
 	if oozieRaw, ok := v["oozie"]; ok {
-		for k, val := range azure.ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
+		for k, val := range ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
 			config[k] = val
 		}
 	}
 
 	if ambariRaw, ok := v["ambari"]; ok {
-		for k, val := range azure.ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
+		for k, val := range ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
 			config[k] = val
 		}
 	}
@@ -343,18 +384,18 @@ func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[stri
 	hiveEnv, envExists := configurations["hive-env"]
 	hiveSite, siteExists := configurations["hive-site"]
 	if envExists && siteExists {
-		result["hive"] = azure.FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
+		result["hive"] = FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
 	}
 
 	oozieEnv, envExists := configurations["oozie-env"]
 	oozieSite, siteExists := configurations["oozie-site"]
 	if envExists && siteExists {
-		result["oozie"] = azure.FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
+		result["oozie"] = FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
 	}
 
 	ambari, ambariExists := configurations["ambari-conf"]
 	if ambariExists {
-		result["ambari"] = azure.FlattenHDInsightsAmbariMetastore(ambari)
+		result["ambari"] = FlattenHDInsightsAmbariMetastore(ambari)
 	}
 
 	if len(result) > 0 {
@@ -370,14 +411,15 @@ func flattenHDInsightMonitoring(monitor hdinsight.ClusterMonitoringResponse) []i
 			map[string]string{
 				"log_analytics_workspace_id": *monitor.WorkspaceID,
 				"primary_key":                "*****",
-			}}
+			},
+		}
 	}
 
 	return nil
 }
 
 func enableHDInsightMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string, input []interface{}) error {
-	monitor := azure.ExpandHDInsightsMonitor(input)
+	monitor := ExpandHDInsightsMonitor(input)
 	future, err := client.EnableMonitoring(ctx, resourceGroup, name, monitor)
 	if err != nil {
 		return err

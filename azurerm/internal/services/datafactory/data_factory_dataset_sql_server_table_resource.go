@@ -10,22 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
+func resourceDataFactoryDatasetSQLServerTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetSQLServerTableCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetSQLServerTableRead,
-		Update: resourceArmDataFactoryDatasetSQLServerTableCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetSQLServerTableDelete,
+		Create: resourceDataFactoryDatasetSQLServerTableCreateUpdate,
+		Read:   resourceDataFactoryDatasetSQLServerTableRead,
+		Update: resourceDataFactoryDatasetSQLServerTableCreateUpdate,
+		Delete: resourceDataFactoryDatasetSQLServerTableDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,7 +39,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -144,7 +144,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceArmDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceD
 		sqlServerTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeSQLServerTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypeSQLServerTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &sqlServerTableset,
 		Type:       &datasetType,
@@ -229,10 +229,10 @@ func resourceArmDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetSQLServerTableRead(d, meta)
+	return resourceDataFactoryDatasetSQLServerTableRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +261,7 @@ func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, met
 
 	sqlServerTable, ok := resp.Properties.AsSQLServerTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServerTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeSQLServerTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", sqlServerTable.AdditionalProperties)
@@ -309,7 +309,7 @@ func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

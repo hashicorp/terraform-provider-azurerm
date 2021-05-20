@@ -53,8 +53,6 @@ The following attributes are exported:
 
 * `enabled_for_template_deployment` - Can Azure Resource Manager retrieve secrets from the Key Vault?
 
-* `soft_delete_enabled` -  Is soft delete enabled on this Key Vault? 
-
 * `purge_protection_enabled` - Is purge protection enabled on this Key Vault?
 
 * `tags` - A mapping of tags assigned to the Key Vault.

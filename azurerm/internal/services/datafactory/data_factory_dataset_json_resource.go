@@ -10,22 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetJSON() *schema.Resource {
+func resourceDataFactoryDatasetJSON() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetJSONCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetJSONRead,
-		Update: resourceArmDataFactoryDatasetJSONCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetJSONDelete,
+		Create: resourceDataFactoryDatasetJSONCreateUpdate,
+		Read:   resourceDataFactoryDatasetJSONRead,
+		Update: resourceDataFactoryDatasetJSONCreateUpdate,
+		Delete: resourceDataFactoryDatasetJSONDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,7 +39,7 @@ func resourceArmDataFactoryDatasetJSON() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -64,7 +64,7 @@ func resourceArmDataFactoryDatasetJSON() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"azure_blob_storage_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -92,7 +92,7 @@ func resourceArmDataFactoryDatasetJSON() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"http_server_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -201,7 +201,7 @@ func resourceArmDataFactoryDatasetJSON() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +225,7 @@ func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta 
 
 	location := expandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("One of `http_server_location`, `blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
+		return fmt.Errorf("One of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
 	}
 
 	jsonDatasetProperties := datafactory.JSONDatasetTypeProperties{
@@ -272,7 +272,7 @@ func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta 
 		jsonTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeJSON)
+	datasetType := string(datafactory.TypeBasicDatasetTypeJSON)
 	dataset := datafactory.DatasetResource{
 		Properties: &jsonTableset,
 		Type:       &datasetType,
@@ -293,10 +293,10 @@ func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetJSONRead(d, meta)
+	return resourceDataFactoryDatasetJSONRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,7 +325,7 @@ func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interfac
 
 	jsonTable, ok := resp.Properties.AsJSONDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeJSON, *resp.Type)
 	}
 
 	d.Set("additional_properties", jsonTable.AdditionalProperties)
@@ -357,8 +357,8 @@ func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interfac
 			}
 		}
 		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
-			if err := d.Set("http_server_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
-				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
+			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
+				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
 			}
 		}
 
@@ -384,7 +384,7 @@ func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmDataFactoryDatasetJSONDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

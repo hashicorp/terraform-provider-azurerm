@@ -1,12 +1,16 @@
 package logic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -14,15 +18,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
+func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppTriggerHttpRequestCreateUpdate,
-		Read:   resourceArmLogicAppTriggerHttpRequestRead,
-		Update: resourceArmLogicAppTriggerHttpRequestCreateUpdate,
-		Delete: resourceArmLogicAppTriggerHttpRequestDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Read:   resourceLogicAppTriggerHttpRequestRead,
+		Update: resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Delete: resourceLogicAppTriggerHttpRequestDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -31,7 +34,7 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			relativePath := diff.Get("relative_path").(string)
 			if relativePath != "" {
 				method := diff.Get("method").(string)
@@ -41,7 +44,7 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -79,13 +82,13 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 			"relative_path": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateLogicAppTriggerHttpRequestRelativePath,
+				ValidateFunc: validate.TriggerHttpRequestRelativePath,
 			},
 		},
 	}
 }
 
-func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	schemaRaw := d.Get("schema").(string)
 	var schema map[string]interface{}
 	if err := json.Unmarshal([]byte(schemaRaw), &schema); err != nil {
@@ -116,10 +119,10 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	return resourceArmLogicAppTriggerHttpRequestRead(d, meta)
+	return resourceLogicAppTriggerHttpRequestRead(d, meta)
 }
 
-func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -175,7 +178,7 @@ func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -191,14 +194,4 @@ func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta in
 	}
 
 	return nil
-}
-
-func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_/}{]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
-	}
-
-	return warnings, errors
 }

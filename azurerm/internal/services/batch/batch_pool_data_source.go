@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -12,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBatchPool() *schema.Resource {
+func dataSourceBatchPool() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBatchPoolRead,
+		Read: dataSourceBatchPoolRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -24,13 +26,13 @@ func dataSourceArmBatchPool() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMBatchPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 			"display_name": {
 				Type:     schema.TypeString,
@@ -295,21 +297,16 @@ func dataSourceArmBatchPool() *schema.Resource {
 			},
 			"network_configuration": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"subnet_id": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,
-							Optional: true,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -330,7 +327,6 @@ func dataSourceArmBatchPool() *schema.Resource {
 									},
 									"network_security_group_rules": {
 										Type:     schema.TypeList,
-										Optional: true,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -359,7 +355,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 	}
 }
 
-func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -418,7 +414,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if err := d.Set("network_configuration", FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 			return fmt.Errorf("error setting `network_configuration`: %v", err)
 		}
 	}

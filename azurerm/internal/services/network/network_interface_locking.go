@@ -1,9 +1,10 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type networkInterfaceIPConfigurationLockingDetails struct {
@@ -37,19 +38,19 @@ func determineResourcesToLockFromIPConfiguration(input *[]network.InterfaceIPCon
 			continue
 		}
 
-		id, err := azure.ParseAzureResourceID(*config.Subnet.ID)
+		id, err := parse.SubnetID(*config.Subnet.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		virtualNetworkName := id.Path["virtualNetworks"]
-		subnetName := id.Path["subnets"]
+		virtualNetworkName := id.VirtualNetworkName
+		subnetName := id.Name
 
-		if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+		if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 		}
 
-		if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
+		if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
 			subnetNamesToLock = append(subnetNamesToLock, subnetName)
 		}
 	}

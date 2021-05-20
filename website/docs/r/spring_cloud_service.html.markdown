@@ -19,7 +19,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Southeast Asia"
+  location = "West Europe"
 }
 
 resource "azurerm_application_insights" "example" {
@@ -43,6 +43,7 @@ resource "azurerm_spring_cloud_service" "example" {
 
   trace {
     instrumentation_key = azurerm_application_insights.example.instrumentation_key
+    sample_rate         = 10.0
   }
 
   tags = {
@@ -65,11 +66,27 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0` and `S0`. Defaults to `S0`.
 
+* `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
+
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
 
 * `trace` - (Optional) A `trace` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `network` block supports the following:
+
+* `app_subnet_id` - (Required) Specifies the ID of the Subnet which should host the Spring Boot Applications deployed in this Spring Cloud Service. Changing this forces a new resource to be created.
+
+* `service_runtime_subnet_id` - (Required) Specifies the ID of the Subnet where the Service Runtime components of the Spring Cloud Service will exist. Changing this forces a new resource to be created.
+
+* `cidr_ranges` - (Required) A list of (at least 3) CIDR ranges (at least /16) which are used to host the Spring Cloud infrastructure, which must not overlap with any existing CIDR ranges in the Subnet. Changing this forces a new resource to be created.
+
+* `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
+
+* `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime. Changing this forces a new resource to be created.
 
 ---
 
@@ -131,11 +148,31 @@ The `trace` block supports the following:
 
 * `instrumentation_key` - (Required) The Instrumentation Key used for Application Insights.
 
+* `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
+
+* `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
+
+* `required_network_traffic_rules` - A list of `required_network_traffic_rules` blocks as defined below.
+
+---
+
+The `required_network_traffic_rules` supports the following:
+
+* `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
+
+* `fqdns` - The FQDN list of required traffic.
+
+* `ips` - The ip list of required traffic.
+
+* `port` - The port of required traffic.
+
+* `protocol` - The protocol of required traffic.
 
 ## Timeouts
 

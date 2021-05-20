@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsCNameRecord() *schema.Resource {
+func resourceDnsCNameRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCNameRecordCreateUpdate,
-		Read:   resourceArmDnsCNameRecordRead,
-		Update: resourceArmDnsCNameRecordCreateUpdate,
-		Delete: resourceArmDnsCNameRecordDelete,
+		Create: resourceDnsCNameRecordCreateUpdate,
+		Read:   resourceDnsCNameRecordRead,
+		Update: resourceDnsCNameRecordCreateUpdate,
+		Delete: resourceDnsCNameRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -31,8 +31,8 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsCNameRecordID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.CnameRecordID(id)
 			return err
 		}),
 
@@ -78,14 +78,17 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	resourceId := parse.NewCnameRecordID(subscriptionId, resGroup, zoneName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
@@ -134,42 +137,33 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating/updating CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
-	if err != nil {
-		return fmt.Errorf("Error retrieving CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
+	d.SetId(resourceId.ID())
 
-	if resp.ID == nil {
-		return fmt.Errorf("Error retrieving CNAME Record %q (DNS Zone %q / Resource Group %q): ID was nil", name, zoneName, resGroup)
-	}
-
-	d.SetId(*resp.ID)
-
-	return resourceArmDnsCNameRecordRead(d, meta)
+	return resourceDnsCNameRecordRead(d, meta)
 }
 
-func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsCNameRecordID(d.Id())
+	id, err := parse.CnameRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CNAME)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", id.Name, id.ZoneName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", id.CNAMEName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.CNAMEName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("fqdn", resp.Fqdn)
 	d.Set("ttl", resp.TTL)
@@ -191,19 +185,19 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsCNameRecordID(d.Id())
+	id, err := parse.CnameRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CNAME, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", id.Name, id.ZoneName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", id.CNAMEName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	return nil

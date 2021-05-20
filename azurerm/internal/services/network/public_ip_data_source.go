@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPublicIP() *schema.Resource {
+func dataSourcePublicIP() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPublicIPRead,
+		Read: dataSourcePublicIPRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -72,6 +72,14 @@ func dataSourceArmPublicIP() *schema.Resource {
 				Computed: true,
 			},
 
+			"ip_tags": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"zones": azure.SchemaZonesComputed(),
 
 			"tags": tags.Schema(),
@@ -79,7 +87,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 	}
 }
 
-func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePublicIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,6 +138,11 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("ip_address", props.IPAddress)
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+
+		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
+		if iptags != nil {
+			d.Set("ip_tags", iptags)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

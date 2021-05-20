@@ -10,17 +10,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func resourceArmLogicAppActionCustom() *schema.Resource {
+func resourceLogicAppActionCustom() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppActionCustomCreateUpdate,
-		Read:   resourceArmLogicAppActionCustomRead,
-		Update: resourceArmLogicAppActionCustomCreateUpdate,
-		Delete: resourceArmLogicAppActionCustomDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceLogicAppActionCustomCreateUpdate,
+		Read:   resourceLogicAppActionCustomRead,
+		Update: resourceLogicAppActionCustomCreateUpdate,
+		Delete: resourceLogicAppActionCustomDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -53,7 +53,7 @@ func resourceArmLogicAppActionCustom() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
 	bodyRaw := d.Get("body").(string)
@@ -67,10 +67,10 @@ func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta in
 		return err
 	}
 
-	return resourceArmLogicAppActionCustomRead(d, meta)
+	return resourceLogicAppActionCustomRead(d, meta)
 }
 
-func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionCustomRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmLogicAppActionCustomDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionCustomDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

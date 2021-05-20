@@ -5,26 +5,28 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultSuppress "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/suppress"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHealthcareService() *schema.Resource {
+func resourceHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHealthcareServiceCreateUpdate,
-		Read:   resourceArmHealthcareServiceRead,
-		Update: resourceArmHealthcareServiceCreateUpdate,
-		Delete: resourceArmHealthcareServiceDelete,
+		Create: resourceHealthcareServiceCreateUpdate,
+		Read:   resourceHealthcareServiceRead,
+		Update: resourceHealthcareServiceCreateUpdate,
+		Delete: resourceHealthcareServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,8 +35,8 @@ func resourceArmHealthcareService() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HealthcareServiceID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ServiceID(id)
 			return err
 		}),
 
@@ -68,6 +70,14 @@ func resourceArmHealthcareService() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 10000),
 			},
 
+			"cosmosdb_key_vault_key_versionless_id": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
+				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
+			},
+
 			"access_policy_object_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -85,16 +95,19 @@ func resourceArmHealthcareService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"authority": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 						"audience": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 						"smart_proxy_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 					},
 				},
@@ -115,6 +128,10 @@ func resourceArmHealthcareService() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 						"allowed_headers": {
 							Type:     schema.TypeSet,
@@ -123,6 +140,10 @@ func resourceArmHealthcareService() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
 							},
 						},
 						"allowed_methods": {
@@ -138,20 +159,39 @@ func resourceArmHealthcareService() *schema.Resource {
 									"MERGE",
 									"POST",
 									"OPTIONS",
-									"PUT"}, false),
+									"PUT",
+								}, false),
+							},
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
 							},
 						},
 						"max_age_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 2000000000),
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 						"allow_credentials": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 					},
 				},
+			},
+
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"tags": tags.Schema(),
@@ -159,7 +199,7 @@ func resourceArmHealthcareService() *schema.Resource {
 	}
 }
 
-func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,9 +213,8 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	t := d.Get("tags").(map[string]interface{})
 
 	kind := d.Get("kind").(string)
-	cdba := int32(d.Get("cosmosdb_throughput").(int))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -188,18 +227,28 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
+	cosmosDbConfiguration, err := expandAzureRMhealthcareapisCosmosDbConfiguration(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding cosmosdb_configuration: %+v", err)
+	}
+
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		Kind:     healthcareapis.Kind(kind),
 		Properties: &healthcareapis.ServicesProperties{
-			AccessPolicies: expandAzureRMhealthcareapisAccessPolicyEntries(d),
-			CosmosDbConfiguration: &healthcareapis.ServiceCosmosDbConfigurationInfo{
-				OfferThroughput: &cdba,
-			},
+			AccessPolicies:              expandAzureRMhealthcareapisAccessPolicyEntries(d),
+			CosmosDbConfiguration:       cosmosDbConfiguration,
 			CorsConfiguration:           expandAzureRMhealthcareapisCorsConfiguration(d),
 			AuthenticationConfiguration: expandAzureRMhealthcareapisAuthentication(d),
 		},
+	}
+
+	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
+	if !publicNetworkAccess {
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Disabled
+	} else {
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Enabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
@@ -221,15 +270,15 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmHealthcareServiceRead(d, meta)
+	return resourceHealthcareServiceRead(d, meta)
 }
 
-func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthcareServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -259,11 +308,23 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
 		}
 
-		cosmosThroughput := 0
-		if props.CosmosDbConfiguration != nil && props.CosmosDbConfiguration.OfferThroughput != nil {
-			cosmosThroughput = int(*props.CosmosDbConfiguration.OfferThroughput)
+		cosmodDbKeyVaultKeyVersionlessId := ""
+		cosmosDbThroughput := 0
+		if cosmos := props.CosmosDbConfiguration; cosmos != nil {
+			if v := cosmos.OfferThroughput; v != nil {
+				cosmosDbThroughput = int(*v)
+			}
+			if v := cosmos.KeyVaultKeyURI; v != nil {
+				cosmodDbKeyVaultKeyVersionlessId = *v
+			}
 		}
-		d.Set("cosmosdb_throughput", cosmosThroughput)
+		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
+		d.Set("cosmosdb_throughput", cosmosDbThroughput)
+		if props.PublicNetworkAccess == healthcareapis.Enabled {
+			d.Set("public_network_access_enabled", true)
+		} else {
+			d.Set("public_network_access_enabled", false)
+		}
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
@@ -277,12 +338,12 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthcareServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
@@ -354,6 +415,24 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 		SmartProxyEnabled: &smartProxyEnabled,
 	}
 	return auth
+}
+
+func expandAzureRMhealthcareapisCosmosDbConfiguration(d *schema.ResourceData) (*healthcareapis.ServiceCosmosDbConfigurationInfo, error) {
+	throughput := int32(d.Get("cosmosdb_throughput").(int))
+
+	cosmosdb := &healthcareapis.ServiceCosmosDbConfigurationInfo{
+		OfferThroughput: utils.Int32(throughput),
+	}
+
+	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_versionless_id"); ok {
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
+		if err != nil {
+			return nil, fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+		}
+		cosmosdb.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+	}
+
+	return cosmosdb, nil
 }
 
 func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPolicyEntry) []string {

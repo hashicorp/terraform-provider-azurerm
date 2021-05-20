@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -18,7 +17,8 @@ import (
 	validateCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,7 +35,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MaintenanceAssignmentDedicatedHostID(id)
 			return err
 		}),
@@ -78,7 +78,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *schema.ResourceData,
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
-	configurationId, _ := parse.MaintenanceConfigurationID(maintenanceConfigurationID)
+	configurationId, _ := parse.MaintenanceConfigurationIDInsensitively(maintenanceConfigurationID)
 
 	// set assignment name to configuration name
 	assignmentName := configurationId.Name
@@ -93,7 +93,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *schema.ResourceData,
 
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		if _, err := client.CreateOrUpdateParent(ctx, dedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroup, "hosts", dedicatedHostId.Name, assignmentName, assignment); err != nil {
+		if _, err := client.CreateOrUpdateParent(ctx, dedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroupName, "hosts", dedicatedHostId.HostName, assignmentName, assignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
 				return resource.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
@@ -136,8 +136,12 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *schema.ResourceData, m
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (Dedicated Host ID: %q", id.DedicatedHostIdRaw)
 	}
 
-	// in list api, `ResourceID` returned is always nil
-	d.Set("dedicated_host_id", id.DedicatedHostIdRaw)
+	dedicatedHostId := ""
+	if id.DedicatedHostId != nil {
+		dedicatedHostId = id.DedicatedHostId.ID()
+	}
+	d.Set("dedicated_host_id", dedicatedHostId)
+
 	if props := assignment.ConfigurationAssignmentProperties; props != nil {
 		d.Set("maintenance_configuration_id", props.MaintenanceConfigurationID)
 	}
@@ -154,7 +158,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *schema.ResourceData,
 		return err
 	}
 
-	if _, err := client.DeleteParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroup, "hosts", id.DedicatedHostId.Name, id.Name); err != nil {
+	if _, err := client.DeleteParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName, id.Name); err != nil {
 		return fmt.Errorf("deleting Maintenance Assignment to resource %q: %+v", id.DedicatedHostIdRaw, err)
 	}
 
@@ -162,8 +166,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *schema.ResourceData,
 }
 
 func getMaintenanceAssignmentDedicatedHost(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.DedicatedHostId, dedicatedHostId string) (result maintenance.ConfigurationAssignment, err error) {
-	resp, err := client.ListParent(ctx, id.ResourceGroup, "Microsoft.Compute", "hostGroups", id.HostGroup, "hosts", id.Name)
-
+	resp, err := client.ListParent(ctx, id.ResourceGroup, "Microsoft.Compute", "hostGroups", id.HostGroupName, "hosts", id.HostName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			err = fmt.Errorf("checking for presence of existing Maintenance assignment (Dedicated Host ID %q): %+v", dedicatedHostId, err)

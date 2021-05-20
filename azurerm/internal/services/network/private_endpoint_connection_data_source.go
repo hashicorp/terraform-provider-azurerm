@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -13,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateEndpointConnection() *schema.Resource {
+func dataSourcePrivateEndpointConnection() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateEndpointConnectionRead,
+		Read: dataSourcePrivateEndpointConnectionRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -24,7 +26,7 @@ func dataSourceArmPrivateEndpointConnection() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: validate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -59,7 +61,7 @@ func dataSourceArmPrivateEndpointConnection() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -96,7 +98,7 @@ func dataSourceArmPrivateEndpointConnectionRead(d *schema.ResourceData, meta int
 			}
 		}
 
-		if err := d.Set("private_service_connection", dataSourceFlattenArmPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+		if err := d.Set("private_service_connection", dataSourceFlattenPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
 	}
@@ -133,7 +135,7 @@ func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, 
 	return privateIpAddress
 }
 
-func dataSourceFlattenArmPrivateEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results

@@ -10,22 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
+func resourceDataFactoryDatasetPostgreSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetPostgreSQLRead,
-		Update: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetPostgreSQLDelete,
+		Create: resourceDataFactoryDatasetPostgreSQLCreateUpdate,
+		Read:   resourceDataFactoryDatasetPostgreSQLRead,
+		Update: resourceDataFactoryDatasetPostgreSQLCreateUpdate,
+		Delete: resourceDataFactoryDatasetPostgreSQLDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,7 +39,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -144,7 +144,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 		postgresqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeBasicDatasetTypePostgreSQLTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &postgresqlTableset,
 		Type:       &datasetType,
@@ -229,10 +229,10 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetPostgreSQLRead(d, meta)
+	return resourceDataFactoryDatasetPostgreSQLRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +261,7 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 
 	postgresqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypePostgreSQLTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresqlTable.AdditionalProperties)
@@ -309,7 +309,7 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

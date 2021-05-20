@@ -5,28 +5,27 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteGateway() *schema.Resource {
+func resourceExpressRouteGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteGatewayCreateUpdate,
-		Read:   resourceArmExpressRouteGatewayRead,
-		Update: resourceArmExpressRouteGatewayCreateUpdate,
-		Delete: resourceArmExpressRouteGatewayDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceExpressRouteGatewayCreateUpdate,
+		Read:   resourceExpressRouteGatewayRead,
+		Update: resourceExpressRouteGatewayCreateUpdate,
+		Delete: resourceExpressRouteGatewayDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
@@ -65,7 +64,7 @@ func resourceArmExpressRouteGateway() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -75,7 +74,7 @@ func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -124,10 +123,10 @@ func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta int
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmExpressRouteGatewayRead(d, meta)
+	return resourceExpressRouteGatewayRead(d, meta)
 }
 
-func resourceArmExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +171,7 @@ func resourceArmExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmExpressRouteGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

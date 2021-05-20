@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDataFactory() *schema.Resource {
+func dataSourceDataFactory() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataFactoryRead,
+		Read: dataSourceDataFactoryRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -45,6 +45,13 @@ func dataSourceArmDataFactory() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -125,7 +132,7 @@ func dataSourceArmDataFactory() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,24 +159,28 @@ func dataSourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
-	repoType, repo := flattenArmDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeFactoryVSTSConfiguration {
+	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryGitHubConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryRepoConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenArmDataFactoryIdentity(resp.Identity)); err != nil {
+	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	if err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

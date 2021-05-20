@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmRouteFilter() *schema.Resource {
+func dataSourceRouteFilter() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmRouteFilterRead,
+		Read: dataSourceRouteFilterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -69,7 +69,7 @@ func dataSourceArmRouteFilter() *schema.Resource {
 	}
 }
 
-func dataSourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

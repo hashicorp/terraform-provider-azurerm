@@ -7,12 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMapsAccount() *schema.Resource {
+func dataSourceMapsAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMapsAccountRead,
 
@@ -24,7 +25,7 @@ func dataSourceArmMapsAccount() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -81,7 +82,7 @@ func dataSourceMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 	if props := resp.Properties; props != nil {
-		d.Set("x_ms_client_id", props.XMsClientID)
+		d.Set("x_ms_client_id", props.UniqueID)
 	}
 
 	keysResp, err := client.ListKeys(ctx, resourceGroup, name)

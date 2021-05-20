@@ -6,26 +6,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationJobSchedule() *schema.Resource {
+func resourceAutomationJobSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationJobScheduleCreate,
-		Read:   resourceArmAutomationJobScheduleRead,
-		Delete: resourceArmAutomationJobScheduleDelete,
+		Create: resourceAutomationJobScheduleCreate,
+		Read:   resourceAutomationJobScheduleRead,
+		Delete: resourceAutomationJobScheduleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -42,21 +43,21 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"runbook_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationRunbookName(),
+				ValidateFunc: validate.RunbookName(),
 			},
 
 			"schedule_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationScheduleName(),
+				ValidateFunc: validate.ScheduleName(),
 			},
 
 			"parameters": {
@@ -66,17 +67,7 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				ValidateFunc: func(v interface{}, _ string) (warnings []string, errors []error) {
-					m := v.(map[string]interface{})
-
-					for k := range m {
-						if k != strings.ToLower(k) {
-							errors = append(errors, fmt.Errorf("Due to a bug in the implementation of Runbooks in Azure, the parameter names need to be specified in lowercase only. See: \"https://github.com/Azure/azure-sdk-for-go/issues/4780\" for more information."))
-						}
-					}
-
-					return warnings, errors
-				},
+				ValidateFunc: validate.ParameterNames,
 			},
 
 			"run_on": {
@@ -95,7 +86,7 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,7 +99,10 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
-	jobScheduleUUID := uuid.NewV4()
+	jobScheduleUUID, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
 	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}
@@ -126,9 +120,9 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	//fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
-	//When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
-	//We need to delete the job schedule id if exists to recreate the job schedule
+	// fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
+	// When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
+	// We need to delete the job schedule id if exists to recreate the job schedule
 	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, resourceGroup, accountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)
@@ -191,10 +185,10 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationJobScheduleRead(d, meta)
+	return resourceAutomationJobScheduleRead(d, meta)
 }
 
-func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +234,7 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

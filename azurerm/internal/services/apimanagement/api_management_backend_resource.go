@@ -6,26 +6,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementBackend() *schema.Resource {
+func resourceApiManagementBackend() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementBackendCreateUpdate,
-		Read:   resourceArmApiManagementBackendRead,
-		Update: resourceArmApiManagementBackendCreateUpdate,
-		Delete: resourceArmApiManagementBackendDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceApiManagementBackendCreateUpdate,
+		Read:   resourceApiManagementBackendRead,
+		Update: resourceApiManagementBackendCreateUpdate,
+		Delete: resourceApiManagementBackendDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -42,7 +45,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 				ValidateFunc: validate.ApiManagementBackendName,
 			},
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -62,14 +65,17 @@ func resourceArmApiManagementBackend() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"credentials.0.authorization.0.parameter", "credentials.0.authorization.0.scheme"},
 									},
 									"scheme": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"credentials.0.authorization.0.parameter", "credentials.0.authorization.0.scheme"},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"certificate": {
 							Type:     schema.TypeList,
@@ -78,6 +84,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"header": {
 							Type:     schema.TypeMap,
@@ -86,6 +93,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"query": {
 							Type:     schema.TypeMap,
@@ -94,6 +102,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 					},
 				},
@@ -214,12 +223,14 @@ func resourceArmApiManagementBackend() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"validate_certificate_chain": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"tls.0.validate_certificate_chain", "tls.0.validate_certificate_name"},
 						},
 						"validate_certificate_name": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"tls.0.validate_certificate_chain", "tls.0.validate_certificate_name"},
 						},
 					},
 				},
@@ -234,7 +245,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -308,21 +319,21 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementBackendRead(d, meta)
+	return resourceApiManagementBackendRead(d, meta)
 }
 
-func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BackendID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["backends"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -364,19 +375,19 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BackendID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["backends"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

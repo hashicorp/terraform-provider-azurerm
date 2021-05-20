@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -12,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmContainerRegistry() *schema.Resource {
+func dataSourceContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmContainerRegistryRead,
+		Read: dataSourceContainerRegistryRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -24,7 +26,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -66,7 +68,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 	}
 }
 
-func dataSourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

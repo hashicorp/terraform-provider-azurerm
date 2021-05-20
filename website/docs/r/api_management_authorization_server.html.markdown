@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `support_state` - (Optional) Does this Authorization Server support State? If this is set to `true` the client may use the state parameter to raise protocol security.
 
-* `token_body_parameters` - (Optional) A `token_body_parameters` block as defined below.
+* `token_body_parameter` - (Optional) A `token_body_parameter` block as defined below.
 
 * `token_endpoint` - (Optional) The OAUTH Token Endpoint.
 

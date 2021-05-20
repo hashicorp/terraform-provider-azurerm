@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmPublicIPs() *schema.Resource {
+func dataSourcePublicIPs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPublicIPsRead,
+		Read: dataSourcePublicIPsRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -76,7 +76,7 @@ func dataSourceArmPublicIPs() *schema.Resource {
 	}
 }
 
-func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePublicIPsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

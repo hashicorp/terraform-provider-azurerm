@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDedicatedHost() *schema.Resource {
+func dataSourceDedicatedHost() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDedicatedHostRead,
+		Read: dataSourceDedicatedHostRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,13 +27,13 @@ func dataSourceArmDedicatedHost() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDedicatedHostName(),
+				ValidateFunc: validate.DedicatedHostName(),
 			},
 
 			"dedicated_host_group_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDedicatedHostGroupName(),
+				ValidateFunc: validate.DedicatedHostGroupName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -43,7 +45,7 @@ func dataSourceArmDedicatedHost() *schema.Resource {
 	}
 }
 
-func dataSourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

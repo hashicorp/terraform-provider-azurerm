@@ -6,26 +6,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceNatRuleAssociation() *schema.Resource {
+func resourceNetworkInterfaceNatRuleAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceNatRuleAssociationCreate,
-		Read:   resourceArmNetworkInterfaceNatRuleAssociationRead,
-		Delete: resourceArmNetworkInterfaceNatRuleAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceNetworkInterfaceNatRuleAssociationCreate,
+		Read:   resourceNetworkInterfaceNatRuleAssociationRead,
+		Delete: resourceNetworkInterfaceNatRuleAssociationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -59,7 +58,7 @@ func resourceArmNetworkInterfaceNatRuleAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -100,7 +99,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -119,11 +118,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		for _, existingRule := range *p.LoadBalancerInboundNatRules {
 			if id := existingRule.ID; id != nil {
 				if *id == natRuleId {
-					if features.ShouldResourcesBeImported() {
-						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
-					}
-
-					continue
+					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
 				}
 
 				rules = append(rules, existingRule)
@@ -137,7 +132,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 	rules = append(rules, rule)
 	p.LoadBalancerInboundNatRules = &rules
 
-	props.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
+	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
@@ -150,10 +145,10 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceNatRuleAssociationRead(d, meta)
+	return resourceNetworkInterfaceNatRuleAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +171,9 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
+			log.Printf("Network Interface %q (Resource Group %q) was not found - removing from state!", networkInterfaceName, resourceGroup)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
@@ -192,7 +189,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		log.Printf("IP Configuration %q was not found in Network Interface %q (Resource Group %q) - removing from state!", ipConfigurationName, networkInterfaceName, resourceGroup)
 		d.SetId("")
@@ -229,7 +226,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,7 +268,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData,
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -295,7 +292,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData,
 		}
 	}
 	props.LoadBalancerInboundNatRules = &updatedRules
-	nicProps.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
+	nicProps.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {

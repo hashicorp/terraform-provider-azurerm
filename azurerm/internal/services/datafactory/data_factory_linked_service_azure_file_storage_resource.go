@@ -9,22 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceAzureFileStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceAzureFileStorageDelete,
+		Create: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceAzureFileStorageRead,
+		Update: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceAzureFileStorageDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +39,7 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -56,6 +57,12 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"file_share": {
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -90,6 +97,27 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"key_vault_password": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"linked_service_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -117,7 +145,7 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,24 +170,25 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 	fileStorageProperties := &datafactory.AzureFileStorageLinkedServiceTypeProperties{
 		ConnectionString: &datafactory.SecureString{
 			Value: utils.String(d.Get("connection_string").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		},
-		Host:   d.Get("host").(string),
-		UserID: d.Get("connection_string").(string),
+		FileShare: d.Get("file_share").(string),
+		Host:      d.Get("host").(string),
+		UserID:    d.Get("connection_string").(string),
 	}
 
 	password := d.Get("password").(string)
 	if password != "" {
 		fileStorageProperties.Password = &datafactory.SecureString{
 			Value: utils.String(d.Get("password").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
 	fileStorageLinkedService := &datafactory.AzureFileStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureFileStorageLinkedServiceTypeProperties: fileStorageProperties,
-		Type: datafactory.TypeAzureFileStorage,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureFileStorage,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -168,6 +197,11 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
 		fileStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+	}
+
+	if v, ok := d.GetOk("key_vault_password"); ok {
+		password := v.([]interface{})
+		fileStorageProperties.Password = expandAzureKeyVaultPassword(password)
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -198,47 +232,52 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
+	return resourceDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	fileStorage, ok := resp.Properties.AsAzureFileStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFileStorage, *resp.Type)
 	}
 
 	d.Set("additional_properties", fileStorage.AdditionalProperties)
 	d.Set("description", fileStorage.Description)
 
+	if password := fileStorage.Password; password != nil {
+		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+				return fmt.Errorf("setting `key_vault_password`: %+v", err)
+			}
+		}
+	}
+
 	annotations := flattenDataFactoryAnnotations(fileStorage.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure File Storage %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure File Storage %q (Data Factory %q) / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	parameters := flattenDataFactoryParameters(fileStorage.Parameters)
@@ -252,26 +291,29 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceD
 		}
 	}
 
+	if props := fileStorage.AzureFileStorageLinkedServiceTypeProperties; props != nil {
+		if props.FileShare != nil {
+			d.Set("file_share", props.FileShare)
+		}
+	}
+
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

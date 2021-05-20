@@ -5,18 +5,18 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func resourceArmAutomationVariableString() *schema.Resource {
+func resourceAutomationVariableString() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationVariableStringCreateUpdate,
-		Read:   resourceArmAutomationVariableStringRead,
-		Update: resourceArmAutomationVariableStringCreateUpdate,
-		Delete: resourceArmAutomationVariableStringDelete,
+		Create: resourceAutomationVariableStringCreateUpdate,
+		Read:   resourceAutomationVariableStringRead,
+		Update: resourceAutomationVariableStringCreateUpdate,
+		Delete: resourceAutomationVariableStringDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -29,14 +29,14 @@ func resourceArmAutomationVariableString() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationVariableStringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableStringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "String")
 }
 
-func resourceArmAutomationVariableStringRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableStringRead(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableRead(d, meta, "String")
 }
 
-func resourceArmAutomationVariableStringDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableStringDelete(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableDelete(d, meta, "String")
 }

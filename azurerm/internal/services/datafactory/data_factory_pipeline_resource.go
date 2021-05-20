@@ -7,23 +7,24 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryPipeline() *schema.Resource {
+func resourceDataFactoryPipeline() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryPipelineCreateUpdate,
-		Read:   resourceArmDataFactoryPipelineRead,
-		Update: resourceArmDataFactoryPipelineCreateUpdate,
-		Delete: resourceArmDataFactoryPipelineDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceDataFactoryPipelineCreateUpdate,
+		Read:   resourceDataFactoryPipelineRead,
+		Update: resourceDataFactoryPipelineCreateUpdate,
+		Delete: resourceDataFactoryPipelineDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -75,7 +76,7 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 			"activities_json": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				StateFunc:        azure.NormalizeJson,
+				StateFunc:        utils.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -86,11 +87,17 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"folder": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
 
-func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,6 +144,13 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 		pipeline.Annotations = &annotations
 	}
 
+	if v, ok := d.GetOk("folder"); ok {
+		name := v.(string)
+		pipeline.Folder = &datafactory.PipelineFolder{
+			Name: &name,
+		}
+	}
+
 	config := datafactory.PipelineResource{
 		Pipeline: pipeline,
 	}
@@ -156,10 +170,10 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmDataFactoryPipelineRead(d, meta)
+	return resourceDataFactoryPipelineRead(d, meta)
 }
 
-func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,6 +212,12 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
+		if folder := props.Folder; folder != nil {
+			if folder.Name != nil {
+				d.Set("folder", folder.Name)
+			}
+		}
+
 		variables := flattenDataFactoryVariables(props.Variables)
 		if err := d.Set("variables", variables); err != nil {
 			return fmt.Errorf("setting `variables`: %+v", err)
@@ -217,7 +237,7 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -47,7 +47,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 
 		if parameters := item["parameters"].(string); parameters == "" {
 			if behavior := cacheKeyQueryStringAction.Parameters.QueryStringBehavior; behavior == cdn.Include || behavior == cdn.Exclude {
-				return nil, fmt.Errorf("Parameters can not be empty if the behavior is either Include or Exclude.")
+				return nil, fmt.Errorf("Parameters can not be empty if the behaviour is either Include or Exclude.")
 			}
 		} else {
 			cacheKeyQueryStringAction.Parameters.QueryParameters = utils.String(parameters)

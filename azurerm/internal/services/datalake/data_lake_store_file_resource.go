@@ -4,33 +4,38 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeStoreFile() *schema.Resource {
+func resourceDataLakeStoreFile() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmDataLakeStoreFileCreate,
-		Read:          resourceArmDataLakeStoreFileRead,
-		Delete:        resourceArmDataLakeStoreFileDelete,
-		MigrateState:  ResourceDataLakeStoreFileMigrateState,
+		Create: resourceDataLakeStoreFileCreate,
+		Read:   resourceDataLakeStoreFileRead,
+		Delete: resourceDataLakeStoreFileDelete,
+
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
 		SchemaVersion: 1,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StoreFileV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -50,7 +55,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateDataLakeStoreRemoteFilePath(),
+				ValidateFunc: validate.RemoteFilePath,
 			},
 
 			"local_file_path": {
@@ -62,7 +67,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 	}
 }
 
-func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -77,17 +82,15 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	// example.azuredatalakestore.net/test/example.txt
 	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
-			}
+	existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
 		}
+	}
 
-		if existing.FileStatus != nil && existing.FileStatus.ModificationTime != nil {
-			return tf.ImportAsExistsError("azurerm_data_lake_store_file", id)
-		}
+	if existing.FileStatus != nil && existing.FileStatus.ModificationTime != nil {
+		return tf.ImportAsExistsError("azurerm_data_lake_store_file", id)
 	}
 
 	file, err := os.Open(localFilePath)
@@ -115,7 +118,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 			// last chunk
 			flag = filesystem.CLOSE
 		}
-		chunk := ioutil.NopCloser(bytes.NewReader(buffer[:n]))
+		chunk := io.NopCloser(bytes.NewReader(buffer[:n]))
 
 		if _, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil); err != nil {
 			return fmt.Errorf("Error transferring chunk for Data Lake Store File %q : %+v", remoteFilePath, err)
@@ -123,50 +126,50 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(id)
-	return resourceArmDataLakeStoreFileRead(d, meta)
+	return resourceDataLakeStoreFileRead(d, meta)
 }
 
-func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+	id, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetFileStatus(ctx, id.storageAccountName, id.filePath, utils.Bool(true))
+	resp, err := client.GetFileStatus(ctx, id.StorageAccountName, id.FilePath, utils.Bool(true))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Data Lake Store File %q was not found (Account %q)", id.filePath, id.storageAccountName)
+			log.Printf("[WARN] Data Lake Store File %q was not found (Account %q)", id.FilePath, id.StorageAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.filePath, id.storageAccountName, err)
+		return fmt.Errorf("Error making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 	}
 
-	d.Set("account_name", id.storageAccountName)
-	d.Set("remote_file_path", id.filePath)
+	d.Set("account_name", id.StorageAccountName)
+	d.Set("remote_file_path", id.FilePath)
 
 	return nil
 }
 
-func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+	id, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.storageAccountName, id.filePath, utils.Bool(false))
+	resp, err := client.Delete(ctx, id.StorageAccountName, id.FilePath, utils.Bool(false))
 	if err != nil {
 		if !response.WasNotFound(resp.Response.Response) {
-			return fmt.Errorf("Error issuing delete request for Data Lake Store File %q (Account %q): %+v", id.filePath, id.storageAccountName, err)
+			return fmt.Errorf("Error issuing delete request for Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 		}
 	}
 
@@ -174,11 +177,11 @@ func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}
 }
 
 type dataLakeStoreFileId struct {
-	storageAccountName string
-	filePath           string
+	StorageAccountName string
+	FilePath           string
 }
 
-func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId, error) {
+func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId, error) {
 	// Example: tomdevdls1.azuredatalakestore.net/test/example.txt
 	// we add a scheme to the start of this so it parses correctly
 	uri, err := url.Parse(fmt.Sprintf("https://%s", input))
@@ -189,23 +192,11 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 	// TODO: switch to pulling this from the Environment when it's available there
 	// BUG: https://github.com/Azure/go-autorest/issues/312
 	replacement := fmt.Sprintf(".%s", suffix)
-	accountName := strings.Replace(uri.Host, replacement, "", -1)
+	accountName := strings.ReplaceAll(uri.Host, replacement, "")
 
 	file := dataLakeStoreFileId{
-		storageAccountName: accountName,
-		filePath:           uri.Path,
+		StorageAccountName: accountName,
+		FilePath:           uri.Path,
 	}
 	return &file, nil
-}
-
-func ValidateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (warnings []string, errors []error) {
-		val := v.(string)
-
-		if !strings.HasPrefix(val, "/") {
-			errors = append(errors, fmt.Errorf("%q must start with `/`", k))
-		}
-
-		return warnings, errors
-	}
 }

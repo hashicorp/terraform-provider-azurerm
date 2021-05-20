@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPublicIpPrefix() *schema.Resource {
+func dataSourcePublicIpPrefix() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPublicIpPrefixRead,
+		Read: dataSourcePublicIpPrefixRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -52,7 +52,7 @@ func dataSourceArmPublicIpPrefix() *schema.Resource {
 	}
 }
 
-func dataSourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

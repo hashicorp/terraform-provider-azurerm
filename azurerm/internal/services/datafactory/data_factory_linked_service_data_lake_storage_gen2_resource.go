@@ -9,22 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read,
-		Update: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete,
+		Create: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceDataLakeStorageGen2Read,
+		Update: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +39,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -58,21 +59,35 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
+			"use_managed_identity": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"service_principal_key", "service_principal_id"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity"},
+			},
+
 			"service_principal_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.IsUUID,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.IsUUID,
+				RequiredWith:  []string{"service_principal_key"},
+				ConflictsWith: []string{"use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity"},
 			},
 
 			"service_principal_key": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				RequiredWith:  []string{"service_principal_id"},
+				ConflictsWith: []string{"use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity"},
 			},
 
 			"tenant": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -115,7 +130,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,22 +152,31 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schem
 		}
 	}
 
-	secureString := datafactory.SecureString{
-		Value: utils.String(d.Get("service_principal_key").(string)),
-		Type:  datafactory.TypeSecureString,
-	}
+	var datalakeStorageGen2Properties *datafactory.AzureBlobFSLinkedServiceTypeProperties
 
-	datalakeStorageGen2Properties := &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-		URL:                 utils.String(d.Get("url").(string)),
-		ServicePrincipalID:  utils.String(d.Get("service_principal_id").(string)),
-		Tenant:              utils.String(d.Get("tenant").(string)),
-		ServicePrincipalKey: &secureString,
+	if d.Get("use_managed_identity").(bool) {
+		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
+			URL:    utils.String(d.Get("url").(string)),
+			Tenant: utils.String(d.Get("tenant").(string)),
+		}
+	} else {
+		secureString := datafactory.SecureString{
+			Value: utils.String(d.Get("service_principal_key").(string)),
+			Type:  datafactory.TypeTypeSecureString,
+		}
+
+		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
+			URL:                 utils.String(d.Get("url").(string)),
+			ServicePrincipalID:  utils.String(d.Get("service_principal_id").(string)),
+			Tenant:              utils.String(d.Get("tenant").(string)),
+			ServicePrincipalKey: &secureString,
+		}
 	}
 
 	datalakeStorageGen2LinkedService := &datafactory.AzureBlobFSLinkedService{
 		Description:                            utils.String(d.Get("description").(string)),
 		AzureBlobFSLinkedServiceTypeProperties: datalakeStorageGen2Properties,
-		Type:                                   datafactory.TypeAzureBlobFS,
+		Type:                                   datafactory.TypeBasicLinkedServiceTypeAzureBlobFS,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -191,39 +215,37 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schem
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d, meta)
+	return resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	dataLakeStorageGen2, ok := resp.Properties.AsAzureBlobFSLinkedService()
+
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobFS, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobFS, *resp.Type)
 	}
 
 	if dataLakeStorageGen2.Tenant != nil {
@@ -232,6 +254,9 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 
 	if dataLakeStorageGen2.ServicePrincipalID != nil {
 		d.Set("service_principal_id", dataLakeStorageGen2.ServicePrincipalID)
+		d.Set("use_managed_identity", false)
+	} else {
+		d.Set("use_managed_identity", true)
 	}
 
 	if dataLakeStorageGen2.URL != nil {
@@ -263,23 +288,20 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

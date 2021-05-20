@@ -15,7 +15,7 @@ Manages an Application Gateway.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -256,9 +256,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use.
-
--> **NOTE:** The Allocation Method for this Public IP Address should be set to `Dynamic`.
+* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-addresses#application-gateways) for details.
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
@@ -288,7 +286,7 @@ A `http_listener` block supports the following:
 
 * `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
 
-* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
+* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener. Setting this value changes Listener Type to 'Multi site'.
 
 * `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
 
@@ -336,6 +334,8 @@ A `path_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+
 ---
 
 A `probe` block support the following:
@@ -353,6 +353,8 @@ A `probe` block support the following:
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
 * `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 
@@ -463,7 +465,7 @@ A `waf_configuration` block supports the following:
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
 
@@ -543,6 +545,7 @@ A `rewrite_rule` block supports the following:
 
 * `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
 
+* `url` - (Optional) One `url` block as defined above
 ---
 
 A `condition` block supports the following:
@@ -570,6 +573,18 @@ A `response_header_configuration` block supports the following:
 * `header_name` - (Required) Header name of the header configuration.
 
 * `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
+
+---
+
+A `url` block supports the following:
+
+* `path` - (Optional) The URL path to rewrite.
+
+* `query_string` - (Optional) The query string to rewrite.
+
+~> **Note:** One or both of `path` and `query_string` must be specified.
+
+* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
 ## Attributes Reference
 

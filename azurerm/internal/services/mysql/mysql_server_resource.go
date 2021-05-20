@@ -1,50 +1,53 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySqlServer() *schema.Resource {
+const (
+	mySQLServerResourceName = "azurerm_mysql_server"
+)
+
+func resourceMySqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySqlServerCreate,
-		Read:   resourceArmMySqlServerRead,
-		Update: resourceArmMySqlServerUpdate,
-		Delete: resourceArmMySqlServerDelete,
+		Create: resourceMySqlServerCreate,
+		Read:   resourceMySqlServerRead,
+		Update: resourceMySqlServerUpdate,
+		Delete: resourceMySqlServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.MysqlServerServerID(d.Id()); err != nil {
-					return []*schema.ResourceData{d}, err
-				}
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			d.Set("create_mode", "Default")
+			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+				d.Set("create_mode", v)
+			}
 
-				d.Set("create_mode", "Default")
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
-				}
-
-				return []*schema.ResourceData{d}, nil
-			},
-		},
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -58,7 +61,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MysqlServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {
@@ -104,7 +107,7 @@ func resourceArmMySqlServer() *schema.Resource {
 			"creation_source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MysqlServerServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"fqdn": {
@@ -168,6 +171,33 @@ func resourceArmMySqlServer() *schema.Resource {
 				}, false),
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mysql.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"ssl_enforcement": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -229,6 +259,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								string(mysql.StorageAutogrowEnabled),
 								string(mysql.StorageAutogrowDisabled),
 							}, false),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"backup_retention_days": {
 							Type:          schema.TypeInt,
@@ -237,6 +268,7 @@ func resourceArmMySqlServer() *schema.Resource {
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc:  validation.IntBetween(7, 35),
+							AtLeastOneOf:  []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"geo_redundant_backup": {
 							Type:             schema.TypeString,
@@ -249,6 +281,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								"Enabled",
 								"Disabled",
 							}, true),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"storage_mb": {
 							Type:          schema.TypeInt,
@@ -259,6 +292,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								validation.IntBetween(5120, 4194304),
 								validation.IntDivisibleBy(1024),
 							),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 					},
 				},
@@ -273,6 +307,10 @@ func resourceArmMySqlServer() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"disabled_alerts": {
@@ -289,11 +327,19 @@ func resourceArmMySqlServer() *schema.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_account_admins": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_addresses": {
@@ -304,12 +350,20 @@ func resourceArmMySqlServer() *schema.Resource {
 								// todo email validation in code
 							},
 							Set: schema.HashString,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"retention_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_account_access_key": {
@@ -317,12 +371,20 @@ func resourceArmMySqlServer() *schema.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 					},
 				},
@@ -343,7 +405,7 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			tier, _ := diff.GetOk("sku_name")
 
 			var storageMB int
@@ -358,32 +420,32 @@ func resourceArmMySqlServer() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
-func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mysql_server", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mysql_server", id.ID())
 		}
 	}
 
@@ -394,7 +456,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
 	}
 
 	infraEncrypt := mysql.InfrastructureEncryptionEnabled
@@ -403,7 +465,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if sku.Tier == mysql.Basic && infraEncrypt == mysql.InfrastructureEncryptionEnabled {
-		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` in MySQL Server %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` for %s", id)
 	}
 
 	publicAccess := mysql.PublicNetworkAccessEnumEnabled
@@ -491,50 +553,42 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	server := mysql.ServerForCreate{
+		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
 		Location:   &location,
 		Properties: props,
 		Sku:        sku,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, server)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, server)
 	if err != nil {
-		return fmt.Errorf("creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MySQL Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
-			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
+			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("error updataing mysql server security alert policy: %v", err)
+				return fmt.Errorf("updating of Security Alert Policy for %s: %+v", id, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("error waiting for creation/update of mysql server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for update of Security Alert Policy for %s: %+v", id, err)
 			}
 		}
 	}
 
-	return resourceArmMySqlServerRead(d, meta)
+	return resourceMySqlServerRead(d, meta)
 }
 
-func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -544,7 +598,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
 
-	id, err := parse.MysqlServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MySQL Server ID : %v", err)
 	}
@@ -567,6 +621,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	storageProfile := expandMySQLStorageProfile(d)
 
 	properties := mysql.ServerUpdateParameters{
+		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        publicAccess,
@@ -581,23 +636,11 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("updating MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for MySQL Server %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MySQL Server %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
@@ -613,42 +656,43 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceArmMySqlServerRead(d, meta)
+	return resourceMySqlServerRead(d, meta)
 }
 
-func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MysqlServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MySQL Server ID : %v", err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MySQL Server %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	tier := mysql.Basic
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 		tier = sku.Tier
+	}
+
+	if err := d.Set("identity", flattenServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ServerProperties; props != nil {
@@ -679,7 +723,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	if tier == mysql.GeneralPurpose || tier == mysql.MemoryOptimized {
 		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("error making read request to mysql server security alert policy: %+v", err)
+			return fmt.Errorf("retrieving Security Alert Policy for %s: %+v", *id, err)
 		}
 
 		if !utils.ResponseWasNotFound(secResp.Response) {
@@ -693,12 +737,12 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MysqlServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MySQL Server ID : %v", err)
 	}
@@ -875,8 +919,19 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 
 	block["enabled"] = props.State == mysql.ServerSecurityAlertPolicyStateEnabled
 
-	block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
-	block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
+	// the service will return "disabledAlerts":[""] for empty
+	if props.DisabledAlerts == nil || len(*props.DisabledAlerts) == 0 || (*props.DisabledAlerts)[0] == "" {
+		block["disabled_alerts"] = []interface{}{}
+	} else {
+		block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
+	}
+
+	// the service will return "emailAddresses":[""] for empty
+	if props.EmailAddresses == nil || len(*props.EmailAddresses) == 0 || (*props.EmailAddresses)[0] == "" {
+		block["email_addresses"] = []interface{}{}
+	} else {
+		block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
+	}
 
 	if v := props.EmailAccountAdmins; v != nil {
 		block["email_account_admins"] = *v
@@ -891,4 +946,40 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 	block["storage_account_access_key"] = accessKey
 
 	return []interface{}{block}
+}
+
+func expandServerIdentity(input []interface{}) *mysql.ResourceIdentity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &mysql.ResourceIdentity{
+		Type: mysql.IdentityType(v["type"].(string)),
+	}
+}
+
+func flattenServerIdentity(input *mysql.ResourceIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if input.PrincipalID != nil {
+		principalID = input.PrincipalID.String()
+	}
+
+	tenantID := ""
+	if input.TenantID != nil {
+		tenantID = input.TenantID.String()
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }

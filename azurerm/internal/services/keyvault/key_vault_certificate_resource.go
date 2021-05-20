@@ -2,6 +2,7 @@ package keyvault
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -10,50 +11,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// todo refactor and find a home for this wayward func
-func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseKeyVaultChildID(d.Id())
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
-	}
-
-	kvid, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, id.KeyVaultBaseUrl)
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-
-	d.Set("key_vault_id", kvid)
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func resourceArmKeyVaultCertificate() *schema.Resource {
+func resourceKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
 		// TODO: support Updating once we have more information about what can be updated
-		Create: resourceArmKeyVaultCertificateCreate,
-		Read:   resourceArmKeyVaultCertificateRead,
-		Delete: resourceArmKeyVaultCertificateDelete,
+		Create: resourceKeyVaultCertificateCreate,
+		Read:   resourceKeyVaultCertificateRead,
+		Delete: resourceKeyVaultCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -67,14 +49,14 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildName,
+				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"certificate": {
@@ -127,6 +109,18 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"curve": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.P256),
+											string(keyvault.P256K),
+											string(keyvault.P384),
+											string(keyvault.P521),
+										}, false),
+									},
 									"exportable": {
 										Type:     schema.TypeBool,
 										Required: true,
@@ -134,10 +128,15 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 									},
 									"key_size": {
 										Type:     schema.TypeInt,
-										Required: true,
+										Optional: true,
+										Computed: true,
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
+											256,
+											384,
+											521,
 											2048,
+											3072,
 											4096,
 										}),
 									},
@@ -145,6 +144,13 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.EC),
+											string(keyvault.ECHSM),
+											string(keyvault.RSA),
+											string(keyvault.RSAHSM),
+											string(keyvault.Oct),
+										}, true),
 									},
 									"reuse_key": {
 										Type:     schema.TypeBool,
@@ -177,6 +183,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 											},
 										},
 									},
+									//lintignore:XS003
 									"trigger": {
 										Type:     schema.TypeList,
 										Required: true,
@@ -234,6 +241,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 									"key_usage": {
 										Type:     schema.TypeList,
 										Required: true,
+										ForceNew: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -270,6 +278,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 												"dns_names": {
 													Type:     schema.TypeSet,
@@ -279,6 +291,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 												"upns": {
 													Type:     schema.TypeSet,
@@ -288,6 +304,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 											},
 										},
@@ -358,6 +378,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"certificate_data_base64": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"thumbprint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -368,35 +393,39 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
+		return err
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
-			}
-		}
+	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+	existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
 		}
+	}
+
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-	policy := expandKeyVaultCertificatePolicy(d)
+	policy, err := expandKeyVaultCertificatePolicy(d)
+	if err != nil {
+		return fmt.Errorf("expanding certificate policy: %s", err)
+	}
 
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
@@ -404,21 +433,21 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		importParameters := keyvault.CertificateImportParameters{
 			Base64EncodedCertificate: utils.String(certificate.CertificateData),
 			Password:                 utils.String(certificate.CertificatePassword),
-			CertificatePolicy:        &policy,
+			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
-		if _, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters); err != nil {
+		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
 			return err
 		}
 	} else {
 		// Generate new
 		parameters := keyvault.CertificateCreateParameters{
-			CertificatePolicy: &policy,
+			CertificatePolicy: policy,
 			Tags:              tags.Expand(t),
 		}
-		if resp, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
+		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
+				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, *keyVaultBaseUrl, name)
 				if err != nil {
 					return err
 				}
@@ -444,35 +473,35 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			}
 		}
 
-		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
+		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
-			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
+			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
 		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
 		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
 		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
-		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+		if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
 			stateConf.PollInterval = 30 * time.Second
 			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 
-	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	resp, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 	if err != nil {
 		return err
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKeyVaultCertificateRead(d, meta)
+	return resourceKeyVaultCertificateRead(d, meta)
 }
 
 func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
@@ -497,33 +526,39 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 	}
 }
 
-func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return err
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("checking if %s for Certificate %q exists: %v", *keyVaultId, id.Name, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Certificate %q was not found in %s - removing from state", id.Name, *keyVaultId)
 		d.SetId("")
 		return nil
 	}
@@ -541,7 +576,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
+	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
 	}
@@ -560,6 +595,12 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	}
 	d.Set("certificate_data", certificateData)
 
+	certificateDataBase64 := ""
+	if contents := cert.Cer; contents != nil {
+		certificateDataBase64 = base64.StdEncoding.EncodeToString(*contents)
+	}
+	d.Set("certificate_data_base64", certificateDataBase64)
+
 	thumbprint := ""
 	if v := cert.X509Thumbprint; v != nil {
 		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
@@ -574,26 +615,32 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -603,19 +650,48 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	resp, err := client.DeleteCertificate(ctx, id.KeyVaultBaseUrl, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("Error deleting Certificate %q from Key Vault: %+v", id.Name, err)
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeCertificate{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.CertificatePolicy {
+var _ deleteAndPurgeNestedItem = deleteAndPurgeCertificate{}
+
+type deleteAndPurgeCertificate struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeCertificate) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteCertificate(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeCertificate) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetCertificate(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeCertificate) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedCertificate(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedCertificate(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func expandKeyVaultCertificatePolicy(d *schema.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
 	policyRaw := policies[0].(map[string]interface{})
 	policy := keyvault.CertificatePolicy{}
@@ -628,10 +704,37 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 	properties := policyRaw["key_properties"].([]interface{})
 	props := properties[0].(map[string]interface{})
+
+	curve := props["curve"].(string)
+	keyType := props["key_type"].(string)
+	keySize := props["key_size"].(int)
+
+	if keyType == string(keyvault.EC) || keyType == string(keyvault.ECHSM) {
+		if curve == "" {
+			return nil, fmt.Errorf("`curve` is required when creating an EC key")
+		}
+		// determine key_size if not specified
+		if keySize == 0 {
+			switch curve {
+			case string(keyvault.P256), string(keyvault.P256K):
+				keySize = 256
+			case string(keyvault.P384):
+				keySize = 384
+			case string(keyvault.P521):
+				keySize = 521
+			}
+		}
+	} else if keyType == string(keyvault.RSA) || keyType == string(keyvault.RSAHSM) {
+		if keySize == 0 {
+			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
+		}
+	}
+
 	policy.KeyProperties = &keyvault.KeyProperties{
+		Curve:      keyvault.JSONWebKeyCurveName(curve),
 		Exportable: utils.Bool(props["exportable"].(bool)),
-		KeySize:    utils.Int32(int32(props["key_size"].(int))),
-		KeyType:    utils.String(props["key_type"].(string)),
+		KeySize:    utils.Int32(int32(keySize)),
+		KeyType:    keyvault.JSONWebKeyType(keyType),
 		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
 	}
 
@@ -651,17 +754,19 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 		if v, ok := action["trigger"]; ok {
 			triggers := v.([]interface{})
-			trigger := triggers[0].(map[string]interface{})
-			lifetimeAction.Trigger = &keyvault.Trigger{}
+			if triggers[0] != nil {
+				trigger := triggers[0].(map[string]interface{})
+				lifetimeAction.Trigger = &keyvault.Trigger{}
 
-			d := trigger["days_before_expiry"].(int)
-			if d > 0 {
-				lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
-			}
+				d := trigger["days_before_expiry"].(int)
+				if d > 0 {
+					lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
+				}
 
-			p := trigger["lifetime_percentage"].(int)
-			if p > 0 {
-				lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				p := trigger["lifetime_percentage"].(int)
+				if p > 0 {
+					lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				}
 			}
 		}
 
@@ -721,10 +826,14 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		}
 	}
 
-	return policy
+	return &policy, nil
 }
 
-func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
+func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
@@ -736,9 +845,10 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	// key properties
 	if props := input.KeyProperties; props != nil {
 		keyProps := make(map[string]interface{})
+		keyProps["curve"] = string(props.Curve)
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
-		keyProps["key_type"] = *props.KeyType
+		keyProps["key_type"] = string(props.KeyType)
 		keyProps["reuse_key"] = *props.ReuseKey
 
 		policy["key_properties"] = []interface{}{keyProps}
@@ -803,10 +913,24 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 			}
 
 			sanOutputs = append(sanOutputs, sanOutput)
+		} else if certData != nil && len(*certData) > 0 {
+			sanOutput := make(map[string]interface{})
+			cert, err := x509.ParseCertificate(*certData)
+			if err != nil {
+				log.Printf("[DEBUG] Unable to read certificate data: %v", err)
+			} else {
+				sanOutput["emails"] = set.FromStringSlice(cert.EmailAddresses)
+				sanOutput["dns_names"] = set.FromStringSlice(cert.DNSNames)
+				sanOutput["upns"] = set.FromStringSlice([]string{})
+				sanOutputs = append(sanOutputs, sanOutput)
+			}
 		}
 
 		certProps["key_usage"] = usages
-		certProps["subject"] = *props.Subject
+		certProps["subject"] = ""
+		if props.Subject != nil {
+			certProps["subject"] = *props.Subject
+		}
 		certProps["validity_in_months"] = int(*props.ValidityInMonths)
 		if props.Ekus != nil {
 			certProps["extended_key_usage"] = props.Ekus

@@ -9,22 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
+func resourceDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServicePostgreSQLRead,
-		Update: resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServicePostgreSQLDelete,
+		Create: resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
+		Read:   resourceDataFactoryLinkedServicePostgreSQLRead,
+		Update: resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
+		Delete: resourceDataFactoryLinkedServicePostgreSQLDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +39,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -98,7 +99,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,7 +124,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.Resourc
 	connectionString := d.Get("connection_string").(string)
 	secureString := datafactory.SecureString{
 		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	postgresqlProperties := &datafactory.PostgreSQLLinkedServiceTypeProperties{
@@ -135,7 +136,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.Resourc
 	postgresqlLinkedService := &datafactory.PostgreSQLLinkedService{
 		Description:                           &description,
 		PostgreSQLLinkedServiceTypeProperties: postgresqlProperties,
-		Type:                                  datafactory.TypePostgreSQL,
+		Type:                                  datafactory.TypeBasicLinkedServiceTypePostgreSQL,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -174,39 +175,36 @@ func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.Resourc
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServicePostgreSQLRead(d, meta)
+	return resourceDataFactoryLinkedServicePostgreSQLRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	postgresql, ok := resp.Properties.AsPostgreSQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeMySQL, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypePostgreSQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresql.AdditionalProperties)
@@ -231,23 +229,20 @@ func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

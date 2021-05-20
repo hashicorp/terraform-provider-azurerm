@@ -12,23 +12,32 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
+func resourceFrontDoorFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFrontDoorFirewallPolicyCreateUpdate,
-		Read:   resourceArmFrontDoorFirewallPolicyRead,
-		Update: resourceArmFrontDoorFirewallPolicyCreateUpdate,
-		Delete: resourceArmFrontDoorFirewallPolicyDelete,
+		Create: resourceFrontDoorFirewallPolicyCreateUpdate,
+		Read:   resourceFrontDoorFirewallPolicyRead,
+		Update: resourceFrontDoorFirewallPolicyCreateUpdate,
+		Delete: resourceFrontDoorFirewallPolicyDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WebApplicationFirewallPolicyV0ToV1{},
+		}),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -45,7 +54,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				ValidateFunc: validate.FrontDoorWAFName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": location.SchemaComputed(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -86,7 +95,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"custom_block_response_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.FrontdoorCustomBlockResponseBody,
+				ValidateFunc: validate.CustomBlockResponseBody,
 			},
 
 			"custom_rule": {
@@ -148,7 +157,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 						"match_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 100,
+							MaxItems: 10,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"match_variable": {
@@ -163,16 +172,17 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RequestHeader),
 											string(frontdoor.RequestMethod),
 											string(frontdoor.RequestURI),
+											string(frontdoor.SocketAddr),
 										}, false),
 									},
 
 									"match_values": {
 										Type:     schema.TypeList,
 										Required: true,
-										MaxItems: 100,
+										MaxItems: 600,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: validation.StringLenBetween(1, 256),
 										},
 									},
 
@@ -419,8 +429,9 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -428,16 +439,17 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name).ID()
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id)
 		}
 	}
 
@@ -463,8 +475,8 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 				EnabledState: enabled,
 				Mode:         frontdoor.PolicyMode(mode),
 			},
-			CustomRules:  expandArmFrontDoorFirewallCustomRules(customRules),
-			ManagedRules: expandArmFrontDoorFirewallManagedRules(managedRules),
+			CustomRules:  expandFrontDoorFirewallCustomRules(customRules),
+			ManagedRules: expandFrontDoorFirewallManagedRules(managedRules),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -481,48 +493,38 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontdoorWebApplicationFirewallPolicy)
 	if err != nil {
-		return fmt.Errorf("Error creating Front Door Firewall policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Front Door Firewall %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
-	return resourceArmFrontDoorFirewallPolicyRead(d, meta)
+	d.SetId(id)
+	return resourceFrontDoorFirewallPolicyRead(d, meta)
 }
 
-func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["frontdoorwebapplicationfirewallpolicies"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Front Door Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -537,52 +539,50 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 		}
 
-		if err := d.Set("custom_rule", flattenArmFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
-			return fmt.Errorf("Error flattening `custom_rule`: %+v", err)
-		}
-
-		if err := d.Set("managed_rule", flattenArmFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
-			return fmt.Errorf("Error flattening `managed_rule`: %+v", err)
+		if err := d.Set("custom_rule", flattenFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
+			return fmt.Errorf("flattening `custom_rule`: %+v", err)
 		}
 
 		if err := d.Set("frontend_endpoint_ids", FlattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
-			return fmt.Errorf("Error flattening `frontend_endpoint_ids`: %+v", err)
+			return fmt.Errorf("flattening `frontend_endpoint_ids`: %+v", err)
+		}
+
+		if err := d.Set("managed_rule", flattenFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
+			return fmt.Errorf("flattening `managed_rule`: %+v", err)
 		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["frontdoorwebapplicationfirewallpolicies"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Front Door Firewall %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 		}
 	}
 
 	return nil
 }
 
-func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
+func expandFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
 	if len(input) == 0 {
 		return nil
 	}
@@ -612,7 +612,7 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 			RuleType:                   frontdoor.RuleType(ruleType),
 			RateLimitDurationInMinutes: utils.Int32(rateLimitDurationInMinutes),
 			RateLimitThreshold:         utils.Int32(rateLimitThreshold),
-			MatchConditions:            expandArmFrontDoorFirewallMatchConditions(matchConditions),
+			MatchConditions:            expandFrontDoorFirewallMatchConditions(matchConditions),
 			Action:                     frontdoor.ActionType(action),
 		}
 		output = append(output, customRule)
@@ -623,7 +623,7 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 	}
 }
 
-func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor.MatchCondition {
+func expandFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor.MatchCondition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -644,7 +644,7 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 			Operator:        frontdoor.Operator(operator),
 			NegateCondition: &negateCondition,
 			MatchValue:      utils.ExpandStringSlice(matchValues),
-			Transforms:      expandArmFrontDoorFirewallTransforms(transforms),
+			Transforms:      expandFrontDoorFirewallTransforms(transforms),
 		}
 
 		if matchVariable != "" {
@@ -660,7 +660,7 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 	return &result
 }
 
-func expandArmFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.TransformType {
+func expandFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.TransformType {
 	if len(input) == 0 {
 		return nil
 	}
@@ -673,7 +673,7 @@ func expandArmFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Tran
 	return &result
 }
 
-func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
+func expandFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
 	if len(input) == 0 {
 		return nil
 	}
@@ -693,11 +693,11 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 			RuleSetVersion: utils.String(version),
 		}
 
-		if exclusions := expandArmFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
 			managedRuleSet.Exclusions = exclusions
 		}
 
-		if ruleGroupOverrides := expandArmFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
+		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
 			managedRuleSet.RuleGroupOverrides = ruleGroupOverrides
 		}
 
@@ -709,7 +709,7 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 	}
 }
 
-func expandArmFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
+func expandFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
 	if len(input) == 0 {
 		return nil
 	}
@@ -734,7 +734,7 @@ func expandArmFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	return &managedRuleExclusions
 }
 
-func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
+func expandFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
 	if len(input) == 0 {
 		return nil
 	}
@@ -751,11 +751,11 @@ func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 			RuleGroupName: utils.String(ruleGroupName),
 		}
 
-		if exclusions := expandArmFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
 			managedRuleGroupOverride.Exclusions = exclusions
 		}
 
-		if managedRuleOverride := expandArmFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
+		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
 			managedRuleGroupOverride.Rules = managedRuleOverride
 		}
 
@@ -765,7 +765,7 @@ func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 	return &managedRuleGroupOverrides
 }
 
-func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
+func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
 	if len(input) == 0 {
 		return nil
 	}
@@ -788,7 +788,7 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 			Action:       frontdoor.ActionType(action),
 		}
 
-		if exclusions := expandArmFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
 			managedRuleOverride.Exclusions = exclusions
 		}
 
@@ -798,7 +798,7 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 	return &managedRuleOverrides
 }
 
-func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
+func flattenFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
 	if input == nil || input.Rules == nil {
 		return make([]interface{}, 0)
 	}
@@ -811,7 +811,7 @@ func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []i
 		output["type"] = string(r.RuleType)
 		output["action"] = string(r.Action)
 		output["enabled"] = r.EnabledState == frontdoor.CustomRuleEnabledStateEnabled
-		output["match_condition"] = flattenArmFrontDoorFirewallMatchConditions(r.MatchConditions)
+		output["match_condition"] = flattenFrontDoorFirewallMatchConditions(r.MatchConditions)
 
 		if v := r.Priority; v != nil {
 			output["priority"] = int(*v)
@@ -831,7 +831,7 @@ func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []i
 	return results
 }
 
-func flattenArmFrontDoorFirewallMatchConditions(condition *[]frontdoor.MatchCondition) []interface{} {
+func flattenFrontDoorFirewallMatchConditions(condition *[]frontdoor.MatchCondition) []interface{} {
 	if condition == nil {
 		return make([]interface{}, 0)
 	}
@@ -859,7 +859,7 @@ func flattenArmFrontDoorFirewallMatchConditions(condition *[]frontdoor.MatchCond
 	return results
 }
 
-func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) []interface{} {
+func flattenFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) []interface{} {
 	if input == nil || input.ManagedRuleSets == nil {
 		return make([]interface{}, 0)
 	}
@@ -877,11 +877,11 @@ func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList
 		}
 
 		if v := r.RuleGroupOverrides; v != nil {
-			output["override"] = flattenArmFrontDoorFirewallOverrides(v)
+			output["override"] = flattenFrontDoorFirewallOverrides(v)
 		}
 
 		if v := r.Exclusions; v != nil {
-			output["exclusion"] = flattenArmFrontDoorFirewallExclusions(v)
+			output["exclusion"] = flattenFrontDoorFirewallExclusions(v)
 		}
 
 		results = append(results, output)
@@ -890,7 +890,7 @@ func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList
 	return results
 }
 
-func flattenArmFrontDoorFirewallExclusions(managedRuleExclusion *[]frontdoor.ManagedRuleExclusion) []interface{} {
+func flattenFrontDoorFirewallExclusions(managedRuleExclusion *[]frontdoor.ManagedRuleExclusion) []interface{} {
 	if managedRuleExclusion == nil {
 		return make([]interface{}, 0)
 	}
@@ -909,7 +909,7 @@ func flattenArmFrontDoorFirewallExclusions(managedRuleExclusion *[]frontdoor.Man
 	return results
 }
 
-func flattenArmFrontDoorFirewallOverrides(groupOverride *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
+func flattenFrontDoorFirewallOverrides(groupOverride *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
 	if groupOverride == nil {
 		return make([]interface{}, 0)
 	}
@@ -923,7 +923,7 @@ func flattenArmFrontDoorFirewallOverrides(groupOverride *[]frontdoor.ManagedRule
 		}
 
 		if v := o.Exclusions; v != nil {
-			output["exclusion"] = flattenArmFrontDoorFirewallExclusions(v)
+			output["exclusion"] = flattenFrontDoorFirewallExclusions(v)
 		}
 
 		if rules := o.Rules; rules != nil {
@@ -953,7 +953,7 @@ func flattenArmFrontdoorFirewallRules(override *[]frontdoor.ManagedRuleOverride)
 		}
 
 		if v := o.Exclusions; v != nil {
-			output["exclusion"] = flattenArmFrontDoorFirewallExclusions(v)
+			output["exclusion"] = flattenFrontDoorFirewallExclusions(v)
 		}
 
 		results = append(results, output)

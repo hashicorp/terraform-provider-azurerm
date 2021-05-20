@@ -6,56 +6,80 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
+	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppConfiguration() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmAppConfigurationCreate,
-		Read:   resourceArmAppConfigurationRead,
-		Update: resourceArmAppConfigurationUpdate,
-		Delete: resourceArmAppConfigurationDelete,
+func resourceAppConfiguration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceAppConfigurationCreate,
+		Read:   resourceAppConfigurationRead,
+		Update: resourceAppConfigurationUpdate,
+		Delete: resourceAppConfigurationDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AppConfigurationID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ConfigurationStoreID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppConfigurationName,
+				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
 			"location": azure.SchemaLocation(),
+
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(appconfiguration.IdentityTypeSystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			// the API changed and now returns the rg in lowercase
 			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "free",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,27 +89,27 @@ func resourceArmAppConfiguration() *schema.Resource {
 			},
 
 			"endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"primary_read_key": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"secret": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"connection_string": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -94,22 +118,22 @@ func resourceArmAppConfiguration() *schema.Resource {
 			},
 
 			"secondary_read_key": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"secret": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"connection_string": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -118,22 +142,22 @@ func resourceArmAppConfiguration() *schema.Resource {
 			},
 
 			"primary_write_key": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"secret": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"connection_string": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -142,22 +166,22 @@ func resourceArmAppConfiguration() *schema.Resource {
 			},
 
 			"secondary_write_key": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"secret": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"connection_string": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -170,8 +194,9 @@ func resourceArmAppConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,18 +204,15 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Configuration %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	resourceId := parse.NewConfigurationStoreID(subscriptionId, resourceGroup, name).ID()
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing App Configuration %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_configuration", *existing.ID)
-		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId)
 	}
 
 	parameters := appconfiguration.ConfigurationStore{
@@ -201,6 +223,8 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -210,26 +234,17 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error waiting for creation of App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmAppConfigurationRead(d, meta)
+	d.SetId(resourceId)
+	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
-	id, err := parse.AppConfigurationID(d.Id())
+	id, err := parse.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,6 +254,10 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 			Name: utils.String(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if d.HasChange("identity") {
+		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -260,15 +279,15 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppConfigurationRead(d, meta)
+	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppConfigurationID(d.Id())
+	id, err := parse.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -288,7 +307,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -310,15 +329,19 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 	d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
+	if err := d.Set("identity", flattenAppConfigurationIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppConfigurationID(d.Id())
+	id, err := parse.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -407,6 +430,43 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 			"connection_string": connectionString,
 			"id":                id,
 			"secret":            secret,
+		},
+	}
+}
+
+func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
+	if len(identities) == 0 {
+		return &appconfiguration.ResourceIdentity{
+			Type: appconfiguration.IdentityTypeNone,
+		}
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := appconfiguration.IdentityType(identity["type"].(string))
+	return &appconfiguration.ResourceIdentity{
+		Type: identityType,
+	}
+}
+
+func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
+	if identity == nil || identity.Type == appconfiguration.IdentityTypeNone {
+		return []interface{}{}
+	}
+
+	principalId := ""
+	if identity.PrincipalID != nil {
+		principalId = *identity.PrincipalID
+	}
+
+	tenantId := ""
+	if identity.TenantID != nil {
+		tenantId = *identity.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(identity.Type),
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
 		},
 	}
 }

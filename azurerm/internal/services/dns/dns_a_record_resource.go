@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsARecord() *schema.Resource {
+func resourceDnsARecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsARecordCreateUpdate,
-		Read:   resourceArmDnsARecordRead,
-		Update: resourceArmDnsARecordCreateUpdate,
-		Delete: resourceArmDnsARecordDelete,
+		Create: resourceDnsARecordCreateUpdate,
+		Read:   resourceDnsARecordRead,
+		Update: resourceDnsARecordCreateUpdate,
+		Delete: resourceDnsARecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -30,8 +30,8 @@ func resourceArmDnsARecord() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsARecordID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ARecordID(id)
 			return err
 		}),
 
@@ -81,14 +81,17 @@ func resourceArmDnsARecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	resourceId := parse.NewARecordID(subscriptionId, resGroup, zoneName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.A)
@@ -133,42 +136,33 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating/updating DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.A)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
+	d.SetId(resourceId.ID())
 
-	if resp.ID == nil {
-		return fmt.Errorf("Error retrieving DNS A Record %q (Zone %q / Resource Group %q): ID was nil", name, zoneName, resGroup)
-	}
-
-	d.SetId(*resp.ID)
-
-	return resourceArmDnsARecordRead(d, meta)
+	return resourceDnsARecordRead(d, meta)
 }
 
-func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsARecordID(d.Id())
+	id, err := parse.ARecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.A)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.AName, dns.A)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS A record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error reading DNS A record %s: %+v", id.AName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("fqdn", resp.Fqdn)
 	d.Set("ttl", resp.TTL)
@@ -186,19 +180,19 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsARecordID(d.Id())
+	id, err := parse.ARecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.A, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.AName, dns.A, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS A Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS A Record %s: %+v", id.AName, err)
 	}
 
 	return nil

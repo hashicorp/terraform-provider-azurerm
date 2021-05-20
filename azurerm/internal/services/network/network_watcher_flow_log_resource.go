@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -46,16 +47,15 @@ func ParseNetworkWatcherFlowLogID(id string) (*NetworkWatcherFlowLogAccountID, e
 	}, nil
 }
 
-func resourceArmNetworkWatcherFlowLog() *schema.Resource {
+func resourceNetworkWatcherFlowLog() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkWatcherFlowLogCreateUpdate,
-		Read:   resourceArmNetworkWatcherFlowLogRead,
-		Update: resourceArmNetworkWatcherFlowLogCreateUpdate,
-		Delete: resourceArmNetworkWatcherFlowLogDelete,
+		Create: resourceNetworkWatcherFlowLogCreateUpdate,
+		Read:   resourceNetworkWatcherFlowLogRead,
+		Update: resourceNetworkWatcherFlowLogCreateUpdate,
+		Delete: resourceNetworkWatcherFlowLogDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -175,7 +175,7 @@ func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *schema.R
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,10 +226,10 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*resp.ID + "/networkSecurityGroupId" + networkSecurityGroupID)
 
-	return resourceArmNetworkWatcherFlowLogRead(d, meta)
+	return resourceNetworkWatcherFlowLogRead(d, meta)
 }
 
-func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +294,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

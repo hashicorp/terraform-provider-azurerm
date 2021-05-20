@@ -4,28 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkSecurityRule() *schema.Resource {
+func resourceNetworkSecurityRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityRuleCreateUpdate,
-		Read:   resourceArmNetworkSecurityRuleRead,
-		Update: resourceArmNetworkSecurityRuleCreateUpdate,
-		Delete: resourceArmNetworkSecurityRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceNetworkSecurityRuleCreateUpdate,
+		Read:   resourceNetworkSecurityRuleRead,
+		Update: resourceNetworkSecurityRuleCreateUpdate,
+		Delete: resourceNetworkSecurityRuleDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -63,6 +62,8 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
 					string(network.SecurityRuleProtocolIcmp),
+					string(network.SecurityRuleProtocolAh),
+					string(network.SecurityRuleProtocolEsp),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -126,7 +127,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			// lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     schema.TypeSet,
-				MaxItems: 1,
+				MaxItems: 10,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -135,7 +136,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			// lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     schema.TypeSet,
-				MaxItems: 1,
+				MaxItems: 10,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -170,7 +171,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +180,7 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 	nsgName := d.Get("network_security_group_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, nsgName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -306,10 +307,10 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmNetworkSecurityRuleRead(d, meta)
+	return resourceNetworkSecurityRuleRead(d, meta)
 }
 
-func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,7 +363,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -15,7 +15,7 @@ Manages a Log Analytics (formally Operational Insights) Solution.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "k8s-log-analytics-test"
-  location = "westeurope"
+  location = "West Europe"
 }
 
 resource "random_id" "workspace" {
@@ -63,6 +63,8 @@ The following arguments are supported:
 * `workspace_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
 * `plan` - (Required) A `plan` block as documented below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

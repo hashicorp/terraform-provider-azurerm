@@ -14,7 +14,7 @@ Manages an Automation Certificate.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -32,7 +32,7 @@ resource "azurerm_automation_certificate" "example" {
   automation_account_name = azurerm_automation_account.example.name
 
   description = "This is an example certificate"
-  base64      = base64encode(file("certificate.pfx"))
+  base64      = filebase64("certificate.pfx")
 }
 ```
 

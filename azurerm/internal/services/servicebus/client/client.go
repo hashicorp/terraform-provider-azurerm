@@ -7,17 +7,21 @@ import (
 )
 
 type Client struct {
-	QueuesClient            *servicebus.QueuesClient
-	NamespacesClient        *servicebus.NamespacesClient
-	NamespacesClientPreview *servicebusPreview.NamespacesClient
-	TopicsClient            *servicebus.TopicsClient
-	SubscriptionsClient     *servicebus.SubscriptionsClient
-	SubscriptionRulesClient *servicebus.RulesClient
+	QueuesClient                  *servicebus.QueuesClient
+	DisasterRecoveryConfigsClient *servicebus.DisasterRecoveryConfigsClient
+	NamespacesClient              *servicebus.NamespacesClient
+	NamespacesClientPreview       *servicebusPreview.NamespacesClient
+	TopicsClient                  *servicebus.TopicsClient
+	SubscriptionsClient           *servicebus.SubscriptionsClient
+	SubscriptionRulesClient       *servicebus.RulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	QueuesClient := servicebus.NewQueuesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&QueuesClient.Client, o.ResourceManagerAuthorizer)
+
+	DisasterRecoveryConfigsClient := servicebus.NewDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DisasterRecoveryConfigsClient.Client, o.ResourceManagerAuthorizer)
 
 	NamespacesClient := servicebus.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
@@ -35,11 +39,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&SubscriptionRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		QueuesClient:            &QueuesClient,
-		NamespacesClient:        &NamespacesClient,
-		NamespacesClientPreview: &NamespacesClientPreview,
-		TopicsClient:            &TopicsClient,
-		SubscriptionsClient:     &SubscriptionsClient,
-		SubscriptionRulesClient: &SubscriptionRulesClient,
+		QueuesClient:                  &QueuesClient,
+		DisasterRecoveryConfigsClient: &DisasterRecoveryConfigsClient,
+		NamespacesClient:              &NamespacesClient,
+		NamespacesClientPreview:       &NamespacesClientPreview,
+		TopicsClient:                  &TopicsClient,
+		SubscriptionsClient:           &SubscriptionsClient,
+		SubscriptionRulesClient:       &SubscriptionRulesClient,
 	}
 }

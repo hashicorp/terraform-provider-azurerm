@@ -11,6 +11,8 @@ description: |-
 
 Manages a Microsoft SQL Azure Database Server.
 
+~> **Note:** This resource provides usage of Microsoft SQL Azure Database server using an older `sku` based model. [It is recommended going forward](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10217#issuecomment-762036693) to use [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server) resource which provides support for `vcores`.
+
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -19,7 +21,7 @@ Manages a Microsoft SQL Azure Database Server.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "database-rg"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -50,6 +52,7 @@ resource "azurerm_sql_server" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -103,13 +106,15 @@ The following attributes are exported:
 
 A `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
+* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
 
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
+
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor.
 
 ### Timeouts
 

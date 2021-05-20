@@ -31,7 +31,7 @@ resource "azurerm_subnet" "example" {
   name                 = "examplesubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_hpc_cache" "example" {
@@ -96,6 +96,8 @@ The following arguments are supported:
 * `storage_container_id` - (Required) The Resource Manager ID of the Storage Container used as the HPC Cache Blob Target. Changing this forces a new resource to be created.
 
 -> **Note:** This is the Resource Manager ID of the Storage Container, rather than the regular ID - and can be accessed on the `azurerm_storage_container` Data Source/Resource as `resource_manager_id`.
+
+* `access_policy_name` - (Optional) The name of the access policy applied to this target. Defaults to `default`.
 
 ## Attributes Reference
 

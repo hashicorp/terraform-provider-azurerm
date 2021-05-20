@@ -34,7 +34,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Azure Resource ID of the Log Analytics Workspace.
+* `id` - The ID of the Log Analytics Workspace.
 
 * `primary_shared_key` - The Primary shared key for the Log Analytics Workspace.
 
@@ -42,11 +42,11 @@ The following attributes are exported:
 
 * `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
 
-* `portal_url` - The Portal URL for the Log Analytics Workspace.
-
 * `sku` - The Sku of the Log Analytics Workspace.
 
 * `retention_in_days` - The workspace data retention in days.
+
+* `daily_quota_gb` - The workspace daily quota for ingestion in GB.
 
 * `tags` - A mapping of tags assigned to the resource.
 

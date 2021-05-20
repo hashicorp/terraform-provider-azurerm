@@ -16,7 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,8 +28,8 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 		Update: resourceManagedApplicationDefinitionCreateUpdate,
 		Delete: resourceManagedApplicationDefinitionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ManagedApplicationDefinitionID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApplicationDefinitionID(id)
 			return err
 		}),
 
@@ -45,7 +45,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionName,
+				ValidateFunc: validate.ApplicationDefinitionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -55,7 +55,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			"display_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
+				ValidateFunc: validate.ApplicationDefinitionDisplayName,
 			},
 
 			"lock_level": {
@@ -100,7 +100,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionDescription,
+				ValidateFunc: validate.ApplicationDefinitionDescription,
 			},
 
 			"main_template": {
@@ -201,7 +201,7 @@ func resourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedApplicationDefinitionID(d.Id())
+	id, err := parse.ApplicationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func resourceManagedApplicationDefinitionDelete(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedApplicationDefinitionID(d.Id())
+	id, err := parse.ApplicationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}

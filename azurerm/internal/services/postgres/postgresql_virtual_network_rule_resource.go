@@ -6,29 +6,31 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
+func resourcePostgreSQLVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate,
-		Read:   resourceArmPostgreSQLVirtualNetworkRuleRead,
-		Update: resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate,
-		Delete: resourceArmPostgreSQLVirtualNetworkRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourcePostgreSQLVirtualNetworkRuleCreateUpdate,
+		Read:   resourcePostgreSQLVirtualNetworkRuleRead,
+		Update: resourcePostgreSQLVirtualNetworkRuleCreateUpdate,
+		Delete: resourcePostgreSQLVirtualNetworkRuleDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkRuleID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,10 +41,11 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azValidate.VirtualNetworkRuleName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				// TODO: this should be using a local validator
+				ValidateFunc: networkValidate.VirtualNetworkRuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -51,7 +54,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgresServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"subnet_id": {
@@ -68,7 +71,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,7 +82,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	subnetId := d.Get("subnet_id").(string)
 	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -101,11 +104,11 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error submitting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	// Wait for the provisioning state to become ready
@@ -135,24 +138,20 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPostgreSQLVirtualNetworkRuleRead(d, meta)
+	return resourcePostgreSQLVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["virtualNetworkRules"]
-
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading PostgreSQL Virtual Network Rule %q - removing from state", d.Id())
@@ -160,12 +159,12 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error reading PostgreSQL Virtual Network Rule: %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Network Rule %q (PostgreSQL Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("server_name", serverName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("server_name", id.ServerName)
 
 	if props := resp.VirtualNetworkRuleProperties; props != nil {
 		d.Set("subnet_id", props.VirtualNetworkSubnetID)
@@ -175,27 +174,23 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["virtualNetworkRules"]
-
-	future, err := client.Delete(ctx, resourceGroup, serverName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("deleting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -203,7 +198,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for deletion of PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Network Rule %q (PostgreSQL Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -212,7 +207,6 @@ func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta 
 func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *postgresql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				log.Printf("[DEBUG] Retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) returned 404.", resourceGroup, serverName, name)

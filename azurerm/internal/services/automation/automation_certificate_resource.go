@@ -5,26 +5,26 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationCertificate() *schema.Resource {
+func resourceAutomationCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationCertificateCreateUpdate,
-		Read:   resourceArmAutomationCertificateRead,
-		Update: resourceArmAutomationCertificateCreateUpdate,
-		Delete: resourceArmAutomationCertificateDelete,
+		Create: resourceAutomationCertificateCreateUpdate,
+		Read:   resourceAutomationCertificateRead,
+		Update: resourceAutomationCertificateCreateUpdate,
+		Delete: resourceAutomationCertificateDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -76,7 +76,7 @@ func resourceArmAutomationCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,10 +129,10 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationCertificateRead(d, meta)
+	return resourceAutomationCertificateRead(d, meta)
 }
 
-func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmAutomationCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

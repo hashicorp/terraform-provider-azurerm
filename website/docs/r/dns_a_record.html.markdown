@@ -14,8 +14,8 @@ Enables you to manage DNS A Records within Azure DNS.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_dns_zone" "example" {
@@ -36,8 +36,8 @@ resource "azurerm_dns_a_record" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_dns_zone" "example" {
@@ -88,6 +88,8 @@ The following attributes are exported:
 
 * `id` - The DNS A Record ID.
 * `fqdn` - The FQDN of the DNS A Record.
+
+~> **Note:** The FQDN of the DNS A Record which has a full-stop at the end is by design. Please [see the documentation](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) for more information.
 
 ## Timeouts
 

@@ -43,6 +43,8 @@ output "app_service_id" {
 
 * `client_affinity_enabled` - Does the App Service send session affinity cookies, which route client requests in the same session to the same instance?
 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
+
 * `enabled` - Is the App Service Enabled?
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
@@ -57,11 +59,17 @@ output "app_service_id" {
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
+* `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
+
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
+
+* `possible_outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12", "52.143.43.17"]` - not all of which are necessarily in use. Superset of `outbound_ip_address_list`.
+
+* `source_control` - A `source_control` block as defined below.
 
 ---
 
-`connection_string` supports the following:
+A `connection_string` block exports the following:
 
 * `name` - The name of the Connection String.
 
@@ -79,9 +87,11 @@ A `cors` block exports the following:
 
 ---
 
-A `ip_restriction` block exports the following:
+An `ip_restriction` block exports the following:
 
 * `ip_address` - The IP Address used for this IP Restriction.
+
+* `service_tag` - The Service Tag used for this IP Restriction.
 
 * `subnet_mask` - The Subnet mask used for this IP Restriction.
 
@@ -92,9 +102,11 @@ A `ip_restriction` block exports the following:
 * `action` - Does this restriction `Allow` or `Deny` access for this IP range?
 
 ---
-A `scm_ip_restriction` block exports the following:  
+An `scm_ip_restriction` block exports the following:  
 
 * `ip_address` - The IP Address used for this IP Restriction in CIDR notation.
+
+* `service_tag` - The Service Tag used for this IP Restriction.
 
 * `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
 
@@ -106,9 +118,9 @@ A `scm_ip_restriction` block exports the following:
 
 ---
 
-`site_config` supports the following:
+A `site_config` block exports the following:
 
-* `always_on` - Is the app be loaded at all times?
+* `always_on` - Is the app loaded at all times?
 
 * `app_command_line` - App command line to launch.
 
@@ -123,6 +135,8 @@ A `scm_ip_restriction` block exports the following:
 * `ftps_state` - State of FTP / FTPS service for this AppService.
 
 * `health_check_path` - The health check path to be pinged by App Service.
+
+* `number_of_workers` - The scaled number of workers (for per site scaling) of this App Service.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
@@ -159,6 +173,21 @@ A `scm_ip_restriction` block exports the following:
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
+
+---
+
+A `source_control` block exports the following:
+
+* `repo_url` -  The URL of the source code repository.
+
+* `branch` - The branch of the remote repository in use. 
+
+* `manual_integration` - Limits to manual integration.  
+
+* `rollback_enabled` - Is roll-back enabled for the repository.
+
+* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git. 
+
 
 ## Timeouts
 

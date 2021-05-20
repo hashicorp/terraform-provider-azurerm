@@ -5,27 +5,34 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCdnProfile() *schema.Resource {
+func resourceCdnProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCdnProfileCreate,
-		Read:   resourceArmCdnProfileRead,
-		Update: resourceArmCdnProfileUpdate,
-		Delete: resourceArmCdnProfileDelete,
+		Create: resourceCdnProfileCreate,
+		Read:   resourceCdnProfileRead,
+		Update: resourceCdnProfileUpdate,
+		Delete: resourceCdnProfileDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CdnProfileV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,8 +41,8 @@ func resourceArmCdnProfile() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnProfileID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProfileID(id)
 			return err
 		}),
 
@@ -69,7 +76,7 @@ func resourceArmCdnProfile() *schema.Resource {
 	}
 }
 
-func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,12 +128,17 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.ProfileID(*read.ID)
+	if err != nil {
+		return err
+	}
 
-	return resourceArmCdnProfileRead(d, meta)
+	d.SetId(id.ID())
+
+	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +147,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -157,15 +169,15 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmCdnProfileRead(d, meta)
+	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -192,31 +204,29 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["profiles"]
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for CDN Profile %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return err

@@ -7,27 +7,28 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppPool() *schema.Resource {
+func resourceNetAppPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppPoolCreateUpdate,
-		Read:   resourceArmNetAppPoolRead,
-		Update: resourceArmNetAppPoolCreateUpdate,
-		Delete: resourceArmNetAppPoolDelete,
+		Create: resourceNetAppPoolCreateUpdate,
+		Read:   resourceNetAppPoolRead,
+		Update: resourceNetAppPoolCreateUpdate,
+		Delete: resourceNetAppPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,8 +36,8 @@ func resourceArmNetAppPool() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.NetAppPoolID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.CapacityPoolID(id)
 			return err
 		}),
 
@@ -45,7 +46,7 @@ func resourceArmNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -56,7 +57,7 @@ func resourceArmNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"service_level": {
@@ -80,7 +81,7 @@ func resourceArmNetAppPool() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,7 +90,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -133,20 +134,20 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppPoolRead(d, meta)
+	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppPoolID(d.Id())
+	id, err := parse.CapacityPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Pools %q does not exist - removing from state", d.Id())
@@ -158,7 +159,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.NetAppAccountName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -177,18 +178,17 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppPoolID(d.Id())
+	id, err := parse.CapacityPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -204,7 +204,7 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
-		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
+		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.Name),
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 

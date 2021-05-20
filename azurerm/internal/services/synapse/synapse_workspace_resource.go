@@ -15,20 +15,26 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseWorkspace() *schema.Resource {
+const (
+	workspaceVSTSConfiguration   = "WorkspaceVSTSConfiguration"
+	workspaceGitHubConfiguration = "WorkspaceGitHubConfiguration"
+)
+
+func resourceSynapseWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseWorkspaceCreate,
-		Read:   resourceArmSynapseWorkspaceRead,
-		Update: resourceArmSynapseWorkspaceUpdate,
-		Delete: resourceArmSynapseWorkspaceDelete,
+		Create: resourceSynapseWorkspaceCreate,
+		Read:   resourceSynapseWorkspaceRead,
+		Update: resourceSynapseWorkspaceUpdate,
+		Delete: resourceSynapseWorkspaceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -37,8 +43,8 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SynapseWorkspaceID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
@@ -47,7 +53,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceName,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -139,8 +145,94 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 			},
 
 			"managed_resource_group_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ManagedResourceGroupName(),
+			},
+
+			"azure_devops_repo": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"github_repo"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"account_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"branch_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"project_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"repository_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"root_folder": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.RepoRootFolder(),
+						},
+					},
+				},
+			},
+
+			"github_repo": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"azure_devops_repo"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"account_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"branch_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"git_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPS,
+						},
+						"repository_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"root_folder": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.RepoRootFolder(),
+						},
+					},
+				},
+			},
+
+			"sql_identity_control_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"customer_managed_key_versionless_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 			},
 
 			"tags": tags.Schema(),
@@ -148,9 +240,10 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -175,10 +268,13 @@ func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{})
 	workspaceInfo := synapse.Workspace{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		WorkspaceProperties: &synapse.WorkspaceProperties{
-			DefaultDataLakeStorage:        expandArmWorkspaceDataLakeStorageAccountDetails(d.Get("storage_data_lake_gen2_filesystem_id").(string)),
-			ManagedVirtualNetwork:         utils.String(managedVirtualNetwork),
-			SQLAdministratorLogin:         utils.String(d.Get("sql_administrator_login").(string)),
-			SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
+			DefaultDataLakeStorage:           expandArmWorkspaceDataLakeStorageAccountDetails(d.Get("storage_data_lake_gen2_filesystem_id").(string)),
+			ManagedVirtualNetwork:            utils.String(managedVirtualNetwork),
+			SQLAdministratorLogin:            utils.String(d.Get("sql_administrator_login").(string)),
+			SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
+			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
+			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
+			Encryption:                       expandEncryptionDetails(d),
 		},
 		Identity: &synapse.ManagedIdentity{
 			Type: synapse.ResourceIdentityTypeSystemAssigned,
@@ -207,26 +303,26 @@ func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
+	if _, err = identitySQLControlClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlControlSettings); err != nil {
+		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Workspace %q (Resource Group %q) ID", name, resourceGroup)
-	}
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewWorkspaceID(subscriptionId, resourceGroup, name)
+	d.SetId(id.ID())
 
-	d.SetId(*resp.ID)
-	return resourceArmSynapseWorkspaceRead(d, meta)
+	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -248,6 +344,11 @@ func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	sqlControlSettings, err := identitySQLControlClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving workspace identity control for SQL pool: %+v", err)
+	}
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -264,33 +365,49 @@ func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
+		d.Set("customer_managed_key_versionless_id", flattenEncryptionDetails(props.Encryption))
+
+		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
+		if repoType == workspaceVSTSConfiguration {
+			if err := d.Set("azure_devops_repo", repo); err != nil {
+				return fmt.Errorf("Error setting `azure_devops_repo`: %+v", err)
+			}
+		} else if repoType == workspaceGitHubConfiguration {
+			if err := d.Set("github_repo", repo); err != nil {
+				return fmt.Errorf("Error setting `github_repo`: %+v", err)
+			}
+		}
 	}
 	if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
+		return fmt.Errorf("setting `aad_admin`: %+v", err)
+	}
+	if err := d.Set("sql_identity_control_enabled", flattenIdentityControlSQLSettings(sqlControlSettings)); err != nil {
+		return fmt.Errorf("setting `sql_identity_control_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key_versionless_id") {
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		}
-		if d.HasChange("sql_administrator_login_password") {
-			workspacePatchInfo.WorkspacePatchProperties = &synapse.WorkspacePatchProperties{
-				SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
-			}
+			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
+				SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
+				WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
+				Encryption:                       expandEncryptionDetails(d),
+			},
 		}
 
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, workspacePatchInfo)
@@ -325,15 +442,23 @@ func resourceArmSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 	}
-	return resourceArmSynapseWorkspaceRead(d, meta)
+
+	if d.HasChange("sql_identity_control_enabled") {
+		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
+		if _, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings); err != nil {
+			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
+		}
+	}
+
+	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceArmSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -376,6 +501,65 @@ func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminI
 	}
 }
 
+func expandWorkspaceRepositoryConfiguration(d *schema.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
+	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
+		azdo := azdoList.([]interface{})[0].(map[string]interface{})
+		return &synapse.WorkspaceRepositoryConfiguration{
+			Type:                utils.String(workspaceVSTSConfiguration),
+			AccountName:         utils.String(azdo["account_name"].(string)),
+			CollaborationBranch: utils.String(azdo["branch_name"].(string)),
+			ProjectName:         utils.String(azdo["project_name"].(string)),
+			RepositoryName:      utils.String(azdo["repository_name"].(string)),
+			RootFolder:          utils.String(azdo["root_folder"].(string)),
+		}
+	}
+
+	if githubList, ok := d.GetOk("github_repo"); ok {
+		github := githubList.([]interface{})[0].(map[string]interface{})
+		return &synapse.WorkspaceRepositoryConfiguration{
+			Type:                utils.String(workspaceGitHubConfiguration),
+			AccountName:         utils.String(github["account_name"].(string)),
+			CollaborationBranch: utils.String(github["branch_name"].(string)),
+			HostName:            utils.String(github["git_url"].(string)),
+			RepositoryName:      utils.String(github["repository_name"].(string)),
+			RootFolder:          utils.String(github["root_folder"].(string)),
+		}
+	}
+
+	return nil
+}
+
+func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLControlSettingsModel {
+	var desiredState synapse.DesiredState
+	if enabled {
+		desiredState = synapse.DesiredStateEnabled
+	} else {
+		desiredState = synapse.DesiredStateDisabled
+	}
+
+	return &synapse.ManagedIdentitySQLControlSettingsModel{
+		ManagedIdentitySQLControlSettingsModelProperties: &synapse.ManagedIdentitySQLControlSettingsModelProperties{
+			GrantSQLControlToManagedIdentity: &synapse.ManagedIdentitySQLControlSettingsModelPropertiesGrantSQLControlToManagedIdentity{
+				DesiredState: desiredState,
+			},
+		},
+	}
+}
+
+func expandEncryptionDetails(d *schema.ResourceData) *synapse.EncryptionDetails {
+	if key, ok := d.GetOk("customer_managed_key_versionless_id"); ok {
+		return &synapse.EncryptionDetails{
+			Cmk: &synapse.CustomerManagedKeyDetails{
+				Key: &synapse.WorkspaceKeyDetails{
+					Name:        utils.String("cmk"),
+					KeyVaultURL: utils.String(key.(string)),
+				},
+			},
+		}
+	}
+	return nil
+}
+
 func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -387,7 +571,7 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 	}
 	var tenantId string
 	if input.TenantID != nil {
-		tenantId = *input.TenantID
+		tenantId = input.TenantID.String()
 	}
 	return []interface{}{
 		map[string]interface{}{
@@ -426,4 +610,62 @@ func flattenArmWorkspaceAadAdmin(input *synapse.AadAdminProperties) []interface{
 			"object_id": sid,
 		},
 	}
+}
+
+func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepositoryConfiguration) (repoTypeResult string, result []interface{}) {
+	if config == nil {
+		return "", make([]interface{}, 0)
+	}
+
+	if repoType := config.Type; repoType != nil {
+		repo := map[string]interface{}{}
+
+		if *repoType == workspaceVSTSConfiguration {
+			if config.ProjectName != nil {
+				repo["project_name"] = *config.ProjectName
+			}
+		} else if *repoType == workspaceGitHubConfiguration {
+			if config.HostName != nil {
+				repo["git_url"] = *config.HostName
+			}
+		}
+
+		if config.AccountName != nil {
+			repo["account_name"] = *config.AccountName
+		}
+		if config.CollaborationBranch != nil {
+			repo["branch_name"] = *config.CollaborationBranch
+		}
+		if config.RepositoryName != nil {
+			repo["repository_name"] = *config.RepositoryName
+		}
+		if config.RootFolder != nil {
+			repo["root_folder"] = *config.RootFolder
+		}
+
+		return *repoType, []interface{}{repo}
+	}
+
+	return "", make([]interface{}, 0)
+}
+
+func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLControlSettingsModel) bool {
+	if prop := settings.ManagedIdentitySQLControlSettingsModelProperties; prop != nil {
+		if sqlControl := prop.GrantSQLControlToManagedIdentity; sqlControl != nil {
+			if sqlControl.DesiredState == synapse.DesiredStateEnabled {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) *string {
+	if cmk := encryption.Cmk; cmk != nil {
+		if key := cmk.Key; key != nil {
+			return key.KeyVaultURL
+		}
+	}
+	return nil
 }
