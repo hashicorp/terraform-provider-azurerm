@@ -55,8 +55,9 @@ func resourceVmwareAuthorization() *schema.Resource {
 			},
 
 			"express_route_authorization_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
