@@ -125,7 +125,7 @@ func resourceNetAppVolume() *schema.Resource {
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
-					"Ntfs", // ANF changes casing to Pascal case in the backend
+					"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
 				}, false),
 			},
 
