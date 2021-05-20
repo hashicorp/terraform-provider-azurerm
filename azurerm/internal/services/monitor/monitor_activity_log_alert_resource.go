@@ -168,6 +168,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 												"Maintenance",
 												"Informational",
 												"ActionRequired",
+												"Security",
 											},
 												false,
 											),

@@ -474,7 +474,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   criteria {
     category = "ServiceHealth"
     service_health {
-      events    = ["Incident", "Maintenance", "ActionRequired"]
+      events    = ["Incident", "Maintenance", "ActionRequired", "Security"]
       services  = ["Action Groups"]
       locations = ["Global", "West Europe", "East US"]
     }
