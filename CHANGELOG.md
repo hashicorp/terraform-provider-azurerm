@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_volume` - support for the `security_style` property - [GH-11684]
 * `azurerm_redis_cache` - suppot for the `replicas_per_master` peoperty [GH-11714]
 * `azurerm_spring_cloud_service` - support for the `required_network_traffic_rules` block [GH-11633]
+* `azurerm_storage_account_management_policy` - the `name` property can now contain `-` [GH-11792]
 
 BUG FIXES:
 
