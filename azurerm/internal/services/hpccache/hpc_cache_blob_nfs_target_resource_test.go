@@ -285,13 +285,7 @@ resource "azurerm_resource_group_template_deployment" "storage-containers" {
   deployment_mode     = "Incremental"
 
   parameters_content = jsonencode({
-    location = {
-      value = azurerm_storage_account.test.location
-    },
-    storageAccountName = {
-      value = azurerm_storage_account.test.name
-    },
-    containerName = {
+    name = {
       value = "acctest-strgctn-hpc-%[1]d"
     }
   })
@@ -301,47 +295,24 @@ resource "azurerm_resource_group_template_deployment" "storage-containers" {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "storageAccountName": {
-      "type": "String"
-    },
-    "containerName": {
-      "type": "String"
-    },
-    "location": {
+    "name": {
       "type": "String"
     }
   },
   "resources": [
     {
-      "type": "Microsoft.Storage/storageAccounts",
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2019-06-01",
-      "name": "[parameters('storageAccountName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-      },
-      "kind": "StorageV2",
-      "properties": {
-        "accessTier": "Hot"
-      },
-      "resources": [
-        {
-          "type": "blobServices/containers",
-          "apiVersion": "2019-06-01",
-          "name": "[concat('default/', parameters('containerName'))]",
-          "dependsOn": [
-            "[parameters('storageAccountName')]"
-          ]
-        }
-      ]
+      "name": "[concat('${azurerm_storage_account.test.name}/', 'default/', parameters('name'))]",
+      "location": "${azurerm_storage_account.test.location}",
+      "properties": {}
     }
   ],
 
   "outputs": {
     "id": {
       "type": "String",
-      "value": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', parameters('containerName'))]"
+      "value": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', '${azurerm_storage_account.test.name}', 'default', parameters('name'))]"
     }
   }
 }
