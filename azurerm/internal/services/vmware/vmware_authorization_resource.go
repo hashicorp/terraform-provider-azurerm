@@ -65,7 +65,7 @@ func resourceVmwareAuthorization() *schema.Resource {
 func resourceVmwareAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -76,16 +76,14 @@ func resourceVmwareAuthorizationCreate(d *schema.ResourceData, meta interface{})
 
 	id := parse.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing %q : %+v", id.ID(), err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_vmware_authorization", id.ID())
+			return fmt.Errorf("checking for present of existing %q : %+v", id.ID(), err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_vmware_authorization", id.ID())
 	}
 
 	props := avs.ExpressRouteAuthorization{}
