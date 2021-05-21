@@ -717,7 +717,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 }
 
 func expandAgentPoolKubeletConfig(input []interface{}) *containerservice.KubeletConfig {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -758,7 +758,7 @@ func expandAgentPoolKubeletConfig(input []interface{}) *containerservice.Kubelet
 }
 
 func expandAgentPoolLinuxOSConfig(input []interface{}) (*containerservice.LinuxOSConfig, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 	raw := input[0].(map[string]interface{})
@@ -783,7 +783,7 @@ func expandAgentPoolLinuxOSConfig(input []interface{}) (*containerservice.LinuxO
 }
 
 func expandAgentPoolSysctlConfig(input []interface{}) (*containerservice.SysctlConfig, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 	raw := input[0].(map[string]interface{})
