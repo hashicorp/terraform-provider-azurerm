@@ -13,8 +13,6 @@ Manages a Resource Group Consumption Budget.
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "current" {}
-
 resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "eastus"
