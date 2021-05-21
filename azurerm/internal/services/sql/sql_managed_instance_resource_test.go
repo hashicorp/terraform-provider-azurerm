@@ -28,12 +28,7 @@ func TestAccAzureRMSqlMiServer_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"administrator_login_password"},
-		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -48,56 +43,50 @@ func TestAccAzureRMSqlMiServer_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"administrator_login_password"},
-		},
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"administrator_login_password"},
-		},
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"administrator_login_password"},
-		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMSqlMiServer_dnsZonePartner(t *testing.T) {
+func TestAccAzureRMSqlMiServer_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
 	r := SqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.dnsZonePartner(data),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("administrator_login_password"),
 		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"administrator_login_password"},
+			Config: r.multiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -127,8 +116,8 @@ resource "azurerm_sql_managed_instance" "test" {
   location                     = "${azurerm_resource_group.test.location}"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = "${azurerm_subnet.test.id}"
+  license_type                 = "BasePrice"
+  subnet_id                    = "${azurerm_subnet.test.id}"
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
@@ -139,8 +128,8 @@ resource "azurerm_sql_managed_instance" "test" {
   ]
 
   tags = {
-	environment = "staging"
-	database    = "test"
+    environment = "staging"
+    database    = "test"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -156,11 +145,11 @@ resource "azurerm_sql_managed_instance" "test" {
   location                     = "${azurerm_resource_group.test.location}"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = "${azurerm_subnet.test.id}"
+  license_type                 = "BasePrice"
+  subnet_id                    = "${azurerm_subnet.test.id}"
   sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  vcores                       = 8
+  storage_size_in_gb           = 64
   public_data_endpoint_enabled = true
   proxy_override               = "Proxy"
   timezone_id                  = "Pacific Standard Time"
@@ -172,14 +161,13 @@ resource "azurerm_sql_managed_instance" "test" {
   ]
 
   tags = {
-	environment = "staging"
-	database    = "test"
+    environment = "production"
   }
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SqlManagedInstanceResource) dnsZonePartner(data acceptance.TestData) string {
+func (r SqlManagedInstanceResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -189,8 +177,8 @@ resource "azurerm_sql_managed_instance" "test" {
   location                     = "${azurerm_resource_group.test.location}"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = "${azurerm_subnet.test.id}"
+  license_type                 = "BasePrice"
+  subnet_id                    = "${azurerm_subnet.test.id}"
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
@@ -201,23 +189,22 @@ resource "azurerm_sql_managed_instance" "test" {
   ]
 
   tags = {
-	environment = "staging"
-	database    = "test"
+    environment = "staging"
+    database    = "test"
   }
 }
 
-resource "azurerm_sql_managed_instance" "test2" {
+resource "azurerm_sql_managed_instance" "test1" {
   name                         = "acctestsqlserver2%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
-  license_type				   = "BasePrice"
-  subnet_id					   = azurerm_subnet.test.id
+  license_type                 = "BasePrice"
+  subnet_id                    = "${azurerm_subnet.test.id}"
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
-  dns_zone_partner             = azurerm_sql_managed_instance.test.id
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -225,11 +212,11 @@ resource "azurerm_sql_managed_instance" "test2" {
   ]
 
   tags = {
-	environment = "staging"
-	database    = "test"
+    environment = "prod"
+    database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (SqlManagedInstanceResource) template(data acceptance.TestData) string {
@@ -363,12 +350,12 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
 }
-  
+
 resource "azurerm_subnet" "test" {
-  name                      = "subnet-%d"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.0.0/24"
+  name                 = "subnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.0.0/24"
 
   delegation {
     name = "managedinstancedelegation"
@@ -390,7 +377,7 @@ resource "azurerm_route_table" "test" {
   location                      = "${azurerm_resource_group.test.location}"
   resource_group_name           = "${azurerm_resource_group.test.name}"
   disable_bgp_route_propagation = false
-  
+
   route {
     name           = "subnet-to-vnetlocal"
     address_prefix = "10.0.0.0/24"
@@ -1315,51 +1302,51 @@ resource "azurerm_route_table" "test" {
   }
 
   route {
-    address_prefix         = "AzureCloud.westcentralus"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westcentralus"
-    next_hop_type          = "Internet"
+    address_prefix = "AzureCloud.westcentralus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westcentralus"
+    next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix         = "AzureCloud.westus2"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus2"
-    next_hop_type          = "Internet"
-  }
-  
-  route {
-    address_prefix         = "Storage.westcentralus"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westcentralus"
-    next_hop_type          = "Internet"
-  }
-  
-  route {
-    address_prefix         = "Storage.westus2"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus2"
-    next_hop_type          = "Internet"
-  }
-  
-  route {
-    address_prefix         = "EventHub.westcentralus"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westcentralus"
-    next_hop_type          = "Internet"
+    address_prefix = "AzureCloud.westus2"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus2"
+    next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix         = "EventHub.westus2"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus2"
-    next_hop_type          = "Internet"
-  }
-  
-  route {
-    address_prefix         = "Sql.westcentralus"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westcentralus"
-    next_hop_type          = "Internet"
+    address_prefix = "Storage.westcentralus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westcentralus"
+    next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix         = "Sql.westus2"
-    name                   = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus2"
-    next_hop_type          = "Internet"
+    address_prefix = "Storage.westus2"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus2"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    address_prefix = "EventHub.westcentralus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westcentralus"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    address_prefix = "EventHub.westus2"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus2"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    address_prefix = "Sql.westcentralus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westcentralus"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    address_prefix = "Sql.westus2"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus2"
+    next_hop_type  = "Internet"
   }
 
   depends_on = [
@@ -1368,8 +1355,8 @@ resource "azurerm_route_table" "test" {
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
-	subnet_id      = "${azurerm_subnet.test.id}"
-	route_table_id = "${azurerm_route_table.test.id}"
+  subnet_id      = "${azurerm_subnet.test.id}"
+  route_table_id = "${azurerm_route_table.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

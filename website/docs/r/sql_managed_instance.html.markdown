@@ -1,10 +1,9 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_managed_instance"
-sidebar_current: "docs-azurerm-resource-database-sql-managed-instance"
 description: |-
   Manages a SQL Azure Managed Instance.
-
 ---
 
 # azurerm_sql_managed_instance
@@ -23,17 +22,21 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_managed_instance" "test" {
-  name                         = "misqlserver"
+  name                         = "acctestsqlserver%d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   location                     = "${azurerm_resource_group.test.location}"
-  license_type                 = "BasePrice"
   administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsJpm81"
+  administrator_login_password = "thisIsDog11"
+  license_type                 = "BasePrice"
   subnet_id                    = "${azurerm_subnet.test.id}"
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
 
-  tags {
-    environment = "production"
-  }
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
 }
 ```
 ## Argument Reference
@@ -46,17 +49,29 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) One `sku` blocks as defined below. 
+* `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, `BC_Gen5`. Changing this forces a new resource to be created.
 
-* `vcores` - (Optional) Number of cores that should be assigned to your instance. Values can be 8, 16, or 24 if you select GP_Gen4 sku name, or 8, 16, 24, 32, or 40 if you select GP_Gen5.
+* `vcores` - (Required) Number of cores that should be assigned to your instance. Values can be `8`, `16`, or `24` if `sku_name` is `GP_Gen4`, or `8`, `16`, `24`, `32`, or `40` if `sku_name` is `GP_Gen5`.
 
-* `storage_size_in_gb` - (Optional) Maximum storage space for your instance. It should be multiple of 32GB.
+* `storage_size_in_gb` - (Required) Maximum storage space for your instance. It should be a multiple of 32GB.
 
-* `license_type` - License of the Managed Instance. Values can be PriceIncluded or BasePrice.
+* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `PriceIncluded` or `BasePrice`.
 
 * `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
+
+* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
+
+* `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
+
+* `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`. 
+
+* `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`. 
+
+* `proxy_override` - (Optional) Specified how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`. 
+
+* `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -71,7 +86,7 @@ A `sku` block supports the following:
 The following attributes are exported:
 
 * `id` - The SQL Managed Instance ID.
-* `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
+* `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance
 
 ## Import
 
