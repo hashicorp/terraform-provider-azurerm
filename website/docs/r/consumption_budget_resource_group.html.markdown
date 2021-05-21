@@ -28,7 +28,6 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_resource_group" "example" {
   name              = "example"
-  subscription_id   = data.azurerm_subscription.current.subscription_id
   resource_group_id = azurerm_resource_group.example.id
 
   amount     = 1000
