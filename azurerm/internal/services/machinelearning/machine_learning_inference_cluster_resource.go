@@ -109,6 +109,18 @@ func resourceAksInferenceCluster() *schema.Resource {
 							ForceNew: true,
 							Default:  "",
 						},
+						"leaf_domain_label": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  "",
+						},
+						"overwrite_existing_domain": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  "",
+						},
 					},
 				},
 			},
@@ -277,10 +289,17 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		sslStatus = "Enabled"
 	}
 
+	if !(v["leaf_domain_label"].(string) == "") {
+		sslStatus = "Auto"
+		v["cname"] = ""
+	}
+
 	return &machinelearningservices.SslConfiguration{
-		Status: machinelearningservices.Status1(sslStatus),
-		Cert:   utils.String(v["cert"].(string)),
-		Key:    utils.String(v["key"].(string)),
-		Cname:  utils.String(v["cname"].(string)),
+		Status:                  machinelearningservices.Status1(sslStatus),
+		Cert:                    utils.String(v["cert"].(string)),
+		Key:                     utils.String(v["key"].(string)),
+		Cname:                   utils.String(v["cname"].(string)),
+		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
+		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool)),
 	}
 }
