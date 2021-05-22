@@ -106,7 +106,6 @@ func resourceDataFactoryLinkedServiceSFTP() *schema.Resource {
 			"skip_host_key_validation": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"host_key_fingerprint": {
