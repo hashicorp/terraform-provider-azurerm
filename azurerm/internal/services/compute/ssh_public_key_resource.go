@@ -58,11 +58,25 @@ func resourceSshPublicKey() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"generate_key_pair": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"public_key"},
+			},
+
 			"public_key": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     false,
-				ValidateFunc: validate.SSHKey,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      false,
+				ValidateFunc:  validate.SSHKey,
+				ConflictsWith: []string{"generate_key_pair"},
+			},
+
+			"private_key": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -77,7 +91,9 @@ func resourceSshPublicKeyCreate(d *schema.ResourceData, meta interface{}) error 
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	public_key := d.Get("public_key").(string)
+
+	public_key, publicKeyOk := d.GetOk("public_key")
+	_, generateKeyPairOk := d.GetOk("generate_key_pair")
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -94,17 +110,35 @@ func resourceSshPublicKeyCreate(d *schema.ResourceData, meta interface{}) error 
 
 	t := d.Get("tags").(map[string]interface{})
 
+	if publicKeyOk && generateKeyPairOk {
+		return fmt.Errorf("Either public_key or generate_key_pair must be set")
+	}
+
 	params := compute.SSHPublicKeyResource{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
-		SSHPublicKeyResourceProperties: &compute.SSHPublicKeyResourceProperties{
-			PublicKey: utils.String(public_key),
-		},
+	}
+
+	if publicKeyOk {
+		params.SSHPublicKeyResourceProperties = &compute.SSHPublicKeyResourceProperties{
+			PublicKey: utils.String(public_key.(string)),
+		}
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, params); err != nil {
 		return fmt.Errorf("creating SSH Public Key %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if generateKeyPairOk {
+		keyPair, err := client.GenerateKeyPair(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Generating SSH Key pair %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if keyPair.PrivateKey != nil {
+			d.Set("private_key", *keyPair.PrivateKey)
+		}
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
