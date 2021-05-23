@@ -1063,11 +1063,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = jsonencode({
-      clusterEndpoint     = azurerm_service_fabric_cluster.test.cluster_endpoint
-      nodeTypeRef         = "backend"
-      dataPath            = "C:\\SvcFab"
-      durabilityLevel     = "Silver"
-      enableParallelJobs  = true
+      clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint
+      nodeTypeRef        = "backend"
+      durabilityLevel    = "Silver"
+      enableParallelJobs = true
     })
   }
 }
