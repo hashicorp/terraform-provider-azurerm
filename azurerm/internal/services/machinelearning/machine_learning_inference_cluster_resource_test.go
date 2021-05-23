@@ -162,7 +162,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
   ssl {
-    leaf_domain_label = "contoso"
+    leaf_domain_label         = "contoso"
     overwrite_existing_domain = true
   }
 
