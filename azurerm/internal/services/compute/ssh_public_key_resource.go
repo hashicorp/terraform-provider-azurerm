@@ -75,8 +75,9 @@ func resourceSshPublicKey() *schema.Resource {
 			},
 
 			"private_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tags.Schema(),
