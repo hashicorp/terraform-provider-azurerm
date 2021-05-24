@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
@@ -1553,7 +1554,42 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				},
 			},
 		},
+		Set: virtualMachineScaleSetExtensionHash,
 	}
+}
+
+func virtualMachineScaleSetExtensionHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
+
+		if v, ok = m["force_update_tag"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", m["force_update_tag"].(string)))
+		}
+
+		if v, ok := m["provision_after_extensions"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+
+		// we need to ensure the whitespace is consistent
+		settings := m["settings"].(string)
+		if settings != "" {
+			expandedSettings, err := structure.ExpandJsonFromString(settings)
+			if err == nil {
+				serializedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				if err == nil {
+					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+				}
+			}
+		}
+	}
+
+	return schema.HashString(buf.String())
 }
 
 func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
