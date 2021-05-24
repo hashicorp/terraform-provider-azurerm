@@ -220,7 +220,7 @@ func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, state.ID)
+	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, state.ID, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
