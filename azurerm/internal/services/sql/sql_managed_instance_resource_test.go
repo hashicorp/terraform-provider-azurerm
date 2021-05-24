@@ -112,12 +112,12 @@ func (r SqlManagedInstanceResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sql_managed_instance" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
   license_type                 = "BasePrice"
-  subnet_id                    = "${azurerm_subnet.test.id}"
+  subnet_id                    = azurerm_subnet.test.id
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
@@ -141,12 +141,12 @@ func (r SqlManagedInstanceResource) update(data acceptance.TestData) string {
 
 resource "azurerm_sql_managed_instance" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
   license_type                 = "BasePrice"
-  subnet_id                    = "${azurerm_subnet.test.id}"
+  subnet_id                    = azurerm_subnet.test.id
   sku_name                     = "GP_Gen5"
   vcores                       = 8
   storage_size_in_gb           = 64
@@ -173,12 +173,12 @@ func (r SqlManagedInstanceResource) multiple(data acceptance.TestData) string {
 
 resource "azurerm_sql_managed_instance" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
   license_type                 = "BasePrice"
-  subnet_id                    = "${azurerm_subnet.test.id}"
+  subnet_id                    = azurerm_subnet.test.id
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
@@ -196,12 +196,12 @@ resource "azurerm_sql_managed_instance" "test" {
 
 resource "azurerm_sql_managed_instance" "test1" {
   name                         = "acctestsqlserver2%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
   license_type                 = "BasePrice"
-  subnet_id                    = "${azurerm_subnet.test.id}"
+  subnet_id                    = azurerm_subnet.test.id
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
@@ -216,7 +216,7 @@ resource "azurerm_sql_managed_instance" "test1" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (SqlManagedInstanceResource) template(data acceptance.TestData) string {
@@ -228,8 +228,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "mi-security-group-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_rule" "allow_management_inbound" {
@@ -242,8 +242,8 @@ resource "azurerm_network_security_rule" "allow_management_inbound" {
   destination_port_ranges     = ["9000", "9003", "1438", "1440", "1452"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "allow_misubnet_inbound" {
@@ -256,8 +256,8 @@ resource "azurerm_network_security_rule" "allow_misubnet_inbound" {
   destination_port_range      = "*"
   source_address_prefix       = "10.0.0.0/24"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "allow_health_probe_inbound" {
@@ -270,8 +270,8 @@ resource "azurerm_network_security_rule" "allow_health_probe_inbound" {
   destination_port_range      = "*"
   source_address_prefix       = "AzureLoadBalancer"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "allow_tds_inbound" {
@@ -284,8 +284,8 @@ resource "azurerm_network_security_rule" "allow_tds_inbound" {
   destination_port_range      = "1433"
   source_address_prefix       = "VirtualNetwork"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "deny_all_inbound" {
@@ -298,8 +298,8 @@ resource "azurerm_network_security_rule" "deny_all_inbound" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "allow_management_outbound" {
@@ -312,8 +312,8 @@ resource "azurerm_network_security_rule" "allow_management_outbound" {
   destination_port_ranges     = ["80", "443", "12000"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "allow_misubnet_outbound" {
@@ -326,8 +326,8 @@ resource "azurerm_network_security_rule" "allow_misubnet_outbound" {
   destination_port_range      = "*"
   source_address_prefix       = "10.0.0.0/24"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "deny_all_outbound" {
@@ -340,21 +340,21 @@ resource "azurerm_network_security_rule" "deny_all_outbound" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.0.0/24"
 
   delegation {
@@ -368,14 +368,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = "${azurerm_subnet.test.id}"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_route_table" "test" {
   name                          = "routetable-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
   disable_bgp_route_propagation = false
 
   route {
@@ -1355,8 +1355,8 @@ resource "azurerm_route_table" "test" {
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
