@@ -175,6 +175,8 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 		Password:           &passwordSecureString,
 	}
 
+	sftpProperties.SkipHostKeyValidation = d.Get("skip_host_key_validation").(bool)
+	sftpProperties.HostKeyFingerprint = d.Get("host_key_fingerprint").(string)
 	description := d.Get("description").(string)
 
 	sftpLinkedService := &datafactory.SftpServerLinkedService{
@@ -193,14 +195,6 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		sftpLinkedService.AdditionalProperties = v.(map[string]interface{})
-	}
-
-	if v, ok := d.GetOk("skip_host_key_validation"); ok {
-		sftpLinkedService.SkipHostKeyValidation = v.(bool)
-	}
-
-	if v, ok := d.GetOk("host_key_fingerprint"); ok {
-		sftpLinkedService.HostKeyFingerprint = v.(string)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -283,12 +277,14 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if skipHostKeyValidation := sftp.SkipHostKeyValidation; skipHostKeyValidation != nil {
-		d.Set("skip_host_key_validation", skipHostKeyValidation.(bool))
-	}
+	if props := sftp.SftpServerLinkedServiceTypeProperties; props != nil {
+		if skipHostKeyValidation := props.SkipHostKeyValidation; skipHostKeyValidation != nil {
+			d.Set("skip_host_key_validation", skipHostKeyValidation.(bool))
+		}
 
-	if hostKeyFingerprint := sftp.HostKeyFingerprint; hostKeyFingerprint != nil {
-		d.Set("host_key_fingerprint", hostKeyFingerprint)
+		if hostKeyFingerprint := props.HostKeyFingerprint; hostKeyFingerprint != nil {
+			d.Set("host_key_fingerprint", hostKeyFingerprint)
+		}
 	}
 
 	return nil
