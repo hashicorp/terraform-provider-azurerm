@@ -26,6 +26,8 @@ func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_id").Exists(),
+				check.That(data.ResourceName).Key("account_domain").Exists(),
 			),
 		},
 		data.ImportStep(),

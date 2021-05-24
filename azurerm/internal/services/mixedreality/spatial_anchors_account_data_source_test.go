@@ -21,6 +21,8 @@ func TestAccSpatialAnchorsAccountDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("account_id").Exists(),
+				check.That(data.ResourceName).Key("account_domain").Exists(),
 			),
 		},
 	})

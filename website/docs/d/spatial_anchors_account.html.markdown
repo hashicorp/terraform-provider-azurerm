@@ -13,14 +13,13 @@ Get information about an Azure Spatial Anchors Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
 data "azurerm_spatial_anchors_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
+}
+
+output "account_domain" {
+  value = data.azurerm_spatial_anchors_account.account_domain
 }
 ```
 

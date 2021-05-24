@@ -136,8 +136,12 @@ func resourceSpatialAnchorsAccountRead(d *schema.ResourceData, meta interface{})
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("account_domain", resp.AccountDomain)
-	d.Set("account_id", resp.AccountID)
+	if accountDomain := resp.AccountDomain; accountDomain != nil {
+		d.Set("account_domain", accountDomain)
+	}
+	if accountID := resp.AccountID; accountID != nil {
+		d.Set("account_id", resp.AccountID)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
