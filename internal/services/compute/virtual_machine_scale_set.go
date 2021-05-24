@@ -1569,7 +1569,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
 
 		if v, ok = m["force_update_tag"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", m["force_update_tag"].(string)))
+			buf.WriteString(fmt.Sprintf("%s-", v))
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
