@@ -35,9 +35,9 @@ func NewSpatialAnchorsAccountsClientWithBaseURI(baseURI string, subscriptionID s
 // Create creating or Updating a Spatial Anchors Account.
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
-// spatialAnchorsAccountName - name of an Mixed Reality Spatial Anchors Account.
+// accountName - name of an Mixed Reality Account.
 // spatialAnchorsAccount - spatial Anchors Account parameter.
-func (client SpatialAnchorsAccountsClient) Create(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string, spatialAnchorsAccount SpatialAnchorsAccount) (result SpatialAnchorsAccount, err error) {
+func (client SpatialAnchorsAccountsClient) Create(ctx context.Context, resourceGroupName string, accountName string, spatialAnchorsAccount SpatialAnchorsAccount) (result SpatialAnchorsAccount, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.Create")
 		defer func() {
@@ -53,14 +53,19 @@ func (client SpatialAnchorsAccountsClient) Create(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: spatialAnchorsAccountName,
-			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: spatialAnchorsAccount,
+			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccount.Sku", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "spatialAnchorsAccount.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}},
+				{Target: "spatialAnchorsAccount.Kind", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "spatialAnchorsAccount.Kind.Name", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, spatialAnchorsAccountName, spatialAnchorsAccount)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, spatialAnchorsAccount)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Create", nil, "Failure preparing request")
 		return
@@ -83,14 +88,14 @@ func (client SpatialAnchorsAccountsClient) Create(ctx context.Context, resourceG
 }
 
 // CreatePreparer prepares the Create request.
-func (client SpatialAnchorsAccountsClient) CreatePreparer(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string, spatialAnchorsAccount SpatialAnchorsAccount) (*http.Request, error) {
+func (client SpatialAnchorsAccountsClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, spatialAnchorsAccount SpatialAnchorsAccount) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
-		"spatialAnchorsAccountName": autorest.Encode("path", spatialAnchorsAccountName),
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -99,7 +104,7 @@ func (client SpatialAnchorsAccountsClient) CreatePreparer(ctx context.Context, r
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{spatialAnchorsAccountName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{accountName}", pathParameters),
 		autorest.WithJSON(spatialAnchorsAccount),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -126,8 +131,8 @@ func (client SpatialAnchorsAccountsClient) CreateResponder(resp *http.Response) 
 // Delete delete a Spatial Anchors Account.
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
-// spatialAnchorsAccountName - name of an Mixed Reality Spatial Anchors Account.
-func (client SpatialAnchorsAccountsClient) Delete(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string) (result autorest.Response, err error) {
+// accountName - name of an Mixed Reality Account.
+func (client SpatialAnchorsAccountsClient) Delete(ctx context.Context, resourceGroupName string, accountName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.Delete")
 		defer func() {
@@ -143,14 +148,14 @@ func (client SpatialAnchorsAccountsClient) Delete(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: spatialAnchorsAccountName,
-			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, spatialAnchorsAccountName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -173,14 +178,14 @@ func (client SpatialAnchorsAccountsClient) Delete(ctx context.Context, resourceG
 }
 
 // DeletePreparer prepares the Delete request.
-func (client SpatialAnchorsAccountsClient) DeletePreparer(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string) (*http.Request, error) {
+func (client SpatialAnchorsAccountsClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
-		"spatialAnchorsAccountName": autorest.Encode("path", spatialAnchorsAccountName),
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,7 +193,7 @@ func (client SpatialAnchorsAccountsClient) DeletePreparer(ctx context.Context, r
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{spatialAnchorsAccountName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{accountName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -213,8 +218,8 @@ func (client SpatialAnchorsAccountsClient) DeleteResponder(resp *http.Response) 
 // Get retrieve a Spatial Anchors Account.
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
-// spatialAnchorsAccountName - name of an Mixed Reality Spatial Anchors Account.
-func (client SpatialAnchorsAccountsClient) Get(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string) (result SpatialAnchorsAccount, err error) {
+// accountName - name of an Mixed Reality Account.
+func (client SpatialAnchorsAccountsClient) Get(ctx context.Context, resourceGroupName string, accountName string) (result SpatialAnchorsAccount, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.Get")
 		defer func() {
@@ -230,14 +235,14 @@ func (client SpatialAnchorsAccountsClient) Get(ctx context.Context, resourceGrou
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: spatialAnchorsAccountName,
-			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, spatialAnchorsAccountName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Get", nil, "Failure preparing request")
 		return
@@ -260,14 +265,14 @@ func (client SpatialAnchorsAccountsClient) Get(ctx context.Context, resourceGrou
 }
 
 // GetPreparer prepares the Get request.
-func (client SpatialAnchorsAccountsClient) GetPreparer(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string) (*http.Request, error) {
+func (client SpatialAnchorsAccountsClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
-		"spatialAnchorsAccountName": autorest.Encode("path", spatialAnchorsAccountName),
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -275,7 +280,7 @@ func (client SpatialAnchorsAccountsClient) GetPreparer(ctx context.Context, reso
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{spatialAnchorsAccountName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{accountName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -298,104 +303,16 @@ func (client SpatialAnchorsAccountsClient) GetResponder(resp *http.Response) (re
 	return
 }
 
-// GetKeys get Both of the 2 Keys of a Spatial Anchors Account
-// Parameters:
-// resourceGroupName - name of an Azure resource group.
-// spatialAnchorsAccountName - name of an Mixed Reality Spatial Anchors Account.
-func (client SpatialAnchorsAccountsClient) GetKeys(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string) (result SpatialAnchorsAccountKeys, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.GetKeys")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: spatialAnchorsAccountName,
-			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "GetKeys", err.Error())
-	}
-
-	req, err := client.GetKeysPreparer(ctx, resourceGroupName, spatialAnchorsAccountName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "GetKeys", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetKeysSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "GetKeys", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetKeysResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "GetKeys", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// GetKeysPreparer prepares the GetKeys request.
-func (client SpatialAnchorsAccountsClient) GetKeysPreparer(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
-		"spatialAnchorsAccountName": autorest.Encode("path", spatialAnchorsAccountName),
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2019-02-28-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{spatialAnchorsAccountName}/keys", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetKeysSender sends the GetKeys request. The method will close the
-// http.Response Body if it receives an error.
-func (client SpatialAnchorsAccountsClient) GetKeysSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetKeysResponder handles the response to the GetKeys request. The method always
-// closes the http.Response Body.
-func (client SpatialAnchorsAccountsClient) GetKeysResponder(resp *http.Response) (result SpatialAnchorsAccountKeys, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // ListByResourceGroup list Resources by Resource Group
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
-func (client SpatialAnchorsAccountsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result SpatialAnchorsAccountListPage, err error) {
+func (client SpatialAnchorsAccountsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result SpatialAnchorsAccountPagePage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.saal.Response.Response != nil {
-				sc = result.saal.Response.Response.StatusCode
+			if result.saap.Response.Response != nil {
+				sc = result.saap.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -417,17 +334,17 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroup(ctx context.Conte
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.saal.Response = autorest.Response{Response: resp}
+		result.saap.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result.saal, err = client.ListByResourceGroupResponder(resp)
+	result.saap, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
 		return
 	}
-	if result.saal.hasNextLink() && result.saal.IsEmpty() {
+	if result.saap.hasNextLink() && result.saap.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -442,7 +359,7 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroupPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -463,7 +380,7 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroupSender(req *http.R
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (client SpatialAnchorsAccountsClient) ListByResourceGroupResponder(resp *http.Response) (result SpatialAnchorsAccountList, err error) {
+func (client SpatialAnchorsAccountsClient) ListByResourceGroupResponder(resp *http.Response) (result SpatialAnchorsAccountPage, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -474,8 +391,8 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroupResponder(resp *ht
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client SpatialAnchorsAccountsClient) listByResourceGroupNextResults(ctx context.Context, lastResults SpatialAnchorsAccountList) (result SpatialAnchorsAccountList, err error) {
-	req, err := lastResults.spatialAnchorsAccountListPreparer(ctx)
+func (client SpatialAnchorsAccountsClient) listByResourceGroupNextResults(ctx context.Context, lastResults SpatialAnchorsAccountPage) (result SpatialAnchorsAccountPage, err error) {
+	req, err := lastResults.spatialAnchorsAccountPagePreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
@@ -495,7 +412,7 @@ func (client SpatialAnchorsAccountsClient) listByResourceGroupNextResults(ctx co
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SpatialAnchorsAccountsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result SpatialAnchorsAccountListIterator, err error) {
+func (client SpatialAnchorsAccountsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result SpatialAnchorsAccountPageIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.ListByResourceGroup")
 		defer func() {
@@ -511,13 +428,13 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroupComplete(ctx conte
 }
 
 // ListBySubscription list Spatial Anchors Accounts by Subscription
-func (client SpatialAnchorsAccountsClient) ListBySubscription(ctx context.Context) (result SpatialAnchorsAccountListPage, err error) {
+func (client SpatialAnchorsAccountsClient) ListBySubscription(ctx context.Context) (result SpatialAnchorsAccountPagePage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.ListBySubscription")
 		defer func() {
 			sc := -1
-			if result.saal.Response.Response != nil {
-				sc = result.saal.Response.Response.StatusCode
+			if result.saap.Response.Response != nil {
+				sc = result.saap.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -531,17 +448,17 @@ func (client SpatialAnchorsAccountsClient) ListBySubscription(ctx context.Contex
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.saal.Response = autorest.Response{Response: resp}
+		result.saap.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.saal, err = client.ListBySubscriptionResponder(resp)
+	result.saap, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListBySubscription", resp, "Failure responding to request")
 		return
 	}
-	if result.saal.hasNextLink() && result.saal.IsEmpty() {
+	if result.saap.hasNextLink() && result.saap.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -555,7 +472,7 @@ func (client SpatialAnchorsAccountsClient) ListBySubscriptionPreparer(ctx contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -576,7 +493,7 @@ func (client SpatialAnchorsAccountsClient) ListBySubscriptionSender(req *http.Re
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (client SpatialAnchorsAccountsClient) ListBySubscriptionResponder(resp *http.Response) (result SpatialAnchorsAccountList, err error) {
+func (client SpatialAnchorsAccountsClient) ListBySubscriptionResponder(resp *http.Response) (result SpatialAnchorsAccountPage, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -587,8 +504,8 @@ func (client SpatialAnchorsAccountsClient) ListBySubscriptionResponder(resp *htt
 }
 
 // listBySubscriptionNextResults retrieves the next set of results, if any.
-func (client SpatialAnchorsAccountsClient) listBySubscriptionNextResults(ctx context.Context, lastResults SpatialAnchorsAccountList) (result SpatialAnchorsAccountList, err error) {
-	req, err := lastResults.spatialAnchorsAccountListPreparer(ctx)
+func (client SpatialAnchorsAccountsClient) listBySubscriptionNextResults(ctx context.Context, lastResults SpatialAnchorsAccountPage) (result SpatialAnchorsAccountPage, err error) {
+	req, err := lastResults.spatialAnchorsAccountPagePreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
 	}
@@ -608,7 +525,7 @@ func (client SpatialAnchorsAccountsClient) listBySubscriptionNextResults(ctx con
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SpatialAnchorsAccountsClient) ListBySubscriptionComplete(ctx context.Context) (result SpatialAnchorsAccountListIterator, err error) {
+func (client SpatialAnchorsAccountsClient) ListBySubscriptionComplete(ctx context.Context) (result SpatialAnchorsAccountPageIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.ListBySubscription")
 		defer func() {
@@ -623,12 +540,100 @@ func (client SpatialAnchorsAccountsClient) ListBySubscriptionComplete(ctx contex
 	return
 }
 
-// RegenerateKeys regenerate 1 Key of a Spatial Anchors Account
+// ListKeys list Both of the 2 Keys of a Spatial Anchors Account
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
-// spatialAnchorsAccountName - name of an Mixed Reality Spatial Anchors Account.
-// spatialAnchorsAccountKeyRegenerate - specifying which key to be regenerated.
-func (client SpatialAnchorsAccountsClient) RegenerateKeys(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string, spatialAnchorsAccountKeyRegenerate SpatialAnchorsAccountKeyRegenerateRequest) (result SpatialAnchorsAccountKeys, err error) {
+// accountName - name of an Mixed Reality Account.
+func (client SpatialAnchorsAccountsClient) ListKeys(ctx context.Context, resourceGroupName string, accountName string) (result AccountKeys, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.ListKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "ListKeys", err.Error())
+	}
+
+	req, err := client.ListKeysPreparer(ctx, resourceGroupName, accountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListKeys", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListKeys", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListKeysPreparer prepares the ListKeys request.
+func (client SpatialAnchorsAccountsClient) ListKeysPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{accountName}/listKeys", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListKeysSender sends the ListKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client SpatialAnchorsAccountsClient) ListKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListKeysResponder handles the response to the ListKeys request. The method always
+// closes the http.Response Body.
+func (client SpatialAnchorsAccountsClient) ListKeysResponder(resp *http.Response) (result AccountKeys, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RegenerateKeys regenerate specified Key of a Spatial Anchors Account
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - name of an Mixed Reality Account.
+// regenerate - required information for key regeneration.
+func (client SpatialAnchorsAccountsClient) RegenerateKeys(ctx context.Context, resourceGroupName string, accountName string, regenerate AccountKeyRegenerateRequest) (result AccountKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.RegenerateKeys")
 		defer func() {
@@ -644,14 +649,14 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeys(ctx context.Context, r
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: spatialAnchorsAccountName,
-			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "RegenerateKeys", err.Error())
 	}
 
-	req, err := client.RegenerateKeysPreparer(ctx, resourceGroupName, spatialAnchorsAccountName, spatialAnchorsAccountKeyRegenerate)
+	req, err := client.RegenerateKeysPreparer(ctx, resourceGroupName, accountName, regenerate)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "RegenerateKeys", nil, "Failure preparing request")
 		return
@@ -674,14 +679,14 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeys(ctx context.Context, r
 }
 
 // RegenerateKeysPreparer prepares the RegenerateKeys request.
-func (client SpatialAnchorsAccountsClient) RegenerateKeysPreparer(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string, spatialAnchorsAccountKeyRegenerate SpatialAnchorsAccountKeyRegenerateRequest) (*http.Request, error) {
+func (client SpatialAnchorsAccountsClient) RegenerateKeysPreparer(ctx context.Context, resourceGroupName string, accountName string, regenerate AccountKeyRegenerateRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
-		"spatialAnchorsAccountName": autorest.Encode("path", spatialAnchorsAccountName),
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -690,8 +695,8 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeysPreparer(ctx context.Co
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{spatialAnchorsAccountName}/keys", pathParameters),
-		autorest.WithJSON(spatialAnchorsAccountKeyRegenerate),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{accountName}/regenerateKeys", pathParameters),
+		autorest.WithJSON(regenerate),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -704,7 +709,7 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeysSender(req *http.Reques
 
 // RegenerateKeysResponder handles the response to the RegenerateKeys request. The method always
 // closes the http.Response Body.
-func (client SpatialAnchorsAccountsClient) RegenerateKeysResponder(resp *http.Response) (result SpatialAnchorsAccountKeys, err error) {
+func (client SpatialAnchorsAccountsClient) RegenerateKeysResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -717,9 +722,9 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeysResponder(resp *http.Re
 // Update updating a Spatial Anchors Account
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
-// spatialAnchorsAccountName - name of an Mixed Reality Spatial Anchors Account.
+// accountName - name of an Mixed Reality Account.
 // spatialAnchorsAccount - spatial Anchors Account parameter.
-func (client SpatialAnchorsAccountsClient) Update(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string, spatialAnchorsAccount SpatialAnchorsAccount) (result SpatialAnchorsAccount, err error) {
+func (client SpatialAnchorsAccountsClient) Update(ctx context.Context, resourceGroupName string, accountName string, spatialAnchorsAccount SpatialAnchorsAccount) (result SpatialAnchorsAccount, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SpatialAnchorsAccountsClient.Update")
 		defer func() {
@@ -735,14 +740,14 @@ func (client SpatialAnchorsAccountsClient) Update(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: spatialAnchorsAccountName,
-			Constraints: []validation.Constraint{{Target: "spatialAnchorsAccountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "spatialAnchorsAccountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mixedreality.SpatialAnchorsAccountsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, spatialAnchorsAccountName, spatialAnchorsAccount)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, spatialAnchorsAccount)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Update", nil, "Failure preparing request")
 		return
@@ -765,14 +770,14 @@ func (client SpatialAnchorsAccountsClient) Update(ctx context.Context, resourceG
 }
 
 // UpdatePreparer prepares the Update request.
-func (client SpatialAnchorsAccountsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, spatialAnchorsAccountName string, spatialAnchorsAccount SpatialAnchorsAccount) (*http.Request, error) {
+func (client SpatialAnchorsAccountsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, spatialAnchorsAccount SpatialAnchorsAccount) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
-		"spatialAnchorsAccountName": autorest.Encode("path", spatialAnchorsAccountName),
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -781,7 +786,7 @@ func (client SpatialAnchorsAccountsClient) UpdatePreparer(ctx context.Context, r
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{spatialAnchorsAccountName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MixedReality/spatialAnchorsAccounts/{accountName}", pathParameters),
 		autorest.WithJSON(spatialAnchorsAccount),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
