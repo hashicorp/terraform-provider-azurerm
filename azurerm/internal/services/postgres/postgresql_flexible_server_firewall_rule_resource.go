@@ -107,10 +107,6 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *schema.Resource
 		return fmt.Errorf("waiting for the creation/ update of %q: %+v", id, err)
 	}
 
-	if _, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name); err != nil {
-		return fmt.Errorf("retrieving %q: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 	return resourcePostgresqlFlexibleServerFirewallRuleRead(d, meta)
 }
