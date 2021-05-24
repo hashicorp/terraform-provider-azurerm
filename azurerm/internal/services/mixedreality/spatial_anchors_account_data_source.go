@@ -74,8 +74,11 @@ func dataSourceSpatialAnchorsAccountRead(d *schema.ResourceData, meta interface{
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("account_domain", resp.AccountDomain)
-	d.Set("account_id", resp.AccountID)
+
+	if props := resp.AccountProperties; props != nil {
+		d.Set("account_domain", props.AccountDomain)
+		d.Set("account_id", props.AccountID)
+	}
 
 	return nil
 }
