@@ -1587,6 +1587,19 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 				}
 			}
 		}
+
+		if v, ok := m["protected_settings"]; ok {
+			settings := v.(string)
+			if settings != "" {
+				expandedSettings, err := structure.ExpandJsonFromString(settings)
+				if err == nil {
+					serializedSettings, err := structure.FlattenJsonToString(expandedSettings)
+					if err == nil {
+						buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+					}
+				}
+			}
+		}
 	}
 
 	return schema.HashString(buf.String())
@@ -1652,7 +1665,21 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		return result, nil
 	}
 
-	for k, v := range *input.Extensions {
+	// extensionsFromState holds the "extension" block, which is used to retrieve the "protected_settings" to fill it back the state,
+	// since it is not returned from the API.
+	extensionsFromState := map[string]map[string]interface{}{}
+	if extSet, ok := d.GetOk("extension"); ok && extSet != nil {
+		extensions := extSet.(*schema.Set).List()
+		for _, ext := range extensions {
+			if ext == nil {
+				continue
+			}
+			ext := ext.(map[string]interface{})
+			extensionsFromState[ext["name"].(string)] = ext
+		}
+	}
+
+	for _, v := range *input.Extensions {
 		name := ""
 		if v.Name != nil {
 			name = *v.Name
@@ -1700,10 +1727,12 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 				extSettings = extSettingsRaw
 			}
 		}
-		// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-		if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
-			if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
-				protectedSettings = protectedSettingsFromConfig.(string)
+		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
+		if ext, ok := extensionsFromState[name]; ok {
+			if protectedSettingsFromState, ok := ext["protected_settings"]; ok {
+				if protectedSettingsFromState.(string) != "" && protectedSettingsFromState.(string) != "{}" {
+					protectedSettings = protectedSettingsFromState.(string)
+				}
 			}
 		}
 
