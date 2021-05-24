@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `account_domain` - The domain of the Spatial Anchors Account.
 
-* `account_id` - Account ID of the Spatial Anchors Account.
+* `account_id` - The account ID of the Spatial Anchors Account.
 
 ## Timeouts
 
