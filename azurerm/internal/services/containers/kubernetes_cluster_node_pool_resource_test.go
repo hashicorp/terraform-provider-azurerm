@@ -26,6 +26,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"errorForAvailabilitySet":        testAccKubernetesClusterNodePool_errorForAvailabilitySet,
 	"kubeletAndLinuxOSConfig":        testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig,
 	"kubeletAndLinuxOSConfigPartial": testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial,
+	"other":                          testAccKubernetesClusterNodePool_other,
 	"multiplePools":                  testAccKubernetesClusterNodePool_multiplePools,
 	"manualScale":                    testAccKubernetesClusterNodePool_manualScale,
 	"manualScaleMultiplePools":       testAccKubernetesClusterNodePool_manualScaleMultiplePools,
@@ -195,6 +196,27 @@ func testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_other(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_other(t)
+}
+
+func testAccKubernetesClusterNodePool_other(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.other(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1869,6 +1891,25 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 1
   max_count             = 1
   node_count            = 1
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) other(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  fips_enabled          = true
+  kubelet_disk_type     = "OS"
 }
 `, r.templateConfig(data))
 }

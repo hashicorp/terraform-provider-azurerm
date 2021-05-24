@@ -19,6 +19,7 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
 	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
 	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
+	"nodePoolOther":                     testAccKubernetesCluster_nodePoolOther,
 	"paidSku":                           testAccKubernetesCluster_paidSku,
 	"upgradeConfig":                     testAccKubernetesCluster_upgrade,
 	"tags":                              testAccKubernetesCluster_tags,
@@ -289,6 +290,26 @@ func testAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodeResourceGroupConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_nodePoolOther(t)
+}
+
+func testAccKubernetesCluster_nodePoolOther(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePoolOther(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1042,6 +1063,38 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+k
+  default_node_pool {
+    name                 = "default"
+    node_count           = 1
+    vm_size              = "Standard_DS2_v2"
+    fips_enabled         = true
+    kubelet_disk_type    = "OS"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {

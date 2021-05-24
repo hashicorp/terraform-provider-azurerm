@@ -313,6 +313,10 @@ A `default_node_pool` block supports the following:
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below.
 
+* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
+
+* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Defaults to `OS`. Possible Values are `OS`.
+
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.

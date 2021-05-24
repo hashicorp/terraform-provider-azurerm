@@ -85,9 +85,15 @@ The following arguments are supported:
 
 -> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot`.
 
+<<<<<<< HEAD
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below.
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below.
+=======
+* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
+
+* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Defaults to `OS`. Possible Values are `OS`.
+>>>>>>> "azurerm_kubernetes_cluster", "azurerm_kubernetes_cluster_node_pool" supports "fips_enabled", "kubelet_disk_type"
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
