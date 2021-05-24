@@ -2,7 +2,11 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_spatial_anchors_account` [GH-11824]
+
 ENHANCEMENTS:
+
+* `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` [GH-11824]
 
 BUG FIXES:
 
