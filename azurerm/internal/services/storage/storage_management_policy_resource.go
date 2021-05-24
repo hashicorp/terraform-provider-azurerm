@@ -49,7 +49,7 @@ func resourceStorageManagementPolicy() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile(`^[a-zA-Z0-9]*$`),
+								regexp.MustCompile(`^[a-zA-Z0-9-]*$`),
 								"A rule name can contain any combination of alpha numeric characters.",
 							),
 						},

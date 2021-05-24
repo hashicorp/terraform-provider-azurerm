@@ -103,6 +103,17 @@ func resourceDataFactoryLinkedServiceSFTP() *schema.Resource {
 				},
 			},
 
+			"skip_host_key_validation": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"host_key_fingerprint": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"annotations": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -164,6 +175,8 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, me
 		Password:           &passwordSecureString,
 	}
 
+	sftpProperties.SkipHostKeyValidation = d.Get("skip_host_key_validation").(bool)
+	sftpProperties.HostKeyFingerprint = d.Get("host_key_fingerprint").(string)
 	description := d.Get("description").(string)
 
 	sftpLinkedService := &datafactory.SftpServerLinkedService{
@@ -261,6 +274,16 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta inter
 	if connectVia := sftp.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
+		}
+	}
+
+	if props := sftp.SftpServerLinkedServiceTypeProperties; props != nil {
+		if skipHostKeyValidation := props.SkipHostKeyValidation; skipHostKeyValidation != nil {
+			d.Set("skip_host_key_validation", skipHostKeyValidation.(bool))
+		}
+
+		if hostKeyFingerprint := props.HostKeyFingerprint; hostKeyFingerprint != nil {
+			d.Set("host_key_fingerprint", hostKeyFingerprint)
 		}
 	}
 

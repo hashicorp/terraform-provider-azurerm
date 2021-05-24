@@ -78,6 +78,11 @@ func dataSourceNetAppVolume() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
+			"security_style": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"data_protection_replication": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -155,6 +160,8 @@ func dataSourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error 
 			protocolTypes = append(protocolTypes, *prtclTypes...)
 		}
 		d.Set("protocols", protocolTypes)
+
+		d.Set("security_style", props.SecurityStyle)
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)

@@ -1,4 +1,4 @@
-// Package mixedreality implements the Azure ARM Mixedreality service API version 2019-02-28-preview.
+// Package mixedreality implements the Azure ARM Mixedreality service API version 2021-01-01.
 //
 // Mixed Reality Client
 package mixedreality
@@ -45,7 +45,7 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 	}
 }
 
-// CheckNameAvailabilityLocal check Name Availability for global uniqueness
+// CheckNameAvailabilityLocal check Name Availability for local uniqueness
 // Parameters:
 // location - the location in which uniqueness will be verified.
 // checkNameAvailability - check Name Availability Request.
@@ -100,7 +100,7 @@ func (client BaseClient) CheckNameAvailabilityLocalPreparer(ctx context.Context,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-02-28-preview"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

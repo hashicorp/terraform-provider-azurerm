@@ -26,6 +26,8 @@ func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_id").Exists(),
+				check.That(data.ResourceName).Key("account_domain").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -60,7 +62,7 @@ func (SpatialAnchorsAccountResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("retrieving Spatial Anchors Account %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.SpatialAnchorsAccountProperties != nil), nil
+	return utils.Bool(resp.AccountProperties != nil), nil
 }
 
 func (SpatialAnchorsAccountResource) basic(data acceptance.TestData) string {
@@ -79,7 +81,7 @@ resource "azurerm_spatial_anchors_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (SpatialAnchorsAccountResource) complete(data acceptance.TestData) string {
@@ -102,5 +104,5 @@ resource "azurerm_spatial_anchors_account" "test" {
     Environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

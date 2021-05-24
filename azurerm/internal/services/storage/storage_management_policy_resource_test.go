@@ -400,7 +400,7 @@ resource "azurerm_storage_management_policy" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
   rule {
-    name    = "rule1"
+    name    = "rule-1"
     enabled = true
     filters {
       prefix_match = ["container1/prefix1"]
