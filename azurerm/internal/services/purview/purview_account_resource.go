@@ -2,6 +2,7 @@ package purview
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview"
@@ -10,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -39,10 +39,12 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AccountName(),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
+					"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
