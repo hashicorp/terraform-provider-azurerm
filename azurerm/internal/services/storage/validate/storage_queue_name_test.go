@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestStorageQueueName_Validation(t *testing.T) {
@@ -28,11 +28,11 @@ func TestStorageQueueName_Validation(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandString(256),
+			Value:    acceptance.RandString(256),
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandString(1),
+			Value:    acceptance.RandString(1),
 			ErrCount: 1,
 		},
 	}
