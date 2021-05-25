@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestRuleName_validation(t *testing.T) {
@@ -24,7 +24,7 @@ func TestRuleName_validation(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandStringFromCharSet(81, "abcdedfed"),
+			Value:    acceptance.RandStringFromCharSet(81, "abcdedfed"),
 			ErrCount: 1,
 		},
 		{
