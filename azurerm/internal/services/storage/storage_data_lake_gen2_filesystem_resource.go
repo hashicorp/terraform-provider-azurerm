@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
@@ -27,7 +28,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 		Update: resourceStorageDataLakeGen2FileSystemUpdate,
 		Delete: resourceStorageDataLakeGen2FileSystemDelete,
 
-		Importer: &pluginsdk.ResourceImporter{
+		Importer: &schema.ResourceImporter{
 			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 				storageClients := meta.(*clients.Client).Storage
 				ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
