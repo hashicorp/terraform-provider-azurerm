@@ -7,28 +7,27 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmSecurityCenterAssessmentPolicyCreate,
 		Read:   resourceArmSecurityCenterAssessmentPolicyRead,
 		Update: resourceArmSecurityCenterAssessmentPolicyUpdate,
 		Delete: resourceArmSecurityCenterAssessmentPolicyDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -36,21 +35,21 @@ func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"severity": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(security.SeverityMedium),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -61,7 +60,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
 			},
 
 			"implementation_effort": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(security.ImplementationEffortLow),
@@ -71,16 +70,16 @@ func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
 			},
 
 			"remediation_description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"threats": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"AccountBreach",
 						"DataExfiltration",
@@ -95,7 +94,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
 			},
 
 			"user_impact": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(security.UserImpactLow),
@@ -109,14 +108,14 @@ func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/12297
 
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmSecurityCenterAssessmentPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -148,7 +147,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *schema.ResourceData, met
 
 	if v, ok := d.GetOk("threats"); ok {
 		threats := make([]security.Threats, 0)
-		for _, item := range v.(*schema.Set).List() {
+		for _, item := range v.(*pluginsdk.Set).List() {
 			threats = append(threats, (security.Threats)(item.(string)))
 		}
 		params.AssessmentMetadataProperties.Threats = &threats
@@ -175,7 +174,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *schema.ResourceData, met
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +216,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmSecurityCenterAssessmentPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -249,7 +248,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *schema.ResourceData, met
 
 	if d.HasChange("threats") {
 		threats := make([]security.Threats, 0)
-		for _, item := range d.Get("threats").(*schema.Set).List() {
+		for _, item := range d.Get("threats").(*pluginsdk.Set).List() {
 			threats = append(threats, (security.Threats)(item.(string)))
 		}
 		existing.AssessmentMetadataProperties.Threats = &threats
@@ -274,7 +273,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *schema.ResourceData, met
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
