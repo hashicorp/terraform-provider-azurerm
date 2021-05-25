@@ -16,8 +16,8 @@ func TestAccKustoClusterDataSource_basic(t *testing.T) {
 			Config: testAccDataSourceKustoCluster_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(KustoClusterResource{}),
-				acceptance.TestCheckResourceAttrSet(data.ResourceName, "uri"),
-				acceptance.TestCheckResourceAttrSet(data.ResourceName, "data_ingestion_uri"),
+				check.That(data.ResourceName).Key("uri").IsSet(),
+				check.That(data.ResourceName).Key("data_ingestion_uri").IsSet(),
 			),
 		},
 	})
