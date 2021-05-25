@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestManagedResourceGroupName(t *testing.T) {
@@ -56,11 +56,11 @@ func TestManagedResourceGroupName(t *testing.T) {
 			Valid: false,
 		},
 		{
-			Input: acctest.RandString(90),
+			Input: acceptance.RandString(90),
 			Valid: true,
 		},
 		{
-			Input: acctest.RandString(91),
+			Input: acceptance.RandString(91),
 			Valid: false,
 		},
 	}
