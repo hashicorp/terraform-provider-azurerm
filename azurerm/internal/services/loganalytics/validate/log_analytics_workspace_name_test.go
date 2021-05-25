@@ -1,13 +1,12 @@
 package validate
 
 import (
+	"strings"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccLogAnalyticsWorkspaceName_validation(t *testing.T) {
-	str := acceptance.RandString(63)
+	str := strings.Repeat("a", 63)
 	cases := []struct {
 		Value    string
 		ErrCount int
