@@ -13,7 +13,11 @@ import (
 
 type InstanceState = terraform.InstanceState
 
+type State = terraform.State
+
 type TestStep = resource.TestStep
+
+type TestCheckFunc = resource.TestCheckFunc
 
 func ComposeTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(fs...)
