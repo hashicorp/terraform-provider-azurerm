@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -17,51 +16,51 @@ var _ pluginsdk.StateUpgrade = CustomHttpsConfigurationV0ToV1{}
 type CustomHttpsConfigurationV0ToV1 struct{}
 
 func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"frontend_endpoint_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"custom_https_provisioning_enabled": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Required: true,
 		},
 
 		//lintignore:XS003
 		"custom_https_configuration": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"certificate_source": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"azure_key_vault_certificate_secret_name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"azure_key_vault_certificate_secret_version": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"azure_key_vault_certificate_vault_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"minimum_tls_version": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"provisioning_state": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"provisioning_substate": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 				},
@@ -69,7 +68,7 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 	}
