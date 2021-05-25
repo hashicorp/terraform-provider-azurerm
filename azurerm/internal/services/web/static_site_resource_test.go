@@ -36,6 +36,34 @@ func TestAccAzureStaticSite_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
+	r := StaticSiteResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("acceptance"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("acceptance"),
+				check.That(data.ResourceName).Key("tags.updated").HasValue("true"),
+			),
+		},
+	})
+}
+
 func TestAccAzureStaticSite_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
@@ -86,6 +114,30 @@ resource "azurerm_static_site" "test" {
 
   tags = {
     environment = "acceptance"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "acceptance"
+    updated     = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
