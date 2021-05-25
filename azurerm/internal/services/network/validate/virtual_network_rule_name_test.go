@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestVirtualNetworkRule_invalidNameValidation(t *testing.T) {
@@ -31,7 +31,7 @@ func TestVirtualNetworkRule_invalidNameValidation(t *testing.T) {
 		},
 		// Cannot be more than 128 characters (1 case - ensure starts with a letter)
 		{
-			Value:    fmt.Sprintf("v%s", acctest.RandString(128)),
+			Value:    fmt.Sprintf("v%s", acceptance.RandString(128)),
 			ErrCount: 1,
 		},
 		// Cannot be empty (1 case)
@@ -106,7 +106,7 @@ func TestResourceAzureRMPostgreSQLVirtualNetworkRule_validNameValidation(t *test
 		},
 		// Test exactly 128 characters
 		{
-			Value:    fmt.Sprintf("v%s", acctest.RandString(127)),
+			Value:    fmt.Sprintf("v%s", acceptance.RandString(127)),
 			ErrCount: 0,
 		},
 		// Test short, 1-letter name

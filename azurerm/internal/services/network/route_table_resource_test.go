@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccRouteTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
@@ -38,10 +37,10 @@ func TestAccRouteTable_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
@@ -58,10 +57,10 @@ func TestAccRouteTable_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
@@ -75,10 +74,10 @@ func TestAccRouteTable_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
@@ -86,7 +85,7 @@ func TestAccRouteTable_update(t *testing.T) {
 		},
 		{
 			Config: r.basicAppliance(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
@@ -94,7 +93,7 @@ func TestAccRouteTable_update(t *testing.T) {
 		},
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
@@ -107,10 +106,10 @@ func TestAccRouteTable_singleRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleRoute(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -122,11 +121,11 @@ func TestAccRouteTable_removeRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// This configuration includes a single explicit route block
 			Config: r.singleRoute(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
@@ -134,7 +133,7 @@ func TestAccRouteTable_removeRoute(t *testing.T) {
 		{
 			// This configuration has no route blocks at all.
 			Config: r.noRouteBlocks(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// The route from the first step is preserved because no
 				// blocks at all means "ignore existing blocks".
@@ -145,7 +144,7 @@ func TestAccRouteTable_removeRoute(t *testing.T) {
 			// This configuration sets route to [] explicitly using the
 			// attribute syntax.
 			Config: r.singleRouteRemoved(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// The route from the first step is now removed, leaving us
 				// with no routes at all.
@@ -159,7 +158,7 @@ func TestAccRouteTable_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -171,10 +170,10 @@ func TestAccRouteTable_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -183,7 +182,7 @@ func TestAccRouteTable_withTags(t *testing.T) {
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -196,10 +195,10 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleRoute(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
@@ -209,7 +208,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 		},
 		{
 			Config: r.multipleRoutes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("2"),
 				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
@@ -224,7 +223,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 	})
 }
 
-func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RouteTableID(state.ID)
 	if err != nil {
 		return nil, err
@@ -238,7 +237,7 @@ func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client,
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RouteTableID(state.ID)
 	if err != nil {
 		return nil, err
