@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -1041,7 +1040,7 @@ resource "azurerm_redis_cache" "test" {
 }
 
 func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) acceptance.TestCheckFunc {
-	return func(s *pluginsdk.State) error {
+	return func(s *acceptance.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

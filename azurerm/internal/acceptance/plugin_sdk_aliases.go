@@ -13,6 +13,8 @@ import (
 
 type InstanceState = terraform.InstanceState
 
+type State = terraform.State
+
 type TestStep = resource.TestStep
 
 type TestCheckFunc = resource.TestCheckFunc
