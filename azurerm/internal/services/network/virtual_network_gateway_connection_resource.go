@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -53,9 +52,9 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.ExpressRoute),
-					string(network.IPsec),
-					string(network.Vnet2Vnet),
+					string(network.VirtualNetworkGatewayConnectionTypeExpressRoute),
+					string(network.VirtualNetworkGatewayConnectionTypeIPsec),
+					string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -143,8 +142,8 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IKEv1),
-					string(network.IKEv2),
+					string(network.VirtualNetworkGatewayConnectionProtocolIKEv1),
+					string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
 				}, false),
 			},
 
@@ -199,13 +198,13 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.AES128),
-								string(network.AES192),
-								string(network.AES256),
-								string(network.DES),
-								string(network.DES3),
-								string(network.GCMAES128),
-								string(network.GCMAES256),
+								string(network.IkeEncryptionAES128),
+								string(network.IkeEncryptionAES192),
+								string(network.IkeEncryptionAES256),
+								string(network.IkeEncryptionDES),
+								string(network.IkeEncryptionDES3),
+								string(network.IkeEncryptionGCMAES128),
+								string(network.IkeEncryptionGCMAES256),
 							}, true),
 						},
 
@@ -583,19 +582,19 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData) (*n
 		props.IpsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
 	}
 
-	if props.ConnectionType == network.ExpressRoute {
+	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeExpressRoute {
 		if props.Peer == nil || props.Peer.ID == nil {
 			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute`")
 		}
 	}
 
-	if props.ConnectionType == network.IPsec {
+	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeIPsec {
 		if props.LocalNetworkGateway2 == nil || props.LocalNetworkGateway2.ID == nil {
 			return nil, fmt.Errorf("`local_network_gateway_id` must be specified when `type` is set to `IPsec`")
 		}
 	}
 
-	if props.ConnectionType == network.Vnet2Vnet {
+	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeVnet2Vnet {
 		if props.VirtualNetworkGateway2 == nil || props.VirtualNetworkGateway2.ID == nil {
 			return nil, fmt.Errorf("`peer_virtual_network_gateway_id` must be specified when `type` is set to `Vnet2Vnet`")
 		}

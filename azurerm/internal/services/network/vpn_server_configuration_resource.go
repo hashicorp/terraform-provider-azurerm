@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -51,16 +51,11 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(network.AAD),
-						string(network.Certificate),
-						string(network.Radius),
+						string(network.VpnAuthenticationTypeAAD),
+						string(network.VpnAuthenticationTypeCertificate),
+						string(network.VpnAuthenticationTypeRadius),
 					}, false),
 				},
-
-				// StatusCode=400 -- Original Error: Code="MultipleVpnAuthenticationTypesNotSupprtedOnVpnServerConfiguration"
-				// Message="VpnServerConfiguration XXX/acctestrg-191125124621329676 supports single VpnAuthenticationType at a time.
-				// Customer has specified 3 number of VpnAuthenticationTypes."
-				MaxItems: 1,
 			},
 
 			// Optional
@@ -149,13 +144,13 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.AES128),
-								string(network.AES192),
-								string(network.AES256),
-								string(network.DES),
-								string(network.DES3),
-								string(network.GCMAES128),
-								string(network.GCMAES256),
+								string(network.IkeEncryptionAES128),
+								string(network.IkeEncryptionAES192),
+								string(network.IkeEncryptionAES256),
+								string(network.IkeEncryptionDES),
+								string(network.IkeEncryptionDES3),
+								string(network.IkeEncryptionGCMAES128),
+								string(network.IkeEncryptionGCMAES256),
 							}, false),
 						},
 
@@ -437,13 +432,13 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 		authType := network.VpnAuthenticationType(v.(string))
 
 		switch authType {
-		case network.AAD:
+		case network.VpnAuthenticationTypeAAD:
 			supportsAAD = true
 
-		case network.Certificate:
+		case network.VpnAuthenticationTypeCertificate:
 			supportsCertificates = true
 
-		case network.Radius:
+		case network.VpnAuthenticationTypeRadius:
 			supportsRadius = true
 
 		default:

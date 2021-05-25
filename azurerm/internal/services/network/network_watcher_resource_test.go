@@ -20,6 +20,11 @@ func TestAccNetworkWatcher(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one per region at once
 	// (which our test suite can't easily workaround)
+
+	// NOTE: Normally these tests can be separated to its own test cases, rather than this big composite one, since
+	// we are not calling the `t.Parallel()` for each sub-test. However, currently nightly test are using the jen20/teamcity-go-test
+	// which will invoke a `go test` for each test function, which effectively making them to be in parallel, even if they are intended
+	// to be run in sequential.
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"basic":          testAccNetworkWatcher_basic,
@@ -69,7 +74,10 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
 			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
+			"long_name":            testAccNetworkWatcherFlowLog_longName,
 			"version":              testAccNetworkWatcherFlowLog_version,
+			"location":             testAccNetworkWatcherFlowLog_location,
+			"tags":                 testAccNetworkWatcherFlowLog_tags,
 		},
 	}
 
@@ -90,7 +98,7 @@ func testAccNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -104,7 +112,7 @@ func testAccNetworkWatcher_basic(t *testing.T) {
 func testAccNetworkWatcher_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -121,7 +129,7 @@ func testAccNetworkWatcher_requiresImport(t *testing.T) {
 func testAccNetworkWatcher_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -136,7 +144,7 @@ func testAccNetworkWatcher_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -156,7 +164,7 @@ func testAccNetworkWatcher_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicConfig,
 			TestResource: r,

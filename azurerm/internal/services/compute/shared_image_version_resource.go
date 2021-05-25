@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSharedImageVersion() *schema.Resource {
-	return &schema.Resource{
+func resourceSharedImageVersion() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSharedImageVersionCreateUpdate,
 		Read:   resourceSharedImageVersionRead,
 		Update: resourceSharedImageVersionCreateUpdate,
@@ -34,30 +32,30 @@ func resourceSharedImageVersion() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SharedImageVersionName,
 			},
 
 			"gallery_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
 			"image_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SharedImageName,
@@ -68,28 +66,28 @@ func resourceSharedImageVersion() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"target_region": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							StateFunc:        location.StateFunc,
 							DiffSuppressFunc: location.DiffSuppressFunc,
 						},
 
 						"regional_replica_count": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						// The Service API doesn't support to update `storage_account_type`. So it has to recreate the resource for updating `storage_account_type`.
 						// However, `ForceNew` cannot be used since resource would be recreated while adding or removing `target_region`.
 						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
-						// So currently terraform would directly return the error message from Service API while updating this property. If this property needs to be updated, please recreate this resource.
+						// So currently terraform would directly return the error message from Service API while updating this property. If this property needs to be updated, please recreate this pluginsdk.
 						"storage_account_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.StorageAccountTypeStandardLRS),
@@ -102,7 +100,7 @@ func resourceSharedImageVersion() *schema.Resource {
 			},
 
 			"os_disk_snapshot_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
@@ -110,7 +108,7 @@ func resourceSharedImageVersion() *schema.Resource {
 			},
 
 			"managed_image_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
@@ -121,7 +119,7 @@ func resourceSharedImageVersion() *schema.Resource {
 			},
 
 			"exclude_from_latest": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -131,7 +129,7 @@ func resourceSharedImageVersion() *schema.Resource {
 	}
 }
 
-func resourceSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +197,7 @@ func resourceSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +251,7 @@ func resourceSharedImageVersionRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,7 +273,7 @@ func resourceSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) 
 	// @tombuildsstuff: there appears to be an eventual consistency issue here
 	timeout, _ := ctx.Deadline()
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   sharedImageVersionDeleteStateRefreshFunc(ctx, client, *id),
@@ -284,14 +282,14 @@ func resourceSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) 
 		Timeout:                   time.Until(timeout),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImageVersionsClient, id parse.SharedImageVersionId) resource.StateRefreshFunc {
+func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImageVersionsClient, id parse.SharedImageVersionId) pluginsdk.StateRefreshFunc {
 	// Whilst the Shared Image Version is deleted quickly, it appears it's not actually finished replicating at this time
 	// so the deletion of the parent Shared Image fails with "can not delete until nested resources are deleted"
 	// ergo we need to poll on this for a bit
@@ -309,8 +307,8 @@ func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compu
 	}
 }
 
-func expandSharedImageVersionTargetRegions(d *schema.ResourceData) *[]compute.TargetRegion {
-	vs := d.Get("target_region").(*schema.Set)
+func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) *[]compute.TargetRegion {
+	vs := d.Get("target_region").(*pluginsdk.Set)
 	results := make([]compute.TargetRegion, 0)
 
 	for _, v := range vs.List() {

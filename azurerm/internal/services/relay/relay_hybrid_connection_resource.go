@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/go-azure-helpers/response"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -169,7 +168,7 @@ func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta inte
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted: %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 

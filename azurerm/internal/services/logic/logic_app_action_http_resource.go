@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -62,8 +63,10 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 			},
 
 			"body": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"headers": {
@@ -101,6 +104,9 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 }
 
 func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	logicAppId := d.Get("logic_app_id").(string)
+	name := d.Get("name").(string)
+
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
 	if err != nil {
@@ -113,8 +119,13 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		"headers": headers,
 	}
 
-	if v, ok := d.GetOk("body"); ok {
-		inputs["body"] = v.(string)
+	// storing action's body in json object to keep consistent with azure portal
+	if bodyRaw, ok := d.GetOk("body"); ok {
+		var body map[string]interface{}
+		if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
+			return fmt.Errorf("error unmarshalling JSON for Action %q: %+v", name, err)
+		}
+		inputs["body"] = body
 	}
 
 	action := map[string]interface{}{
@@ -126,8 +137,6 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		action["runAfter"] = expandLogicAppActionRunAfter(v.(*pluginsdk.Set).List())
 	}
 
-	logicAppId := d.Get("logic_app_id").(string)
-	name := d.Get("name").(string)
 	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action, "azurerm_logic_app_action_http")
 	if err != nil {
 		return err
@@ -186,7 +195,17 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if body := inputs["body"]; body != nil {
-		d.Set("body", body.(string))
+		// TODO: remove in 3.0, this is preserved for backward compatibility
+		if v, ok := body.(string); ok {
+			d.Set("body", v)
+		} else {
+			// if user edit workflow in portal, the body becomes json object
+			v, err := json.Marshal(body)
+			if err != nil {
+				return fmt.Errorf("error serializing `body` for Action %q: %+v", name, err)
+			}
+			d.Set("body", string(v))
+		}
 	}
 
 	if headers := inputs["headers"]; headers != nil {

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
+	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2021-01-01/powerbidedicated"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

@@ -12,7 +12,7 @@ var _ resourceid.Formatter = StorageShareResourceManagerId{}
 
 func TestStorageShareResourceManagerIDFormatter(t *testing.T) {
 	actual := NewStorageShareResourceManagerID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "fileService1", "share1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/shares/share1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/fileshares/share1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -80,32 +80,32 @@ func TestStorageShareResourceManagerID(t *testing.T) {
 		},
 
 		{
-			// missing ShareName
+			// missing FileshareName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/",
 			Error: true,
 		},
 
 		{
-			// missing value for ShareName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/shares/",
+			// missing value for FileshareName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/fileshares/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/shares/share1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/fileshares/share1",
 			Expected: &StorageShareResourceManagerId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resGroup1",
 				StorageAccountName: "storageAccount1",
 				FileServiceName:    "fileService1",
-				ShareName:          "share1",
+				FileshareName:      "share1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/STORAGEACCOUNT1/FILESERVICES/FILESERVICE1/SHARES/SHARE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/STORAGEACCOUNT1/FILESERVICES/FILESERVICE1/FILESHARES/SHARE1",
 			Error: true,
 		},
 	}
@@ -137,8 +137,8 @@ func TestStorageShareResourceManagerID(t *testing.T) {
 		if actual.FileServiceName != v.Expected.FileServiceName {
 			t.Fatalf("Expected %q but got %q for FileServiceName", v.Expected.FileServiceName, actual.FileServiceName)
 		}
-		if actual.ShareName != v.Expected.ShareName {
-			t.Fatalf("Expected %q but got %q for ShareName", v.Expected.ShareName, actual.ShareName)
+		if actual.FileshareName != v.Expected.FileshareName {
+			t.Fatalf("Expected %q but got %q for FileshareName", v.Expected.FileshareName, actual.FileshareName)
 		}
 	}
 }

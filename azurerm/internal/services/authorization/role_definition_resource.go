@@ -194,7 +194,7 @@ func resourceArmRoleDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}
 			Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for update to Role Definition %q to finish replicating", name)
 		}
 	}
@@ -266,7 +266,7 @@ func resourceArmRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Refresh:                   roleDefinitionEventualConsistencyUpdate(ctx, client, *roleDefinitionId, *updatedOn),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Role Definition %q (Scope %q) to settle down: %+v", roleDefinitionId.RoleID, roleDefinitionId.Scope, err)
 	}
 
@@ -344,7 +344,7 @@ func resourceArmRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for delete on Role Definition %q to complete", id.RoleID)
 	}
 

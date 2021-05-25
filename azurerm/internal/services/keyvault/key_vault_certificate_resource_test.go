@@ -410,6 +410,193 @@ resource "azurerm_key_vault_certificate" "test" {
 `, r.template(data), data.RandomString)
 }
 
+func (r KeyVaultCertificateResource) basicImportPEM_ECDSA(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = filebase64("testdata/ecdsa.pem")
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      curve      = "P-256"
+      exportable = true
+      key_size   = 256
+      key_type   = "EC"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) basicImportPFX_ECDSA(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = filebase64("testdata/ecdsa.pfx")
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      curve      = "P-256"
+      exportable = true
+      key_size   = 256
+      key_type   = "EC"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) basicImportPFX_RSA_bundle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = filebase64("testdata/rsa_bundle.pfx")
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) basicImportPEM_RSA(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = filebase64("testdata/rsa_single.pem")
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 4096
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) basicImportPEM_RSA_bundle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = filebase64("testdata/rsa_bundle.pem")
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 4096
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
 func (r KeyVaultCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

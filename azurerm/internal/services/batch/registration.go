@@ -1,6 +1,7 @@
 package batch
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,5 +35,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_batch_application": resourceBatchApplication(),
 		"azurerm_batch_certificate": resourceBatchCertificate(),
 		"azurerm_batch_pool":        resourceBatchPool(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		BatchJobResource{},
 	}
 }

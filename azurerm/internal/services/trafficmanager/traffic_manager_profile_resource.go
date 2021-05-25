@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -63,12 +62,12 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(trafficmanager.Geographic),
-					string(trafficmanager.Weighted),
-					string(trafficmanager.Performance),
-					string(trafficmanager.Priority),
-					string(trafficmanager.Subnet),
-					string(trafficmanager.MultiValue),
+					string(trafficmanager.TrafficRoutingMethodGeographic),
+					string(trafficmanager.TrafficRoutingMethodWeighted),
+					string(trafficmanager.TrafficRoutingMethodPerformance),
+					string(trafficmanager.TrafficRoutingMethodPriority),
+					string(trafficmanager.TrafficRoutingMethodSubnet),
+					string(trafficmanager.TrafficRoutingMethodMultiValue),
 				}, false),
 			},
 
@@ -129,9 +128,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(trafficmanager.HTTP),
-								string(trafficmanager.HTTPS),
-								string(trafficmanager.TCP),
+								string(trafficmanager.MonitorProtocolHTTP),
+								string(trafficmanager.MonitorProtocolHTTPS),
+								string(trafficmanager.MonitorProtocolTCP),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -236,7 +235,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 		profile.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 	}
 
-	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
+	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.TrafficRoutingMethodMultiValue &&
 		profile.ProfileProperties.MaxReturn == nil {
 		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}

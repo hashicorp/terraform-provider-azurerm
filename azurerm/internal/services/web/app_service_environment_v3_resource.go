@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
@@ -182,7 +181,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			timeout, _ := ctx.Deadline()
 			createWait.Timeout = time.Until(timeout)
 
-			if _, err := createWait.WaitForState(); err != nil {
+			if _, err := createWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 			}
 

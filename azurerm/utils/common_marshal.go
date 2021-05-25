@@ -1,5 +1,7 @@
 package utils
 
+import "strings"
+
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
 	for _, item := range input {
@@ -17,6 +19,16 @@ func ExpandFloatSlice(input []interface{}) *[]float64 {
 	for _, item := range input {
 		if item != nil {
 			result = append(result, item.(float64))
+		}
+	}
+	return &result
+}
+
+func ExpandFloatRangeSlice(input []interface{}) *[][]float64 {
+	result := make([][]float64, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, *ExpandFloatSlice(item.([]interface{})))
 		}
 	}
 	return &result
@@ -59,6 +71,16 @@ func FlattenFloatSlice(input *[]float64) []interface{} {
 	return result
 }
 
+func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
+	result := make([][]interface{}, 0)
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, FlattenFloatSlice(&item))
+		}
+	}
+	return result
+}
+
 func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range input {
@@ -75,6 +97,29 @@ func FlattenInt32Slice(input *[]int32) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *string {
+	result := make([]string, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, item.(string))
+		} else {
+			result = append(result, "")
+		}
+	}
+	return String(strings.Join(result, delimiter))
+}
+
+func FlattenStringSliceWithDelimiter(input *string, delimiter string) []interface{} {
+	result := make([]interface{}, 0)
+	if input != nil {
+		inputStrings := strings.Split(*input, delimiter)
+		for _, item := range inputStrings {
 			result = append(result, item)
 		}
 	}

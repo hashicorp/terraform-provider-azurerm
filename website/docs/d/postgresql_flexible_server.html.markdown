@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
 
+~> **Note:** Attribute `cmk_enabled` has been deprecated and will be removed in version 3.0 of the provider.
+
 * `delegated_subnet_id` - The ID of the virtual network subnet to create the PostgreSQL Flexible Server.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.

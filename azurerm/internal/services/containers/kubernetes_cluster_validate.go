@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice.ManagedCluster, resourceGroup, name string) error {
+func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *containerservice.ManagedCluster, resourceGroup, name string) error {
 	if v, exists := d.GetOk("network_profile"); exists {
 		rawProfiles := v.([]interface{})
 

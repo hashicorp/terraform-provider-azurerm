@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +12,10 @@ type StorageEncryptionScopeDataSource struct{}
 
 func TestAccDataSourceStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageEncryptionScopeDataSource{}.keyVaultKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
 		},
@@ -25,10 +24,10 @@ func TestAccDataSourceStorageEncryptionScope_keyVaultKey(t *testing.T) {
 
 func TestAccDataSourceStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageEncryptionScopeDataSource{}.microsoftManagedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 				check.That(data.ResourceName).Key("key_vault_key_id").IsEmpty(),
 			),

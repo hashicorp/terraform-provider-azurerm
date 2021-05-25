@@ -177,7 +177,11 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 		if resp.Properties == nil || resp.Properties.AccessPolicies == nil {
 			return fmt.Errorf("failed reading Access Policies for %q (resource group %q)", vaultName, id.ResourceGroup)
 		}
+
 		accessPolicyRaw := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationIdRaw)
+		if accessPolicyRaw == nil {
+			return fmt.Errorf("failed finding this specific Access Policy on Azure KeyVault %q (resource group %q)", vaultName, id.ResourceGroup)
+		}
 		accessPolicy = *accessPolicyRaw
 
 	default:
@@ -245,7 +249,7 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("failed waiting for Key Vault Access Policy (Object ID: %q) to apply: %+v", objectId, err)
 	}
 

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -57,8 +56,13 @@ func (ApiManagementGroupUserResource) Exists(ctx context.Context, clients *clien
 	groupName := id.Path["groups"]
 	userId := id.Path["users"]
 
-	if _, err = clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
+	resp, err := clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
+	if err != nil {
 		return nil, fmt.Errorf("reading ApiManagement Group User (%s): %+v", id, err)
+	}
+	// the HEAD API not found returns resp 404, but no err
+	if utils.ResponseWasNotFound(resp) {
+		return utils.Bool(false), nil
 	}
 
 	return utils.Bool(true), nil

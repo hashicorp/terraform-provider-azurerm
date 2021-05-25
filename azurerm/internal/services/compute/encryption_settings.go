@@ -2,19 +2,19 @@ package compute
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func encryptionSettingsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func encryptionSettingsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Required: true,
 
 					// Azure can change enabled from false to true, but not the other way around, so
@@ -23,36 +23,36 @@ func encryptionSettingsSchema() *schema.Schema {
 				},
 
 				"disk_encryption_key": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"secret_url": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
 
 							"source_vault_id": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
 						},
 					},
 				},
 				"key_encryption_key": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key_url": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
 
 							"source_vault_id": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
 						},

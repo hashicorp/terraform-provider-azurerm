@@ -3,8 +3,8 @@ package acceptance
 import (
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,6 +52,12 @@ func TestCheckOutput(name, value string) pluginsdk.TestCheckFunc {
 	// TODO: move this comment up a level in the future
 	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
 	return resource.TestCheckOutput(name, value)
+}
+
+// TestMatchOutput is a wrapper to enable builds to continue
+func TestMatchOutput(name string, r *regexp.Regexp) pluginsdk.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	return resource.TestMatchOutput(name, r)
 }
 
 // TestMatchResourceAttr is a TestCheckFunc which checks that the value
