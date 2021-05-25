@@ -5,10 +5,10 @@ import (
 	"net"
 	"net/url"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func LogAnalyticsClusterUrl(_, old, new string, _ *schema.ResourceData) bool {
+func LogAnalyticsClusterUrl(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	u, err := url.ParseRequestURI(old)
 	if err != nil || u.Host == "" {
 		return false
