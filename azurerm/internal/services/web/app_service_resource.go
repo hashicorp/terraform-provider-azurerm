@@ -240,7 +240,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("App Service Environment %q (Resource Group %q) does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
-		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, aspID.ServerfarmName))
+		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, *aspDetails.HostingEnvironmentProfile.Name))
 		availabilityRequest.IsFqdn = utils.Bool(true)
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
