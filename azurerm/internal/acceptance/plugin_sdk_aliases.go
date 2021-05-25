@@ -19,6 +19,10 @@ func ComposeTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc 
 	return resource.ComposeTestCheckFunc(fs...)
 }
 
+func ComposeAggregateTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(fs...)
+}
+
 // @tombuildsstuff:
 // Below this point are convenience methods which exist to allow existing code
 // to compile. Whilst these are not initially deprecated, they will be in the
