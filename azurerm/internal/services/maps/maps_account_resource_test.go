@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMapsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 	r := MapsAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
@@ -40,10 +39,10 @@ func TestAccMapsAccount_sku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 	r := MapsAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "S1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
@@ -59,10 +58,10 @@ func TestAccMapsAccount_skuG2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 	r := MapsAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "G2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
@@ -78,10 +77,10 @@ func TestAccMapsAccount_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 	r := MapsAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -89,7 +88,7 @@ func TestAccMapsAccount_tags(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("testing"),
@@ -99,7 +98,7 @@ func TestAccMapsAccount_tags(t *testing.T) {
 	})
 }
 
-func (MapsAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MapsAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err
