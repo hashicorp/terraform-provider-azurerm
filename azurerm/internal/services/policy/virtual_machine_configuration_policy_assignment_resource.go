@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,34 @@ import (
 	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
 		Read:   resourceVirtualMachineConfigurationPolicyAssignmentRead,
 		Update: resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
 		Delete: resourceVirtualMachineConfigurationPolicyAssignmentDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualMachineConfigurationPolicyAssignmentID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -49,37 +48,37 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"virtual_machine_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
 			"configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameter": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"value": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -87,7 +86,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -97,7 +96,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 	}
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -138,7 +137,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.R
 	return resourceVirtualMachineConfigurationPolicyAssignmentRead(d, meta)
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -172,7 +171,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +196,7 @@ func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration
 	return &guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*schema.Set).List()),
+		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 }
 
