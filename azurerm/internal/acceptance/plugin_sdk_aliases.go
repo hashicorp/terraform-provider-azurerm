@@ -15,6 +15,8 @@ type InstanceState = terraform.InstanceState
 
 type TestStep = resource.TestStep
 
+type TestCheckFunc = resource.TestCheckFunc
+
 func ComposeTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(fs...)
 }
