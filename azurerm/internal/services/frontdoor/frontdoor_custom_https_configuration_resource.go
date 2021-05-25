@@ -6,12 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -26,7 +25,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *pluginsdk.Resource {
 		Update: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
 		Delete: resourceFrontDoorCustomHttpsConfigurationDelete,
 
-		Importer: &pluginsdk.ResourceImporter{
+		Importer: &schema.ResourceImporter{
 			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 				client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
