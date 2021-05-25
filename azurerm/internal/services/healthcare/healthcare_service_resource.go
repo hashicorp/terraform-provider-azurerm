@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,22 +15,23 @@ import (
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHealthcareService() *schema.Resource {
-	return &schema.Resource{
+func resourceHealthcareService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHealthcareServiceCreateUpdate,
 		Read:   resourceHealthcareServiceRead,
 		Update: resourceHealthcareServiceCreateUpdate,
 		Delete: resourceHealthcareServiceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -40,9 +39,9 @@ func resourceHealthcareService() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,7 +52,7 @@ func resourceHealthcareService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(healthcareapis.Fhir),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -64,14 +63,14 @@ func resourceHealthcareService() *schema.Resource {
 			},
 
 			"cosmosdb_throughput": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1000,
 				ValidateFunc: validation.IntBetween(1, 10000),
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
@@ -79,33 +78,33 @@ func resourceHealthcareService() *schema.Resource {
 			},
 
 			"access_policy_object_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
 			},
 
 			"authentication_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"authority": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 						"audience": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 						"smart_proxy_enabled": {
-							Type:         schema.TypeBool,
+							Type:         pluginsdk.TypeBool,
 							Optional:     true,
 							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
@@ -114,18 +113,18 @@ func resourceHealthcareService() *schema.Resource {
 			},
 
 			"cors_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							MaxItems: 64,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
@@ -134,11 +133,11 @@ func resourceHealthcareService() *schema.Resource {
 							},
 						},
 						"allowed_headers": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							MaxItems: 64,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
@@ -147,11 +146,11 @@ func resourceHealthcareService() *schema.Resource {
 							},
 						},
 						"allowed_methods": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 64,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"DELETE",
 									"GET",
@@ -168,7 +167,7 @@ func resourceHealthcareService() *schema.Resource {
 							},
 						},
 						"max_age_in_seconds": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 2000000000),
 							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
@@ -177,7 +176,7 @@ func resourceHealthcareService() *schema.Resource {
 							},
 						},
 						"allow_credentials": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
@@ -189,7 +188,7 @@ func resourceHealthcareService() *schema.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -199,7 +198,7 @@ func resourceHealthcareService() *schema.Resource {
 	}
 }
 
-func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -273,7 +272,7 @@ func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interfac
 	return resourceHealthcareServiceRead(d, meta)
 }
 
-func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -338,7 +337,7 @@ func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -360,8 +359,8 @@ func resourceHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]healthcareapis.ServiceAccessPolicyEntry {
-	accessPolicyObjectIds := d.Get("access_policy_object_ids").(*schema.Set).List()
+func expandAzureRMhealthcareapisAccessPolicyEntries(d *pluginsdk.ResourceData) *[]healthcareapis.ServiceAccessPolicyEntry {
+	accessPolicyObjectIds := d.Get("access_policy_object_ids").(*pluginsdk.Set).List()
 	svcAccessPolicyArray := make([]healthcareapis.ServiceAccessPolicyEntry, 0)
 
 	for _, objectId := range accessPolicyObjectIds {
@@ -372,7 +371,7 @@ func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]h
 	return &svcAccessPolicyArray
 }
 
-func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
+func expandAzureRMhealthcareapisCorsConfiguration(d *pluginsdk.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
 	corsConfigRaw := d.Get("cors_configuration").([]interface{})
 
 	if len(corsConfigRaw) == 0 {
@@ -381,8 +380,8 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healt
 
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*schema.Set).List())
-	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*schema.Set).List())
+	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
 	allowedMethods := *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
 	maxAgeInSeconds := int32(corsConfigAttr["max_age_in_seconds"].(int))
 	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
@@ -397,7 +396,7 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healt
 	return cors
 }
 
-func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthcareapis.ServiceAuthenticationConfigurationInfo {
+func expandAzureRMhealthcareapisAuthentication(d *pluginsdk.ResourceData) *healthcareapis.ServiceAuthenticationConfigurationInfo {
 	authConfigRaw := d.Get("authentication_configuration").([]interface{})
 
 	if len(authConfigRaw) == 0 {
@@ -417,7 +416,7 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 	return auth
 }
 
-func expandAzureRMhealthcareapisCosmosDbConfiguration(d *schema.ResourceData) (*healthcareapis.ServiceCosmosDbConfigurationInfo, error) {
+func expandAzureRMhealthcareapisCosmosDbConfiguration(d *pluginsdk.ResourceData) (*healthcareapis.ServiceCosmosDbConfigurationInfo, error) {
 	throughput := int32(d.Get("cosmosdb_throughput").(int))
 
 	cosmosdb := &healthcareapis.ServiceCosmosDbConfigurationInfo{
