@@ -31,6 +31,12 @@ func TestCheckResourceAttr(name, key, value string) pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttr(name, key, value)
 }
 
+func TestCheckResourceAttrSet(name, key string) pluginsdk.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
+	return resource.TestCheckResourceAttrSet(name, key)
+}
+
 // TestMatchResourceAttr is a TestCheckFunc which checks that the value
 // in state for the given name/key combination matches the given regex.
 func TestMatchResourceAttr(name, key string, r *regexp.Regexp) pluginsdk.TestCheckFunc {
