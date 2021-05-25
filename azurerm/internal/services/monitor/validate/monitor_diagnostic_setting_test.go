@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestMonitorDiagnosticSettingName(t *testing.T) {
@@ -20,7 +20,7 @@ func TestMonitorDiagnosticSettingName(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Name:   acctest.RandString(261),
+			Name:   acceptance.RandString(261),
 			Errors: 1,
 		},
 		{

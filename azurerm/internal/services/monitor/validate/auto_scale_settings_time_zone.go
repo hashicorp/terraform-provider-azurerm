@@ -1,11 +1,11 @@
 package validate
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func AutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
+func AutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
 	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
