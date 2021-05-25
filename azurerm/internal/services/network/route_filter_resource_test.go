@@ -71,7 +71,8 @@ func TestAccRouteFilter_disappears(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config: r.basic,
+			Config:       r.basic,
+			TestResource: r,
 		}),
 	})
 }

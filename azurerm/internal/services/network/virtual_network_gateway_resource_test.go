@@ -179,12 +179,9 @@ func TestAccVirtualNetworkGateway_vpnClientConfigAzureAdAuth(t *testing.T) {
 			Config: r.vpnClientConfigAzureAdAuth(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_tenant").HasValue(fmt.Sprintf("https://login.microsoftonline.com/%s/", data.RandomString)),
-				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_audience").HasValue("41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
-				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s/", data.RandomString)),
-				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1058,7 +1055,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
-  sku                        = "VpnGw1"
+  sku                        = "VpnGw1AZ"
   private_ip_address_enabled = true
 
   custom_route {
@@ -1113,7 +1110,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
-  sku                        = "VpnGw1"
+  sku                        = "VpnGw1AZ"
   private_ip_address_enabled = false
 
   custom_route {

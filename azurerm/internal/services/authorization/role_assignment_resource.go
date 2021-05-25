@@ -165,7 +165,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
-	existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+	existing, err := roleAssignmentsClient.Get(ctx, scope, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
@@ -203,7 +203,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	read, err := roleAssignmentsClient.Get(ctx, scope, name)
+	read, err := roleAssignmentsClient.Get(ctx, scope, name, "")
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.GetByID(ctx, d.Id())
+	resp, err := client.GetByID(ctx, d.Id(), "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Role Assignment ID %q was not found - removing from state", d.Id())
@@ -269,7 +269,7 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.scope, id.name)
+	resp, err := client.Delete(ctx, id.scope, id.name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -343,7 +343,7 @@ func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
 
 func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authorization.RoleAssignmentsClient, roleID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.GetByID(ctx, roleID)
+		resp, err := client.GetByID(ctx, roleID, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return resp, "pending", nil

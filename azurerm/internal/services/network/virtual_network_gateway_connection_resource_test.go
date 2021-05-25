@@ -777,7 +777,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
-  sku                        = "VpnGw1"
+  sku                        = "VpnGw1AZ"
   private_ip_address_enabled = true
   ip_configuration {
     name                          = "vnetGatewayConfig"
@@ -847,7 +847,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = azurerm_public_ip.test.id
