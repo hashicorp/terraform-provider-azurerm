@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_basic(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.app_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),
@@ -37,10 +36,10 @@ func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_requiresImport(t *te
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.app_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,17 +51,17 @@ func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_update(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.app_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),
 		},
 		{
 			Config: r.app_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),
@@ -74,10 +73,10 @@ func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_disappears(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.app_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				data.CheckWithClient(r.disappears),
@@ -91,10 +90,10 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_basic(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.function_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -106,10 +105,10 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_requiresImport
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.function_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -121,16 +120,16 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_update(t *test
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.function_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.function_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -141,10 +140,10 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_disappears(t *
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.function_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.disappears),
 			),
@@ -153,7 +152,7 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_disappears(t *
 	})
 }
 
-func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SlotVirtualNetworkSwiftConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -170,7 +169,7 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.
 	return utils.Bool(resp.SwiftVirtualNetworkProperties != nil), nil
 }
 
-func (t AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.SlotVirtualNetworkSwiftConnectionID(state.ID)
 	if err != nil {
 		return err
