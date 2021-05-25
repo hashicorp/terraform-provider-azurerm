@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type SignalRServiceDataSource struct{}
 func TestAccDataSourceSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_signalr_service", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: SignalRServiceDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
