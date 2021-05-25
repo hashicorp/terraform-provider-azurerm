@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func DataFactoryPipelineAndTriggerName() schema.SchemaValidateFunc {
+func DataFactoryPipelineAndTriggerName() pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		value := i.(string)
 		if !regexp.MustCompile(`^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`).MatchString(value) {
@@ -18,7 +18,7 @@ func DataFactoryPipelineAndTriggerName() schema.SchemaValidateFunc {
 	}
 }
 
-func DataFactoryName() schema.SchemaValidateFunc {
+func DataFactoryName() pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		value := i.(string)
 		if !regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`).MatchString(value) {

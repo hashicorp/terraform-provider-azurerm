@@ -5,21 +5,21 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func schemaStreamAnalyticsOutputSerialization() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(streamanalytics.TypeAvro),
@@ -29,7 +29,7 @@ func schemaStreamAnalyticsOutputSerialization() *schema.Schema {
 				},
 
 				"field_delimiter": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						" ",
@@ -41,7 +41,7 @@ func schemaStreamAnalyticsOutputSerialization() *schema.Schema {
 				},
 
 				"encoding": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(streamanalytics.UTF8),
@@ -49,7 +49,7 @@ func schemaStreamAnalyticsOutputSerialization() *schema.Schema {
 				},
 
 				"format": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(streamanalytics.Array),

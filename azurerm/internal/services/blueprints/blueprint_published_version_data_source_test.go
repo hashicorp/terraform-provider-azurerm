@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -17,10 +16,10 @@ func TestAccBlueprintPublishedVersionDataSource_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 	r := BlueprintPublishedVersionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.atSubscription(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
 				check.That(data.ResourceName).Key("time_created").Exists(),
@@ -34,10 +33,10 @@ func TestAccBlueprintPublishedVersionDataSource_atRootManagementGroup(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 	r := BlueprintPublishedVersionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.atRootManagementGroup("testAcc_basicRootManagementGroup", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Root Management Group"),
 				check.That(data.ResourceName).Key("time_created").Exists(),
@@ -51,10 +50,10 @@ func TestAccBlueprintPublishedVersionDataSource_atChildManagementGroup(t *testin
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 	r := BlueprintPublishedVersionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.atChildManagementGroup("testAcc_staticStubGroup", "testAcc_staticStubManagementGroup", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Child Management Group"),
 				check.That(data.ResourceName).Key("time_created").Exists(),

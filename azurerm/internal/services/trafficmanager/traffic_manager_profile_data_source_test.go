@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type TrafficManagerProfileDataSource struct{}
 func TestAccAzureRMDataSourceTrafficManagerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_profile", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: TrafficManagerProfileDataSource{}.template(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Performance"),
 			),
 		},

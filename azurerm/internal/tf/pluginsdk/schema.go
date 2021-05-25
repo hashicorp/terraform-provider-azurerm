@@ -14,6 +14,7 @@ const (
 	TypeMap     = schema.TypeMap
 	TypeSet     = schema.TypeSet
 )
+
 const (
 	SchemaConfigModeAuto  = schema.SchemaConfigModeAuto
 	SchemaConfigModeAttr  = schema.SchemaConfigModeAttr

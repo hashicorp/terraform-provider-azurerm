@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +65,10 @@ func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.frontEndConfigPublicIPPrefix(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.#").HasValue("1"),
 			),
@@ -82,10 +81,10 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.frontEndConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.#").HasValue("2"),
 			),
@@ -93,7 +92,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.frontEndConfigRemovalWithIP(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.#").HasValue("1"),
 			),
@@ -101,7 +100,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.frontEndConfigRemoval(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.#").HasValue("1"),
 			),
@@ -113,10 +112,10 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("production"),
@@ -126,7 +125,7 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updatedTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Purpose").HasValue("AcceptanceTests"),
@@ -139,10 +138,10 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.emptyPrivateIPAddress(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address").Exists(),
 			),
@@ -155,10 +154,10 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateIPAddress(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address").Exists(),
 			),
@@ -166,7 +165,7 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
-func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	loadBalancerName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 

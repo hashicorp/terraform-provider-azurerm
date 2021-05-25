@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccBackupProtectedVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
@@ -41,10 +40,10 @@ func TestAccBackupProtectedVm_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
@@ -61,10 +60,10 @@ func TestAccBackupProtectedVm_separateResourceGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.separateResourceGroups(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
@@ -84,20 +83,20 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{ // Create resources and link first backup policy id
 			ResourceName: fBackupPolicyResourceName,
 			Config:       r.linkFirstBackupPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
 			),
 		},
 		{ // Modify backup policy id to the second one
 			// Set Destroy false to prevent error from cleaning up dangling resource
 			ResourceName: sBackupPolicyResourceName,
 			Config:       r.linkSecondBackupPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 			),
 		},
 		{
@@ -120,7 +119,7 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
-func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

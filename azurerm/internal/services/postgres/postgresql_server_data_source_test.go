@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -17,10 +16,10 @@ func TestAccDataSourcePostgreSqlServer_basic(t *testing.T) {
 	r := PostgreSQLServerDataSource{}
 	version := "9.5"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("version").Exists(),

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccSpatialAnchorsAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_spatial_anchors_account", "test")
 	r := SpatialAnchorsAccountDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("account_id").Exists(),
 				check.That(data.ResourceName).Key("account_domain").Exists(),

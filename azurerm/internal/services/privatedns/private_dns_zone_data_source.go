@@ -7,51 +7,51 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourcePrivateDnsZone() *schema.Resource {
-	return &schema.Resource{
+func dataSourcePrivateDnsZone() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourcePrivateDnsZoneRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"resource_group_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"number_of_record_sets": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_virtual_network_links": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_virtual_network_links_with_registration": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
@@ -60,7 +60,7 @@ func dataSourcePrivateDnsZone() *schema.Resource {
 	}
 }
 
-func dataSourcePrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
