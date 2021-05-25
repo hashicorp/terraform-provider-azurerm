@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func dataSourceBillingEnrollmentAccountScope() *schema.Resource {
-	return &schema.Resource{
+func dataSourceBillingEnrollmentAccountScope() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceBillingEnrollemntAccountRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"billing_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"enrollment_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -32,7 +32,7 @@ func dataSourceBillingEnrollmentAccountScope() *schema.Resource {
 	}
 }
 
-func dataSourceBillingEnrollemntAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBillingEnrollemntAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	// (@jackofallops) - This is a helper Data Source until the Billing API is usable in the Azure SDK
 	billingScopeEnrollmentFmt := "/providers/Microsoft.Billing/billingAccounts/%s/enrollmentAccounts/%s"
 
