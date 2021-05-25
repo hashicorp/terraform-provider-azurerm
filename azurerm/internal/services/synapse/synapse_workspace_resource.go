@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -144,11 +145,13 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"managed_resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ManagedResourceGroupName(),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[-\w\._\(\)]{0,89}[-\w_\(\)]$`),
+					"The resource group name must be no longer than 90 characters long, and must be alphanumeric characters and '-', '_', '(', ')' and'.'. Note that the name cannot end with '.'"),
 			},
 
 			"azure_devops_repo": {
