@@ -1,10 +1,19 @@
 package validate
 
 import (
+	"math/rand"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
 
 func TestMonitorDiagnosticSettingName(t *testing.T) {
 	cases := []struct {
@@ -20,7 +29,7 @@ func TestMonitorDiagnosticSettingName(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Name:   acceptance.RandString(261),
+			Name:   RandStringBytes(261),
 			Errors: 1,
 		},
 		{
