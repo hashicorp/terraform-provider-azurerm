@@ -7,11 +7,10 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccApiManagementSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 	r := ApiManagementSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("true"),
 				check.That(data.ResourceName).Key("subscription_id").Exists(),
@@ -41,10 +40,10 @@ func TestAccApiManagementSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 	r := ApiManagementSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_id").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
@@ -59,10 +58,10 @@ func TestAccApiManagementSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 	r := ApiManagementSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update(data, "submitted", true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("submitted"),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("true"),
@@ -73,28 +72,28 @@ func TestAccApiManagementSubscription_update(t *testing.T) {
 		},
 		{
 			Config: r.update(data, "active", true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("active"),
 			),
 		},
 		{
 			Config: r.update(data, "suspended", true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("suspended"),
 			),
 		},
 		{
 			Config: r.update(data, "cancelled", true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("cancelled"),
 			),
 		},
 		{
 			Config: r.update(data, "active", false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
 			),
@@ -106,10 +105,10 @@ func TestAccApiManagementSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 	r := ApiManagementSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("active"),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
@@ -126,10 +125,10 @@ func TestAccApiManagementSubscription_withoutUser(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 	r := ApiManagementSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withoutUser(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("active"),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
@@ -143,7 +142,7 @@ func TestAccApiManagementSubscription_withoutUser(t *testing.T) {
 	})
 }
 
-func (ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
