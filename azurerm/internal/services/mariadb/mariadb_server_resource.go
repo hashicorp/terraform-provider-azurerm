@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -30,7 +31,7 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 		Update: resourceMariaDbServerUpdate,
 		Delete: resourceMariaDbServerDelete,
 
-		Importer: &pluginsdk.ResourceImporter{
+		Importer: &schema.ResourceImporter{
 			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 				if _, err := parse.ServerID(d.Id()); err != nil {
 					return []*pluginsdk.ResourceData{d}, err
