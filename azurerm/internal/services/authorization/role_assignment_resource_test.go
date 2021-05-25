@@ -84,7 +84,7 @@ func TestAccRoleAssignment_dataActions(t *testing.T) {
 			Config: r.dataActionsConfig(id),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
+				check.That(data.ResourceName).Key("role_definition_id").IsSet(),
 			),
 		},
 		data.ImportStep("skip_service_principal_aad_check"),
