@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -21,10 +21,10 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +36,10 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +51,10 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +66,10 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -77,7 +77,7 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_update(t *testing.T) {
 		{
 
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,7 +85,7 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_update(t *testing.T) {
 		{
 
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -97,10 +97,10 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_storageAccBehindFireWall(t *test
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountBehindFireWall(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -112,24 +112,24 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_logAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
 			Config: r.logAnalytics(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
 			Config: r.logAnalyticsAndStorageAccount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -141,24 +141,24 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
 			Config: r.eventhub(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
 			Config: r.eventhubAndStorageAccount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -166,7 +166,7 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_eventhub(t *testing.T) {
 	})
 }
 
-func (MsSqlDatabaseExtendedAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MsSqlDatabaseExtendedAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseExtendedAuditingPolicyID(state.ID)
 	if err != nil {
 		return nil, err
