@@ -2,7 +2,7 @@ package monitor
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,8 +19,8 @@ func flattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGrou
 	return []interface{}{v}
 }
 
-func expandMonitorScheduledQueryRulesCommonSource(d *schema.ResourceData) *insights.Source {
-	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
+func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) *insights.Source {
+	authorizedResourceIDs := d.Get("authorized_resource_ids").(*pluginsdk.Set).List()
 	dataSourceID := d.Get("data_source_id").(string)
 	query, ok := d.GetOk("query")
 	source := insights.Source{

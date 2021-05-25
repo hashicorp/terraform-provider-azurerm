@@ -8,29 +8,28 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMediaTransform() *schema.Resource {
-	return &schema.Resource{
+func resourceMediaTransform() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMediaTransformCreateUpdate,
 		Read:   resourceMediaTransformRead,
 		Update: resourceMediaTransformCreateUpdate,
 		Delete: resourceMediaTransformDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -38,9 +37,9 @@ func resourceMediaTransform() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -52,7 +51,7 @@ func resourceMediaTransform() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"media_services_account_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -62,20 +61,20 @@ func resourceMediaTransform() *schema.Resource {
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			//lintignore:XS003
 			"output": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"on_error_action": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(media.OnErrorTypeContinueJob),
@@ -84,13 +83,13 @@ func resourceMediaTransform() *schema.Resource {
 						},
 						//lintignore:XS003
 						"builtin_preset": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"preset_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.EncoderNamedPresetAACGoodQualityAudio),
@@ -111,13 +110,13 @@ func resourceMediaTransform() *schema.Resource {
 						},
 						//lintignore:XS003
 						"audio_analyzer_preset": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"audio_language": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"ar-EG",
@@ -139,7 +138,7 @@ func resourceMediaTransform() *schema.Resource {
 										}, false),
 									},
 									"audio_analysis_mode": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.AudioAnalysisModeBasic),
@@ -151,13 +150,13 @@ func resourceMediaTransform() *schema.Resource {
 						},
 						//lintignore:XS003
 						"video_analyzer_preset": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"audio_language": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"ar-EG",
@@ -179,7 +178,7 @@ func resourceMediaTransform() *schema.Resource {
 										}, false),
 									},
 									"audio_analysis_mode": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.AudioAnalysisModeBasic),
@@ -187,7 +186,7 @@ func resourceMediaTransform() *schema.Resource {
 										}, false),
 									},
 									"insights_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.InsightsTypeAllInsights),
@@ -200,13 +199,13 @@ func resourceMediaTransform() *schema.Resource {
 						},
 						//lintignore:XS003
 						"face_detector_preset": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"analysis_resolution": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.AnalysisResolutionSourceResolution),
@@ -217,7 +216,7 @@ func resourceMediaTransform() *schema.Resource {
 							},
 						},
 						"relative_priority": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(media.PriorityHigh),
@@ -232,7 +231,7 @@ func resourceMediaTransform() *schema.Resource {
 	}
 }
 
-func resourceMediaTransformCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -274,7 +273,7 @@ func resourceMediaTransformCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourceMediaTransformRead(d, meta)
 }
 
-func resourceMediaTransformRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +312,7 @@ func resourceMediaTransformRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceMediaTransformDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

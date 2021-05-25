@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,10 +55,10 @@ func testAccMonitorLogProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,10 +70,10 @@ func testAccMonitorLogProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -89,10 +88,10 @@ func testAccMonitorLogProfile_servicebus(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.servicebusConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -103,10 +102,10 @@ func testAccMonitorLogProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -117,7 +116,7 @@ func testAccMonitorLogProfile_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicConfig,
 			TestResource: r,
@@ -125,7 +124,7 @@ func testAccMonitorLogProfile_disappears(t *testing.T) {
 	})
 }
 
-func (t MonitorLogProfileResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t MonitorLogProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name, err := monitor.ParseLogProfileNameFromID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("parsing log profile name from ID %s: %s", state.ID, err)
@@ -139,7 +138,7 @@ func (t MonitorLogProfileResource) Exists(ctx context.Context, clients *clients.
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (t MonitorLogProfileResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t MonitorLogProfileResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name, err := monitor.ParseLogProfileNameFromID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("parsing log profile name from ID %s: %s", state.ID, err)
