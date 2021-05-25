@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
