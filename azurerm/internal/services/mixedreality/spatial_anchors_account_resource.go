@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality"
+	"github.com/Azure/azure-sdk-for-go/services/mixedreality/mgmt/2021-01-01/mixedreality"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -49,6 +49,16 @@ func resourceSpatialAnchorsAccount() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"account_domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"tags": tags.ForceNewSchema(),
 		},
@@ -125,6 +135,11 @@ func resourceSpatialAnchorsAccountRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if props := resp.AccountProperties; props != nil {
+		d.Set("account_domain", props.AccountDomain)
+		d.Set("account_id", props.AccountID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

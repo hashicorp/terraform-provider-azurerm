@@ -337,6 +337,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 						//lintignore:XS003
 						"peering_addresses": {
 							Type:     schema.TypeList,
+							Computed: true,
 							Optional: true,
 							MinItems: 1,
 							MaxItems: 2,

@@ -1702,7 +1702,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${data.azurerm_client_config.test.object_id}"
     secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
@@ -3470,7 +3470,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
@@ -3620,7 +3620,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
