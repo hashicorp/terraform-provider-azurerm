@@ -238,7 +238,6 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
-	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
@@ -250,9 +249,12 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
-			OriginHostHeader:           utils.String(originHostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("origin_host_header"); ok {
+		endpoint.EndpointProperties.OriginHostHeader = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("content_types_to_compress"); ok {
@@ -343,7 +345,6 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
-	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
@@ -354,9 +355,12 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
-			OriginHostHeader:           utils.String(hostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("origin_host_header"); ok {
+		endpoint.EndpointPropertiesUpdateParameters.OriginHostHeader = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("content_types_to_compress"); ok {
