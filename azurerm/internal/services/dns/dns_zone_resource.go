@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
