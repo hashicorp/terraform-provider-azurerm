@@ -71,13 +71,6 @@ func TestAccCdnEndpoint_updateHostHeader(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.hostHeader(data, ""),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.hostHeader(data, "www.example2.com"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
