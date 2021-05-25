@@ -4,116 +4,116 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceNetworkInterface() *schema.Resource {
-	return &schema.Resource{
+func dataSourceNetworkInterface() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceNetworkInterfaceRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"network_security_group_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"mac_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"virtual_machine_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"private_ip_address_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"private_ip_address_allocation": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"public_ip_address_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"application_gateway_backend_address_pools_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"load_balancer_backend_address_pools_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"application_security_group_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"primary": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 					},
@@ -121,44 +121,44 @@ func dataSourceNetworkInterface() *schema.Resource {
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"internal_dns_name_label": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"applied_dns_servers": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"enable_accelerated_networking": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"enable_ip_forwarding": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"private_ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"private_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -167,7 +167,7 @@ func dataSourceNetworkInterface() *schema.Resource {
 	}
 }
 
-func dataSourceNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
