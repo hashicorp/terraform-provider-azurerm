@@ -8,11 +8,10 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +37,10 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nfsv41(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +52,10 @@ func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossRegionReplication(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
 			),
@@ -69,10 +68,10 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_vol")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nfsv3FromSnapshot(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -84,10 +83,10 @@ func TestAccNetAppVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -102,10 +101,10 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
@@ -123,10 +122,10 @@ func TestAccNetAppVolume_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
@@ -136,7 +135,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
@@ -147,7 +146,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
@@ -172,10 +171,10 @@ func TestAccNetAppVolume_updateSubnet(t *testing.T) {
 	oldSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, oldVNetName, oldSubnetName)
 	newSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, newVNetName, newSubnetName)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").HasValue(oldSubnetId),
 			),
@@ -183,7 +182,7 @@ func TestAccNetAppVolume_updateSubnet(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateSubnet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").HasValue(newSubnetId),
 			),
@@ -196,10 +195,10 @@ func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 			),
@@ -207,7 +206,7 @@ func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateExportPolicyRule(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("1"),
 			),
@@ -216,7 +215,7 @@ func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	})
 }
 
-func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VolumeID(state.ID)
 	if err != nil {
 		return nil, err
