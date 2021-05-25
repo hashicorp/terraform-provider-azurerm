@@ -5,20 +5,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
-	return &schema.Resource{
+func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSubscriptionPricingUpdate,
 		Read:   resourceSecurityCenterSubscriptionPricingRead,
 		Update: resourceSecurityCenterSubscriptionPricingUpdate,
@@ -29,11 +27,11 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -41,9 +39,9 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 			0: migration.SubscriptionPricingV0ToV1{},
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"tier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(security.PricingTierFree),
@@ -51,7 +49,7 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 				}, false),
 			},
 			"resource_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "VirtualMachines",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -71,7 +69,7 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 	}
 }
 
-func resourceSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -104,7 +102,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, met
 	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
 
-func resourceSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +131,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceSecurityCenterSubscriptionPricingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil // cannot be deleted.
 }
