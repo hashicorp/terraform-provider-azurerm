@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccManagementGroupDataSource_basicByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
 	r := ManagementGroupDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicByName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
@@ -31,10 +30,10 @@ func TestAccManagementGroupDataSource_basicByDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
 	r := ManagementGroupDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicByDisplayName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctest Management Group %d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
