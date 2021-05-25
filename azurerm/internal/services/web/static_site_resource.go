@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -74,6 +75,8 @@ func resourceStaticSite() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -110,6 +113,7 @@ func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope); err != nil {
@@ -178,7 +182,7 @@ func resourceStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("api_key", apiKey)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceStaticSiteDelete(d *schema.ResourceData, meta interface{}) error {

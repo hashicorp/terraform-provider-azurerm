@@ -29,6 +29,7 @@ func TestAccAzureStaticSite_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_host_name").Exists(),
 				check.That(data.ResourceName).Key("api_key").Exists(),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("acceptance"),
 			),
 		},
 		data.ImportStep(),
@@ -82,6 +83,10 @@ resource "azurerm_static_site" "test" {
   name                = "acctestSS-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "acceptance"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
