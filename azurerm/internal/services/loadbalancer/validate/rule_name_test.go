@@ -1,9 +1,8 @@
 package validate
 
 import (
+	"strings"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestRuleName_validation(t *testing.T) {
@@ -24,7 +23,7 @@ func TestRuleName_validation(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acceptance.RandStringFromCharSet(81, "abcdedfed"),
+			Value:    strings.Repeat("a", 81),
 			ErrCount: 1,
 		},
 		{
