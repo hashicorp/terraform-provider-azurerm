@@ -17,13 +17,13 @@ type DeleteResponse struct {
 
 // Delete ...
 func (c ConfigurationStoresClient) Delete(ctx context.Context, id ConfigurationStoreId) (result DeleteResponse, err error) {
-	req, err := c.DeletePreparer(ctx, id)
+	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = c.DeleteSender(ctx, req)
+	result, err = c.senderForDelete(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Delete", result.HttpResponse, "Failure sending request")
 		return
@@ -46,8 +46,8 @@ func (c ConfigurationStoresClient) DeleteThenPoll(ctx context.Context, id Config
 	return nil
 }
 
-// DeletePreparer prepares the Delete request.
-func (c ConfigurationStoresClient) DeletePreparer(ctx context.Context, id ConfigurationStoreId) (*http.Request, error) {
+// preparerForDelete prepares the Delete request.
+func (c ConfigurationStoresClient) preparerForDelete(ctx context.Context, id ConfigurationStoreId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -60,9 +60,9 @@ func (c ConfigurationStoresClient) DeletePreparer(ctx context.Context, id Config
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// DeleteSender sends the Delete request. The method will close the
+// senderForDelete sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (c ConfigurationStoresClient) DeleteSender(ctx context.Context, req *http.Request) (future DeleteResponse, err error) {
+func (c ConfigurationStoresClient) senderForDelete(ctx context.Context, req *http.Request) (future DeleteResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

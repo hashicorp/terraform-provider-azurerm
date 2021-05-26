@@ -17,13 +17,13 @@ type UpdateResponse struct {
 
 // Update ...
 func (c ConfigurationStoresClient) Update(ctx context.Context, id ConfigurationStoreId, input ConfigurationStoreUpdateParameters) (result UpdateResponse, err error) {
-	req, err := c.UpdatePreparer(ctx, id, input)
+	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = c.UpdateSender(ctx, req)
+	result, err = c.senderForUpdate(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Update", result.HttpResponse, "Failure sending request")
 		return
@@ -46,8 +46,8 @@ func (c ConfigurationStoresClient) UpdateThenPoll(ctx context.Context, id Config
 	return nil
 }
 
-// UpdatePreparer prepares the Update request.
-func (c ConfigurationStoresClient) UpdatePreparer(ctx context.Context, id ConfigurationStoreId, input ConfigurationStoreUpdateParameters) (*http.Request, error) {
+// preparerForUpdate prepares the Update request.
+func (c ConfigurationStoresClient) preparerForUpdate(ctx context.Context, id ConfigurationStoreId, input ConfigurationStoreUpdateParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -62,9 +62,9 @@ func (c ConfigurationStoresClient) UpdatePreparer(ctx context.Context, id Config
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// UpdateSender sends the Update request. The method will close the
+// senderForUpdate sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (c ConfigurationStoresClient) UpdateSender(ctx context.Context, req *http.Request) (future UpdateResponse, err error) {
+func (c ConfigurationStoresClient) senderForUpdate(ctx context.Context, req *http.Request) (future UpdateResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
