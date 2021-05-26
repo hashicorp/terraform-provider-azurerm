@@ -3,12 +3,10 @@ package streamanalytics
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
-
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {

@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 type ProximityPlacementGroupDataSource struct {
