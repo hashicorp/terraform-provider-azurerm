@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * refactor: switching to use an embedded SDK for `appconfiguration` [GH-11959]
 * provider: support for the Virtual Machine `skip_shutdown_and_force_delete` feature [GH-11216]
 * provider: support for the Virtual Machine Scale Set `force_delete` feature [GH-11216]
+* Data Source: `azurerm_key_vault_certificate_data` - support certificate bundles and add support for ECDSA keys [GH-11974]
 * `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties [GH-11825]
 * `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` [GH-11824]
 * `azurerm_static_site`: Add support for `tags` attribute [GH-11849]
