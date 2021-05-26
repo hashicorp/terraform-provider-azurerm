@@ -54,7 +54,7 @@ generate:
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
-	goimports -w $(PKG_NAME)/
+	find . -name '*.go' | grep -v vendor | xargs ./scripts/goimport-file.sh
 
 lint:
 	./scripts/run-lint.sh
