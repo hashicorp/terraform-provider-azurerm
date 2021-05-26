@@ -436,7 +436,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 							"delete_os_disk_on_deletion": false,
 							"graceful_shutdown":          true,
 							"force_delete":               false,
-							"shutdown_before_deletion":   false,
 						},
 					},
 				},
@@ -455,10 +454,9 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          false,
-							"force_delete":               true,
-							"shutdown_before_deletion":   false,
+							"delete_os_disk_on_deletion":     false,
+							"graceful_shutdown":              false,
+							"skip_shutdown_and_force_delete": true,
 						},
 					},
 				},
