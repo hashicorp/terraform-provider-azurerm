@@ -41,3 +41,5 @@ linters-settings:
     ignore-words:
       - hdinsight
       - exportfs
+  nakedret:
+    max-func-lines: 40
