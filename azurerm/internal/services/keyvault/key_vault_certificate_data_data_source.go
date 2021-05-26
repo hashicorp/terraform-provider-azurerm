@@ -2,6 +2,7 @@ package keyvault
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
@@ -145,21 +146,62 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving certificate %q from keyvault: %+v", id.Name, err)
 	}
 
-	pfxBytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
-	if err != nil {
-		return fmt.Errorf("decoding base64 certificate (%q): %+v", id.Name, err)
+	var PEMBLocks []*pem.Block
+
+	if *pfx.ContentType == "application/x-pkcs12" {
+		bytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
+		if err != nil {
+			return fmt.Errorf("decoding base64 certificate (%q): %+v", id.Name, err)
+		}
+
+		// note PFX passwords are set to an empty string in Key Vault, this include password protected PFX uploads.
+		blocks, err := pkcs12.ToPEM(bytes, "")
+		if err != nil {
+			return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
+		}
+		PEMBLocks = blocks
+	} else {
+		block, rest := pem.Decode([]byte(*pfx.Value))
+		if block == nil {
+			return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
+		}
+		PEMBLocks = append(PEMBLocks, block)
+		for len(rest) > 0 {
+			block, rest = pem.Decode(rest)
+			PEMBLocks = append(PEMBLocks, block)
+		}
 	}
 
-	// note PFX passwords are set to an empty string in Key Vault, this include password protected PFX uploads.
-	pfxKey, pfxCert, err := pkcs12.Decode(pfxBytes, "")
-	if err != nil {
-		return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
+	var pemKey []byte
+	var pemCerts [][]byte
+
+	for _, block := range PEMBLocks {
+		if strings.Contains(block.Type, "PRIVATE KEY") {
+			pemKey = block.Bytes
+		}
+
+		if strings.Contains(block.Type, "CERTIFICATE") {
+			log.Printf("[DEBUG] Adding Cerrtificate block")
+			pemCerts = append(pemCerts, block.Bytes)
+		}
 	}
 
-	keyX509, err := x509.MarshalPKCS8PrivateKey(pfxKey)
-	if err != nil {
-		return fmt.Errorf("reading key from certificate (%q): %+v", id.Name, err)
+	var rsaPrivateKey *rsa.PrivateKey
+
+	if *pfx.ContentType == "application/x-pkcs12" {
+		privateKey, err := x509.ParsePKCS1PrivateKey(pemKey)
+		if err != nil {
+			return fmt.Errorf("decoding PKCS8 RSA private key (%q): %+v", id.Name, err)
+		}
+		rsaPrivateKey = privateKey
+	} else {
+		privateKey, err := x509.ParsePKCS8PrivateKey(pemKey)
+		if err != nil {
+			return fmt.Errorf("decoding PKCS1 RSA private key (%q): %+v", id.Name, err)
+		}
+		rsaPrivateKey = privateKey.(*rsa.PrivateKey)
 	}
+	keyX509 := x509.MarshalPKCS1PrivateKey(rsaPrivateKey)
 
 	// Encode Key and PEM
 	keyBlock := &pem.Block{
@@ -173,18 +215,23 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("encoding Key Vault Certificate Key: %+v", err)
 	}
 
-	certBlock := &pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: pfxCert.Raw,
+	certs := ""
+
+	for _, pemCert := range pemCerts {
+		certBlock := &pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: pemCert,
+		}
+
+		var certPEM bytes.Buffer
+		err = pem.Encode(&certPEM, certBlock)
+		if err != nil {
+			return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
+		}
+		certs += certPEM.String()
 	}
 
-	var certPEM bytes.Buffer
-	err = pem.Encode(&certPEM, certBlock)
-	if err != nil {
-		return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
-	}
-
-	d.Set("pem", certPEM.String())
+	d.Set("pem", certs)
 	d.Set("key", keyPEM.String())
 
 	return tags.FlattenAndSet(d, cert.Tags)
