@@ -5,12 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,12 +14,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCosmosDbSQLContainer() *schema.Resource {
-	return &schema.Resource{
+func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceCosmosDbSQLContainerCreate,
 		Read:   resourceCosmosDbSQLContainerRead,
 		Update: resourceCosmosDbSQLContainerUpdate,
@@ -37,16 +35,16 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 			0: migration.SqlContainerV0ToV1{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
@@ -55,28 +53,28 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
 			"partition_key_path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"partition_key_version": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 2),
@@ -85,7 +83,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 			"conflict_resolution_policy": common.ConflictResolutionPolicy(),
 
 			"throughput": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
@@ -94,30 +92,30 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"analytical_storage_ttl": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"default_ttl": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"unique_key": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"paths": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -129,7 +127,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 	}
 }
 
-func resourceCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +179,7 @@ func resourceCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
+	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
 		db.SQLContainerCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
@@ -228,7 +226,7 @@ func resourceCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}
 	return resourceCosmosDbSQLContainerRead(d, meta)
 }
 
-func resourceCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +270,7 @@ func resourceCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
+	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
 		db.SQLContainerCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
@@ -313,7 +311,7 @@ func resourceCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interface{}
 	return resourceCosmosDbSQLContainerRead(d, meta)
 }
 
-func resourceCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -406,7 +404,7 @@ func resourceCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -431,7 +429,7 @@ func resourceCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandCosmosSQLContainerUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
+func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]documentdb.UniqueKey {
 	i := s.List()
 	if len(i) == 0 || i[0] == nil {
 		return nil
@@ -441,7 +439,7 @@ func expandCosmosSQLContainerUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
 	for _, k := range i {
 		key := k.(map[string]interface{})
 
-		paths := key["paths"].(*schema.Set).List()
+		paths := key["paths"].(*pluginsdk.Set).List()
 		if len(paths) == 0 {
 			continue
 		}
