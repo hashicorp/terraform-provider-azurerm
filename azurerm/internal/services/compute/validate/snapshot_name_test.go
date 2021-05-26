@@ -6,7 +6,7 @@ import (
 )
 
 func TestSnapshotName_validation(t *testing.T) {
-	str := strings.Repeat("a",80)
+	str := strings.Repeat("a", 80)
 	cases := []struct {
 		Value    string
 		ErrCount int
