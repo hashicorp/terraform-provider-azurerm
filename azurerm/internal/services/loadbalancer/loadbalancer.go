@@ -1,6 +1,8 @@
 package loadbalancer
 
 import (
+	"context"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
@@ -108,15 +110,16 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 }
 
 func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalancerId, error)) *schema.ResourceImporter {
-	return &schema.ResourceImporter{
-		State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-			lbId, err := parser(d.Id())
-			if err != nil {
-				return nil, err
-			}
+	return pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+		_, err := parser(id)
+		return err
+	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		lbId, err := parser(d.Id())
+		if err != nil {
+			return nil, err
+		}
 
-			d.Set("loadbalancer_id", lbId.ID())
-			return []*pluginsdk.ResourceData{d}, nil
-		},
-	}
+		d.Set("loadbalancer_id", lbId.ID())
+		return []*pluginsdk.ResourceData{d}, nil
+	})
 }
