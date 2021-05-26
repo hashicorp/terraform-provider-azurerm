@@ -1,9 +1,8 @@
 package validate
 
 import (
+	"strings"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestSharedImageGalleryName(t *testing.T) {
@@ -40,11 +39,11 @@ func TestSharedImageGalleryName(t *testing.T) {
 			ShouldError: true,
 		},
 		{
-			Input:       acceptance.RandString(79),
+			Input:       strings.Repeat("a",79),
 			ShouldError: false,
 		},
 		{
-			Input:       acceptance.RandString(80),
+			Input:       strings.Repeat("a",80),
 			ShouldError: true,
 		},
 	}
@@ -99,11 +98,11 @@ func TestSharedImageName(t *testing.T) {
 			ShouldError: false,
 		},
 		{
-			Input:       acceptance.RandString(79),
+			Input:       strings.Repeat("a",79),
 			ShouldError: false,
 		},
 		{
-			Input:       acceptance.RandString(80),
+			Input:       strings.Repeat("a",80),
 			ShouldError: true,
 		},
 	}
