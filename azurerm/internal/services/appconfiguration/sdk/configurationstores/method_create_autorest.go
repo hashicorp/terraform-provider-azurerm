@@ -17,13 +17,13 @@ type CreateResponse struct {
 
 // Create ...
 func (c ConfigurationStoresClient) Create(ctx context.Context, id ConfigurationStoreId, input ConfigurationStore) (result CreateResponse, err error) {
-	req, err := c.CreatePreparer(ctx, id, input)
+	req, err := c.preparerForCreate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = c.CreateSender(ctx, req)
+	result, err = c.senderForCreate(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Create", result.HttpResponse, "Failure sending request")
 		return
@@ -46,8 +46,8 @@ func (c ConfigurationStoresClient) CreateThenPoll(ctx context.Context, id Config
 	return nil
 }
 
-// CreatePreparer prepares the Create request.
-func (c ConfigurationStoresClient) CreatePreparer(ctx context.Context, id ConfigurationStoreId, input ConfigurationStore) (*http.Request, error) {
+// preparerForCreate prepares the Create request.
+func (c ConfigurationStoresClient) preparerForCreate(ctx context.Context, id ConfigurationStoreId, input ConfigurationStore) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -62,9 +62,9 @@ func (c ConfigurationStoresClient) CreatePreparer(ctx context.Context, id Config
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// CreateSender sends the Create request. The method will close the
+// senderForCreate sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (c ConfigurationStoresClient) CreateSender(ctx context.Context, req *http.Request) (future CreateResponse, err error) {
+func (c ConfigurationStoresClient) senderForCreate(ctx context.Context, req *http.Request) (future CreateResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

@@ -15,7 +15,7 @@ type GetResponse struct {
 
 // Get ...
 func (c ConfigurationStoresClient) Get(ctx context.Context, id ConfigurationStoreId) (result GetResponse, err error) {
-	req, err := c.GetPreparer(ctx, id)
+	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Get", nil, "Failure preparing request")
 		return
@@ -27,7 +27,7 @@ func (c ConfigurationStoresClient) Get(ctx context.Context, id ConfigurationStor
 		return
 	}
 
-	result, err = c.GetResponder(result.HttpResponse)
+	result, err = c.responderForGet(result.HttpResponse)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "Get", result.HttpResponse, "Failure responding to request")
 		return
@@ -36,8 +36,8 @@ func (c ConfigurationStoresClient) Get(ctx context.Context, id ConfigurationStor
 	return
 }
 
-// GetPreparer prepares the Get request.
-func (c ConfigurationStoresClient) GetPreparer(ctx context.Context, id ConfigurationStoreId) (*http.Request, error) {
+// preparerForGet prepares the Get request.
+func (c ConfigurationStoresClient) preparerForGet(ctx context.Context, id ConfigurationStoreId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -51,9 +51,9 @@ func (c ConfigurationStoresClient) GetPreparer(ctx context.Context, id Configura
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetResponder handles the response to the Get request. The method always
+// responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c ConfigurationStoresClient) GetResponder(resp *http.Response) (result GetResponse, err error) {
+func (c ConfigurationStoresClient) responderForGet(resp *http.Response) (result GetResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

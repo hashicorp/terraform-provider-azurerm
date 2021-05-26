@@ -49,7 +49,7 @@ func (p AccessKeyPredicate) Matches(input AccessKey) bool {
 
 // ListKeys ...
 func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id ConfigurationStoreId) (resp ListKeysResponse, err error) {
-	req, err := c.ListKeysPreparer(ctx, id)
+	req, err := c.preparerForListKeys(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "ListKeys", nil, "Failure preparing request")
 		return
@@ -61,7 +61,7 @@ func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id Configuratio
 		return
 	}
 
-	resp, err = c.ListKeysResponder(resp.HttpResponse)
+	resp, err = c.responderForListKeys(resp.HttpResponse)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "ListKeys", resp.HttpResponse, "Failure responding to request")
 		return
@@ -113,8 +113,8 @@ func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context
 	return out, nil
 }
 
-// ListKeysPreparer prepares the ListKeys request.
-func (c ConfigurationStoresClient) ListKeysPreparer(ctx context.Context, id ConfigurationStoreId) (*http.Request, error) {
+// preparerForListKeys prepares the ListKeys request.
+func (c ConfigurationStoresClient) preparerForListKeys(ctx context.Context, id ConfigurationStoreId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -128,8 +128,8 @@ func (c ConfigurationStoresClient) ListKeysPreparer(ctx context.Context, id Conf
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListKeysPreparerWithNextLink prepares the ListKeys request with the given nextLink token.
-func (c ConfigurationStoresClient) ListKeysPreparerWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+// preparerForListKeysWithNextLink prepares the ListKeys request with the given nextLink token.
+func (c ConfigurationStoresClient) preparerForListKeysWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -153,9 +153,9 @@ func (c ConfigurationStoresClient) ListKeysPreparerWithNextLink(ctx context.Cont
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListKeysResponder handles the response to the ListKeys request. The method always
+// responderForListKeys handles the response to the ListKeys request. The method always
 // closes the http.Response Body.
-func (c ConfigurationStoresClient) ListKeysResponder(resp *http.Response) (result ListKeysResponse, err error) {
+func (c ConfigurationStoresClient) responderForListKeys(resp *http.Response) (result ListKeysResponse, err error) {
 	type page struct {
 		Values   []AccessKey `json:"value"`
 		NextLink *string     `json:"nextLink"`
@@ -171,7 +171,7 @@ func (c ConfigurationStoresClient) ListKeysResponder(resp *http.Response) (resul
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListKeysResponse, err error) {
-			req, err := c.ListKeysPreparerWithNextLink(ctx, nextLink)
+			req, err := c.preparerForListKeysWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "ListKeys", nil, "Failure preparing request")
 				return
@@ -183,7 +183,7 @@ func (c ConfigurationStoresClient) ListKeysResponder(resp *http.Response) (resul
 				return
 			}
 
-			result, err = c.ListKeysResponder(result.HttpResponse)
+			result, err = c.responderForListKeys(result.HttpResponse)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "configurationstores.ConfigurationStoresClient", "ListKeys", result.HttpResponse, "Failure responding to request")
 				return
