@@ -12,8 +12,9 @@ ENHANCEMENTS:
 * `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties [GH-11825]
 * `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` [GH-11824]
 * `azurerm_static_site`: Add support for `tags` attribute [GH-11849]
-*  `azurerm_storage_account`: `private_link_access` supports more values [GH-11957]
-*  `azurerm_storage_account_network_rules`: `private_link_access` supports more values [GH-11957]
+* `azurerm_storage_account`: `private_link_access` supports more values [GH-11957]
+* `azurerm_storage_account_network_rules`: `private_link_access` supports more values [GH-11957]
+* `azurerm_synapse_spark_pool` - `spark_version` now supports `3.0` [GH-11972]
 
 BUG FIXES:
 
