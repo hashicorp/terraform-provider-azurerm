@@ -31,6 +31,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
