@@ -74,6 +74,11 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"certificates_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -147,7 +152,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving certificate %q from keyvault: %+v", id.Name, err)
 	}
 
-	var PEMBLocks []*pem.Block
+	var PEMBlocks []*pem.Block
 
 	if *pfx.ContentType == "application/x-pkcs12" {
 		bytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
@@ -160,23 +165,23 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		if err != nil {
 			return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
 		}
-		PEMBLocks = blocks
+		PEMBlocks = blocks
 	} else {
 		block, rest := pem.Decode([]byte(*pfx.Value))
 		if block == nil {
 			return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
 		}
-		PEMBLocks = append(PEMBLocks, block)
+		PEMBlocks = append(PEMBlocks, block)
 		for len(rest) > 0 {
 			block, rest = pem.Decode(rest)
-			PEMBLocks = append(PEMBLocks, block)
+			PEMBlocks = append(PEMBlocks, block)
 		}
 	}
 
 	var pemKey []byte
 	var pemCerts [][]byte
 
-	for _, block := range PEMBLocks {
+	for _, block := range PEMBlocks {
 		if strings.Contains(block.Type, "PRIVATE KEY") {
 			pemKey = block.Bytes
 		}
@@ -254,6 +259,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 
 	d.Set("pem", certs)
 	d.Set("key", keyPEM.String())
+	d.Set("certificates_count", len(pemCerts))
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }
