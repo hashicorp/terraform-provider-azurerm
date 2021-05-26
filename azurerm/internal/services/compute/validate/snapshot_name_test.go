@@ -3,11 +3,11 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestSnapshotName_validation(t *testing.T) {
-	str := acctest.RandString(80)
+	str := acceptance.RandString(80)
 	cases := []struct {
 		Value    string
 		ErrCount int

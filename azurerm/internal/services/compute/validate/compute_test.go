@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestSharedImageGalleryName(t *testing.T) {
@@ -40,11 +40,11 @@ func TestSharedImageGalleryName(t *testing.T) {
 			ShouldError: true,
 		},
 		{
-			Input:       acctest.RandString(79),
+			Input:       acceptance.RandString(79),
 			ShouldError: false,
 		},
 		{
-			Input:       acctest.RandString(80),
+			Input:       acceptance.RandString(80),
 			ShouldError: true,
 		},
 	}
@@ -99,11 +99,11 @@ func TestSharedImageName(t *testing.T) {
 			ShouldError: false,
 		},
 		{
-			Input:       acctest.RandString(79),
+			Input:       acceptance.RandString(79),
 			ShouldError: false,
 		},
 		{
-			Input:       acctest.RandString(80),
+			Input:       acceptance.RandString(80),
 			ShouldError: true,
 		},
 	}
