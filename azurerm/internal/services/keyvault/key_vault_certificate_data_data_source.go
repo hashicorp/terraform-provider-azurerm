@@ -2,6 +2,7 @@ package keyvault
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -186,22 +187,39 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	var rsaPrivateKey *rsa.PrivateKey
+	var privateKey interface{}
 
 	if *pfx.ContentType == "application/x-pkcs12" {
-		privateKey, err := x509.ParsePKCS1PrivateKey(pemKey)
+		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)
+		if err != nil {
+			// try to parse as a EC key
+			eckey, err := x509.ParseECPrivateKey(pemKey)
+			if err != nil {
+				return fmt.Errorf("decoding private key: not RSA or ECDSA type (%q): %+v", id.Name, err)
+			}
+			privateKey = eckey
+		} else {
+			privateKey = rsakey
+		}
+	} else {
+		pkey, err := x509.ParsePKCS8PrivateKey(pemKey)
 		if err != nil {
 			return fmt.Errorf("decoding PKCS8 RSA private key (%q): %+v", id.Name, err)
 		}
-		rsaPrivateKey = privateKey
-	} else {
-		privateKey, err := x509.ParsePKCS8PrivateKey(pemKey)
-		if err != nil {
-			return fmt.Errorf("decoding PKCS1 RSA private key (%q): %+v", id.Name, err)
-		}
-		rsaPrivateKey = privateKey.(*rsa.PrivateKey)
+		privateKey = pkey
 	}
-	keyX509 := x509.MarshalPKCS1PrivateKey(rsaPrivateKey)
+
+	var keyX509 []byte
+	if privateKey != nil {
+		switch v := privateKey.(type) {
+		case *ecdsa.PrivateKey:
+			keyX509, err = x509.MarshalECPrivateKey(privateKey.(*ecdsa.PrivateKey))
+		case *rsa.PrivateKey:
+			keyX509 = x509.MarshalPKCS1PrivateKey(privateKey.(*rsa.PrivateKey))
+		default:
+			return fmt.Errorf("decoding private key type %+v (%q): %+v", v, id.Name, err)
+		}
+	}
 
 	// Encode Key and PEM
 	keyBlock := &pem.Block{
