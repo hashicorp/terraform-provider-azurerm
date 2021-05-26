@@ -6,12 +6,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/namespaces"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -453,17 +454,17 @@ func TestAccEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing
 }
 
 func (EventHubNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceID(state.ID)
+	id, err := namespaces.NamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Eventhub.NamespacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.EHNamespaceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubNamespaceResource) basic(data acceptance.TestData) string {

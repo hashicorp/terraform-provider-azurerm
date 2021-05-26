@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -172,21 +173,17 @@ func TestAccEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
 }
 
 func (EventHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := eventhubs.AuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["authorizationRules"]
-	namespaceName := id.Path["namespaces"]
-	eventHubName := id.Path["eventhubs"]
-
-	resp, err := clients.Eventhub.EventHubsClient.GetAuthorizationRule(ctx, id.ResourceGroup, namespaceName, eventHubName, name)
+	resp, err := clients.Eventhub.EventHubsClient.GetAuthorizationRule(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Event Hub Authorization Rule %q (eventhub %s / namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AuthorizationRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {
