@@ -266,6 +266,9 @@ github.com/hashicorp/errwrap
 # github.com/hashicorp/go-azure-helpers v0.16.2
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
+github.com/hashicorp/go-azure-helpers/formatting
+github.com/hashicorp/go-azure-helpers/polling
+github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/response
 github.com/hashicorp/go-azure-helpers/sender
