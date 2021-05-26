@@ -155,7 +155,7 @@ func resourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.NamespaceName)
+	localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
 	keysResp, err := authorizationRulesClient.EventHubsListKeys(ctx, localId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
