@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceEventHub() *schema.Resource {
@@ -48,31 +50,29 @@ func dataSourceEventHub() *schema.Resource {
 
 func dataSourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: EventHub %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("Error making Read request on EventHub %q (Resource Group %q / Namespace Name %q): %+v", name, resourceGroup, namespaceName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.Properties; props != nil {
-		d.Set("partition_count", props.PartitionCount)
-		d.Set("partition_ids", props.PartitionIds)
+	if model := resp.Model; model != nil && model.Properties != nil {
+		d.Set("partition_count", model.Properties.PartitionCount)
+		d.Set("partition_ids", model.Properties.PartitionIds)
 	}
 
 	return nil

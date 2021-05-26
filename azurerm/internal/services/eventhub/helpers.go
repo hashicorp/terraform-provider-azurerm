@@ -5,41 +5,40 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 // schema
-func expandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
-	rights := make([]eventhub.AccessRights, 0)
+func expandEventHubAuthorizationRuleRights(d *schema.ResourceData) []string {
+	rights := make([]string, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, eventhub.Listen)
+		rights = append(rights, "Listen")
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, eventhub.SendEnumValue)
+		rights = append(rights, "Send")
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, eventhub.Manage)
+		rights = append(rights, "Manage")
 	}
 
-	return &rights
+	return rights
 }
 
-func flattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
+func flattenEventHubAuthorizationRuleRights(rights []string) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
-		for _, right := range *rights {
+		for _, right := range rights {
 			switch right {
-			case eventhub.Listen:
+			case "Listen":
 				listen = true
-			case eventhub.SendEnumValue:
+			case "Send":
 				send = true
-			case eventhub.Manage:
+			case "Manage":
 				manage = true
 			default:
 				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)

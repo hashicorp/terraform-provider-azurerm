@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/consumergroups"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -88,17 +89,17 @@ func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 }
 
 func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.EventHubConsumerGroupID(state.ID)
+	id, err := consumergroups.ConsumergroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.ConsumerGroupClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.ConsumergroupName)
+	resp, err := clients.Eventhub.ConsumerGroupClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ConsumerGroupProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubConsumerGroupResource) basic(data acceptance.TestData) string {

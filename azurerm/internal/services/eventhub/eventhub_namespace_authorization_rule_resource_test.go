@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -172,17 +173,17 @@ func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 }
 
 func (EventHubNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceAuthorizationRuleID(state.ID)
+	id, err := authorizationrulesnamespaces.AuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.NamespacesClient.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
+	resp, err := clients.Eventhub.NamespaceAuthorizationRulesClient.NamespacesGetAuthorizationRule(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.AuthorizationRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubNamespaceAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {
