@@ -29,8 +29,6 @@ func resourceFrontDoorCustomHttpsConfiguration() *pluginsdk.Resource {
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-			defer cancel()
 
 			// validate that the passed ID is a valid custom HTTPS configuration ID
 			custom, err := parse.CustomHttpsConfigurationID(d.Id())
