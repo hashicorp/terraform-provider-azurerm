@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -24,13 +23,11 @@ import (
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultKeyCreate,
-		Read:   resourceKeyVaultKeyRead,
-		Update: resourceKeyVaultKeyUpdate,
-		Delete: resourceKeyVaultKeyDelete,
-		Importer: &schema.ResourceImporter{
-			State: nestedItemResourceImporter,
-		},
+		Create:   resourceKeyVaultKeyCreate,
+		Read:     resourceKeyVaultKeyRead,
+		Update:   resourceKeyVaultKeyUpdate,
+		Delete:   resourceKeyVaultKeyDelete,
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

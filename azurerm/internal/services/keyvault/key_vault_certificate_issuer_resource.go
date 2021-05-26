@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -23,9 +22,10 @@ func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 		Update: resourceKeyVaultCertificateIssuerCreateOrUpdate,
 		Read:   resourceKeyVaultCertificateIssuerRead,
 		Delete: resourceKeyVaultCertificateIssuerDelete,
-		Importer: &schema.ResourceImporter{
-			State: nestedItemResourceImporter,
-		},
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

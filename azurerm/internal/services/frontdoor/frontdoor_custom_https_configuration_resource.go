@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
@@ -25,33 +24,32 @@ func resourceFrontDoorCustomHttpsConfiguration() *pluginsdk.Resource {
 		Update: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
 		Delete: resourceFrontDoorCustomHttpsConfigurationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-				defer cancel()
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.CustomHttpsConfigurationID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 
-				// validate that the passed ID is a valid custom HTTPS configuration ID
-				custom, err := parse.CustomHttpsConfigurationID(d.Id())
-				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Custom HTTPS Configuration ID %q for import: %v", d.Id(), err)
-				}
+			// validate that the passed ID is a valid custom HTTPS configuration ID
+			custom, err := parse.CustomHttpsConfigurationID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Custom HTTPS Configuration ID %q for import: %v", d.Id(), err)
+			}
 
-				// convert the passed custom HTTPS configuration ID to a frontend endpoint ID
-				frontend := parse.NewFrontendEndpointID(custom.SubscriptionId, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName)
+			// convert the passed custom HTTPS configuration ID to a frontend endpoint ID
+			frontend := parse.NewFrontendEndpointID(custom.SubscriptionId, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName)
 
-				// validate that the frontend endpoint ID exists in the Frontdoor resource
-				if _, err = client.Get(ctx, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName); err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving the Custom HTTPS Configuration(ID: %q) for the frontend endpoint (ID: %q): %s", custom.ID(), frontend.ID(), err)
-				}
+			// validate that the frontend endpoint ID exists in the Frontdoor resource
+			if _, err = client.Get(ctx, custom.ResourceGroup, custom.FrontDoorName, custom.CustomHttpsConfigurationName); err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving the Custom HTTPS Configuration(ID: %q) for the frontend endpoint (ID: %q): %s", custom.ID(), frontend.ID(), err)
+			}
 
-				// set the new values for the custom HTTPS configuration resource
-				d.Set("id", custom.ID())
-				d.Set("frontend_endpoint_id", frontend.ID())
+			// set the new values for the custom HTTPS configuration resource
+			d.Set("id", custom.ID())
+			d.Set("frontend_endpoint_id", frontend.ID())
 
-				return []*pluginsdk.ResourceData{d}, nil
-			},
-		},
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(6 * time.Hour),
