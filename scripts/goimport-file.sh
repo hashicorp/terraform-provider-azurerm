@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# remove blank lines in goimports then run goimports
+# remove blank lines in go imports then run goimports
 
 if [ $# != 1 ] ; then
   echo "usage: $0 <filename>"
