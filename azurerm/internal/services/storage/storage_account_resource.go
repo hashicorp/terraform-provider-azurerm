@@ -940,6 +940,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 			}
 
+			if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
+			}
+
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
@@ -1282,6 +1286,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
 					Enable: utils.Bool(lastAccessTimeTracking),
 				}
+			}
+
+			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
@@ -1835,9 +1843,7 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
-	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw, true)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -1854,21 +1860,24 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	return &props
 }
 
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
-	deleteRetentionPolicy := storage.DeleteRetentionPolicy{
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}, isupdate bool) *storage.DeleteRetentionPolicy {
+	result := storage.DeleteRetentionPolicy{
 		Enabled: utils.Bool(false),
 	}
+	if (len(input) == 0 || input[0] == nil) && !isupdate {
+		return nil
+	}
 
-	if len(input) == 0 {
-		return &deleteRetentionPolicy
+	if (len(input) == 0 || input[0] == nil) && isupdate {
+		return &result
 	}
 
 	policy := input[0].(map[string]interface{})
-	days := policy["days"].(int)
-	deleteRetentionPolicy.Enabled = utils.Bool(true)
-	deleteRetentionPolicy.Days = utils.Int32(int32(days))
 
-	return &deleteRetentionPolicy
+	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
 }
 
 func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
