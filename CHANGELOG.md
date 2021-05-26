@@ -9,6 +9,8 @@ ENHANCEMENTS:
 * dependencies: updating to `v54.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11813]
 * dependencies: updating `mixedreality` to use API Version `2021-01-01` [GH-11824]
 * refactor: switching to use an embedded SDK for `appconfiguration` [GH-11959]
+* provider: support for the Virtual Machine `skip_shutdown_and_force_delete` feature [GH-11216]
+* provider: support for the Virtual Machine Scale Set `force_delete` feature [GH-11216]
 * `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties [GH-11825]
 * `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` [GH-11824]
 * `azurerm_static_site`: Add support for `tags` attribute [GH-11849]
