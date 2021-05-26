@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -84,6 +85,10 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+					"skip_shutdown_and_force_delete": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -94,6 +99,10 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"force_delete": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 					"roll_instances_when_required": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
@@ -189,6 +198,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
 				features.VirtualMachine.GracefulShutdown = v.(bool)
 			}
+			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
+				features.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
+			}
 		}
 	}
 
@@ -198,6 +210,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
+			}
+			if v, ok := scaleSetRaw["force_delete"]; ok {
+				features.VirtualMachineScaleSet.ForceDelete = v.(bool)
 			}
 		}
 	}

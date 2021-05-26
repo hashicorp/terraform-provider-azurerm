@@ -1102,10 +1102,13 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta inte
 	}
 
 	log.Printf("[DEBUG] Deleting Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	// @ArcturusZhang (mimicking from linux_virtual_machine_resource.go): sending `nil` here omits this value from being sent
-	// which matches the previous behaviour - we're only splitting this out so it's clear why
-	// TODO: support force deletion once it's out of Preview, if applicable
+	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
+	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
+	// conditionally set this if required
 	var forceDeletion *bool = nil
+	if meta.(*clients.Client).Features.VirtualMachineScaleSet.ForceDelete {
+		forceDeletion = utils.Bool(true)
+	}
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)

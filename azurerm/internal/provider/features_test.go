@@ -22,6 +22,9 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
 				},
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: false,
+				},
 				Network: features.NetworkFeatures{
 					RelaxedLocking: false,
 				},
@@ -29,13 +32,13 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: true,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion: true,
+					DeleteOSDiskOnDeletion:     true,
+					GracefulShutdown:           false,
+					SkipShutdownAndForceDelete: false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
-				},
-				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},
@@ -66,13 +69,15 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": true,
-							"graceful_shutdown":          true,
+							"delete_os_disk_on_deletion":     true,
+							"graceful_shutdown":              true,
+							"skip_shutdown_and_force_delete": true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
 							"roll_instances_when_required": true,
+							"force_delete":                 true,
 						},
 					},
 				},
@@ -92,11 +97,13 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: true,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion: true,
-					GracefulShutdown:       true,
+					DeleteOSDiskOnDeletion:     true,
+					GracefulShutdown:           true,
+					SkipShutdownAndForceDelete: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
+					ForceDelete:               true,
 				},
 			},
 		},
@@ -104,10 +111,15 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"virtual_machine": []interface{}{
+					"key_vault": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          false,
+							"purge_soft_delete_on_destroy":    false,
+							"recover_soft_deleted_key_vaults": false,
+						},
+					},
+					"log_analytics_workspace": []interface{}{
+						map[string]interface{}{
+							"permanently_delete_on_destroy": false,
 						},
 					},
 					"network_locking": []interface{}{
@@ -120,20 +132,17 @@ func TestExpandFeatures(t *testing.T) {
 							"delete_nested_items_during_deletion": false,
 						},
 					},
+					"virtual_machine": []interface{}{
+						map[string]interface{}{
+							"delete_os_disk_on_deletion":     false,
+							"graceful_shutdown":              false,
+							"skip_shutdown_and_force_delete": false,
+						},
+					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
+							"force_delete":                 false,
 							"roll_instances_when_required": false,
-						},
-					},
-					"key_vault": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy":    false,
-							"recover_soft_deleted_key_vaults": false,
-						},
-					},
-					"log_analytics_workspace": []interface{}{
-						map[string]interface{}{
-							"permanently_delete_on_destroy": false,
 						},
 					},
 				},
@@ -153,10 +162,12 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: false,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion: false,
-					GracefulShutdown:       false,
+					DeleteOSDiskOnDeletion:     false,
+					GracefulShutdown:           false,
+					SkipShutdownAndForceDelete: false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 				},
 			},
@@ -388,46 +399,94 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion: true,
-					GracefulShutdown:       false,
+					DeleteOSDiskOnDeletion:     true,
+					GracefulShutdown:           false,
+					SkipShutdownAndForceDelete: false,
 				},
 			},
 		},
 		{
-			Name: "Delete OS Disk and Graceful Shutdown Enabled",
+			Name: "Delete OS Disk Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": true,
-							"graceful_shutdown":          true,
+							"graceful_shutdown":          false,
+							"force_delete":               false,
+							"shutdown_before_deletion":   false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion: true,
-					GracefulShutdown:       true,
+					DeleteOSDiskOnDeletion:     true,
+					GracefulShutdown:           false,
+					SkipShutdownAndForceDelete: false,
 				},
 			},
 		},
 		{
-			Name: "Delete OS Disk and Graceful Shutdown Disabled",
+			Name: "Graceful Shutdown Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          false,
+							"graceful_shutdown":          true,
+							"force_delete":               false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion: false,
-					GracefulShutdown:       false,
+					DeleteOSDiskOnDeletion:     false,
+					GracefulShutdown:           true,
+					SkipShutdownAndForceDelete: false,
+				},
+			},
+		},
+		{
+			Name: "Skip Shutdown and Force Delete Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine": []interface{}{
+						map[string]interface{}{
+							"delete_os_disk_on_deletion":     false,
+							"graceful_shutdown":              false,
+							"skip_shutdown_and_force_delete": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachine: features.VirtualMachineFeatures{
+					DeleteOSDiskOnDeletion:     false,
+					GracefulShutdown:           false,
+					SkipShutdownAndForceDelete: true,
+				},
+			},
+		},
+		{
+			Name: "All Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine": []interface{}{
+						map[string]interface{}{
+							"delete_os_disk_on_deletion":     false,
+							"graceful_shutdown":              false,
+							"skip_shutdown_and_force_delete": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachine: features.VirtualMachineFeatures{
+					DeleteOSDiskOnDeletion:     false,
+					GracefulShutdown:           false,
+					SkipShutdownAndForceDelete: false,
 				},
 			},
 		},
@@ -463,28 +522,12 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 		},
 		{
-			Name: "Roll Instances Enabled",
+			Name: "Force Delete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"roll_instances_when_required": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					RollInstancesWhenRequired: true,
-				},
-			},
-		},
-		{
-			Name: "Roll Instances Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+							"force_delete":                 true,
 							"roll_instances_when_required": false,
 						},
 					},
@@ -492,6 +535,45 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               true,
+					RollInstancesWhenRequired: false,
+				},
+			},
+		},
+		{
+			Name: "Roll Instances Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine_scale_set": []interface{}{
+						map[string]interface{}{
+							"force_delete":                 false,
+							"roll_instances_when_required": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               false,
+					RollInstancesWhenRequired: true,
+				},
+			},
+		},
+		{
+			Name: "All Fields Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine_scale_set": []interface{}{
+						map[string]interface{}{
+							"force_delete":                 false,
+							"roll_instances_when_required": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 				},
 			},
