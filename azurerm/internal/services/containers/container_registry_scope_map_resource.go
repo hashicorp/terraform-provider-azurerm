@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -20,13 +22,11 @@ import (
 
 func resourceContainerRegistryScopeMap() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceContainerRegistryScopeMapCreate,
-		Read:   resourceContainerRegistryScopeMapRead,
-		Update: resourceContainerRegistryScopeMapUpdate,
-		Delete: resourceContainerRegistryScopeMapDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create:   resourceContainerRegistryScopeMapCreate,
+		Read:     resourceContainerRegistryScopeMapRead,
+		Update:   resourceContainerRegistryScopeMapUpdate,
+		Delete:   resourceContainerRegistryScopeMapDelete,
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

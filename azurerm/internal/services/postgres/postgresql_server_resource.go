@@ -11,7 +11,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -60,36 +59,35 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 		Update: resourcePostgreSQLServerUpdate,
 		Delete: resourcePostgreSQLServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				client := meta.(*clients.Client).Postgres.ServersClient
-				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-				defer cancel()
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Postgres.ServersClient
 
-				id, err := parse.ServerID(d.Id())
+			id, err := parse.ServerID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("reading PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			d.Set("create_mode", "Default")
+			if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
+				d.Set("create_mode", resp.ReplicationRole)
+
+				masterServerId, err := parse.ServerID(*resp.MasterServerID)
 				if err != nil {
-					return []*pluginsdk.ResourceData{d}, err
+					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
 				}
+				d.Set("creation_source_server_id", masterServerId.ID())
+			}
 
-				resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("reading PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-
-				d.Set("create_mode", "Default")
-				if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
-					d.Set("create_mode", resp.ReplicationRole)
-
-					masterServerId, err := parse.ServerID(*resp.MasterServerID)
-					if err != nil {
-						return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
-					}
-					d.Set("creation_source_server_id", masterServerId.ID())
-				}
-
-				return []*pluginsdk.ResourceData{d}, nil
-			},
-		},
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

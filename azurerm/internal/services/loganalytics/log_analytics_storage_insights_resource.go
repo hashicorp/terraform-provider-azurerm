@@ -1,12 +1,12 @@
 package loganalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -34,9 +34,16 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: &schema.ResourceImporter{
-			State: logAnalyticsStorageInsightsImporter,
-		},
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LogAnalyticsStorageInsightsID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			if v, ok := d.GetOk("storage_account_key"); ok && v.(string) != "" {
+				d.Set("storage_account_key", v)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

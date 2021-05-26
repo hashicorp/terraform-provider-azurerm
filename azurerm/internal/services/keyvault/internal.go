@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -134,12 +133,9 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 	}
 }
 
-func nestedItemResourceImporter(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
 	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)
