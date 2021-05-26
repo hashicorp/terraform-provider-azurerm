@@ -33,7 +33,6 @@ func Required() map[string]struct{} {
 		"Microsoft.DBforPostgreSQL":         {},
 		"Microsoft.DesktopVirtualization":   {},
 		"Microsoft.Devices":                 {},
-		"Microsoft.DevSpaces":               {},
 		"Microsoft.DevTestLab":              {},
 		"Microsoft.DocumentDB":              {},
 		"Microsoft.EventGrid":               {},
