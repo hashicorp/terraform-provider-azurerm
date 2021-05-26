@@ -94,6 +94,28 @@ func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccountNetworkRules_SynapseAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disablePrivateLinkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.synapseAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
@@ -324,4 +346,57 @@ resource "azurerm_storage_account_network_rules" "test" {
   }
 }
 `, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) synapseAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "synapse" {
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "BlobStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%[3]d"
+  storage_account_id = azurerm_storage_account.synapse.id
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%[3]d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+}
+
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+  default_action = "Deny"
+  ip_rules       = ["127.0.0.1"]
+  private_link_access {
+    endpoint_resource_id = azurerm_synapse_workspace.test.id
+  }
+}
+`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString, data.RandomInteger)
 }
