@@ -1,11 +1,11 @@
 package validate
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func NodeDefinitionVMSize() schema.SchemaValidateFunc {
+func NodeDefinitionVMSize() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		// short of deploying every VM Sku for every node type for every HDInsight Cluster
 		// this is the list I've (@tombuildsstuff) found for valid SKU's from an endpoint in the Portal

@@ -619,6 +619,37 @@ func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMongoDB(data, documentdb.Session),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data, documentdb.Session),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicMongoDB(data, documentdb.Session),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -975,6 +1006,14 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 2
   }
 
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = "500"
+  }
+
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
 }
@@ -1027,6 +1066,14 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = "%[5]s"
     failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = "500"
   }
 
   access_key_metadata_writes_enabled    = false
@@ -1158,6 +1205,15 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%[6]s"
     failover_priority = 2
   }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = "2000000000"
+  }
+
   access_key_metadata_writes_enabled = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
@@ -1205,6 +1261,14 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = "%[5]s"
     failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = "2000000000"
   }
   access_key_metadata_writes_enabled = true
 }
@@ -1539,6 +1603,42 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
+func (CosmosDBAccountResource) mongoAnalyticalStorage(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  analytical_storage_enabled = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
+}
+
 func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) resource.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("name").Exists(),
@@ -1706,6 +1806,44 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
 
 func (CosmosDBAccountResource) basicWithBackupPeriodic(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {

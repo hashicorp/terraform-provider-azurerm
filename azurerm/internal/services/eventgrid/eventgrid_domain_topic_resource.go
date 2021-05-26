@@ -7,27 +7,26 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceEventGridDomainTopic() *schema.Resource {
-	return &schema.Resource{
+func resourceEventGridDomainTopic() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventGridDomainTopicCreate,
 		Read:   resourceEventGridDomainTopicRead,
 		Delete: resourceEventGridDomainTopicDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -35,9 +34,9 @@ func resourceEventGridDomainTopic() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
@@ -50,7 +49,7 @@ func resourceEventGridDomainTopic() *schema.Resource {
 			},
 
 			"domain_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
@@ -67,7 +66,7 @@ func resourceEventGridDomainTopic() *schema.Resource {
 	}
 }
 
-func resourceEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,7 +110,7 @@ func resourceEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}
 	return resourceEventGridDomainTopicRead(d, meta)
 }
 
-func resourceEventGridDomainTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +138,7 @@ func resourceEventGridDomainTopicRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceEventGridDomainTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

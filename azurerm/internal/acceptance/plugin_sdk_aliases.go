@@ -13,10 +13,20 @@ import (
 
 type InstanceState = terraform.InstanceState
 
+type State = terraform.State
+
 type TestStep = resource.TestStep
+
+type StateChangeConf = resource.StateChangeConf
+
+type TestCheckFunc = resource.TestCheckFunc
 
 func ComposeTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(fs...)
+}
+
+func ComposeAggregateTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(fs...)
 }
 
 // @tombuildsstuff:
@@ -29,6 +39,19 @@ func TestCheckResourceAttr(name, key, value string) pluginsdk.TestCheckFunc {
 	// TODO: move this comment up a level in the future
 	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
 	return resource.TestCheckResourceAttr(name, key, value)
+}
+
+func TestCheckResourceAttrSet(name, key string) pluginsdk.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
+	return resource.TestCheckResourceAttrSet(name, key)
+}
+
+// TestCheckOutput is a wrapper to enable builds to continue
+func TestCheckOutput(name, value string) pluginsdk.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
+	return resource.TestCheckOutput(name, value)
 }
 
 // TestMatchResourceAttr is a TestCheckFunc which checks that the value

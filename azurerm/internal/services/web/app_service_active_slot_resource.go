@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
@@ -15,8 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppServiceActiveSlot() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceActiveSlot() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceActiveSlotCreateUpdate,
 		Read:   resourceAppServiceActiveSlotRead,
 		Update: resourceAppServiceActiveSlotCreateUpdate,
@@ -26,32 +25,32 @@ func resourceAppServiceActiveSlot() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				ForceNew: true,
 				Required: true,
 			},
 
 			"app_service_slot_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 		},
 	}
 }
 
-func resourceAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,7 +91,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceAppServiceActiveSlotRead(d, meta)
 }
 
-func resourceAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +120,7 @@ func resourceAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAppServiceActiveSlotDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceAppServiceActiveSlotDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
 	// There is nothing to delete so return nil
 	return nil
 }

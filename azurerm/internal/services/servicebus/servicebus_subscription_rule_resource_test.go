@@ -7,11 +7,10 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSqlFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSqlFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicCorrelationFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,10 +64,10 @@ func TestAccServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sqlFilterWithAction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,10 +78,10 @@ func TestAccServiceBusSubscriptionRule_correlationFilterWithAction(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.correlationFilterWithAction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -93,17 +92,17 @@ func TestAccServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSqlFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sql_filter").HasValue("2=2"),
 			),
 		},
 		{
 			Config: r.basicSqlFilterUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sql_filter").HasValue("3=3"),
 			),
@@ -115,10 +114,10 @@ func TestAccServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.correlationFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("correlation_filter.0.message_id").HasValue("test_message_id"),
 				check.That(data.ResourceName).Key("correlation_filter.0.reply_to").HasValue(""),
@@ -126,7 +125,7 @@ func TestAccServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 		},
 		{
 			Config: r.correlationFilterUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("correlation_filter.0.message_id").HasValue("test_message_id_updated"),
 				check.That(data.ResourceName).Key("correlation_filter.0.reply_to").HasValue("test_reply_to_added"),
@@ -139,23 +138,23 @@ func TestAccServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 	r := ServiceBusSubscriptionRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSqlFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicCorrelationFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
 }
 
-func (t ServiceBusSubscriptionRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ServiceBusSubscriptionRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionRuleID(state.ID)
 	if err != nil {
 		return nil, err

@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccMariaDbServer_basicTenTwo(t *testing.T) {
 	r := MariaDbServerResource{}
 	version := "10.2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue(version),
 			),
@@ -40,10 +39,10 @@ func TestAccMariaDbServer_basicTenTwoDeprecated(t *testing.T) { // remove in v3.
 	r := MariaDbServerResource{}
 	version := "10.2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDeprecated(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue(version),
 			),
@@ -57,10 +56,10 @@ func TestAccMariaDbServer_basicTenThree(t *testing.T) {
 	r := MariaDbServerResource{}
 	version := "10.3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue(version),
 			),
@@ -74,10 +73,10 @@ func TestAccMariaDbServer_autogrowOnly(t *testing.T) {
 	r := MariaDbServerResource{}
 	version := "10.3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autogrow(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -89,10 +88,10 @@ func TestAccMariaDbServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "10.3"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -104,10 +103,10 @@ func TestAccMariaDbServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "10.3"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -120,24 +119,24 @@ func TestAccMariaDbServer_update(t *testing.T) {
 	r := MariaDbServerResource{}
 	version := "10.3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.complete(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -150,17 +149,17 @@ func TestAccMariaDbServer_completeDeprecatedMigrate(t *testing.T) { // remove in
 	r := MariaDbServerResource{}
 	version := "10.3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeDeprecated(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.complete(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -173,24 +172,24 @@ func TestAccMariaDbServer_updateDeprecated(t *testing.T) { // remove in v3.0
 	r := MariaDbServerResource{}
 	version := "10.2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDeprecated(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.completeDeprecated(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.basicDeprecated(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -202,17 +201,17 @@ func TestAccMariaDbServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "GP_Gen5_32"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.sku(data, "MO_Gen5_16"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -225,17 +224,17 @@ func TestAccMariaDbServer_createReplica(t *testing.T) {
 	r := MariaDbServerResource{}
 	version := "10.3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.createReplica(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_mariadb_server.replica").ExistsInAzure(r),
 			),
@@ -250,10 +249,10 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 	restoreTime := time.Now().Add(11 * time.Minute)
 	version := "10.3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -261,7 +260,7 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 		{
 			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
 			Config:    r.createPointInTimeRestore(data, version, restoreTime.Format(time.RFC3339)),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_mariadb_server.restore").ExistsInAzure(r),
 			),
@@ -270,7 +269,7 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
-func (MariaDbServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MariaDbServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err

@@ -20,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNetworkWatcherFlowLog() *schema.Resource {
+func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 	return &schema.Resource{
 		Create: resourceNetworkWatcherFlowLogCreateUpdate,
 		Read:   resourceNetworkWatcherFlowLogRead,
@@ -39,7 +39,7 @@ func resourceNetworkWatcherFlowLog() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"network_watcher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -72,7 +72,7 @@ func resourceNetworkWatcherFlowLog() *schema.Resource {
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
 							Type:             schema.TypeBool,
 							Required:         true,
@@ -93,7 +93,7 @@ func resourceNetworkWatcherFlowLog() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
@@ -150,19 +150,19 @@ func resourceNetworkWatcherFlowLog() *schema.Resource {
 	}
 }
 
-func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *schema.ResourceData) bool {
+func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *pluginsdk.ResourceData) bool {
 	// Ignore if flow log is disabled as the returned flow log configuration
 	// returns default value `false` which may differ from config
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *schema.ResourceData) bool {
+func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *pluginsdk.ResourceData) bool {
 	// Ignore if flow log is disabled as the returned flow log configuration
 	// returns default value `0` which may differ from config
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func resourceNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FlowLogsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -226,7 +226,7 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceNetworkWatcherFlowLogRead(d, meta)
 }
 
-func resourceNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FlowLogsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +278,7 @@ func resourceNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FlowLogsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,7 +300,7 @@ func resourceNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d *schema.ResourceData) *network.RetentionPolicyParameters {
+func expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d *pluginsdk.ResourceData) *network.RetentionPolicyParameters {
 	vs := d.Get("retention_policy").([]interface{})
 	if len(vs) < 1 || vs[0] == nil {
 		return nil
@@ -361,7 +361,7 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficA
 	return []interface{}{result}
 }
 
-func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) *network.TrafficAnalyticsProperties {
+func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *pluginsdk.ResourceData) *network.TrafficAnalyticsProperties {
 	vs := d.Get("traffic_analytics").([]interface{})
 
 	v := vs[0].(map[string]interface{})

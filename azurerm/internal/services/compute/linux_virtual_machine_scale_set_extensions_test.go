@@ -187,6 +187,28 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExte
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionsWithHealthExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		{
+			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_extensionWithTimeBudget(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -267,6 +289,21 @@ func TestAccLinuxVirtualMachineScaleSet_extensionTimeBudgetWithoutExtensionsUpda
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT30M"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceFabricExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionsAutomaticUpgradeWithServiceFabricExtension(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -712,6 +749,60 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r LinuxVirtualMachineScaleSetResource) extensionsWithHealthExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  disable_password_authentication = false
+  upgrade_mode                    = "Automatic"
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
+  tags = {
+    accTest = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LinuxVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -885,4 +976,99 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   extensions_time_budget = "%s"
 }
 `, template, data.RandomInteger, duration)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithServiceFabricExtension(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  reliability_level    = "Silver"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "8.0.516.9590"
+  vm_image             = "Windows"
+  management_endpoint  = "http://example:80"
+
+  node_type {
+    name                 = "backend"
+    instance_count       = 5
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+    durability_level     = "Silver"
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Automatic"
+  overprovision       = false
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
+  }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT0S"
+  }
+
+  extension {
+    name                       = "ServiceFabric"
+    publisher                  = "Microsoft.Azure.ServiceFabric"
+    type                       = "ServiceFabricLinuxNode"
+    type_handler_version       = "1.1"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint
+      nodeTypeRef        = "backend"
+      durabilityLevel    = "Silver"
+      enableParallelJobs = true
+    })
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }

@@ -226,9 +226,9 @@ A `admin_ssh_key` block supports the following:
 
 A `automatic_os_upgrade_policy` block supports the following:
 
-* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled? Changing this forces a new resource to be created.
+* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled?
 
-* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available? Changing this forces a new resource to be created.
+* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available?
 
 ---
 
