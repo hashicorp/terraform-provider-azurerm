@@ -403,7 +403,6 @@ func flattenAppConfigurationAccessKey(input configurationstores.AccessKey) []int
 }
 
 func expandAppConfigurationIdentity(identities []interface{}) *configurationstores.ResourceIdentity {
-
 	var out = func(in configurationstores.IdentityType) *configurationstores.ResourceIdentity {
 		return &configurationstores.ResourceIdentity{
 			Type: &in,
