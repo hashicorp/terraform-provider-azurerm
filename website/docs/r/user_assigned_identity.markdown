@@ -51,6 +51,8 @@ The following attributes are exported:
 
 * `client_id` - Client ID associated with the user assigned identity.
 
+* `tenant_id` - Tenant ID associated with the user assigned identity.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

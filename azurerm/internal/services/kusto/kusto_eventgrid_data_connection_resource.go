@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,33 +14,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKustoEventGridDataConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKustoEventGridDataConnectionCreateUpdate,
 		Update: resourceKustoEventGridDataConnectionCreateUpdate,
 		Read:   resourceKustoEventGridDataConnectionRead,
 		Delete: resourceKustoEventGridDataConnectionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectionID(id)
 			return err
 		}, importDataConnection(kusto.KindEventGrid)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataConnectionName,
@@ -53,42 +52,42 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cluster_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ClusterName,
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DatabaseName,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"eventhub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.EventHubID,
 			},
 
 			"eventhub_consumer_group_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
 			},
 
 			"blob_storage_event_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(kusto.MicrosoftStorageBlobCreated),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -98,15 +97,45 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 			},
 
 			"skip_first_record": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"table_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.EntityName,
+			},
+
+			"mapping_rule_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.EntityName,
+			},
+
+			"data_format": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.AVRO),
+					string(kusto.CSV),
+					string(kusto.JSON),
+					string(kusto.MULTIJSON),
+					string(kusto.PSV),
+					string(kusto.RAW),
+					string(kusto.SCSV),
+					string(kusto.SINGLEJSON),
+					string(kusto.SOHSV),
+					string(kusto.TSV),
+					string(kusto.TXT),
+				}, false),
 			},
 		},
 	}
 }
 
-func resourceKustoEventGridDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -139,6 +168,18 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *schema.ResourceData, me
 		},
 	}
 
+	if tableName, ok := d.GetOk("table_name"); ok {
+		dataConnection.EventGridConnectionProperties.TableName = utils.String(tableName.(string))
+	}
+
+	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
+		dataConnection.EventGridConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+	}
+
+	if df, ok := d.GetOk("data_format"); ok {
+		dataConnection.EventGridConnectionProperties.DataFormat = kusto.EventGridDataFormat(df.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -153,7 +194,7 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *schema.ResourceData, me
 	return resourceKustoEventGridDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventGridDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,13 +226,16 @@ func resourceKustoEventGridDataConnectionRead(d *schema.ResourceData, meta inter
 			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 			d.Set("skip_first_record", props.IgnoreFirstRecord)
 			d.Set("blob_storage_event_type", props.BlobStorageEventType)
+			d.Set("table_name", props.TableName)
+			d.Set("mapping_rule_name", props.MappingRuleName)
+			d.Set("data_format", props.DataFormat)
 		}
 	}
 
 	return nil
 }
 
-func resourceKustoEventGridDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

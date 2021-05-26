@@ -45,7 +45,7 @@ resource "azurerm_resource_group_template_deployment" "example" {
         {
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
-            "name": "[variables("vnetName")]",
+            "name": "[parameters('vnetName')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "addressSpace": {
@@ -74,6 +74,21 @@ output arm_example_output {
 }
 ```
 
+```hcl
+data "azurerm_template_spec_version" "example" {
+  name                = "myTemplateForResourceGroup"
+  resource_group_name = "myResourceGroup"
+  version             = "v3.4.0"
+}
+
+resource "azurerm_resource_group_template_deployment" "example" {
+  name                     = "example-deploy"
+  resource_group_name      = "example-group"
+  deployment_mode          = "Complete"
+  template_spec_version_id = data.azurerm_template_spec_version.example.id
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -84,13 +99,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Resource Group Template Deployment should exist. Changing this forces a new Resource Group Template Deployment to be created.
 
-* `template_content` - (Required) The contents of the ARM Template which should be deployed into this Resource Group.
-
 ~> **Note:** If `deployment_mode` is set to `Complete` then resources within this Resource Group which are not defined in the ARM Template will be deleted.
 
 ---
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
+
+* `template_content` - (Optional) The contents of the ARM Template which should be deployed into this Resource Group. Cannot be specified with `template_spec_version_id`.
+
+* `template_spec_version_id` - (Optional) The ID of the Template Spec Version to deploy. Cannot be specified with `template_content`.
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 

@@ -23,6 +23,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_eventhub":                              dataSourceEventHub(),
+		"azurerm_eventhub_cluster":                      dataSourceEventHubCluster(),
 		"azurerm_eventhub_authorization_rule":           EventHubAuthorizationRuleDataSource(),
 		"azurerm_eventhub_consumer_group":               EventHubConsumerGroupDataSource(),
 		"azurerm_eventhub_namespace":                    EventHubNamespaceDataSource(),

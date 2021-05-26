@@ -4,23 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
-	}
-
-	return warnings, errors
-}
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
 	typeString := "IntegrationRuntimeReference"
@@ -33,7 +23,7 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *schema.ResourceData) bool {
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
 	oldSplit := strings.Split(strings.ToLower(old), ";")
 	newSplit := strings.Split(strings.ToLower(new), ";")
 
@@ -224,7 +214,7 @@ func serializeDataFactoryPipelineActivities(activities *[]datafactory.BasicActiv
 	return string(activitiesJson), nil
 }
 
-func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
+func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
@@ -262,7 +252,7 @@ func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecr
 	return []interface{}{parameters}
 }
 
-func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
 	if _, ok := d.GetOk("http_server_location"); ok {
 		return expandDataFactoryDatasetHttpServerLocation(d)
 	}
@@ -274,7 +264,7 @@ func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicD
 	return nil
 }
 
-func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
 	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
 	relativeUrl := props["relative_url"].(string)
 	path := props["path"].(string)
@@ -288,7 +278,7 @@ func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafact
 	return httpServerLocation
 }
 
-func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
 	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
 	container := props["container"].(string)
 	path := props["path"].(string)

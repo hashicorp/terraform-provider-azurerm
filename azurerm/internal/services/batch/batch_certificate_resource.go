@@ -5,50 +5,51 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceBatchCertificate() *schema.Resource {
-	return &schema.Resource{
+func resourceBatchCertificate() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceBatchCertificateCreate,
 		Read:   resourceBatchCertificateRead,
 		Update: resourceBatchCertificateUpdate,
 		Delete: resourceBatchCertificateDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CertificateID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:
@@ -56,14 +57,14 @@ func resourceBatchCertificate() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"certificate": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringLenBetween(1, 10000),
 			},
 
 			"format": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(batch.Cer),
@@ -72,20 +73,20 @@ func resourceBatchCertificate() *schema.Resource {
 			},
 
 			"password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true, // Cannot be used when `format` is "Cer"
 				Sensitive: true,
 			},
 
 			"thumbprint": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"thumbprint_algorithm": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validation.StringInSlice([]string{"SHA1"}, false),
@@ -93,14 +94,14 @@ func resourceBatchCertificate() *schema.Resource {
 			},
 
 			"public_data": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceBatchCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +164,7 @@ func resourceBatchCertificateCreate(d *schema.ResourceData, meta interface{}) er
 	return resourceBatchCertificateRead(d, meta)
 }
 
-func resourceBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +198,7 @@ func resourceBatchCertificateRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +247,7 @@ func resourceBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceBatchCertificateRead(d, meta)
 }
 
-func resourceBatchCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

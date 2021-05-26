@@ -7,36 +7,35 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIotHubEndpointServiceBusTopic() *schema.Resource {
-	return &schema.Resource{
+func resourceIotHubEndpointServiceBusTopic() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIotHubEndpointServiceBusTopicCreateUpdate,
 		Read:   resourceIotHubEndpointServiceBusTopicRead,
 		Update: resourceIotHubEndpointServiceBusTopicCreateUpdate,
 		Delete: resourceIotHubEndpointServiceBusTopicDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubEndpointName,
@@ -45,16 +44,16 @@ func resourceIotHubEndpointServiceBusTopic() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"iothub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubName,
 			},
 
 			"connection_string": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
 					sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
 
@@ -68,7 +67,7 @@ func resourceIotHubEndpointServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +149,7 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData, m
 	return resourceIotHubEndpointServiceBusTopicRead(d, meta)
 }
 
-func resourceIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +189,7 @@ func resourceIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceIotHubEndpointServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

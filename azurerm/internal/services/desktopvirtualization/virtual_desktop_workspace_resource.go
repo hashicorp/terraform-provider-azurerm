@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,44 +13,41 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var workspaceResourceType = "azurerm_virtual_desktop_workspace"
 
-func resourceArmDesktopVirtualizationWorkspace() *schema.Resource {
-	return &schema.Resource{
+func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
 		Read:   resourceArmDesktopVirtualizationWorkspaceRead,
 		Update: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
 		Delete: resourceArmDesktopVirtualizationWorkspaceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.WorkspaceUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.WorkspaceUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WorkspaceV0ToV1{},
+		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty, // TODO: determine more accurate requirements in time
@@ -63,13 +58,13 @@ func resourceArmDesktopVirtualizationWorkspace() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"friendly_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
@@ -79,7 +74,7 @@ func resourceArmDesktopVirtualizationWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -125,7 +120,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
 }
 
-func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +156,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDesktopVirtualizationWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDesktopVirtualizationWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
 	id, err := parse.WorkspaceID(d.Id())

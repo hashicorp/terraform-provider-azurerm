@@ -6,137 +6,136 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
-	return &schema.Resource{
+func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
 		Read:   resourceSentinelAlertRuleMsSecurityIncidentRead,
 		Update: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
 		Delete: resourceSentinelAlertRuleMsSecurityIncidentDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.AlertRuleID(id)
 			return err
 		}, importSentinelAlertRule(securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"product_filter": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.MicrosoftCloudAppSecurity),
-					string(securityinsight.AzureSecurityCenter),
-					string(securityinsight.AzureActiveDirectoryIdentityProtection),
-					string(securityinsight.AzureSecurityCenterforIoT),
-					string(securityinsight.AzureAdvancedThreatProtection),
-					string(securityinsight.MicrosoftDefenderAdvancedThreatProtection),
-					string(securityinsight.Office365AdvancedThreatProtection),
+					string(securityinsight.MicrosoftSecurityProductNameMicrosoftCloudAppSecurity),
+					string(securityinsight.MicrosoftSecurityProductNameAzureSecurityCenter),
+					string(securityinsight.MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection),
+					string(securityinsight.MicrosoftSecurityProductNameAzureSecurityCenterforIoT),
+					string(securityinsight.MicrosoftSecurityProductNameAzureAdvancedThreatProtection),
+					string(securityinsight.MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection),
+					string(securityinsight.MicrosoftSecurityProductNameOffice365AdvancedThreatProtection),
 				}, false),
 			},
 
 			"severity_filter": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(securityinsight.High),
-						string(securityinsight.Medium),
-						string(securityinsight.Low),
-						string(securityinsight.Informational),
+						string(securityinsight.AlertSeverityHigh),
+						string(securityinsight.AlertSeverityMedium),
+						string(securityinsight.AlertSeverityLow),
+						string(securityinsight.AlertSeverityInformational),
 					}, false),
 				},
 			},
 
 			"alert_rule_template_guid": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"display_name_filter": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
 				Computed:      true, // remove in 3.0
 				MinItems:      1,
 				ConflictsWith: []string{"text_whitelist"},
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"display_name_exclude_filter": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"text_whitelist": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
 				Computed:      true, // remove in 3.0
 				MinItems:      1,
 				ConflictsWith: []string{"display_name_filter"},
 				Deprecated:    "this property has been renamed to display_name_filter to better match the SDK & API",
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -144,7 +143,7 @@ func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,13 +170,13 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceD
 	}
 
 	param := securityinsight.MicrosoftSecurityIncidentCreationAlertRule{
-		Kind: securityinsight.KindMicrosoftSecurityIncidentCreation,
+		Kind: securityinsight.KindBasicAlertRuleKindMicrosoftSecurityIncidentCreation,
 		MicrosoftSecurityIncidentCreationAlertRuleProperties: &securityinsight.MicrosoftSecurityIncidentCreationAlertRuleProperties{
 			ProductFilter:    securityinsight.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
 			DisplayName:      utils.String(d.Get("display_name").(string)),
 			Description:      utils.String(d.Get("description").(string)),
 			Enabled:          utils.Bool(d.Get("enabled").(bool)),
-			SeveritiesFilter: expandAlertRuleMsSecurityIncidentSeverityFilter(d.Get("severity_filter").(*schema.Set).List()),
+			SeveritiesFilter: expandAlertRuleMsSecurityIncidentSeverityFilter(d.Get("severity_filter").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -186,13 +185,13 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceD
 	}
 
 	if dnf, ok := d.GetOk("display_name_filter"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
+		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
 	} else if dnf, ok := d.GetOk("text_whitelist"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
+		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("display_name_exclude_filter"); ok {
-		param.DisplayNamesExcludeFilter = utils.ExpandStringSlice(v.(*schema.Set).List())
+		param.DisplayNamesExcludeFilter = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -217,7 +216,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceD
 	return resourceSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }
 
-func resourceSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,7 +270,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,41 +6,40 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVmwarePrivateCloud() *schema.Resource {
-	return &schema.Resource{
+func resourceVmwarePrivateCloud() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVmwarePrivateCloudCreate,
 		Read:   resourceVmwarePrivateCloudRead,
 		Update: resourceVmwarePrivateCloudUpdate,
 		Delete: resourceVmwarePrivateCloudDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Hour),
-			Delete: schema.DefaultTimeout(10 * time.Hour),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(10 * time.Hour),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(10 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(10 * time.Hour),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PrivateCloudID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -51,7 +50,7 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -62,27 +61,27 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 			},
 
 			"management_cluster": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"size": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(3, 16),
 						},
 
 						"hosts": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"id": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
@@ -90,20 +89,20 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 			},
 
 			"network_subnet_cidr": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsCIDR,
 			},
 
 			"internet_connection_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"nsxt_password": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				Sensitive:    true,
@@ -111,7 +110,7 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 			},
 
 			"vcenter_password": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				Sensitive:    true,
@@ -119,27 +118,27 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 			},
 
 			"circuit": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"express_route_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"express_route_private_peering_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"primary_subnet_cidr": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"secondary_subnet_cidr": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -147,42 +146,42 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 			},
 
 			"hcx_cloud_manager_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"management_subnet_cidr": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"nsxt_certificate_thumbprint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"nsxt_manager_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"provisioning_subnet_cidr": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"vcenter_certificate_thumbprint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"vcsa_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"vmotion_subnet_cidr": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -190,7 +189,7 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 		},
 	}
 }
-func resourceVmwarePrivateCloudCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -247,7 +246,7 @@ func resourceVmwarePrivateCloudCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceVmwarePrivateCloudRead(d, meta)
 }
 
-func resourceVmwarePrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +295,7 @@ func resourceVmwarePrivateCloudRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVmwarePrivateCloudUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -343,7 +342,7 @@ func resourceVmwarePrivateCloudUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceVmwarePrivateCloudRead(d, meta)
 }
 
-func resourceVmwarePrivateCloudDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

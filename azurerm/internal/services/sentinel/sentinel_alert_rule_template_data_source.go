@@ -7,26 +7,26 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
-	return &schema.Resource{
+func dataSourceSentinelAlertRuleTemplate() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceSentinelAlertRuleTemplateRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -34,7 +34,7 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -42,49 +42,49 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"scheduled_template": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tactics": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 						"severity": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"query": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"query_frequency": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"query_period": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"trigger_operator": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"trigger_threshold": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
@@ -92,16 +92,16 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 			},
 
 			"security_incident_template": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"product_filter": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -111,7 +111,7 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 	}
 }
 
-func dataSourceSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRuleTemplatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,7 +123,7 @@ func dataSourceSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	// Either "name" or "display_name" must have been specified, constrained by the schema.
+	// Either "name" or "display_name" must have been specified, constrained by the pluginsdk.
 	var resp securityinsight.BasicAlertRuleTemplate
 	var nameToLog string
 	if name != "" {
@@ -138,6 +138,8 @@ func dataSourceSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interf
 	}
 
 	switch template := resp.(type) {
+	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
+		err = setForMLBehaviorAnalyticsAlertRuleTemplate(d, &template)
 	case securityinsight.FusionAlertRuleTemplate:
 		err = setForFusionAlertRuleTemplate(d, &template)
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
@@ -176,6 +178,10 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 			if template.DisplayName != nil && *template.DisplayName == name {
 				results = append(results, templates.Value())
 			}
+		case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
+			if template.DisplayName != nil && *template.DisplayName == name {
+				results = append(results, templates.Value())
+			}
 		case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == name {
 				results = append(results, templates.Value())
@@ -200,7 +206,7 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 	return results[0], nil
 }
 
-func setForScheduledAlertRuleTemplate(d *schema.ResourceData, template *securityinsight.ScheduledAlertRuleTemplate) error {
+func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.ScheduledAlertRuleTemplate) error {
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}
@@ -214,7 +220,7 @@ func setForScheduledAlertRuleTemplate(d *schema.ResourceData, template *security
 	return d.Set("scheduled_template", flattenScheduledAlertRuleTemplate(template.ScheduledAlertRuleTemplateProperties))
 }
 
-func setForMsSecurityIncidentAlertRuleTemplate(d *schema.ResourceData, template *securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate) error {
+func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate) error {
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}
@@ -228,7 +234,21 @@ func setForMsSecurityIncidentAlertRuleTemplate(d *schema.ResourceData, template 
 	return d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
 }
 
-func setForFusionAlertRuleTemplate(d *schema.ResourceData, template *securityinsight.FusionAlertRuleTemplate) error {
+func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.FusionAlertRuleTemplate) error {
+	if template.ID == nil || *template.ID == "" {
+		return errors.New("empty or nil ID")
+	}
+	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID())
+	d.Set("name", template.Name)
+	d.Set("display_name", template.DisplayName)
+	return nil
+}
+
+func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) error {
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}

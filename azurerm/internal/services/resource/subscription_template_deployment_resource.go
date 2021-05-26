@@ -7,43 +7,42 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func subscriptionTemplateDeploymentResource() *schema.Resource {
-	return &schema.Resource{
+func subscriptionTemplateDeploymentResource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: subscriptionTemplateDeploymentResourceCreate,
 		Read:   subscriptionTemplateDeploymentResourceRead,
 		Update: subscriptionTemplateDeploymentResourceUpdate,
 		Delete: subscriptionTemplateDeploymentResourceDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionTemplateDeploymentID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(180 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(180 * time.Minute),
-			Delete: schema.DefaultTimeout(180 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
 		},
 
 		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
 
 		//lintignore:S033
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.TemplateDeploymentName,
@@ -52,20 +51,35 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 			"location": location.Schema(),
 
 			"template_content": {
-				Type:      schema.TypeString,
-				Required:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ExactlyOneOf: []string{
+					"template_content",
+					"template_spec_version_id",
+				},
 				StateFunc: utils.NormalizeJson,
+			},
+
+			"template_spec_version_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ExactlyOneOf: []string{
+					"template_content",
+					"template_spec_version_id",
+				},
+				ValidateFunc: validate.TemplateSpecVersionID,
 			},
 
 			// Optional
 			"debug_level": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(templateDeploymentDebugLevels, false),
 			},
 
 			"parameters_content": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
 				StateFunc: utils.NormalizeJson,
@@ -75,9 +89,8 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 
 			// Computed
 			"output_content": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},
@@ -85,7 +98,7 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 	}
 }
 
-func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -102,18 +115,28 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 	if existing.Properties != nil {
 		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
 	}
-	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
-	if err != nil {
-		return fmt.Errorf("expanding `template_content`: %+v", err)
-	}
+
 	deployment := resources.Deployment{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
-			Mode:         resources.Incremental,
-			Template:     template,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if templateRaw, ok := d.GetOk("template_content"); ok {
+		template, err := expandTemplateDeploymentBody(templateRaw.(string))
+		if err != nil {
+			return fmt.Errorf("expanding `template_content`: %+v", err)
+		}
+		deployment.Properties.Template = template
+	}
+
+	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
+		deployment.Properties.TemplateLink = &resources.TemplateLink{
+			ID: utils.String(templateSpecVersionID.(string)),
+		}
 	}
 
 	if v, ok := d.GetOk("parameters_content"); ok && v != "" {
@@ -145,7 +168,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 
-func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +192,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		Location: template.Location,
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: template.Properties.DebugSetting,
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: template.Tags,
 	}
@@ -201,6 +224,12 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Properties.Template = exportedTemplate.Template
 	}
 
+	if d.HasChange("template_spec_version_id") {
+		deployment.Properties.TemplateLink = &resources.TemplateLink{
+			ID: utils.String(d.Get("template_spec_version_id").(string)),
+		}
+	}
+
 	if d.HasChange("tags") {
 		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -225,7 +254,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 
-func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,6 +298,14 @@ func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta int
 			return fmt.Errorf("flattening `output_content`: %+v", err)
 		}
 		d.Set("output_content", flattenedOutputs)
+
+		templateLinkId := ""
+		if props.TemplateLink != nil {
+			if props.TemplateLink.ID != nil {
+				templateLinkId = *props.TemplateLink.ID
+			}
+		}
+		d.Set("template_spec_version_id", templateLinkId)
 	}
 
 	flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)
@@ -280,7 +317,7 @@ func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func subscriptionTemplateDeploymentResourceDelete(d *schema.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

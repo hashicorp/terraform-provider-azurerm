@@ -1,7 +1,7 @@
 package datafactory
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,15 +19,15 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory": dataSourceDataFactory(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
@@ -37,12 +37,14 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_factory_dataset_mysql":                         resourceDataFactoryDatasetMySQL(),
 		"azurerm_data_factory_dataset_parquet":                       resourceDataFactoryDatasetParquet(),
 		"azurerm_data_factory_dataset_postgresql":                    resourceDataFactoryDatasetPostgreSQL(),
+		"azurerm_data_factory_dataset_snowflake":                     resourceDataFactoryDatasetSnowflake(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceDataFactoryDatasetSQLServerTable(),
 		"azurerm_data_factory_integration_runtime_managed":           resourceDataFactoryIntegrationRuntimeManaged(),
 		"azurerm_data_factory_integration_runtime_azure":             resourceDataFactoryIntegrationRuntimeAzure(),
 		"azurerm_data_factory_integration_runtime_azure_ssis":        resourceDataFactoryIntegrationRuntimeAzureSsis(),
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceDataFactoryIntegrationRuntimeSelfHosted(),
 		"azurerm_data_factory_linked_service_azure_blob_storage":     resourceDataFactoryLinkedServiceAzureBlobStorage(),
+		"azurerm_data_factory_linked_service_azure_databricks":       resourceDataFactoryLinkedServiceAzureDatabricks(),
 		"azurerm_data_factory_linked_service_azure_table_storage":    resourceDataFactoryLinkedServiceAzureTableStorage(),
 		"azurerm_data_factory_linked_service_azure_file_storage":     resourceDataFactoryLinkedServiceAzureFileStorage(),
 		"azurerm_data_factory_linked_service_azure_sql_database":     resourceDataFactoryLinkedServiceAzureSQLDatabase(),

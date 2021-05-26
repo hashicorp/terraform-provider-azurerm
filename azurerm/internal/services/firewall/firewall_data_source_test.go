@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccFirewallDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
 	r := FirewallDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
 				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
 			),
@@ -31,10 +30,10 @@ func TestAccFirewallDataSource_enableDNS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
 	r := FirewallDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.enableDNS(data, "1.1.1.1", "8.8.8.8"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("dns_servers.#").HasValue("2"),
 				check.That(data.ResourceName).Key("dns_servers.0").HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key("dns_servers.1").HasValue("8.8.8.8"),
@@ -47,10 +46,10 @@ func TestAccFirewallDataSource_withManagementIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
 	r := FirewallDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.withManagementIp(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
 				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
 				check.That(data.ResourceName).Key("management_ip_configuration.0.name").HasValue("management_configuration"),
@@ -64,10 +63,10 @@ func TestAccFirewallDataSource_withFirewallPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
 	r := FirewallDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.withFirewallPolicy(data, "policy1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("firewall_policy_id").Exists(),
 			),
 		},
@@ -78,10 +77,10 @@ func TestAccFirewallDataSource_inVirtualhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
 	r := FirewallDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.inVirtualHub(data, 2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("virtual_hub.0.virtual_hub_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_count").HasValue("2"),
 				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("2"),

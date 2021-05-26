@@ -7,39 +7,38 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApplicationInsights() *schema.Resource {
-	return &schema.Resource{
+func resourceApplicationInsights() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApplicationInsightsCreateUpdate,
 		Read:   resourceApplicationInsightsRead,
 		Update: resourceApplicationInsightsCreateUpdate,
 		Delete: resourceApplicationInsightsDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ComponentID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -49,7 +48,7 @@ func resourceApplicationInsights() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"application_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,7 +64,7 @@ func resourceApplicationInsights() *schema.Resource {
 			},
 
 			"retention_in_days": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  90,
 				ValidateFunc: validation.IntInSlice([]int{
@@ -82,14 +81,14 @@ func resourceApplicationInsights() *schema.Resource {
 			},
 
 			"sampling_percentage": {
-				Type:         schema.TypeFloat,
+				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Default:      100,
 				ValidateFunc: validation.FloatBetween(0, 100),
 			},
 
 			"disable_ip_masking": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -97,31 +96,31 @@ func resourceApplicationInsights() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"daily_data_cap_in_gb": {
-				Type:         schema.TypeFloat,
+				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.FloatBetween(0, 1000),
 			},
 
 			"daily_data_cap_notifications_disabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"app_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"instrumentation_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -129,7 +128,7 @@ func resourceApplicationInsights() *schema.Resource {
 	}
 }
 
-func resourceApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -220,7 +219,7 @@ func resourceApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceApplicationInsightsRead(d, meta)
 }
 
-func resourceApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -273,7 +272,7 @@ func resourceApplicationInsightsRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

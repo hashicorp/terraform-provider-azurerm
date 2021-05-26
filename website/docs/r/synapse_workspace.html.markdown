@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
+* `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
 ---

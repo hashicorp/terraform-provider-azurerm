@@ -3,12 +3,11 @@ package batch
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -182,7 +181,7 @@ func flattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 		if armCertificate.StoreName != nil {
 			certificate["store_name"] = *armCertificate.StoreName
 		}
-		visibility := &schema.Set{F: schema.HashString}
+		visibility := &pluginsdk.Set{F: pluginsdk.HashString}
 		if armCertificate.Visibility != nil {
 			for _, armVisibility := range *armCertificate.Visibility {
 				visibility.Add(string(armVisibility))
@@ -195,7 +194,7 @@ func flattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 }
 
 // flattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
-func flattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+func flattenBatchPoolContainerConfiguration(d *pluginsdk.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
@@ -206,7 +205,7 @@ func flattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainer
 		result["type"] = *armContainerConfiguration.Type
 	}
 
-	names := &schema.Set{F: schema.HashString}
+	names := &pluginsdk.Set{F: pluginsdk.HashString}
 	if armContainerConfiguration.ContainerImageNames != nil {
 		for _, armName := range *armContainerConfiguration.ContainerImageNames {
 			names.Add(armName)
@@ -219,7 +218,7 @@ func flattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainer
 	return []interface{}{result}
 }
 
-func flattenBatchPoolContainerRegistries(d *schema.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+func flattenBatchPoolContainerRegistries(d *pluginsdk.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
 	results := make([]interface{}, 0)
 
 	if armContainerRegistries == nil {
@@ -232,7 +231,7 @@ func flattenBatchPoolContainerRegistries(d *schema.ResourceData, armContainerReg
 	return results
 }
 
-func flattenBatchPoolContainerRegistry(d *schema.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerRegistry == nil {
@@ -255,7 +254,7 @@ func flattenBatchPoolContainerRegistry(d *schema.ResourceData, armContainerRegis
 	return result
 }
 
-func findBatchPoolContainerRegistryPassword(d *schema.ResourceData, armServer string, armUsername string) interface{} {
+func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer string, armUsername string) interface{} {
 	numContainerRegistries := 0
 	if n, ok := d.GetOk("container_configuration.0.container_registries.#"); ok {
 		numContainerRegistries = n.(int)
@@ -329,7 +328,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 	obj := &batch.ContainerConfiguration{
 		Type:                utils.String(block["type"].(string)),
 		ContainerRegistries: containerRegistries,
-		ContainerImageNames: utils.ExpandStringSlice(block["container_image_names"].(*schema.Set).List()),
+		ContainerImageNames: utils.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
 	}
 
 	return obj, nil
@@ -385,7 +384,7 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 	id := ref["id"].(string)
 	storeLocation := ref["store_location"].(string)
 	storeName := ref["store_name"].(string)
-	visibilityRefs := ref["visibility"].(*schema.Set)
+	visibilityRefs := ref["visibility"].(*pluginsdk.Set)
 	var visibility []batch.CertificateVisibility
 	if visibilityRefs != nil {
 		for _, visibilityRef := range visibilityRefs.List() {
@@ -441,6 +440,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
 	resourceFiles := make([]batch.ResourceFile, 0)
 	for _, resourceFileValueTemp := range resourceFileList {
+		if resourceFileValueTemp == nil {
+			continue
+		}
 		resourceFileValue := resourceFileValueTemp.(map[string]interface{})
 		resourceFile := batch.ResourceFile{}
 		if v, ok := resourceFileValue["auto_storage_container_name"]; ok {
@@ -512,25 +514,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	return startTask, nil
 }
 
-// ValidateAzureRMBatchPoolName validates the name of a Batch pool
-func ValidateAzureRMBatchPoolName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"any combination of alphanumeric characters including hyphens and underscores are allowed in %q: %q", k, value))
-	}
-
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
-	}
-
-	if len(value) > 64 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
-}
-
 // ExpandBatchMetaData expands Batch pool metadata
 func ExpandBatchMetaData(input map[string]interface{}) *[]batch.MetadataItem {
 	output := []batch.MetadataItem{}
@@ -586,7 +569,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 			networkConfiguration.PublicIPAddressConfiguration = &batch.PublicIPAddressConfiguration{}
 		}
 
-		publicIPsRaw := v.(*schema.Set).List()
+		publicIPsRaw := v.(*pluginsdk.Set).List()
 		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = utils.ExpandStringSlice(publicIPsRaw)
 	}
 
@@ -743,7 +726,7 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 		map[string]interface{}{
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
-			"public_ips":                       schema.NewSet(schema.HashString, publicIPAddressIds),
+			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),
 			"subnet_id":                        subnetId,
 		},
 	}

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -15,32 +13,33 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
-	return &schema.Resource{
+func resourceIoTTimeSeriesInsightsGen2Environment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
 		Read:   resourceIoTTimeSeriesInsightsGen2EnvironmentRead,
 		Update: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
 		Delete: resourceIoTTimeSeriesInsightsGen2EnvironmentDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EnvironmentID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -54,7 +53,7 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -63,33 +62,33 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 			},
 
 			"warm_store_data_retention_time": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azValidate.ISO8601Duration,
 			},
 			"id_properties": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				ForceNew: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 			"storage": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"key": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -98,7 +97,7 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 			},
 
 			"data_access_fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -107,7 +106,7 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 	}
 }
 
-func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +145,7 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resource
 		Tags:     tags.Expand(t),
 		Sku:      sku,
 		Gen2EnvironmentCreationProperties: &timeseriesinsights.Gen2EnvironmentCreationProperties{
-			TimeSeriesIDProperties: expandIdProperties(d.Get("id_properties").(*schema.Set).List()),
+			TimeSeriesIDProperties: expandIdProperties(d.Get("id_properties").(*pluginsdk.Set).List()),
 			StorageConfiguration:   expandStorage(d.Get("storage").([]interface{})),
 		},
 	}
@@ -171,21 +170,21 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resource
 		return fmt.Errorf("retrieving IoT Time Series Insights Gen2 Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resource, ok := resp.Value.AsGen2EnvironmentResource()
+	read, ok := resp.Value.AsGen2EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("resource was not IoT Time Series Insights Gen2 Environment %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	if resource.ID == nil || *resource.ID == "" {
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("cannot read IoT Time Series Insights Gen2 Environment %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*resource.ID)
+	d.SetId(*read.ID)
 
 	return resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
 }
 
-func resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +227,7 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, me
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

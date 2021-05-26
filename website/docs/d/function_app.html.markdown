@@ -50,6 +50,8 @@ The following attributes are exported:
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
+* `client_cert_mode` - The mode of the Function App's client certificates requirement for incoming requests.
+
 * `os_type` - A string indicating the Operating System type for this function app.
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows. 
@@ -119,6 +121,8 @@ A `site_config` block exports the following:
 * `ftps_state` - State of FTP / FTPS service for this AppService.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
+
+* `java_version` - Java version hosted by the function app in Azure.
 
 * `pre_warmed_instance_count` - The number of pre-warmed instances for this function app. Only applicable to apps on the Premium plan.
 

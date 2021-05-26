@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,6 +30,8 @@ var hdInsightSparkClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
+	CanAutoScaleByCapacity:  true,
+	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
@@ -41,24 +42,23 @@ var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 }
 
-func resourceHDInsightSparkCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceHDInsightSparkCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHDInsightSparkClusterCreate,
 		Read:   resourceHDInsightSparkClusterRead,
 		Update: hdinsightClusterUpdate("Spark", resourceHDInsightSparkClusterRead),
 		Delete: hdinsightClusterDelete("Spark"),
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -72,13 +72,13 @@ func resourceHDInsightSparkCluster() *schema.Resource {
 			"tls_min_version": SchemaHDInsightTls(),
 
 			"component_version": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"spark": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
@@ -90,16 +90,18 @@ func resourceHDInsightSparkCluster() *schema.Resource {
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
 
+			"network": SchemaHDInsightsNetwork(),
+
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightSparkClusterHeadNodeDefinition, true),
 
 						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightSparkClusterWorkerNodeDefinition, true),
@@ -112,12 +114,12 @@ func resourceHDInsightSparkCluster() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -126,7 +128,7 @@ func resourceHDInsightSparkCluster() *schema.Resource {
 	}
 }
 
-func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -158,8 +160,11 @@ func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
 	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
-		return fmt.Errorf("failure expanding `storage_account`: %s", err)
+		return fmt.Errorf("expanding `storage_account`: %s", err)
 	}
+
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
 	sparkRoles := hdInsightRoleDefinition{
 		HeadNodeDef:      hdInsightSparkClusterHeadNodeDefinition,
@@ -169,13 +174,13 @@ func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, sparkRoles)
 	if err != nil {
-		return fmt.Errorf("failure expanding `roles`: %+v", err)
+		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("failure checking for presence of existing HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -187,9 +192,10 @@ func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Spark"),
 				ComponentVersion: componentVersions,
@@ -207,20 +213,20 @@ func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("failure creating HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed waiting for creation of HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("failure retrieving HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("failure reading ID for HDInsight Spark Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("reading ID for HDInsight Spark Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(id.ID())
@@ -236,7 +242,7 @@ func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{
 	return resourceHDInsightSparkClusterRead(d, meta)
 }
 
-func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -259,18 +265,18 @@ func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("failure retrieving HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
 	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("failure retrieving Configuration for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configuration for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	gateway, exists := configurations.Configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("failure retrieving gateway for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving gateway for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -287,11 +293,11 @@ func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{})
 
 		if def := props.ClusterDefinition; def != nil {
 			if err := d.Set("component_version", flattenHDInsightSparkComponentVersion(def.ComponentVersion)); err != nil {
-				return fmt.Errorf("failure flattening `component_version`: %+v", err)
+				return fmt.Errorf("flattening `component_version`: %+v", err)
 			}
 
 			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
-				return fmt.Errorf("failure flattening `gateway`: %+v", err)
+				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
@@ -302,9 +308,16 @@ func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{})
 			WorkerNodeDef:    hdInsightSparkClusterWorkerNodeDefinition,
 			ZookeeperNodeDef: hdInsightSparkClusterZookeeperNodeDefinition,
 		}
+
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
+			}
+		}
+
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("failure flattening `roles`: %+v", err)
+			return fmt.Errorf("flattening `roles`: %+v", err)
 		}
 
 		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
@@ -314,7 +327,7 @@ func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{})
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))

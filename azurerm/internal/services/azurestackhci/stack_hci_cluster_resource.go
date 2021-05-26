@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStackHCICluster() *schema.Resource {
-	return &schema.Resource{
+func resourceArmStackHCICluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmStackHCIClusterCreate,
 		Read:   resourceArmStackHCIClusterRead,
 		Update: resourceArmStackHCIClusterUpdate,
 		Delete: resourceArmStackHCIClusterDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ClusterName,
@@ -52,14 +51,14 @@ func resourceArmStackHCICluster() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"client_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -71,7 +70,7 @@ func resourceArmStackHCICluster() *schema.Resource {
 	}
 }
 
-func resourceArmStackHCIClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tenantId := meta.(*clients.Client).Account.TenantId
@@ -117,7 +116,7 @@ func resourceArmStackHCIClusterCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceArmStackHCIClusterRead(d, meta)
 }
 
-func resourceArmStackHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +149,7 @@ func resourceArmStackHCIClusterRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmStackHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +172,7 @@ func resourceArmStackHCIClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceArmStackHCIClusterRead(d, meta)
 }
 
-func resourceArmStackHCIClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

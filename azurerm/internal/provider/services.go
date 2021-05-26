@@ -17,7 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
@@ -101,6 +103,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventhub.Registration{},
 		loadbalancer.Registration{},
 		resource.Registration{},
+		web.Registration{},
 	}
 }
 
@@ -122,8 +125,10 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		bot.Registration{},
 		cdn.Registration{},
 		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
 		containers.Registration{},
+		consumption.Registration{},
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		customproviders.Registration{},

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccMariaDbServerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
 	r := MariaDbServerDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("version").HasValue("10.2"),
 				check.That(data.ResourceName).Key("ssl_enforcement").HasValue("Enabled"),

@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,8 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 		Update: resourceCosmosDbCassandraTableUpdate,
 		Delete: resourceCosmosDbCassandraTableDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -56,6 +56,14 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
+			"analytical_storage_ttl": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      -2,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
@@ -113,6 +121,10 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
 		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+	}
+
+	if analyticalTTL := d.Get("analytical_storage_ttl").(int); analyticalTTL != -2 {
+		table.CassandraTableCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -184,7 +196,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("setting Throughput for %s: %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", *id, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later", *id, err)
 			}
 		}
 
@@ -228,6 +240,12 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
 				d.Set("default_ttl", defaultTTL)
 			}
+
+			analyticalTTL := -2
+			if res.AnalyticalStorageTTL != nil {
+				analyticalTTL = int(*res.AnalyticalStorageTTL)
+			}
+			d.Set("analytical_storage_ttl", analyticalTTL)
 
 			if schema := res.Schema; schema != nil {
 				d.Set("schema", flattenTableSchema(schema))
@@ -341,16 +359,16 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey 
 	return &keys
 }
 
-func flattenTableSchema(schema *documentdb.CassandraSchema) []interface{} {
+func flattenTableSchema(input *documentdb.CassandraSchema) []interface{} {
 	results := make([]interface{}, 0)
-	if schema == nil {
+	if input == nil {
 		return results
 	}
 
 	result := make(map[string]interface{})
-	result["column"] = flattenTableSchemaColumns(schema.Columns)
-	result["partition_key"] = flattenTableSchemaPartitionKeys(schema.PartitionKeys)
-	result["cluster_key"] = flattenTableSchemaClusterKeys(schema.ClusterKeys)
+	result["column"] = flattenTableSchemaColumns(input.Columns)
+	result["partition_key"] = flattenTableSchemaPartitionKeys(input.PartitionKeys)
+	result["cluster_key"] = flattenTableSchemaClusterKeys(input.ClusterKeys)
 
 	results = append(results, result)
 	return results

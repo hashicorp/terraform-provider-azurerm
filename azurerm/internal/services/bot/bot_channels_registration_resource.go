@@ -1,46 +1,44 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceBotChannelsRegistration() *schema.Resource {
-	return &schema.Resource{
+func resourceBotChannelsRegistration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelsRegistrationCreate,
 		Read:   resourceBotChannelsRegistrationRead,
 		Delete: resourceBotChannelsRegistrationDelete,
 		Update: resourceBotChannelsRegistrationUpdate,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
-			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-			defer cancel()
 
 			id, err := parse.BotServiceID(d.Id())
 			if err != nil {
@@ -59,12 +57,12 @@ func resourceBotChannelsRegistration() *schema.Resource {
 				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
 			}
 
-			return []*schema.ResourceData{d}, nil
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -75,7 +73,7 @@ func resourceBotChannelsRegistration() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -85,34 +83,34 @@ func resourceBotChannelsRegistration() *schema.Resource {
 			},
 
 			"microsoft_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"developer_app_insights_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"developer_app_insights_api_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				Sensitive:    true,
@@ -120,7 +118,7 @@ func resourceBotChannelsRegistration() *schema.Resource {
 			},
 
 			"developer_app_insights_application_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsUUID,
@@ -131,7 +129,7 @@ func resourceBotChannelsRegistration() *schema.Resource {
 	}
 }
 
-func resourceBotChannelsRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -180,7 +178,7 @@ func resourceBotChannelsRegistrationCreate(d *schema.ResourceData, meta interfac
 	return resourceBotChannelsRegistrationRead(d, meta)
 }
 
-func resourceBotChannelsRegistrationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +218,7 @@ func resourceBotChannelsRegistrationRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceBotChannelsRegistrationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -260,7 +258,7 @@ func resourceBotChannelsRegistrationUpdate(d *schema.ResourceData, meta interfac
 	return resourceBotChannelsRegistrationRead(d, meta)
 }
 
-func resourceBotChannelsRegistrationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

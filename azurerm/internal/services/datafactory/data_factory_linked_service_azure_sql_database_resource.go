@@ -5,45 +5,44 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceAzureSQLDatabaseRead,
 		Update: resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -54,52 +53,105 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"key_vault_password": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"use_managed_identity": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ConflictsWith: []string{
+					"service_principal_id",
+				},
+			},
+
+			"service_principal_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+				RequiredWith: []string{"service_principal_key"},
+				ConflictsWith: []string{
+					"use_managed_identity",
+				},
+			},
+
+			"service_principal_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"service_principal_id"},
+			},
+
+			"tenant_id": {
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"integration_runtime_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"additional_properties": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,15 +173,37 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.Reso
 		}
 	}
 
+	sqlDatabaseProperties := &datafactory.AzureSQLDatabaseLinkedServiceTypeProperties{}
+
+	if v, ok := d.GetOk("connection_string"); ok {
+		sqlDatabaseProperties.ConnectionString = &datafactory.SecureString{
+			Value: utils.String(v.(string)),
+			Type:  datafactory.TypeTypeSecureString,
+		}
+	}
+
+	if d.Get("use_managed_identity").(bool) {
+		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
+	} else {
+		secureString := datafactory.SecureString{
+			Value: utils.String(d.Get("service_principal_key").(string)),
+			Type:  datafactory.TypeTypeSecureString,
+		}
+
+		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
+		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
+		sqlDatabaseProperties.ServicePrincipalKey = &secureString
+	}
+
+	if v, ok := d.GetOk("key_vault_password"); ok {
+		password := v.([]interface{})
+		sqlDatabaseProperties.Password = expandAzureKeyVaultPassword(password)
+	}
+
 	azureSQLDatabaseLinkedService := &datafactory.AzureSQLDatabaseLinkedService{
 		Description: utils.String(d.Get("description").(string)),
-		AzureSQLDatabaseLinkedServiceTypeProperties: &datafactory.AzureSQLDatabaseLinkedServiceTypeProperties{
-			ConnectionString: &datafactory.SecureString{
-				Value: utils.String(d.Get("connection_string").(string)),
-				Type:  datafactory.TypeSecureString,
-			},
-		},
-		Type: datafactory.TypeAzureSQLDatabase,
+		AzureSQLDatabaseLinkedServiceTypeProperties: sqlDatabaseProperties,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -171,7 +245,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.Reso
 	return resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,11 +271,32 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData
 
 	sql, ok := resp.Properties.AsAzureSQLDatabaseLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeAzureSQLDatabase, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase, *resp.Type)
+	}
+
+	if sql != nil {
+		if sql.Tenant != nil {
+			d.Set("tenant_id", sql.Tenant)
+		}
+
+		if sql.ServicePrincipalID != nil {
+			d.Set("service_principal_id", sql.ServicePrincipalID)
+			d.Set("use_managed_identity", false)
+		} else {
+			d.Set("use_managed_identity", true)
+		}
 	}
 
 	d.Set("additional_properties", sql.AdditionalProperties)
 	d.Set("description", sql.Description)
+
+	if password := sql.Password; password != nil {
+		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+				return fmt.Errorf("setting `key_vault_password`: %+v", err)
+			}
+		}
+	}
 
 	annotations := flattenDataFactoryAnnotations(sql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
@@ -222,7 +317,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

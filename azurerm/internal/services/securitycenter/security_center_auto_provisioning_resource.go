@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,27 +17,26 @@ import (
 // No other names can be created and the 'default' resource can not be destroyed
 const securityCenterAutoProvisioningName = "default"
 
-func resourceSecurityCenterAutoProvisioning() *schema.Resource {
-	return &schema.Resource{
+func resourceSecurityCenterAutoProvisioning() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterAutoProvisioningUpdate,
 		Read:   resourceSecurityCenterAutoProvisioningRead,
 		Update: resourceSecurityCenterAutoProvisioningUpdate,
 		Delete: resourceSecurityCenterAutoProvisioningDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"auto_provision": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				// NOTE: the API seems case insensitive to this string value, 'ON', 'On', 'on' all work
 				ValidateFunc: validation.StringInSlice([]string{
@@ -49,7 +48,7 @@ func resourceSecurityCenterAutoProvisioning() *schema.Resource {
 	}
 }
 
-func resourceSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -82,7 +81,7 @@ func resourceSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, meta i
 	return resourceSecurityCenterAutoProvisioningRead(d, meta)
 }
 
-func resourceSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +104,7 @@ func resourceSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceSecurityCenterAutoProvisioningDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	// The API has no delete operation
 	// Instead we reset back to 'Off' which is the default
 

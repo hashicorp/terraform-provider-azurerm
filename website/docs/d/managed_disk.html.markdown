@@ -55,6 +55,10 @@ output "id" {
 
 * `zones` - A list of Availability Zones where the Managed Disk exists.
 
+* `network_access_policy` - Policy for accessing the disk via network.
+
+* `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

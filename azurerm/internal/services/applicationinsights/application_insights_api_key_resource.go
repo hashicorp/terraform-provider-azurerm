@@ -6,70 +6,69 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApplicationInsightsAPIKey() *schema.Resource {
-	return &schema.Resource{
+func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApplicationInsightsAPIKeyCreate,
 		Read:   resourceApplicationInsightsAPIKeyRead,
 		Delete: resourceApplicationInsightsAPIKeyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"application_insights_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"read_permissions": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Set:      schema.HashString,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Set:      pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{"agentconfig", "aggregate", "api", "draft", "extendqueries", "search"}, false),
 				},
 			},
 
 			"write_permissions": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Set:      schema.HashString,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Set:      pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{"annotations"}, false),
 				},
 			},
 
 			"api_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -77,7 +76,7 @@ func resourceApplicationInsightsAPIKey() *schema.Resource {
 	}
 }
 
-func resourceApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,8 +130,8 @@ func resourceApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interf
 
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), appInsightsID),
-		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), appInsightsID),
+		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsID),
+		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsID),
 	}
 
 	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
@@ -152,7 +151,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interf
 	return resourceApplicationInsightsAPIKeyRead(d, meta)
 }
 
-func resourceApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +192,7 @@ func resourceApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

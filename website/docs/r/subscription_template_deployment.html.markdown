@@ -47,11 +47,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Subscription Template Deployment. Changing this forces a new Subscription Template Deployment to be created.
 
-* `template_content` - (Required) The contents of the ARM Template which should be deployed into this Subscription.
-
 ---
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Subscription Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
+
+* `template_content` - (Optional) The contents of the ARM Template which should be deployed into this Subscription.
+
+* `template_spec_version_id` - (Optional) The ID of the Template Spec Version to deploy into the Subscription. Cannot be specified with `template_content`.
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 

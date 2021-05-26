@@ -6,24 +6,23 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type RoleDefinitionResource struct{}
 
-func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
+func TestAccRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(uuid.New().String(), data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -31,16 +30,16 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
+func TestAccRoleDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	id := uuid.New().String()
 
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(id, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,14 +49,14 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
+func TestAccRoleDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(uuid.New().String(), data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,22 +64,22 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_update(t *testing.T) {
+func TestAccRoleDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 	id := uuid.New().String()
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(id, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updated(id, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,22 +87,22 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
+func TestAccRoleDefinition_updateEmptyId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.emptyId(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateEmptyId(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -111,14 +110,14 @@ func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
+func TestAccRoleDefinition_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.emptyId(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -126,14 +125,29 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_managementGroup(t *testing.T) {
+func TestAccRoleDefinition_emptyPermissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyPermissions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRoleDefinition_managementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+	r := RoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managementGroup(uuid.New().String(), data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -141,14 +155,14 @@ func TestAccAzureRMRoleDefinition_managementGroup(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_assignToSmallerScope(t *testing.T) {
+func TestAccRoleDefinition_assignToSmallerScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.assignToSmallerScope(uuid.New().String(), data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -156,15 +170,15 @@ func TestAccAzureRMRoleDefinition_assignToSmallerScope(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_noAssignableScope(t *testing.T) {
+func TestAccRoleDefinition_noAssignableScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 
 	r := RoleDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.noAssignableScope(uuid.New().String(), data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -172,7 +186,7 @@ func TestAccAzureRMRoleDefinition_noAssignableScope(t *testing.T) {
 	})
 }
 
-func (RoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (RoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	scope := state.Attributes["scope"]
 	roleDefinitionId := state.Attributes["role_definition_id"]
 
@@ -277,7 +291,7 @@ resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
   scope              = data.azurerm_subscription.primary.id
-  description        = "Acceptance Test Role Definition"
+  description        = "Acceptance Test Role Definition Updated"
 
   permissions {
     actions     = ["*"]
@@ -339,6 +353,28 @@ resource "azurerm_role_definition" "test" {
   ]
 }
 `, data.RandomInteger)
+}
+
+func (r RoleDefinitionResource) emptyPermissions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+resource "azurerm_role_definition" "test" {
+  name              = "acctestrd-%d"
+  scope             = azurerm_resource_group.test.id
+  assignable_scopes = [azurerm_resource_group.test.id]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (RoleDefinitionResource) managementGroup(id string, data acceptance.TestData) string {

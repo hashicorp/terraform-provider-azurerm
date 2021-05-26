@@ -23,7 +23,7 @@ resource "azurerm_databox_edge_device" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  sku_name = "Edge-Standard"
+  sku_name = "EdgeP_Base-Standard"
 }
 ```
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Databox Edge Device should exist. Changing this forces a new Databox Edge Device to be created.
 
-* `sku_name` - (Required)  The `sku_name` is comprised of two segments separated by a hyphen (e.g. `TEA_1Node_UPS_Heater-Standard`). The first segment of the `sku_name` defines the `name` of the sku, possible values are `Gateway`, `Edge`, `TEA_1Node`, `TEA_1Node_UPS`, `TEA_1Node_Heater`, `TEA_1Node_UPS_Heater`, `TEA_4Node_Heater`, `TEA_4Node_UPS_Heater` or `TMA`. The second segment defines the `tier` of the `sku_name`, possible values are `Standard`. For more information see the [product documentation]("https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.management.databoxedge.models.sku?view=azure-dotnet"). Changing this forces a new Databox Edge Device to be created.
+* `sku_name` - (Required)  The `sku_name` is comprised of two segments separated by a hyphen (e.g. `TEA_1Node_UPS_Heater-Standard`). The first segment of the `sku_name` defines the `name` of the sku, possible values are `Gateway`, `EdgeMR_Mini`, `EdgeP_Base`, `EdgeP_High`, `EdgePR_Base`, `EdgePR_Base_UPS`, `GPU`, `RCA_Large`, `RCA_Small`, `RDC`, `TCA_Large`, `TCA_Small`, `TDC`, `TEA_1Node`, `TEA_1Node_UPS`, `TEA_1Node_Heater`, `TEA_1Node_UPS_Heater`, `TEA_4Node_Heater`, `TEA_4Node_UPS_Heater` or `TMA`. The second segment defines the `tier` of the `sku_name`, possible values are `Standard`. For more information see the [product documentation]("https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.management.databoxedge.models.sku?view=azure-dotnet"). Changing this forces a new Databox Edge Device to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Databox Edge Device.
 

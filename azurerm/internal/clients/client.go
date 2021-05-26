@@ -21,7 +21,9 @@ import (
 	bot "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/client"
 	cdn "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/client"
 	cognitiveServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/client"
+	communication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/client"
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
+	consumption "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
@@ -120,7 +122,9 @@ type Client struct {
 	Bot                   *bot.Client
 	Cdn                   *cdn.Client
 	Cognitive             *cognitiveServices.Client
+	Communication         *communication.Client
 	Compute               *compute.Client
+	Consumption           *consumption.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
@@ -221,7 +225,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
 	client.Cognitive = cognitiveServices.NewClient(o)
+	client.Communication = communication.NewClient(o)
 	client.Compute = compute.NewClient(o)
+	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
