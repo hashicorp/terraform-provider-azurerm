@@ -214,10 +214,13 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		switch v := privateKey.(type) {
 		case *ecdsa.PrivateKey:
 			keyX509, err = x509.MarshalECPrivateKey(privateKey.(*ecdsa.PrivateKey))
+			if err != nil {
+				return fmt.Errorf("marshalling private key type %+v (%q): %+v", v, id.Name, err)
+			}
 		case *rsa.PrivateKey:
 			keyX509 = x509.MarshalPKCS1PrivateKey(privateKey.(*rsa.PrivateKey))
 		default:
-			return fmt.Errorf("decoding private key type %+v (%q): %+v", v, id.Name, err)
+			return fmt.Errorf("marshalling private key type %+v (%q): key type is not supported", v, id.Name)
 		}
 	}
 
