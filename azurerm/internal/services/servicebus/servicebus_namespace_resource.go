@@ -6,12 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,17 +16,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
-var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+var (
+	serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+	serviceBusNamespaceResourceName             = "azurerm_servicebus_namespace"
+)
 
-func resourceServiceBusNamespace() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceBusNamespace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceCreateUpdate,
 		Read:   resourceServiceBusNamespaceRead,
 		Update: resourceServiceBusNamespaceCreateUpdate,
@@ -46,16 +47,16 @@ func resourceServiceBusNamespace() *schema.Resource {
 			0: migration.NamespaceV0ToV1{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NamespaceName,
@@ -66,7 +67,7 @@ func resourceServiceBusNamespace() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -78,38 +79,38 @@ func resourceServiceBusNamespace() *schema.Resource {
 			},
 
 			"capacity": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
 			},
 
 			"default_primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"zone_redundant": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
@@ -119,7 +120,7 @@ func resourceServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -180,7 +181,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceServiceBusNamespaceRead(d, meta)
 }
 
-func resourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -226,7 +227,7 @@ func resourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

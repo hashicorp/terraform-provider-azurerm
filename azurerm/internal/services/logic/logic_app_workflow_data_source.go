@@ -6,25 +6,25 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceLogicAppWorkflow() *schema.Resource {
-	return &schema.Resource{
+func dataSourceLogicAppWorkflow() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceLogicAppWorkflowRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
@@ -33,53 +33,53 @@ func dataSourceLogicAppWorkflow() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"logic_app_integration_account_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"workflow_schema": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"workflow_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"access_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"connector_endpoint_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 			"connector_outbound_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 			"workflow_endpoint_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 			"workflow_outbound_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -87,7 +87,7 @@ func dataSourceLogicAppWorkflow() *schema.Resource {
 	}
 }
 
-func dataSourceLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

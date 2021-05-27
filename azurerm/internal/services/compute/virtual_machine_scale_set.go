@@ -324,7 +324,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -448,7 +448,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -1236,7 +1236,6 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		ForceNew: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -1244,12 +1243,10 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *schema.Schema {
 				"disable_automatic_rollback": {
 					Type:     schema.TypeBool,
 					Required: true,
-					ForceNew: true,
 				},
 				"enable_automatic_os_upgrade": {
 					Type:     schema.TypeBool,
 					Required: true,
-					ForceNew: true,
 				},
 			},
 		},
@@ -1494,7 +1491,7 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 
 func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Computed: true,
 		Elem: &schema.Resource{

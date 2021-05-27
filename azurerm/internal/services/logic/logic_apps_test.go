@@ -5,21 +5,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func actionExists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func actionExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return componentExists(ctx, clients, state, "Action", "actions")
 }
 
-func triggerExists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func triggerExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return componentExists(ctx, clients, state, "Trigger", "triggers")
 }
 
-func componentExists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState, kind, propertyName string) (*bool, error) {
+func componentExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState, kind, propertyName string) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

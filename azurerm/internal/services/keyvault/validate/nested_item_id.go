@@ -3,8 +3,8 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {

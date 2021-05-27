@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMediaContentKeyPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
 	r := MediaContentKeyPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.#").HasValue("1"),
 			),
@@ -37,10 +36,10 @@ func TestAccMediaContentKeyPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
 	r := MediaContentKeyPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.#").HasValue("1"),
 			),
@@ -53,10 +52,10 @@ func TestAccMediaContentKeyPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
 	r := MediaContentKeyPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.#").HasValue("4"),
 			),
@@ -65,7 +64,7 @@ func TestAccMediaContentKeyPolicy_complete(t *testing.T) {
 	})
 }
 
-func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ContentKeyPolicyID(state.ID)
 	if err != nil {
 		return nil, err

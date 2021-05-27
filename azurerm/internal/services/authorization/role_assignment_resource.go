@@ -9,9 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -21,28 +18,29 @@ import (
 	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRoleAssignment() *schema.Resource {
-	return &schema.Resource{
+func resourceArmRoleAssignment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmRoleAssignmentCreate,
 		Read:   resourceArmRoleAssignmentRead,
 		Delete: resourceArmRoleAssignmentDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -50,7 +48,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
@@ -63,7 +61,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"role_definition_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
@@ -72,7 +70,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"role_definition_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
@@ -82,31 +80,31 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"principal_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"principal_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"skip_service_principal_aad_check": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				RequiredWith: []string{"condition_version"},
@@ -114,7 +112,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"condition_version": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				RequiredWith: []string{"condition"},
@@ -127,7 +125,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -165,7 +163,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
-	existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+	existing, err := roleAssignmentsClient.Get(ctx, scope, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
@@ -199,11 +197,11 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
-	if err := resource.Retry(d.Timeout(schema.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
 
-	read, err := roleAssignmentsClient.Get(ctx, scope, name)
+	read, err := roleAssignmentsClient.Get(ctx, scope, name, "")
 	if err != nil {
 		return err
 	}
@@ -215,13 +213,13 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
-func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.GetByID(ctx, d.Id())
+	resp, err := client.GetByID(ctx, d.Id(), "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Role Assignment ID %q was not found - removing from state", d.Id())
@@ -259,7 +257,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +267,7 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.scope, id.name)
+	resp, err := client.Delete(ctx, id.scope, id.name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -279,8 +277,8 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
-	return func() *resource.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *pluginsdk.RetryError {
+	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
@@ -288,20 +286,20 @@ func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name strin
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
-				return resource.RetryableError(err)
+				return pluginsdk.RetryableError(err)
 			} else if utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
 				// When waiting for service principal to become available
-				return resource.RetryableError(err)
+				return pluginsdk.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return pluginsdk.NonRetryableError(err)
 		}
 
 		if resp.ID == nil {
-			return resource.NonRetryableError(fmt.Errorf("creation of Role Assignment %q did not return an id value", name))
+			return pluginsdk.NonRetryableError(fmt.Errorf("creation of Role Assignment %q did not return an id value", name))
 		}
 
-		stateConf := &resource.StateChangeConf{
+		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{
 				"pending",
 			},
@@ -311,11 +309,11 @@ func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name strin
 			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *resp.ID),
 			MinTimeout:                5 * time.Second,
 			ContinuousTargetOccurence: 5,
-			Timeout:                   d.Timeout(schema.TimeoutCreate),
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err))
 		}
 
 		return nil
@@ -341,9 +339,9 @@ func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
 	return &id, nil
 }
 
-func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authorization.RoleAssignmentsClient, roleID string) resource.StateRefreshFunc {
+func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authorization.RoleAssignmentsClient, roleID string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.GetByID(ctx, roleID)
+		resp, err := client.GetByID(ctx, roleID, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return resp, "pending", nil

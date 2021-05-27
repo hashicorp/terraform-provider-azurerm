@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccSqlElasticPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 	r := SqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +34,10 @@ func TestAccSqlElasticPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 	r := SqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,7 +49,7 @@ func TestAccSqlElasticPool_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 	r := SqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -62,10 +61,10 @@ func TestAccSqlElasticPool_resizeDtu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 	r := SqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dtu").HasValue("50"),
 				check.That(data.ResourceName).Key("pool_size").HasValue("5000"),
@@ -73,7 +72,7 @@ func TestAccSqlElasticPool_resizeDtu(t *testing.T) {
 		},
 		{
 			Config: r.resizedDtu(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dtu").HasValue("100"),
 				check.That(data.ResourceName).Key("pool_size").HasValue("10000"),
@@ -82,7 +81,7 @@ func TestAccSqlElasticPool_resizeDtu(t *testing.T) {
 	})
 }
 
-func (r SqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ElasticPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +96,7 @@ func (r SqlElasticPoolResource) Exists(ctx context.Context, client *clients.Clie
 	return utils.Bool(true), nil
 }
 
-func (r SqlElasticPoolResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlElasticPoolResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ElasticPoolID(state.ID)
 	if err != nil {
 		return nil, err

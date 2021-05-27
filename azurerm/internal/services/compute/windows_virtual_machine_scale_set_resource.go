@@ -163,12 +163,18 @@ func resourceWindowsVirtualMachineScaleSet() *schema.Resource {
 			"license_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"None",
 					"Windows_Client",
 					"Windows_Server",
 				}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
+					if old == "None" && new == "" || old == "" && new == "None" {
+						return true
+					}
+
+					return false
+				},
 			},
 
 			"max_bid_price": {
@@ -433,7 +439,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 
 	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*schema.Set).List())
 		if err != nil {
 			return err
 		}
@@ -444,14 +450,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 		}
 		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
-	}
-
-	// otherwise the service return the error:
-	// Automatic OS Upgrade is not supported for this Virtual Machine Scale Set because a health probe or health extension was not specified.
-	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
-		if *automaticOSUpgradePolicy.EnableAutomaticOSUpgrade && (healthProbeId == "" && !hasHealthExtension) {
-			return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
-		}
 	}
 
 	// otherwise the service return the error:
@@ -809,6 +807,17 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
+	if d.HasChange("license_type") {
+		license := d.Get("license_type").(string)
+		if license == "" {
+			// Only for create no specification is possible in the API. API does not allow empty string in update.
+			// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
+			// To allow updating in this case set value explicitly to 'None'.
+			license = "None"
+		}
+		updateProps.VirtualMachineProfile.LicenseType = &license
+	}
+
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
@@ -851,7 +860,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta in
 	if d.HasChanges("extension", "extensions_time_budget") {
 		updateInstances = true
 
-		extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+		extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").(*schema.Set).List())
 		if err != nil {
 			return err
 		}
@@ -1152,10 +1161,13 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta in
 	}
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	// @ArcturusZhang (mimicking from windows_virtual_machine_resource.go): sending `nil` here omits this value from being sent
-	// which matches the previous behaviour - we're only splitting this out so it's clear why
-	// TODO: support force deletion once it's out of Preview, if applicable
+	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
+	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
+	// conditionally set this if required
 	var forceDeletion *bool = nil
+	if meta.(*clients.Client).Features.VirtualMachineScaleSet.ForceDelete {
+		forceDeletion = utils.Bool(true)
+	}
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)

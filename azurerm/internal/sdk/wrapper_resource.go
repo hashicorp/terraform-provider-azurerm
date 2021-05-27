@@ -37,7 +37,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		return nil, fmt.Errorf("validating model for %q: %+v", rw.resource.ResourceType(), err)
 	}
 
-	var d = func(duration time.Duration) *time.Duration {
+	d := func(duration time.Duration) *time.Duration {
 		return &duration
 	}
 

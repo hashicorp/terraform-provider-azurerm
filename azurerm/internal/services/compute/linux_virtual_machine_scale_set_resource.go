@@ -417,7 +417,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta inte
 
 	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*schema.Set).List())
 		if err != nil {
 			return err
 		}
@@ -428,14 +428,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta inte
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 		}
 		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
-	}
-
-	// otherwise the service return the error:
-	// Automatic OS Upgrade is not supported for this Virtual Machine Scale Set because a health probe or health extension was not specified.
-	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
-		if *automaticOSUpgradePolicy.EnableAutomaticOSUpgrade && (healthProbeId == "" && !hasHealthExtension) {
-			return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
-		}
 	}
 
 	// otherwise the service return the error:
@@ -824,7 +816,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta inte
 	if d.HasChanges("extension", "extensions_time_budget") {
 		updateInstances = true
 
-		extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+		extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").(*schema.Set).List())
 		if err != nil {
 			return err
 		}
@@ -1110,10 +1102,13 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta inte
 	}
 
 	log.Printf("[DEBUG] Deleting Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	// @ArcturusZhang (mimicking from linux_virtual_machine_resource.go): sending `nil` here omits this value from being sent
-	// which matches the previous behaviour - we're only splitting this out so it's clear why
-	// TODO: support force deletion once it's out of Preview, if applicable
+	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
+	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
+	// conditionally set this if required
 	var forceDeletion *bool = nil
+	if meta.(*clients.Client).Features.VirtualMachineScaleSet.ForceDelete {
+		forceDeletion = utils.Bool(true)
+	}
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)

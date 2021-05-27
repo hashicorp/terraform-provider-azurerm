@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDatabaseMigrationService() *schema.Resource {
-	return &schema.Resource{
+func resourceDatabaseMigrationService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDatabaseMigrationServiceCreate,
 		Read:   resourceDatabaseMigrationServiceRead,
 		Update: resourceDatabaseMigrationServiceUpdate,
@@ -33,16 +32,16 @@ func resourceDatabaseMigrationService() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServiceName,
@@ -53,14 +52,14 @@ func resourceDatabaseMigrationService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -78,7 +77,7 @@ func resourceDatabaseMigrationService() *schema.Resource {
 	}
 }
 
-func resourceDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +126,7 @@ func resourceDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interfa
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +159,7 @@ func resourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +184,7 @@ func resourceDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta interfa
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceDatabaseMigrationServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

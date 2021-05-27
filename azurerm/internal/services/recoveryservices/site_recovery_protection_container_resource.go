@@ -4,21 +4,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSiteRecoveryProtectionContainer() *schema.Resource {
-	return &schema.Resource{
+func resourceSiteRecoveryProtectionContainer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryProtectionContainerCreate,
 		Read:   resourceSiteRecoveryProtectionContainerRead,
 		Update: nil,
@@ -26,16 +24,16 @@ func resourceSiteRecoveryProtectionContainer() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -43,13 +41,13 @@ func resourceSiteRecoveryProtectionContainer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"recovery_fabric_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -58,7 +56,7 @@ func resourceSiteRecoveryProtectionContainer() *schema.Resource {
 	}
 }
 
-func resourceSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("recovery_fabric_name").(string)
@@ -103,7 +101,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, meta 
 	return resourceSiteRecoveryProtectionContainerRead(d, meta)
 }
 
-func resourceSiteRecoveryProtectionContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -134,7 +132,7 @@ func resourceSiteRecoveryProtectionContainerRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
