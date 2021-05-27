@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"net/http"
 	"strings"
@@ -338,11 +339,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"identity_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: msiValidate.UserAssignedIdentityID,
 							},
 						},
@@ -2473,7 +2474,7 @@ func expandAzureRmStorageAccountIdentity(vs []interface{}) (*storage.Identity, e
 
 	var identityIdSet []interface{}
 	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*schema.Set).List()
+		identityIdSet = identityIds.(*pluginsdk.Set).List()
 	}
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
@@ -2526,7 +2527,7 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) ([]interfa
 			"type":         string(identity.Type),
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
-			"identity_ids": schema.NewSet(schema.HashString, identityIds),
+			"identity_ids": pluginsdk.NewSet(schema.HashString, identityIds),
 		},
 	}, nil
 }
