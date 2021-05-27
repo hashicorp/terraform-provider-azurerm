@@ -175,7 +175,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		{
 
 			Config: r.indexing_policy_update_spatialIndex(data, "/includedPath02/*", "/excludedPath02/?"),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -183,7 +183,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		{
 
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
