@@ -44,7 +44,7 @@ func DefaultListByEventHubOptions() ListByEventHubOptions {
 }
 
 func (o ListByEventHubOptions) toQueryString() map[string]interface{} {
-	out := make(map[string]interface{}, 0)
+	out := make(map[string]interface{})
 
 	if o.Skip != nil {
 		out["$skip"] = *o.Skip

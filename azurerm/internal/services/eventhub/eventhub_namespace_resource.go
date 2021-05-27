@@ -340,11 +340,12 @@ func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
 				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 			}
-		} else {
+		} else if rulesets.Properties != nil {
+			props := rulesets.Properties
 			// so if the user has specified the non default rule sets throw a validation error
-			if *rulesets.Properties.DefaultAction != networkrulesets.DefaultActionDeny ||
-				(rulesets.Properties.IpRules != nil && len(*rulesets.Properties.IpRules) > 0) ||
-				(rulesets.Properties.VirtualNetworkRules != nil && len(*rulesets.Properties.VirtualNetworkRules) > 0) {
+			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
+				(props.IpRules != nil && len(*props.IpRules) > 0) ||
+				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
 				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
 			}
 		}
@@ -396,7 +397,9 @@ func resourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 		}
 
-		tags.FlattenAndSet(d, flattenTags(model.Tags))
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)

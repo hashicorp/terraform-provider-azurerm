@@ -149,7 +149,9 @@ func EventHubNamespaceDataSourceRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 		}
 
-		tags.FlattenAndSet(d, flattenTags(model.Tags))
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	defaultRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, eventHubNamespaceDefaultAuthorizationRule)
