@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -20,14 +19,14 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 	r := KubernetesServiceVersionDataSource{}
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
 				check.That(data.ResourceName).Key("latest_version").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
 			),
 		},
 	})
@@ -38,14 +37,14 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
 	r := KubernetesServiceVersionDataSource{}
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.filtered(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
 				check.That(data.ResourceName).Key("latest_version").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
 			),
 		},
 	})
@@ -56,14 +55,14 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_nopreview(t *testing.T) {
 	r := KubernetesServiceVersionDataSource{}
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.nopreview(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
 				check.That(data.ResourceName).Key("latest_version").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
 			),
 		},
 	})
