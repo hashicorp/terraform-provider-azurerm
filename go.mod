@@ -10,7 +10,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-azure-helpers v0.16.2
+	github.com/hashicorp/go-azure-helpers v0.16.3
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-plugin v1.4.0 // indirect
