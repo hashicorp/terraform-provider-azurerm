@@ -257,7 +257,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceDat
 	// it can take some time for the name to become available again
 	// this is mainly here	to enable updating the resource in place
 	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName)
-	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailableClient
+	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &resource.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},

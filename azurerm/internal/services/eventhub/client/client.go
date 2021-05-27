@@ -14,15 +14,15 @@ import (
 )
 
 type Client struct {
-	ClusterClient                       *eventhubsclusters.EventHubsClustersClient
-	ConsumerGroupClient                 *consumergroups.ConsumerGroupsClient
-	DisasterRecoveryConfigsClient       *disasterrecoveryconfigs.DisasterRecoveryConfigsClient
-	DisasterRecoveryNameAvailableClient *checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityDisasterRecoveryConfigsClient
-	EventHubsClient                     *eventhubs.EventHubsClient
-	EventHubAuthorizationRulesClient    *authorizationruleseventhubs.AuthorizationRulesEventHubsClient
-	NamespacesClient                    *namespaces.NamespacesClient
-	NamespaceAuthorizationRulesClient   *authorizationrulesnamespaces.AuthorizationRulesNamespacesClient
-	NetworkRuleSetsClient               *networkrulesets.NetworkRuleSetsClient
+	ClusterClient                          *eventhubsclusters.EventHubsClustersClient
+	ConsumerGroupClient                    *consumergroups.ConsumerGroupsClient
+	DisasterRecoveryConfigsClient          *disasterrecoveryconfigs.DisasterRecoveryConfigsClient
+	DisasterRecoveryNameAvailabilityClient *checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityDisasterRecoveryConfigsClient
+	EventHubsClient                        *eventhubs.EventHubsClient
+	EventHubAuthorizationRulesClient       *authorizationruleseventhubs.AuthorizationRulesEventHubsClient
+	NamespacesClient                       *namespaces.NamespacesClient
+	NamespaceAuthorizationRulesClient      *authorizationrulesnamespaces.AuthorizationRulesNamespacesClient
+	NetworkRuleSetsClient                  *networkrulesets.NetworkRuleSetsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -35,8 +35,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	disasterRecoveryConfigsClient := disasterrecoveryconfigs.NewDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&disasterRecoveryConfigsClient.Client, o.ResourceManagerAuthorizer)
 
-	disasterRecoveryNameAvailableClient := checknameavailabilitydisasterrecoveryconfigs.NewCheckNameAvailabilityDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&disasterRecoveryNameAvailableClient.Client, o.ResourceManagerAuthorizer)
+	disasterRecoveryNameAvailabilityClient := checknameavailabilitydisasterrecoveryconfigs.NewCheckNameAvailabilityDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&disasterRecoveryNameAvailabilityClient.Client, o.ResourceManagerAuthorizer)
 
 	eventhubsClient := eventhubs.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&eventhubsClient.Client, o.ResourceManagerAuthorizer)
@@ -54,14 +54,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&networkRuleSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ClusterClient:                       &clustersClient,
-		ConsumerGroupClient:                 &consumerGroupsClient,
-		DisasterRecoveryConfigsClient:       &disasterRecoveryConfigsClient,
-		DisasterRecoveryNameAvailableClient: &disasterRecoveryNameAvailableClient,
-		EventHubsClient:                     &eventhubsClient,
-		EventHubAuthorizationRulesClient:    &eventHubAuthorizationRulesClient,
-		NamespacesClient:                    &namespacesClient,
-		NamespaceAuthorizationRulesClient:   &namespaceAuthorizationRulesClient,
-		NetworkRuleSetsClient:               &networkRuleSetsClient,
+		ClusterClient:                          &clustersClient,
+		ConsumerGroupClient:                    &consumerGroupsClient,
+		DisasterRecoveryConfigsClient:          &disasterRecoveryConfigsClient,
+		DisasterRecoveryNameAvailabilityClient: &disasterRecoveryNameAvailabilityClient,
+		EventHubsClient:                        &eventhubsClient,
+		EventHubAuthorizationRulesClient:       &eventHubAuthorizationRulesClient,
+		NamespacesClient:                       &namespacesClient,
+		NamespaceAuthorizationRulesClient:      &namespaceAuthorizationRulesClient,
+		NetworkRuleSetsClient:                  &networkRuleSetsClient,
 	}
 }
