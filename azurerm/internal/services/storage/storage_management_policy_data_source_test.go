@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type StorageManagementPolicyDataSource struct{}
 func TestAccDataSourceStorageManagementPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_management_policy", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageManagementPolicyDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
 				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
@@ -39,10 +38,10 @@ func TestAccDataSourceStorageManagementPolicy_basic(t *testing.T) {
 func TestAccDataSourceStorageManagementPolicy_blobTypes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_management_policy", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageManagementPolicyDataSource{}.blobTypes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
 				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),

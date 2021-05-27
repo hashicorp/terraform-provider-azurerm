@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataLakeStore() *schema.Resource {
-	return &schema.Resource{
+func resourceDataLakeStore() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmDateLakeStoreCreate,
 		Read:   resourceArmDateLakeStoreRead,
 		Update: resourceArmDateLakeStoreUpdate,
@@ -30,16 +29,16 @@ func resourceDataLakeStore() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName(),
@@ -50,7 +49,7 @@ func resourceDataLakeStore() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tier": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          string(account.Consumption),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -66,7 +65,7 @@ func resourceDataLakeStore() *schema.Resource {
 			},
 
 			"encryption_state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(account.Enabled),
 				ForceNew: true,
@@ -78,7 +77,7 @@ func resourceDataLakeStore() *schema.Resource {
 			},
 
 			"encryption_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -89,7 +88,7 @@ func resourceDataLakeStore() *schema.Resource {
 			},
 
 			"firewall_state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(account.FirewallStateEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -100,7 +99,7 @@ func resourceDataLakeStore() *schema.Resource {
 			},
 
 			"firewall_allow_azure_ips": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(account.FirewallAllowAzureIpsStateEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -111,7 +110,7 @@ func resourceDataLakeStore() *schema.Resource {
 			},
 
 			"endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -120,7 +119,7 @@ func resourceDataLakeStore() *schema.Resource {
 	}
 }
 
-func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +187,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	return resourceArmDateLakeStoreRead(d, meta)
 }
 
-func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,7 +220,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceArmDateLakeStoreRead(d, meta)
 }
 
-func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +266,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

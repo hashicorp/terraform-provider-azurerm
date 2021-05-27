@@ -2,9 +2,30 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_spatial_anchors_account` [GH-11824]
+
 ENHANCEMENTS:
 
+* dependencies: updating to `v54.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11813]
+* dependencies: updating `mixedreality` to use API Version `2021-01-01` [GH-11824]
+* refactor: switching to use an embedded SDK for `appconfiguration` [GH-11959]
+* provider: support for the Virtual Machine `skip_shutdown_and_force_delete` feature [GH-11216]
+* provider: support for the Virtual Machine Scale Set `force_delete` feature [GH-11216]
+* provider: no longer auto register the Microsoft.DevSpaces RP [GH-11822]
+* Data Source: `azurerm_key_vault_certificate_data` - support certificate bundles and add support for ECDSA keys [GH-11974]
+* `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties [GH-11825]
+* `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` [GH-11824]
+* `azurerm_static_site`: Add support for `tags` attribute [GH-11849]
+* `azurerm_storage_account`: `private_link_access` supports more values [GH-11957]
+* `azurerm_storage_account_network_rules`: `private_link_access` supports more values [GH-11957]
+* `azurerm_synapse_spark_pool` - `spark_version` now supports `3.0` [GH-11972]
+
 BUG FIXES:
+
+* `azurerm_cdn_endpoint` - do not send an empty `origin_host_header` to the api [GH-11852]
+* `azurerm_linux_virtual_machine_scale_set`: changing the `disable_automatic_rollback` and `enable_automatic_os_upgrade` properties no longer created a new resource [GH-11723]
+* `azurerm_storage_share`: Fix ID for `resource_manager_id` [GH-11828]
+* `azurerm_windows_virtual_machine_scale_set`: changing the `disable_automatic_rollback` and `enable_automatic_os_upgrade` properties no longer created a new resource [GH-11723]
 
 ## 2.60.0 (May 20, 2021)
 

@@ -8,8 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,22 +15,23 @@ import (
 	signalrValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSignalRService() *schema.Resource {
-	return &schema.Resource{
+func resourceArmSignalRService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmSignalRServiceCreate,
 		Read:   resourceArmSignalRServiceRead,
 		Update: resourceArmSignalRServiceUpdate,
 		Delete: resourceArmSignalRServiceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -40,9 +39,9 @@ func resourceArmSignalRService() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
@@ -53,13 +52,13 @@ func resourceArmSignalRService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Free_F1",
@@ -68,7 +67,7 @@ func resourceArmSignalRService() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
 						},
@@ -77,13 +76,13 @@ func resourceArmSignalRService() *schema.Resource {
 			},
 
 			"features": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"flag": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								// Looks like the default has changed, ours will need to be updated in AzureRM 3.0.
@@ -95,7 +94,7 @@ func resourceArmSignalRService() *schema.Resource {
 						},
 
 						"value": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -103,39 +102,39 @@ func resourceArmSignalRService() *schema.Resource {
 			},
 
 			"upstream_endpoint": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"category_pattern": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"event_pattern": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"hub_pattern": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"url_template": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: signalrValidate.UrlTemplate,
 						},
@@ -144,60 +143,60 @@ func resourceArmSignalRService() *schema.Resource {
 			},
 
 			"cors": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 					},
 				},
 			},
 
 			"hostname": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"public_port": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"server_port": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"primary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -207,7 +206,7 @@ func resourceArmSignalRService() *schema.Resource {
 	}
 }
 
-func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,10 +228,10 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 
 	sku := d.Get("sku").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
-	featureFlags := d.Get("features").(*schema.Set).List()
+	featureFlags := d.Get("features").(*pluginsdk.Set).List()
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
-	upstreamSettings := d.Get("upstream_endpoint").(*schema.Set).List()
+	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := expandSignalRFeatures(featureFlags)
 
@@ -274,7 +273,7 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 	return resourceArmSignalRServiceUpdate(d, meta)
 }
 
-func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,7 +336,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -358,12 +357,12 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if d.HasChange("features") {
-			featuresRaw := d.Get("features").(*schema.Set).List()
+			featuresRaw := d.Get("features").(*pluginsdk.Set).List()
 			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 
 		if d.HasChange("upstream_endpoint") {
-			featuresRaw := d.Get("upstream_endpoint").(*schema.Set).List()
+			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
 		}
 	}
@@ -389,7 +388,7 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceArmSignalRServiceRead(d, meta)
 }
 
-func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -534,7 +533,7 @@ func expandSignalRCors(input []interface{}) *signalr.CorsSettings {
 	}
 
 	setting := input[0].(map[string]interface{})
-	origins := setting["allowed_origins"].(*schema.Set).List()
+	origins := setting["allowed_origins"].(*pluginsdk.Set).List()
 
 	allowedOrigins := make([]string, 0)
 	for _, param := range origins {
@@ -560,7 +559,7 @@ func flattenSignalRCors(input *signalr.CorsSettings) []interface{} {
 			allowedOrigins = append(allowedOrigins, v)
 		}
 	}
-	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
+	result["allowed_origins"] = pluginsdk.NewSet(pluginsdk.HashString, allowedOrigins)
 
 	return append(results, result)
 }

@@ -268,12 +268,6 @@ type ClassicAdministratorProperties struct {
 	Role *string `json:"role,omitempty"`
 }
 
-// CustomErrorResponse descriptive error response.
-type CustomErrorResponse struct {
-	// Message - Description of the error.
-	Message *string `json:"message,omitempty"`
-}
-
 // DenyAssignment deny Assignment
 type DenyAssignment struct {
 	autorest.Response `json:"-"`
@@ -556,6 +550,12 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorDetail the error detail.
 type ErrorDetail struct {
 	// Code - READ-ONLY; The error code.
@@ -568,6 +568,12 @@ type ErrorDetail struct {
 	Details *[]ErrorDetail `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorDetail.
+func (ed ErrorDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
@@ -754,6 +760,12 @@ type Principal struct {
 	ID *string `json:"id,omitempty"`
 	// Type - READ-ONLY; Type of object represented by principal id (user, group, or service principal). An empty guid '00000000-0000-0000-0000-000000000000' as principal id and principal type as 'Everyone' represents all users, groups and service principals.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Principal.
+func (p Principal) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ProviderOperation operation
@@ -1249,6 +1261,12 @@ type RoleAssignmentMetricsResult struct {
 	RoleAssignmentsCurrentCount *int64 `json:"roleAssignmentsCurrentCount,omitempty"`
 	// RoleAssignmentsRemainingCount - READ-ONLY; The number of remaining role assignments available.
 	RoleAssignmentsRemainingCount *int64 `json:"roleAssignmentsRemainingCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RoleAssignmentMetricsResult.
+func (ramr RoleAssignmentMetricsResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RoleAssignmentProperties role assignment properties.

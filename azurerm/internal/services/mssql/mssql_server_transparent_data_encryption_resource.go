@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	keyVaultParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
@@ -20,8 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMsSqlTransparentDataEncryption() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlTransparentDataEncryptionCreateUpdate,
 		Read:   resourceMsSqlTransparentDataEncryptionRead,
 		Update: resourceMsSqlTransparentDataEncryptionCreateUpdate,
@@ -33,22 +31,22 @@ func resourceMsSqlTransparentDataEncryption() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"server_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: mssqlValidate.ServerID,
 			},
 			"key_vault_key_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
@@ -56,7 +54,7 @@ func resourceMsSqlTransparentDataEncryption() *schema.Resource {
 	}
 }
 
-func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 	serverKeysClient := meta.(*clients.Client).MSSQL.ServerKeysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -164,7 +162,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 	return resourceMsSqlTransparentDataEncryptionRead(d, meta)
 }
 
-func resourceMsSqlTransparentDataEncryptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -205,7 +203,7 @@ func resourceMsSqlTransparentDataEncryptionRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceMsSqlTransparentDataEncryptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	// Note that encryption protector cannot be deleted. It can only be updated between AzureKeyVault
 	// and SystemManaged. For safety, when this resource is deleted, we're resetting the key type
 	// to service managed to prevent accidental lockout if someone were to delete the keys from key vault

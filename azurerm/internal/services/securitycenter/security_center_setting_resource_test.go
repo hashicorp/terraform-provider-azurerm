@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	r := SecurityCenterSettingResource{}
 
 	// lintignore:AT001
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("setting_name").HasValue("MCAS"),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
@@ -34,7 +33,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cfg("MCAS", false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("setting_name").HasValue("MCAS"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
@@ -43,7 +42,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cfg("WDATP", true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("setting_name").HasValue("WDATP"),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
@@ -52,7 +51,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cfg("WDATP", false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("setting_name").HasValue("WDATP"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
@@ -62,7 +61,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	})
 }
 
-func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SecurityCenterSettingID(state.ID)
 	if err != nil {
 		return nil, err

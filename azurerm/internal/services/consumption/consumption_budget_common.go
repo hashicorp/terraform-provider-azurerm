@@ -4,15 +4,15 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/shopspring/decimal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}, scope, name string) error {
+func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{}, scope, name string) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -33,13 +33,13 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}, 
 	}
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", schema.NewSet(schema.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
+	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
 	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
 }
 
-func resourceArmConsumptionBudgetDelete(d *schema.ResourceData, meta interface{}, scope string) error {
+func resourceArmConsumptionBudgetDelete(d *pluginsdk.ResourceData, meta interface{}, scope string) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -56,7 +56,7 @@ func resourceArmConsumptionBudgetDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta interface{}, resourceName, scope string) error {
+func resourceArmConsumptionBudgetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, resourceName, scope string) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -91,7 +91,7 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 			Amount:        &amount,
 			Category:      &category,
 			Filter:        ExpandConsumptionBudgetFilter(d.Get("filter").([]interface{})),
-			Notifications: ExpandConsumptionBudgetNotifications(d.Get("notification").(*schema.Set).List()),
+			Notifications: ExpandConsumptionBudgetNotifications(d.Get("notification").(*pluginsdk.Set).List()),
 			TimeGrain:     consumption.TimeGrainType(d.Get("time_grain").(string)),
 			TimePeriod:    timePeriod,
 		},

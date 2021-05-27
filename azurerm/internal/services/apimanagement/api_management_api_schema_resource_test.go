@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementApiSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,7 +46,7 @@ func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -75,7 +74,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = file("testdata/api_management_api_schema.xml")
+  value               = file("testdata/api_management_api_pluginsdk.xml")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -85,12 +84,12 @@ func (r ApiManagementApiSchemaResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_api_management_api_schema" "import" {
-  api_name            = azurerm_api_management_api_schema.test.api_name
-  api_management_name = azurerm_api_management_api_schema.test.api_management_name
-  resource_group_name = azurerm_api_management_api_schema.test.resource_group_name
-  schema_id           = azurerm_api_management_api_schema.test.schema_id
-  content_type        = azurerm_api_management_api_schema.test.content_type
-  value               = azurerm_api_management_api_schema.test.value
+  api_name            = azurerm_api_management_api_pluginsdk.test.api_name
+  api_management_name = azurerm_api_management_api_pluginsdk.test.api_management_name
+  resource_group_name = azurerm_api_management_api_pluginsdk.test.resource_group_name
+  schema_id           = azurerm_api_management_api_pluginsdk.test.schema_id
+  content_type        = azurerm_api_management_api_pluginsdk.test.content_type
+  value               = azurerm_api_management_api_pluginsdk.test.value
 }
 `, r.basic(data))
 }

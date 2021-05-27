@@ -1,29 +1,29 @@
 package storage
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func MetaDataSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeMap,
+func MetaDataSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeMap,
 		Optional:     true,
 		ValidateFunc: validate.MetaDataKeys,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }
 
-func MetaDataComputedSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeMap,
+func MetaDataComputedSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeMap,
 		Optional:     true,
 		Computed:     true,
 		ValidateFunc: validate.MetaDataKeys,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }

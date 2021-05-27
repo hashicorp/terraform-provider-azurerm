@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	azureNetwork "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -45,10 +44,10 @@ func testAccNetworkWatcherFlowLog_disabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -68,10 +67,10 @@ func testAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -85,7 +84,7 @@ func testAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
 		},
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -105,10 +104,10 @@ func testAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -123,7 +122,7 @@ func testAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.retentionPolicyConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -143,10 +142,10 @@ func testAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.retentionPolicyConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -161,7 +160,7 @@ func testAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.retentionPolicyConfigUpdateStorageAccount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -181,10 +180,10 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -199,7 +198,7 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.TrafficAnalyticsDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -214,7 +213,7 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.TrafficAnalyticsEnabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -235,7 +234,7 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.TrafficAnalyticsUpdateInterval(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -257,7 +256,7 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 		// flow log must be disabled before destroy
 		{
 			Config: r.TrafficAnalyticsDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -276,10 +275,10 @@ func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.versionConfig(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue("1"),
 			),
@@ -287,7 +286,7 @@ func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.versionConfig(data, 2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue("2"),
 			),
@@ -296,7 +295,7 @@ func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	})
 }
 
-func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azureNetwork.ParseNetworkWatcherFlowLogID(state.ID)
 	if err != nil {
 		return nil, err

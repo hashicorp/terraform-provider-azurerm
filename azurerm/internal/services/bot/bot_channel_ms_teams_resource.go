@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceBotChannelMsTeams() *schema.Resource {
-	return &schema.Resource{
+func resourceBotChannelMsTeams() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelMsTeamsCreate,
 		Read:   resourceBotChannelMsTeamsRead,
 		Delete: resourceBotChannelMsTeamsDelete,
@@ -32,20 +31,20 @@ func resourceBotChannelMsTeams() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
 			"bot_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -54,14 +53,14 @@ func resourceBotChannelMsTeams() *schema.Resource {
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
 			// this field could not update to empty, so add `Computed: true` to avoid diff
 			"calling_web_hook": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
 
 			"enable_calling": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -69,7 +68,7 @@ func resourceBotChannelMsTeams() *schema.Resource {
 	}
 }
 
-func resourceBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -113,7 +112,7 @@ func resourceBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}) e
 	return resourceBotChannelMsTeamsRead(d, meta)
 }
 
-func resourceBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +149,7 @@ func resourceBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +179,7 @@ func resourceBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceBotChannelMsTeamsRead(d, meta)
 }
 
-func resourceBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
