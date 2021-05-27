@@ -7,42 +7,42 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceKubernetesServiceVersions() *schema.Resource {
-	return &schema.Resource{
+func dataSourceKubernetesServiceVersions() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceKubernetesServiceVersionsRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"location": azure.SchemaLocation(),
 
 			"version_prefix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"versions": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:     pluginsdk.TypeList,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Computed: true,
 			},
 
 			"latest_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"include_preview": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -50,7 +50,7 @@ func dataSourceKubernetesServiceVersions() *schema.Resource {
 	}
 }
 
-func dataSourceKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
