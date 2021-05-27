@@ -26,7 +26,7 @@ func (u UserAssigned) Flatten(input *ExpandedConfig) []interface{} {
 		return []interface{}{}
 	}
 
-	var coalesce = func(input *string) string {
+	coalesce := func(input *string) string {
 		if input == nil {
 			return ""
 		}

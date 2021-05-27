@@ -222,7 +222,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
-	var commonSchema = map[string]*schema.Schema{
+	commonSchema := map[string]*schema.Schema{
 		"hello": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -239,7 +239,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 			Computed: true,
 		},
 	}
-	var readFunc = func(expected MyType) func(*schema.ResourceData, interface{}) error {
+	readFunc := func(expected MyType) func(*schema.ResourceData, interface{}) error {
 		return func(d *schema.ResourceData, _ interface{}) error {
 			wrapper := ResourceMetaData{
 				ResourceData:             d,
@@ -904,7 +904,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 }
 
 func computedFieldsResource() *schema.Resource {
-	var readFunc = func(d *schema.ResourceData, _ interface{}) error {
+	readFunc := func(d *schema.ResourceData, _ interface{}) error {
 		d.Set("hello", "world")
 		d.Set("random_number", 42)
 		d.Set("enabled", true)

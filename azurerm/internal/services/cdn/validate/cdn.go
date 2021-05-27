@@ -5,32 +5,32 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func EndpointDeliveryRuleName() schema.SchemaValidateFunc {
+func EndpointDeliveryRuleName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*$"),
 		"The Delivery Rule Name must start with a letter any may only contain letters and numbers.",
 	)
 }
 
-func RuleActionCacheExpirationDuration() schema.SchemaValidateFunc {
+func RuleActionCacheExpirationDuration() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`^(\d+\.)?([0-1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9]$`),
 		"The Cache duration must be in this format [d.]hh:mm:ss.",
 	)
 }
 
-func RuleActionUrlRedirectPath() schema.SchemaValidateFunc {
+func RuleActionUrlRedirectPath() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^(/.*)?$"),
 		"The Url Redirect Path must start with a slash.",
 	)
 }
 
-func RuleActionUrlRedirectQueryString() schema.SchemaValidateFunc {
+func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, s string) ([]string, []error) {
 		querystring := i.(string)
 
@@ -55,21 +55,21 @@ func RuleActionUrlRedirectQueryString() schema.SchemaValidateFunc {
 	}
 }
 
-func RuleActionUrlRedirectFragment() schema.SchemaValidateFunc {
+func RuleActionUrlRedirectFragment() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^([^#].*)?$"),
 		"The Url Fragment must not start with a hash.",
 	)
 }
 
-func RuleActionUrlRewriteSourcePattern() schema.SchemaValidateFunc {
+func RuleActionUrlRewriteSourcePattern() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^/[^\n]{0,259}$"),
 		"The Url Rewrite Source Pattern must start with a slash and can not have more than 260 characters.",
 	)
 }
 
-func RuleActionUrlRewriteDestination() schema.SchemaValidateFunc {
+func RuleActionUrlRewriteDestination() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^/[^\n]{0,259}$"),
 		"The Url Rewrite Destination must start with a slash and can not have more than 260 characters.",

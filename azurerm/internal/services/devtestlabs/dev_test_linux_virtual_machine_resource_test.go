@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 	r := DevTestLinuxVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
@@ -43,10 +42,10 @@ func TestAccDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 	r := DevTestLinuxVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,10 +60,10 @@ func TestAccDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 	r := DevTestLinuxVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSSH(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
@@ -84,10 +83,10 @@ func TestAccDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 	r := DevTestLinuxVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.inboundNatRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disallow_public_ip_address").HasValue("true"),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
@@ -109,10 +108,10 @@ func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 	r := DevTestLinuxVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storage(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
@@ -121,7 +120,7 @@ func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 		},
 		{
 			Config: r.storage(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
@@ -131,7 +130,7 @@ func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
-func (DevTestLinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DevTestLinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

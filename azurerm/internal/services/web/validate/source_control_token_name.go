@@ -1,11 +1,11 @@
 package validate
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func SourceControlTokenName() schema.SchemaValidateFunc {
+func SourceControlTokenName() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		"BitBucket",
 		"Dropbox",

@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,7 +50,7 @@ func TestAccSqlDatabase_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -63,10 +62,10 @@ func TestAccSqlDatabase_elasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.elasticPool(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("elastic_pool_name").HasValue(fmt.Sprintf("acctestep%d", data.RandomInteger)),
 			),
@@ -79,17 +78,17 @@ func TestAccSqlDatabase_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
@@ -101,10 +100,10 @@ func TestAccSqlDatabase_dataWarehouse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dataWarehouse(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_sql_database.test").ExistsInAzure(r),
 			),
 		},
@@ -117,11 +116,11 @@ func TestAccSqlDatabase_restorePointInTime(t *testing.T) {
 	restorePointInTime := time.Now().Add(15 * time.Minute)
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:                    r.basic(data),
 			PreventPostDestroyRefresh: true,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -130,7 +129,7 @@ func TestAccSqlDatabase_restorePointInTime(t *testing.T) {
 			// The source database, 'acctestdb201215000744760737', has not existed long enough to support restores.
 			PreConfig: func() { time.Sleep(restorePointInTime.Sub(time.Now().Add(45 * time.Minute))) },
 			Config:    r.restorePointInTime(data, restorePointInTime),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_sql_database.test_restore").ExistsInAzure(r),
 			),
@@ -142,17 +141,17 @@ func TestAccSqlDatabase_collation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_Latin1_General_CP1_CI_AS"),
 			),
 		},
 		{
 			Config: r.collationUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("Japanese_Bushu_Kakusu_100_CS_AS_KS_WS"),
 			),
@@ -164,17 +163,17 @@ func TestAccSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.requestedServiceObjectiveName(data, "S0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requested_service_objective_name").HasValue("S0"),
 			),
 		},
 		{
 			Config: r.requestedServiceObjectiveName(data, "S1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requested_service_objective_name").HasValue("S1"),
 			),
@@ -186,10 +185,10 @@ func TestAccSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.threatDetectionPolicy(data, "Enabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
@@ -201,7 +200,7 @@ func TestAccSqlDatabase_threatDetectionPolicy(t *testing.T) {
 		data.ImportStep("create_mode", "threat_detection_policy.0.storage_account_access_key"),
 		{
 			Config: r.threatDetectionPolicy(data, "Disabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
@@ -214,17 +213,17 @@ func TestAccSqlDatabase_readScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.readScale(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_scale").HasValue("true"),
 			),
 		},
 		{
 			Config: r.readScale(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_scale").HasValue("false"),
 			),
@@ -236,17 +235,17 @@ func TestAccSqlDatabase_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zoneRedundant(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
 			),
 		},
 		{
 			Config: r.zoneRedundant(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
 			),
@@ -258,10 +257,10 @@ func TestAccSqlDatabase_bacpac(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.bacpac(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_sql_database.test").ExistsInAzure(r),
 			),
 		},
@@ -272,24 +271,24 @@ func TestAccSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password", "create_mode"),
 		{
 			Config: r.withBlobAuditingPolices(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key", "create_mode"),
 		{
 			Config: r.withBlobAuditingPolicesDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -301,10 +300,10 @@ func TestAccSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withBlobAuditingPolices(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("extended_auditing_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("extended_auditing_policy.0.storage_account_access_key_is_secondary").HasValue("true"),
@@ -314,7 +313,7 @@ func TestAccSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
 		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key", "create_mode"),
 		{
 			Config: r.withBlobAuditingPolicesUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("extended_auditing_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("extended_auditing_policy.0.storage_account_access_key_is_secondary").HasValue("false"),
@@ -329,10 +328,10 @@ func TestAccSqlDatabase_onlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	r := SqlDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.onlineSecondaryMode(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -340,7 +339,7 @@ func TestAccSqlDatabase_onlineSecondaryMode(t *testing.T) {
 	})
 }
 
-func (r SqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -355,7 +354,7 @@ func (r SqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 	return utils.Bool(true), nil
 }
 
-func (r SqlDatabaseResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlDatabaseResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseID(state.ID)
 	if err != nil {
 		return nil, err

@@ -437,6 +437,23 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDisabled(t *testing
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.otherSkipShutdownAndForceDelete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherLicenseTypeNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -1466,6 +1483,44 @@ resource "azurerm_windows_virtual_machine" "test" {
   admin_username           = "adminuser"
   admin_password           = "P@$$w0rd1234!"
   enable_automatic_updates = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      skip_shutdown_and_force_delete = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

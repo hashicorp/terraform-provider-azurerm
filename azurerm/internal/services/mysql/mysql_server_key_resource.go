@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -22,8 +21,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMySQLServerKey() *schema.Resource {
-	return &schema.Resource{
+func resourceMySQLServerKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMySQLServerKeyCreateUpdate,
 		Read:   resourceMySQLServerKeyRead,
 		Update: resourceMySQLServerKeyCreateUpdate,
@@ -34,23 +33,23 @@ func resourceMySQLServerKey() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"server_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerID,
 			},
 
 			"key_vault_key_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
@@ -74,7 +73,7 @@ func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, 
 	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
-func resourceMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
@@ -139,7 +138,7 @@ func resourceMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourceMySQLServerKeyRead(d, meta)
 }
 
-func resourceMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	serversClient := meta.(*clients.Client).MySQL.ServersClient
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -174,7 +173,7 @@ func resourceMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

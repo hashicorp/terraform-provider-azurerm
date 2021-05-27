@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +19,10 @@ type ServiceBusQueueResource struct {
 func TestAccServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
@@ -37,10 +35,10 @@ func TestAccServiceBusQueue_basic(t *testing.T) {
 func TestAccServiceBusQueue_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
@@ -53,10 +51,10 @@ func TestAccServiceBusQueue_requiresImport(t *testing.T) {
 func TestAccServiceBusQueue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
 				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
@@ -64,7 +62,7 @@ func TestAccServiceBusQueue_update(t *testing.T) {
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("2048"),
 				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("false"),
@@ -77,17 +75,17 @@ func TestAccServiceBusQueue_update(t *testing.T) {
 func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
 			),
 		},
 		{
 			Config: r.enablePartitioningStandard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
 				// Ensure size is read back in its original value and not the x16 value returned by Azure
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
@@ -99,10 +97,10 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.Premium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
 				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
@@ -115,17 +113,17 @@ func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("false"),
 			),
 		},
 		{
 			Config: r.enableDuplicateDetection(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
 			),
 		},
@@ -136,17 +134,17 @@ func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requires_session").HasValue("false"),
 			),
 		},
 		{
 			Config: r.enableRequiresSession(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_session").HasValue("true"),
 			),
 		},
@@ -157,17 +155,17 @@ func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 func TestAccServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").HasValue("false"),
 			),
 		},
 		{
 			Config: r.enableDeadLetteringOnMessageExpiration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").HasValue("true"),
 			),
 		},
@@ -179,17 +177,17 @@ func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.lockDuration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("lock_duration").HasValue("PT40S"),
 			),
 		},
 		{
 			Config: r.lockDurationUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("lock_duration").HasValue("PT2M"),
 			),
@@ -201,10 +199,10 @@ func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 func TestAccServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.isoTimeSpanAttributes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auto_delete_on_idle").HasValue("PT10M"),
 				check.That(data.ResourceName).Key("default_message_ttl").HasValue("PT30M"),
@@ -219,17 +217,17 @@ func TestAccServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("max_delivery_count").HasValue("10"),
 			),
 		},
 		{
 			Config: r.maxDeliveryCount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("max_delivery_count").HasValue("20"),
 			),
 		},
@@ -240,17 +238,17 @@ func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("forward_to").HasValue(""),
 			),
 		},
 		{
 			Config: r.forwardTo(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("forward_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_to-%d", data.RandomInteger)),
 			),
 		},
@@ -261,17 +259,17 @@ func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(""),
 			),
 		},
 		{
 			Config: r.forwardDeadLetteredMessagesTo(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_dl_messages_to-%d", data.RandomInteger)),
 			),
 		},
@@ -282,59 +280,59 @@ func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 func TestAccServiceBusQueue_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("status").HasValue("Active"),
 			),
 		},
 		{
 			Config: r.status(data, "Creating"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Creating"),
 			),
 		},
 		{
 			Config: r.status(data, "Deleting"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Deleting"),
 			),
 		},
 		{
 			Config: r.status(data, "Disabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
 			),
 		},
 		{
 			Config: r.status(data, "ReceiveDisabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("ReceiveDisabled"),
 			),
 		},
 		{
 			Config: r.status(data, "Renaming"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Renaming"),
 			),
 		},
 		{
 			Config: r.status(data, "SendDisabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("SendDisabled"),
 			),
 		},
 		{
 			Config: r.status(data, "Unknown"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Unknown"),
 			),
 		},
 		{
 			Config: r.status(data, "Active"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Active"),
 			),
 		},
@@ -342,7 +340,7 @@ func TestAccServiceBusQueue_status(t *testing.T) {
 	})
 }
 
-func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.QueueID(state.ID)
 	if err != nil {
 		return nil, err

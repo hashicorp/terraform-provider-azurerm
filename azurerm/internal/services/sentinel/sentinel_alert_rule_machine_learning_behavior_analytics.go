@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSentinelAlertRuleMLBehaviorAnalytics() *schema.Resource {
-	return &schema.Resource{
+func resourceSentinelAlertRuleMLBehaviorAnalytics() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate,
 		Read:   resourceSentinelAlertRuleMLBehaviorAnalyticsRead,
 		Update: resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate,
@@ -30,37 +29,37 @@ func resourceSentinelAlertRuleMLBehaviorAnalytics() *schema.Resource {
 			return err
 		}, importSentinelAlertRule(securityinsight.AlertRuleKindMLBehaviorAnalytics)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"alert_rule_template_guid": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -68,7 +67,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalytics() *schema.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,7 +124,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *schema.Resource
 	return resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d, meta)
 }
 
-func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +163,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceSentinelAlertRuleMLBehaviorAnalyticsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMLBehaviorAnalyticsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

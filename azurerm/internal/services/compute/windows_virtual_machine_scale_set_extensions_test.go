@@ -279,6 +279,47 @@ func TestAccWindowsVirtualMachineScaleSet_extensionTimeBudgetWithoutExtensionsUp
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceFabricExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionsAutomaticUpgradeWithServiceFabricExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"extension.0.protected_settings",
+			"enable_automatic_updates",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionsWithHealthExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
+		{
+			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
+	})
+}
+
 func (r WindowsVirtualMachineScaleSetResource) extensionDoNotRunOnOverProvisionedMachines(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -682,6 +723,63 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineScaleSetResource) extensionsWithHealthExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -691,14 +789,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  upgrade_mode        = "Automatic"
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
 
   automatic_os_upgrade_policy {
     disable_automatic_rollback  = true
@@ -856,4 +955,97 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   extensions_time_budget = "%s"
 }
 `, template, duration)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithServiceFabricExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                 = local.vm_name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  reliability_level    = "Silver"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "8.0.516.9590"
+  vm_image             = "Windows"
+  management_endpoint  = "http://example:80"
+
+  node_type {
+    name                 = "backend"
+    instance_count       = 5
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+    durability_level     = "Silver"
+  }
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
+  overprovision            = false
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
+  }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT0S"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "ServiceFabric"
+    publisher                  = "Microsoft.Azure.ServiceFabric"
+    type                       = "ServiceFabricNode"
+    type_handler_version       = "1.1"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint
+      nodeTypeRef        = "backend"
+      dataPath           = "C:\\SvcFab"
+      durabilityLevel    = "Silver"
+      enableParallelJobs = true
+    })
+  }
+}
+`, r.template(data))
 }

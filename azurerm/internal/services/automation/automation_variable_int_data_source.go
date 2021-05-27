@@ -3,21 +3,21 @@ package automation
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func dataSourceAutomationVariableInt() *schema.Resource {
-	return &schema.Resource{
+func dataSourceAutomationVariableInt() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceAutomationVariableIntRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: datasourceAutomationVariableCommonSchema(schema.TypeInt),
+		Schema: datasourceAutomationVariableCommonSchema(pluginsdk.TypeInt),
 	}
 }
 
-func dataSourceAutomationVariableIntRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableIntRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return dataSourceAutomationVariableRead(d, meta, "Int")
 }

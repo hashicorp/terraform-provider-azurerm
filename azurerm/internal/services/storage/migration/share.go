@@ -6,10 +6,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
@@ -72,30 +71,30 @@ func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 // the schema schema was used for both V0 and V1
 func shareSchemaForV0AndV1() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"storage_account_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"quota": {
-			Type:         schema.TypeInt,
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      5120,
 			ValidateFunc: validation.IntBetween(1, 5120),
 		},
 		"url": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}
