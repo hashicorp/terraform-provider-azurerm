@@ -172,8 +172,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 						},
 
 						"rdb_backup_max_snapshot_count": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 1),
 						},
 
 						"rdb_storage_connection_string": {
