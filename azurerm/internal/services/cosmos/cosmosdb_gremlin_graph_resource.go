@@ -126,6 +126,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						"included_paths": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -136,6 +137,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						"excluded_paths": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
