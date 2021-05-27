@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -296,7 +295,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									"endpoint_resource_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: networkValidate.PrivateEndpointID,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 
 									"endpoint_tenant_id": {
@@ -934,6 +933,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 			blobProperties := expandBlobProperties(val.([]interface{}))
 
+			// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
+			// Fix issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/11772
 			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
 				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
 					Enable: utils.Bool(v),
@@ -1278,6 +1279,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
+			// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
+			// Fix issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/11772
 			if d.HasChange("blob_properties.0.last_access_time_enabled") {
 				lastAccessTimeTracking := false
 				if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {

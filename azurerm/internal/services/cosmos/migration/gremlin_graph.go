@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -14,99 +13,99 @@ var _ pluginsdk.StateUpgrade = GremlinGraphV0ToV1{}
 type GremlinGraphV0ToV1 struct{}
 
 func (GremlinGraphV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"account_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"database_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"throughput": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
 
 		"partition_key_path": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
 		},
 
 		"index_policy": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"automatic": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
 					},
 
 					"indexing_mode": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"included_paths": {
-						Type:     schema.TypeSet,
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
-						Set: schema.HashString,
+						Set: pluginsdk.HashString,
 					},
 
 					"excluded_paths": {
-						Type:     schema.TypeSet,
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
-						Set: schema.HashString,
+						Set: pluginsdk.HashString,
 					},
 				},
 			},
 		},
 
 		"conflict_resolution_policy": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"conflict_resolution_path": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 
 					"conflict_resolution_procedure": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 				},
@@ -114,17 +113,17 @@ func (GremlinGraphV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"unique_key": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"paths": {
-						Type:     schema.TypeSet,
+						Type:     pluginsdk.TypeSet,
 						Required: true,
 						ForceNew: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},

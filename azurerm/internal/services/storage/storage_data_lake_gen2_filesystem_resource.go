@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
@@ -28,31 +27,29 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 		Update: resourceStorageDataLakeGen2FileSystemUpdate,
 		Delete: resourceStorageDataLakeGen2FileSystemDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				storageClients := meta.(*clients.Client).Storage
-				ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
-				defer cancel()
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := filesystems.ParseResourceID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			storageClients := meta.(*clients.Client).Storage
+			id, err := filesystems.ParseResourceID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
+			}
 
-				id, err := filesystems.ParseResourceID(d.Id())
-				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
-				}
+			// we then need to look up the Storage Account ID
+			account, err := storageClients.FindAccount(ctx, id.AccountName)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
+			}
+			if account == nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+			}
 
-				// we then need to look up the Storage Account ID
-				account, err := storageClients.FindAccount(ctx, id.AccountName)
-				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
-				}
-				if account == nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
-				}
+			d.Set("storage_account_id", account.ID)
 
-				d.Set("storage_account_id", account.ID)
-
-				return []*pluginsdk.ResourceData{d}, nil
-			},
-		},
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

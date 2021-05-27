@@ -11,13 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/sdk/configurationstores"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceAppConfiguration() *pluginsdk.Resource {
@@ -35,7 +35,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConfigurationStoreID(id)
+			_, err := configurationstores.ConfigurationStoreID(id)
 			return err
 		}),
 
@@ -195,7 +195,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 }
 
 func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
+	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,161 +204,128 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	resourceId := parse.NewConfigurationStoreID(subscriptionId, resourceGroup, name).ID()
-	existing, err := client.Get(ctx, resourceGroup, name)
+	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
+	existing, err := client.Get(ctx, resourceId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing App Configuration %q (Resource Group %q): %s", name, resourceGroup, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
 	}
 
-	parameters := appconfiguration.ConfigurationStore{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Sku: &appconfiguration.Sku{
-			Name: utils.String(d.Get("sku").(string)),
+	parameters := configurationstores.ConfigurationStore{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Sku: configurationstores.Sku{
+			Name: d.Get("sku").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
 	parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 
-	future, err := client.Create(ctx, resourceGroup, name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error creating App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(resourceId)
+	d.SetId(resourceId.ID())
 	return resourceAppConfigurationRead(d, meta)
 }
 
 func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
-	id, err := parse.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := appconfiguration.ConfigurationStoreUpdateParameters{
-		Sku: &appconfiguration.Sku{
-			Name: utils.String(d.Get("sku").(string)),
+	parameters := configurationstores.ConfigurationStoreUpdateParameters{
+		Sku: &configurationstores.Sku{
+			Name: d.Get("sku").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
 	if d.HasChange("identity") {
 		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error updating App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceAppConfigurationRead(d, meta)
 }
 
 func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
+	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Configuration %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	resultPage, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, "")
+	resultPage, err := client.ListKeysComplete(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving access keys for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("sku", model.Sku.Name)
+
+		if props := model.Properties; props != nil {
+			d.Set("endpoint", props.Endpoint)
+		}
+
+		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
+		d.Set("primary_read_key", accessKeys.primaryReadKey)
+		d.Set("primary_write_key", accessKeys.primaryWriteKey)
+		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
+		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
+
+		if err := d.Set("identity", flattenAppConfigurationIdentity(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		return tags.FlattenAndSet(d, flattenTags(model.Tags))
 	}
 
-	skuName := ""
-	if resp.Sku != nil && resp.Sku.Name != nil {
-		skuName = *resp.Sku.Name
-	}
-	d.Set("sku", skuName)
-
-	if props := resp.ConfigurationStoreProperties; props != nil {
-		d.Set("endpoint", props.Endpoint)
-	}
-
-	accessKeys := flattenAppConfigurationAccessKeys(resultPage.Values())
-	d.Set("primary_read_key", accessKeys.primaryReadKey)
-	d.Set("primary_write_key", accessKeys.primaryWriteKey)
-	d.Set("secondary_read_key", accessKeys.secondaryReadKey)
-	d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
-
-	if err := d.Set("identity", flattenAppConfigurationIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
+	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	fut, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if response.WasNotFound(fut.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = fut.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(fut.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -371,7 +338,7 @@ type flattenedAccessKeys struct {
 	secondaryWriteKey []interface{}
 }
 
-func flattenAppConfigurationAccessKeys(values []appconfiguration.APIKey) flattenedAccessKeys {
+func flattenAppConfigurationAccessKeys(values []configurationstores.AccessKey) flattenedAccessKeys {
 	result := flattenedAccessKeys{
 		primaryReadKey:    make([]interface{}, 0),
 		primaryWriteKey:   make([]interface{}, 0),
@@ -408,7 +375,7 @@ func flattenAppConfigurationAccessKeys(values []appconfiguration.APIKey) flatten
 	return result
 }
 
-func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface{} {
+func flattenAppConfigurationAccessKey(input configurationstores.AccessKey) []interface{} {
 	connectionString := ""
 
 	if input.ConnectionString != nil {
@@ -434,37 +401,44 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 	}
 }
 
-func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
-	if len(identities) == 0 {
-		return &appconfiguration.ResourceIdentity{
-			Type: appconfiguration.IdentityTypeNone,
+func expandAppConfigurationIdentity(identities []interface{}) *configurationstores.ResourceIdentity {
+	var out = func(in configurationstores.IdentityType) *configurationstores.ResourceIdentity {
+		return &configurationstores.ResourceIdentity{
+			Type: &in,
 		}
 	}
-	identity := identities[0].(map[string]interface{})
-	identityType := appconfiguration.IdentityType(identity["type"].(string))
-	return &appconfiguration.ResourceIdentity{
-		Type: identityType,
+
+	if len(identities) == 0 {
+		return out(configurationstores.IdentityTypeNone)
 	}
+	identity := identities[0].(map[string]interface{})
+	identityType := configurationstores.IdentityType(identity["type"].(string))
+	return out(identityType)
 }
 
-func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
-	if identity == nil || identity.Type == appconfiguration.IdentityTypeNone {
+func flattenAppConfigurationIdentity(identity *configurationstores.ResourceIdentity) []interface{} {
+	if identity == nil || identity.Type == nil || *identity.Type == configurationstores.IdentityTypeNone {
 		return []interface{}{}
 	}
 
+	identityType := ""
+	if identity.Type != nil {
+		identityType = string(*identity.Type)
+	}
+
 	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
+	if identity.PrincipalId != nil {
+		principalId = *identity.PrincipalId
 	}
 
 	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
+	if identity.TenantId != nil {
+		tenantId = *identity.TenantId
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"type":         string(identity.Type),
+			"type":         identityType,
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 		},
