@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -20,10 +19,10 @@ type StorageObjectReplicationPolicyResource struct{}
 func TestAccStorageObjectReplicationPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
 	r := StorageObjectReplicationPolicyResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),
@@ -35,10 +34,10 @@ func TestAccStorageObjectReplicationPolicy_basic(t *testing.T) {
 func TestAccStorageObjectReplicationPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
 	r := StorageObjectReplicationPolicyResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,10 +48,10 @@ func TestAccStorageObjectReplicationPolicy_requiresImport(t *testing.T) {
 func TestAccStorageObjectReplicationPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
 	r := StorageObjectReplicationPolicyResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),
@@ -66,10 +65,10 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 	r := StorageObjectReplicationPolicyResource{}
 	loc, _ := time.LoadLocation("Australia/Perth")
 	copyTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z")
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),
@@ -77,7 +76,7 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),
@@ -85,7 +84,7 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data, copyTime),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),
@@ -93,7 +92,7 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateMoreRules(data, copyTime),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),
@@ -101,7 +100,7 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
 			),

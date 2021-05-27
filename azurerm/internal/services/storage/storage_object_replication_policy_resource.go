@@ -6,65 +6,64 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageObjectReplicationPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageObjectReplicationPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageObjectReplicationPolicyCreate,
 		Read:   resourceStorageObjectReplicationPolicyRead,
 		Update: resourceStorageObjectReplicationPolicyUpdate,
 		Delete: resourceStorageObjectReplicationPolicyDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ObjectReplicationPolicyID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"source_storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountID,
 			},
 
 			"destination_storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountID,
 			},
 
 			"rules": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"source_container_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.StorageContainerName,
 						},
 
 						"destination_container_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.StorageContainerName,
@@ -72,23 +71,23 @@ func resourceStorageObjectReplicationPolicy() *schema.Resource {
 
 						// Possible values are "" means "OnlyNewObjects", "1601-01-01T00:00:00Z" means "Everything" and timeStamp "2020-10-21T16:00:00Z"
 						"copy_over_from_time": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "OnlyNewObjects",
 							ValidateFunc: validate.ObjectReplicationPolicyCopyOverFromTime,
 						},
 
 						"filter_prefix_matches": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"rule_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -98,14 +97,14 @@ func resourceStorageObjectReplicationPolicy() *schema.Resource {
 			// there will be two ids, the destination and source storage account object replication policy ids, we keep the destination one as the resource id
 			// and we keep the source one here
 			"source_object_replication_policy_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceStorageObjectReplicationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ObjectReplicationPolicyClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +134,7 @@ func resourceStorageObjectReplicationPolicyCreate(d *schema.ResourceData, meta i
 		ObjectReplicationPolicyProperties: &storage.ObjectReplicationPolicyProperties{
 			SourceAccount:      utils.String(srcAccount.Name),
 			DestinationAccount: utils.String(dstAccount.Name),
-			Rules:              expandArmObjectReplicationPolicyRuleArray(d.Get("rules").(*schema.Set).List()),
+			Rules:              expandArmObjectReplicationPolicyRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -166,7 +165,7 @@ func resourceStorageObjectReplicationPolicyCreate(d *schema.ResourceData, meta i
 	return resourceStorageObjectReplicationPolicyRead(d, meta)
 }
 
-func resourceStorageObjectReplicationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ObjectReplicationPolicyClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +184,7 @@ func resourceStorageObjectReplicationPolicyUpdate(d *schema.ResourceData, meta i
 		ObjectReplicationPolicyProperties: &storage.ObjectReplicationPolicyProperties{
 			SourceAccount:      utils.String(srcId.StorageAccountName),
 			DestinationAccount: utils.String(id.StorageAccountName),
-			Rules:              expandArmObjectReplicationPolicyRuleArray(d.Get("rules").(*schema.Set).List()),
+			Rules:              expandArmObjectReplicationPolicyRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -204,7 +203,7 @@ func resourceStorageObjectReplicationPolicyUpdate(d *schema.ResourceData, meta i
 	return resourceStorageObjectReplicationPolicyRead(d, meta)
 }
 
-func resourceStorageObjectReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.ObjectReplicationPolicyClient
@@ -247,7 +246,7 @@ func resourceStorageObjectReplicationPolicyRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceStorageObjectReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ObjectReplicationPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +287,7 @@ func expandArmObjectReplicationPolicyRuleArray(input []interface{}) *[]storage.O
 		}
 
 		if f, ok := v["filter_prefix_matches"]; ok {
-			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*schema.Set).List())
+			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -343,7 +342,7 @@ func flattenObjectReplicationPolicyRules(input *[]storage.ObjectReplicationPolic
 			"destination_container_name": destinationContainer,
 			"source_container_name":      sourceContainer,
 			"copy_over_from_time":        flattenArmObjectReplicationPolicyMinCreationTime(minCreationTime),
-			"filter_prefix_matches":      schema.NewSet(schema.HashString, prefix),
+			"filter_prefix_matches":      pluginsdk.NewSet(pluginsdk.HashString, prefix),
 			"rule_name":                  ruleId,
 		}
 		results = append(results, v)
