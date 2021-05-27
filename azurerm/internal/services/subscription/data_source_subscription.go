@@ -21,37 +21,37 @@ func dataSourceSubscription() *schema.Resource {
 			"subscription_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: false,
 			},
 
 			"tenant_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Computed: false,
 			},
 
 			"display_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Computed: false,
 			},
 
 			"state": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Computed: false,
 			},
 
 			"location_placement_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Computed: false,
 			},
 
 			"quota_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Computed: false,
 			},
 
 			"spending_limit": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Computed: false,
 			},
 
 			"tags": tags.SchemaDataSource(),
