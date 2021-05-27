@@ -5,27 +5,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var eventHubResourceName = "azurerm_eventhub"
 
-func resourceEventHub() *schema.Resource {
-	return &schema.Resource{
+func resourceEventHub() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventHubCreateUpdate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubCreateUpdate,
@@ -36,23 +34,23 @@ func resourceEventHub() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"namespace_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
@@ -61,35 +59,35 @@ func resourceEventHub() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"partition_count": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
 			"message_retention": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 			},
 
 			"capture_description": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 						"skip_empty_archives": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"encoding": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -98,25 +96,25 @@ func resourceEventHub() *schema.Resource {
 							}, true),
 						},
 						"interval_in_seconds": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      300,
 							ValidateFunc: validation.IntBetween(60, 900),
 						},
 						"size_limit_in_bytes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      314572800,
 							ValidateFunc: validation.IntBetween(10485760, 524288000),
 						},
 						"destination": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"EventHubArchive.AzureBlockBlob",
@@ -126,16 +124,16 @@ func resourceEventHub() *schema.Resource {
 										}, false),
 									},
 									"archive_name_format": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ValidateEventHubArchiveNameFormat,
 									},
 									"blob_container_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"storage_account_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
@@ -147,16 +145,16 @@ func resourceEventHub() *schema.Resource {
 			},
 
 			"partition_ids": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Type:     pluginsdk.TypeSet,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -202,7 +200,7 @@ func resourceEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceEventHubRead(d, meta)
 }
 
-func resourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +239,7 @@ func resourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +261,7 @@ func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandEventHubCaptureDescription(d *schema.ResourceData) *eventhubs.CaptureDescription {
+func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
 	input := inputs[0].(map[string]interface{})
 

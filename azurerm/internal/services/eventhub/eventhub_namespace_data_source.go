@@ -5,30 +5,28 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
-
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/namespaces"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/namespaces"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func EventHubNamespaceDataSource() *schema.Resource {
-	return &schema.Resource{
+func EventHubNamespaceDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: EventHubNamespaceDataSourceRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
@@ -37,73 +35,73 @@ func EventHubNamespaceDataSource() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"default_primary_connection_string_alias": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_secondary_connection_string_alias": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"auto_inflate_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"zone_redundant": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"dedicated_cluster_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"capacity": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"kafka_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"maximum_throughput_units": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"default_primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -112,7 +110,7 @@ func EventHubNamespaceDataSource() *schema.Resource {
 	}
 }
 
-func EventHubNamespaceDataSourceRead(d *schema.ResourceData, meta interface{}) error {
+func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

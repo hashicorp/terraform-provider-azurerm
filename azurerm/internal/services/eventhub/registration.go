@@ -1,8 +1,8 @@
 package eventhub
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -20,8 +20,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_eventhub":                              dataSourceEventHub(),
 		"azurerm_eventhub_cluster":                      dataSourceEventHubCluster(),
 		"azurerm_eventhub_authorization_rule":           EventHubAuthorizationRuleDataSource(),
@@ -32,8 +32,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_eventhub_authorization_rule":                 resourceEventHubAuthorizationRule(),
 		"azurerm_eventhub_cluster":                            resourceEventHubCluster(),
 		"azurerm_eventhub_namespace_authorization_rule":       resourceEventHubNamespaceAuthorizationRule(),
