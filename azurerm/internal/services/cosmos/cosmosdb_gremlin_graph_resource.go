@@ -210,6 +210,10 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	if partitionkeypaths != "" {
 		db.GremlinGraphCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
+			Kind:  documentdb.PartitionKindHash,
+		}
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.GremlinGraphCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -288,6 +292,11 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	if partitionkeypaths != "" {
 		db.GremlinGraphCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
+			Kind:  documentdb.PartitionKindHash,
+		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.GremlinGraphCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -363,6 +372,10 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 					} else if len(*paths) == 1 {
 						d.Set("partition_key_path", (*paths)[0])
 					}
+				}
+
+				if version := pk.Version; version != nil {
+					d.Set("partition_key_version", version)
 				}
 			}
 
@@ -441,6 +454,9 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *pluginsdk.ResourceData) *
 		IndexingMode:  documentdb.IndexingMode(strings.ToLower(indexingPolicy)),
 		IncludedPaths: expandAzureRmCosmosDbGrelimGraphIncludedPath(input),
 		ExcludedPaths: expandAzureRmCosmosDbGremlinGraphExcludedPath(input),
+	}
+	if v, ok := input["composite_index"].([]interface{}); ok {
+		policy.CompositeIndexes = common.ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 
 	if automatic, ok := input["automatic"].(bool); ok {
