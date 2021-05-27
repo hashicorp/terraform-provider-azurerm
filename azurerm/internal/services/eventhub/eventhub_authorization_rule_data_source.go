@@ -114,7 +114,6 @@ func EventHubAuthorizationRuleDataSourceRead(d *schema.ResourceData, meta interf
 		d.Set("secondary_connection_string", model.SecondaryConnectionString)
 		d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
 		d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
-
 	}
 
 	return nil

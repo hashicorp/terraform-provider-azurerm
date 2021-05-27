@@ -31,18 +31,16 @@ func expandEventHubAuthorizationRuleRights(d *schema.ResourceData) []string {
 func flattenEventHubAuthorizationRuleRights(rights []string) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
-	if rights != nil {
-		for _, right := range rights {
-			switch right {
-			case "Listen":
-				listen = true
-			case "Send":
-				send = true
-			case "Manage":
-				manage = true
-			default:
-				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
-			}
+	for _, right := range rights {
+		switch right {
+		case "Listen":
+			listen = true
+		case "Send":
+			send = true
+		case "Manage":
+			manage = true
+		default:
+			log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
 		}
 	}
 
