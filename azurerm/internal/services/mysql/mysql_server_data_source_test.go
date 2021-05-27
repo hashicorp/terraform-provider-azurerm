@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSix(t *testing.T
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
@@ -35,10 +34,10 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSixWithIdentity(
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicWithIdentity(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
@@ -57,10 +56,10 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "5.7"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
@@ -76,10 +75,10 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicEightZero(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "8.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
@@ -96,10 +95,10 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_autogrowOnly(t *testing.T
 	r := MySQLServerDataSource{}
 	mysqlVersion := "5.7"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.autogrow(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("true"),
@@ -114,10 +113,10 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "8.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
 				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("true"),

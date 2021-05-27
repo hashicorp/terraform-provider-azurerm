@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccVirtualHubConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccVirtualHubConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -54,10 +53,10 @@ func TestAccVirtualHubConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -69,24 +68,24 @@ func TestAccVirtualHubConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -98,17 +97,17 @@ func TestAccVirtualHubConnection_enableInternetSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.enableInternetSecurity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -126,23 +125,23 @@ func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 	vhubName := fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger)
 	vhubConnectionName := fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.template(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				vhubData.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -154,16 +153,16 @@ func TestAccVirtualHubConnection_removeRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withRoutingConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -175,16 +174,16 @@ func TestAccVirtualHubConnection_removePropagatedRouteTable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withRoutingConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.withoutPropagatedRouteTable(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -196,16 +195,16 @@ func TestAccVirtualHubConnection_removeVnetStaticRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withRoutingConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.withoutVnetStaticRoute(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -217,16 +216,16 @@ func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withRoutingConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateRoutingConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -234,7 +233,7 @@ func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	})
 }
 
-func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.HubVirtualNetworkConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -249,7 +248,7 @@ func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clien
 }
 
 func checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		if resp, err := clients.Network.HubVirtualNetworkConnectionClient.Get(ctx, resourceGroupName, vhubName, vhubConnectionName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

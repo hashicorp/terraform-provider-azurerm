@@ -6,11 +6,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func expandAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
+func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]servicebus.AccessRights {
 	rights := make([]servicebus.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
@@ -49,46 +49,46 @@ func flattenAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, 
 	return listen, send, manage
 }
 
-func authorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
-	authSchema := map[string]*schema.Schema{
+func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	authSchema := map[string]*pluginsdk.Schema{
 		"listen": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		"send": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		"manage": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		"primary_key": {
-			Type:      schema.TypeString,
+			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"primary_connection_string": {
-			Type:      schema.TypeString,
+			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_key": {
-			Type:      schema.TypeString,
+			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_connection_string": {
-			Type:      schema.TypeString,
+			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
@@ -96,7 +96,7 @@ func authorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema
 	return azure.MergeSchema(s, authSchema)
 }
 
-func authorizationRuleCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -19,8 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate,
 		Read:   resourceAppServiceSlotVirtualNetworkSwiftConnectionRead,
 		Update: resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate,
@@ -28,27 +27,27 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"app_service_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServiceID,
 			},
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: networkValidate.SubnetID,
 			},
 			"slot_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServiceName,
@@ -57,7 +56,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *schema.Resource {
 	}
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,7 +129,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *schema.R
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +179,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

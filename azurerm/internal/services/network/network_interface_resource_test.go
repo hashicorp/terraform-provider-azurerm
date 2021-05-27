@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +19,10 @@ type NetworkInterfaceResource struct {
 func TestAccNetworkInterface_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,7 +33,7 @@ func TestAccNetworkInterface_basic(t *testing.T) {
 func TestAccNetworkInterface_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -46,17 +44,17 @@ func TestAccNetworkInterface_disappears(t *testing.T) {
 func TestAccNetworkInterface_dnsServers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dnsServers(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.dnsServersUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -67,11 +65,11 @@ func TestAccNetworkInterface_dnsServers(t *testing.T) {
 func TestAccNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enabled
 			Config: r.enableAcceleratedNetworking(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,7 +77,7 @@ func TestAccNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 		{
 			// Disabled
 			Config: r.enableAcceleratedNetworking(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -87,7 +85,7 @@ func TestAccNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 		{
 			// Enabled
 			Config: r.enableAcceleratedNetworking(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -98,11 +96,11 @@ func TestAccNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 func TestAccNetworkInterface_enableIPForwarding(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enabled
 			Config: r.enableIPForwarding(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -110,7 +108,7 @@ func TestAccNetworkInterface_enableIPForwarding(t *testing.T) {
 		{
 			// Disabled
 			Config: r.enableIPForwarding(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -118,7 +116,7 @@ func TestAccNetworkInterface_enableIPForwarding(t *testing.T) {
 		{
 			// Enabled
 			Config: r.enableIPForwarding(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -129,17 +127,17 @@ func TestAccNetworkInterface_enableIPForwarding(t *testing.T) {
 func TestAccNetworkInterface_internalDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.internalDomainNameLabel(data, "1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.internalDomainNameLabel(data, "2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -150,10 +148,10 @@ func TestAccNetworkInterface_internalDomainNameLabel(t *testing.T) {
 func TestAccNetworkInterface_ipv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv6(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address_version").HasValue("IPv4"),
 				check.That(data.ResourceName).Key("ip_configuration.1.private_ip_address_version").HasValue("IPv6"),
@@ -166,10 +164,10 @@ func TestAccNetworkInterface_ipv6(t *testing.T) {
 func TestAccNetworkInterface_multipleIPConfigurations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleIPConfigurations(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -180,10 +178,10 @@ func TestAccNetworkInterface_multipleIPConfigurations(t *testing.T) {
 func TestAccNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleIPConfigurationsSecondaryAsPrimary(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -194,24 +192,24 @@ func TestAccNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t *testi
 func TestAccNetworkInterface_publicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.publicIP(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.publicIPRemoved(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.publicIP(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -222,10 +220,10 @@ func TestAccNetworkInterface_publicIP(t *testing.T) {
 func TestAccNetworkInterface_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -239,10 +237,10 @@ func TestAccNetworkInterface_requiresImport(t *testing.T) {
 func TestAccNetworkInterface_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -253,17 +251,17 @@ func TestAccNetworkInterface_static(t *testing.T) {
 func TestAccNetworkInterface_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -274,17 +272,17 @@ func TestAccNetworkInterface_tags(t *testing.T) {
 func TestAccNetworkInterface_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleIPConfigurations(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -295,17 +293,17 @@ func TestAccNetworkInterface_update(t *testing.T) {
 func TestAccNetworkInterface_updateMultipleParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withMultipleParameters(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateMultipleParameters(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -313,7 +311,7 @@ func TestAccNetworkInterface_updateMultipleParameters(t *testing.T) {
 	})
 }
 
-func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NetworkInterfaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -327,7 +325,7 @@ func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NetworkInterfaceID(state.ID)
 	if err != nil {
 		return nil, err

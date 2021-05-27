@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func expandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {
+func expandApplicationInsightsAPIKeyLinkedProperties(v *pluginsdk.Set, appInsightsId string) *[]string {
 	if v == nil {
 		return &[]string{}
 	}

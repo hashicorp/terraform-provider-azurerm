@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKustoIotHubDataConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKustoIotHubDataConnectionCreate,
 		Read:   resourceKustoIotHubDataConnectionRead,
 		Delete: resourceKustoIotHubDataConnectionDelete,
@@ -31,15 +30,15 @@ func resourceKustoIotHubDataConnection() *schema.Resource {
 			return err
 		}, importDataConnection(kusto.KindIotHub)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataConnectionName,
@@ -50,46 +49,46 @@ func resourceKustoIotHubDataConnection() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cluster_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ClusterName,
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DatabaseName,
 			},
 
 			"iothub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IotHubID,
 			},
 
 			"consumer_group": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IoTHubConsumerGroupName,
 			},
 
 			"shared_access_policy_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IotHubSharedAccessPolicyName,
 			},
 
 			"event_system_properties": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"message-id",
 						"sequence-number",
@@ -109,7 +108,7 @@ func resourceKustoIotHubDataConnection() *schema.Resource {
 	}
 }
 
-func resourceKustoIotHubDataConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -139,7 +138,7 @@ func resourceKustoIotHubDataConnectionCreate(d *schema.ResourceData, meta interf
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
-		dataConnection.IotHubConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*schema.Set).List())
+		dataConnection.IotHubConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
@@ -155,7 +154,7 @@ func resourceKustoIotHubDataConnectionCreate(d *schema.ResourceData, meta interf
 	return resourceKustoIotHubDataConnectionRead(d, meta)
 }
 
-func resourceKustoIotHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +191,7 @@ func resourceKustoIotHubDataConnectionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceKustoIotHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

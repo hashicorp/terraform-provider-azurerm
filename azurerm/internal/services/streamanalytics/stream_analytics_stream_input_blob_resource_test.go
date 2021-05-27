@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +18,10 @@ func TestAccStreamAnalyticsStreamInputBlob_avro(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 	r := StreamAnalyticsStreamInputBlobResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.avro(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +33,10 @@ func TestAccStreamAnalyticsStreamInputBlob_csv(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 	r := StreamAnalyticsStreamInputBlobResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.csv(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,10 +48,10 @@ func TestAccStreamAnalyticsStreamInputBlob_json(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 	r := StreamAnalyticsStreamInputBlobResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.json(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -64,16 +63,16 @@ func TestAccStreamAnalyticsStreamInputBlob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 	r := StreamAnalyticsStreamInputBlobResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.json(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,10 +84,10 @@ func TestAccStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 	r := StreamAnalyticsStreamInputBlobResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.json(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,7 +95,7 @@ func TestAccStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
 	})
 }
 
-func (r StreamAnalyticsStreamInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r StreamAnalyticsStreamInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	jobName := state.Attributes["stream_analytics_job_name"]
 	resourceGroup := state.Attributes["resource_group_name"]
