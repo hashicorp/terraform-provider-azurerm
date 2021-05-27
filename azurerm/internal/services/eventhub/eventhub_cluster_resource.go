@@ -163,7 +163,7 @@ func resourceEventHubClusterDelete(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if err := future.Poller.PollUntilDone(); err != nil {
-			if response.WasNotFound(future.HttpResponse) {
+			if response.WasNotFound(future.Poller.HttpResponse) {
 				return nil
 			}
 			return resource.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
