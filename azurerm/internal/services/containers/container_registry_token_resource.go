@@ -13,19 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceContainerRegistryToken() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceContainerRegistryTokenCreate,
-		Read:   resourceContainerRegistryTokenRead,
-		Update: resourceContainerRegistryTokenUpdate,
-		Delete: resourceContainerRegistryTokenDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create:   resourceContainerRegistryTokenCreate,
+		Read:     resourceContainerRegistryTokenRead,
+		Update:   resourceContainerRegistryTokenUpdate,
+		Delete:   resourceContainerRegistryTokenDelete,
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

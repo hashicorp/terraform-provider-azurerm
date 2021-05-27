@@ -94,9 +94,9 @@ The following arguments are supported:
 
 A `private_link_access` block supports the following:
 
-* `endpoint_resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
+* `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
 
-* `endpoint_tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
+* `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
 
 ## Attributes Reference

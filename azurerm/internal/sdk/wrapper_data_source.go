@@ -35,7 +35,7 @@ func (rw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 		return nil, fmt.Errorf("validating model for %q: %+v", rw.dataSource.ResourceType(), err)
 	}
 
-	var d = func(duration time.Duration) *time.Duration {
+	d := func(duration time.Duration) *time.Duration {
 		return &duration
 	}
 

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,10 +47,10 @@ func testAccNetAppAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 	r := NetAppAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -63,10 +62,10 @@ func testAccNetAppAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 	r := NetAppAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -81,10 +80,10 @@ func testAccNetAppAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 	r := NetAppAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -99,10 +98,10 @@ func testAccNetAppAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 	r := NetAppAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("0"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
@@ -110,7 +109,7 @@ func testAccNetAppAccount_update(t *testing.T) {
 		},
 		{
 			Config: r.completeConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -121,7 +120,7 @@ func testAccNetAppAccount_update(t *testing.T) {
 	})
 }
 
-func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err

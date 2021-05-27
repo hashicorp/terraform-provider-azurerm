@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,22 +14,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePowerBIEmbedded() *schema.Resource {
-	return &schema.Resource{
+func resourcePowerBIEmbedded() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePowerBIEmbeddedCreate,
 		Read:   resourcePowerBIEmbeddedRead,
 		Update: resourcePowerBIEmbeddedUpdate,
 		Delete: resourcePowerBIEmbeddedDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -39,9 +38,9 @@ func resourcePowerBIEmbedded() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.EmbeddedName,
@@ -52,7 +51,7 @@ func resourcePowerBIEmbedded() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"A1",
@@ -65,10 +64,10 @@ func resourcePowerBIEmbedded() *schema.Resource {
 			},
 
 			"administrators": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.EmbeddedAdministratorName,
 				},
 			},
@@ -78,7 +77,7 @@ func resourcePowerBIEmbedded() *schema.Resource {
 	}
 }
 
-func resourcePowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,7 +96,7 @@ func resourcePowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	administrators := d.Get("administrators").(*schema.Set).List()
+	administrators := d.Get("administrators").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -134,7 +133,7 @@ func resourcePowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) err
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,14 +173,14 @@ func resourcePowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcePowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	administrators := d.Get("administrators").(*schema.Set).List()
+	administrators := d.Get("administrators").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -208,7 +207,7 @@ func resourcePowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

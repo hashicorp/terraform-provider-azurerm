@@ -7,8 +7,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 var _ pluginsdk.StateUpgrade = CdnEndpointV0ToV1{}
@@ -16,75 +14,75 @@ var _ pluginsdk.StateUpgrade = CdnEndpointV0ToV1{}
 type CdnEndpointV0ToV1 struct{}
 
 func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"profile_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"origin_host_header": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"is_http_allowed": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		},
 
 		"is_https_allowed": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		},
 
 		"origin": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
 					},
 
 					"host_name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
 					},
 
 					"http_port": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						ForceNew: true,
 						Default:  80,
 					},
 
 					"https_port": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						ForceNew: true,
 						Default:  443,
@@ -94,56 +92,56 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"origin_path": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 		},
 
 		"querystring_caching_behaviour": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "IgnoreQueryString",
 		},
 
 		"content_types_to_compress": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
-			Set: schema.HashString,
+			Set: pluginsdk.HashString,
 		},
 
 		"is_compression_enabled": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"probe_path": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 		},
 
 		"geo_filter": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"relative_path": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"action": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"country_codes": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Required: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -151,35 +149,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"optimization_type": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"host_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		//lintignore:XS003
 		"global_delivery_rule": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"cache_expiration_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"behavior": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"duration": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -187,18 +185,18 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"cache_key_query_string_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"behavior": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"parameters": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -206,22 +204,22 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"modify_request_header_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"action": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"value": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -229,22 +227,22 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"modify_response_header_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"action": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"value": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -252,39 +250,39 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_redirect_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"redirect_type": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"protocol": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Default:  "MatchRequest",
 								},
 
 								"hostname": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"path": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"query_string": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"fragment": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -292,23 +290,23 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_rewrite_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"source_pattern": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"destination": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"preserve_unmatched_path": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  true,
 								},
@@ -320,55 +318,55 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"delivery_rule": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"order": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Required: true,
 					},
 
 					"cookies_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"selector": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -376,28 +374,28 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"http_version_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Default:  "Equal",
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -405,29 +403,29 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"device_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Default:  "Equal",
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -435,40 +433,40 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"post_arg_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"selector": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -476,35 +474,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"query_string_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -512,27 +510,27 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"remote_address_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -540,35 +538,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"request_body_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -576,40 +574,40 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"request_header_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"selector": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -617,29 +615,29 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"request_method_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Default:  "Equal",
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -647,29 +645,29 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"request_scheme_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Default:  "Equal",
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -677,35 +675,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"request_uri_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -713,35 +711,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_file_extension_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -749,35 +747,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_file_name_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -785,35 +783,35 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_path_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"negate_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"match_values": {
-									Type:     schema.TypeSet,
+									Type:     pluginsdk.TypeSet,
 									Required: true,
 									MinItems: 1,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -821,18 +819,18 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"cache_expiration_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"behavior": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"duration": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -840,18 +838,18 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"cache_key_query_string_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"behavior": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"parameters": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -859,22 +857,22 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"modify_request_header_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"action": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"value": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -882,22 +880,22 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"modify_response_header_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"action": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"value": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -905,39 +903,39 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_redirect_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"redirect_type": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"protocol": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Default:  "MatchRequest",
 								},
 
 								"hostname": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"path": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"query_string": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"fragment": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -945,23 +943,23 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_rewrite_action": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"source_pattern": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"destination": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"preserve_unmatched_path": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  true,
 								},
@@ -973,10 +971,10 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
-			Type:     schema.TypeMap,
+			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}

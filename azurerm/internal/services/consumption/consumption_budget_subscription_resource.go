@@ -3,14 +3,13 @@ package consumption
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	subscriptionParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func resourceArmConsumptionBudgetSubscription() *schema.Resource {
-	return &schema.Resource{
+func resourceArmConsumptionBudgetSubscription() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
 		Read:   resourceArmConsumptionBudgetSubscriptionRead,
 		Update: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
@@ -20,18 +19,18 @@ func resourceArmConsumptionBudgetSubscription() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: SchemaConsumptionBudgetSubscriptionResource(),
 	}
 }
 
-func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
 
@@ -45,7 +44,7 @@ func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *schema.ResourceData
 	return resourceArmConsumptionBudgetSubscriptionRead(d, meta)
 }
 
-func resourceArmConsumptionBudgetSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	consumptionBudgetId, err := parse.ConsumptionBudgetSubscriptionID(d.Id())
 	if err != nil {
 		return err
@@ -63,7 +62,7 @@ func resourceArmConsumptionBudgetSubscriptionRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmConsumptionBudgetSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	consumptionBudgetId, err := parse.ConsumptionBudgetSubscriptionID(d.Id())
 	if err != nil {
 		return err

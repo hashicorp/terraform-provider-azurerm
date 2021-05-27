@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +13,10 @@ type MsSqlDatabaseDataSource struct{}
 func TestAccDataSourceMsSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: MsSqlDatabaseDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-db-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("server_id").Exists(),
 			),
@@ -29,10 +27,10 @@ func TestAccDataSourceMsSqlDatabase_basic(t *testing.T) {
 func TestAccDataSourceMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: MsSqlDatabaseDataSource{}.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-db-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("server_id").Exists(),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("sku").Exists(),
 				check.That(data.ResourceName).Key("capacity").Exists(),
@@ -36,10 +35,10 @@ func TestAccDataSourceServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.premium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("sku").Exists(),
 				check.That(data.ResourceName).Key("capacity").Exists(),

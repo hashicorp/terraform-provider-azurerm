@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("auto_delete_on_idle").Exists(),
 				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").Exists(),

@@ -6,32 +6,31 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceEventGridSystemTopic() *schema.Resource {
-	return &schema.Resource{
+func resourceEventGridSystemTopic() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventGridSystemTopicCreateUpdate,
 		Read:   resourceEventGridSystemTopicRead,
 		Update: resourceEventGridSystemTopicCreateUpdate,
 		Delete: resourceEventGridSystemTopicDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -39,9 +38,9 @@ func resourceEventGridSystemTopic() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
@@ -58,21 +57,21 @@ func resourceEventGridSystemTopic() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"source_arm_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"topic_type": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"metric_arm_resource_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -81,7 +80,7 @@ func resourceEventGridSystemTopic() *schema.Resource {
 	}
 }
 
-func resourceEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +139,7 @@ func resourceEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceEventGridSystemTopicRead(d, meta)
 }
 
-func resourceEventGridSystemTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +175,7 @@ func resourceEventGridSystemTopicRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceEventGridSystemTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

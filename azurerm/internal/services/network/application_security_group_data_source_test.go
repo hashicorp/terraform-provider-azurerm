@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +14,10 @@ type ApplicationSecurityGroupDataSource struct {
 func TestAccDataSourceApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")
 	r := ApplicationSecurityGroupDataSource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -31,10 +30,10 @@ func TestAccDataSourceApplicationSecurityGroup_basic(t *testing.T) {
 func TestAccDataSourceApplicationSecurityGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")
 	r := ApplicationSecurityGroupDataSource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),

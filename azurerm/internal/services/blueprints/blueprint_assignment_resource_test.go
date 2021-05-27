@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccBlueprintAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,17 +36,17 @@ func TestAccBlueprintAssignment_basicUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "testAcc_basicSubscription", "v0.2_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -59,10 +58,10 @@ func TestAccBlueprintAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -78,10 +77,10 @@ func TestAccBlueprintAssignment_subscriptionComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscriptionComplete(data, "testAcc_subscriptionComplete", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -94,10 +93,10 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.rootManagementGroup(data, "testAcc_basicRootManagementGroup", "v0.1_testAcc"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -105,7 +104,7 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 	})
 }
 
-func (t BlueprintAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t BlueprintAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AssignmentID(state.ID)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,13 +15,13 @@ func TestAccDataSourceResources_ByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 	r := ResourcesDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
 			Config: r.ByName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
 		},
@@ -33,13 +32,13 @@ func TestAccDataSourceResources_ByResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 	r := ResourcesDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
 			Config: r.ByResourceGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
 		},
@@ -50,13 +49,13 @@ func TestAccDataSourceResources_ByResourceType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 	r := ResourcesDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
 			Config: r.ByResourceType(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
 		},
@@ -67,13 +66,13 @@ func TestAccDataSourceResources_FilteredByTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 	r := ResourcesDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
 			Config: r.FilteredByTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
 		},

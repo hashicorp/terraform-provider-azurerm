@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccSqlAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 	r := SqlAdministratorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("login").HasValue("sqladmin"),
 			),
@@ -31,7 +30,7 @@ func TestAccSqlAdministrator_basic(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withUpdates(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("login").HasValue("sqladmin2"),
 			),
@@ -44,10 +43,10 @@ func TestAccSqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 	r := SqlAdministratorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("login").HasValue("sqladmin"),
 			),
@@ -60,7 +59,7 @@ func TestAccSqlAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 	r := SqlAdministratorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -68,7 +67,7 @@ func TestAccSqlAdministrator_disappears(t *testing.T) {
 	})
 }
 
-func (r SqlAdministratorResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlAdministratorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -84,7 +83,7 @@ func (r SqlAdministratorResource) Exists(ctx context.Context, client *clients.Cl
 	return utils.Bool(true), nil
 }
 
-func (r SqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err

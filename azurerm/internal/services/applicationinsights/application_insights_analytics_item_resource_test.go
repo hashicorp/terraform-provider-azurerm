@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
 	r := AppInsightsAnalyticsItemResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("testquery"),
 				check.That(data.ResourceName).Key("scope").HasValue("shared"),
@@ -41,10 +40,10 @@ func TestAccApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
 	r := AppInsightsAnalyticsItemResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("testquery"),
 				check.That(data.ResourceName).Key("scope").HasValue("shared"),
@@ -55,7 +54,7 @@ func TestAccApplicationInsightsAnalyticsItem_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("testquery"),
 				check.That(data.ResourceName).Key("scope").HasValue("shared"),
@@ -73,10 +72,10 @@ func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	r3 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test3")
 	r := AppInsightsAnalyticsItemResource{}
 
-	r1.ResourceTest(t, r, []resource.TestStep{
+	r1.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multiple(r1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(r1.ResourceName).ExistsInAzure(r),
 				check.That(r2.ResourceName).ExistsInAzure(r),
 				check.That(r3.ResourceName).ExistsInAzure(r),
@@ -101,7 +100,7 @@ func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	})
 }
 
-func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse ID (id: %s): %+v", state.ID, err)

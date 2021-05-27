@@ -9,10 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 type KustoClusterCustomerManagedKeyResource struct {
@@ -22,10 +20,10 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
@@ -36,7 +34,7 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 		{
 			// Delete the encryption settings resource and verify it is gone
 			Config: r.template(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// Then ensure the encryption settings on the Kusto cluster
 				// have been reverted to their default state
 				check.That("azurerm_kusto_cluster.test").DoesNotExistInAzure(r),
@@ -49,10 +47,10 @@ func TestAccKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
@@ -67,10 +65,10 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
@@ -80,7 +78,7 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,7 +86,7 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	})
 }
 
-func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err

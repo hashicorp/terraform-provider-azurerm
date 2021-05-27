@@ -4,9 +4,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-const none = "None"
-const systemAssigned = "SystemAssigned"
-const userAssigned = "UserAssigned"
+const (
+	none           = "None"
+	systemAssigned = "SystemAssigned"
+	userAssigned   = "UserAssigned"
+)
 
 // TODO: support SystemAssigned, UserAssigned
 // const systemAssignedUserAssigned = "SystemAssigned, UserAssigned"

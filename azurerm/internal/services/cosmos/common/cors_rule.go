@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaCorsRule() *schema.Schema {
+func SchemaCorsRule() *pluginsdk.Schema {
 	allowedMethods := []string{
 		"DELETE",
 		"GET",
@@ -21,54 +21,54 @@ func SchemaCorsRule() *schema.Schema {
 		"PATCH",
 	}
 
-	return &schema.Schema{
-		Type:     schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
 				"exposed_headers": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
 				"allowed_headers": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
 				"allowed_methods": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(allowedMethods, false),
 					},
 				},
 
 				"max_age_in_seconds": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 2000000000),
 				},
