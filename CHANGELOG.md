@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v54.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11813]
 * dependencies: updating `mixedreality` to use API Version `2021-01-01` [GH-11824]
 * refactor: switching to use an embedded SDK for `appconfiguration` [GH-11959]
+* refactor: switching to use an embedded SDK for `eventhub` [GH-11973]
 * provider: support for the Virtual Machine `skip_shutdown_and_force_delete` feature [GH-11216]
 * provider: support for the Virtual Machine Scale Set `force_delete` feature [GH-11216]
 * provider: no longer auto register the Microsoft.DevSpaces RP [GH-11822]
