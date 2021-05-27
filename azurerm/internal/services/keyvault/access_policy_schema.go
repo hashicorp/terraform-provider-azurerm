@@ -5,9 +5,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 func certificatePermissions() []string {
@@ -124,48 +124,48 @@ func flattenStoragePermission(input string) string {
 	return input
 }
 
-func schemaCertificatePermissions() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaCertificatePermissions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type:             schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
 			ValidateFunc:     validation.StringInSlice(certificatePermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
 }
 
-func schemaKeyPermissions() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaKeyPermissions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type:             schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
 			ValidateFunc:     validation.StringInSlice(keyPermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
 }
 
-func schemaSecretPermissions() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaSecretPermissions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type:             schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
 			ValidateFunc:     validation.StringInSlice(secretPermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
 }
 
-func schemaStoragePermissions() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaStoragePermissions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type:             schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
 			ValidateFunc:     validation.StringInSlice(storagePermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},

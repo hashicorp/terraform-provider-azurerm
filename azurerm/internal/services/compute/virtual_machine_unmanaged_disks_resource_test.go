@@ -649,7 +649,7 @@ resource "azurerm_storage_blob" "test" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
 
-  type       = "page"
+  type       = "Page"
   source_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
 }
 

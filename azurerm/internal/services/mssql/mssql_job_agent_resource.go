@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMsSqlJobAgent() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlJobAgent() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlJobAgentCreateUpdate,
 		Read:   resourceMsSqlJobAgentRead,
 		Update: resourceMsSqlJobAgentCreateUpdate,
@@ -30,23 +29,23 @@ func resourceMsSqlJobAgent() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateMsSqlJobAgentName,
 			},
 
 			"database_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DatabaseID,
@@ -59,7 +58,7 @@ func resourceMsSqlJobAgent() *schema.Resource {
 	}
 }
 
-func resourceMsSqlJobAgentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +111,7 @@ func resourceMsSqlJobAgentCreateUpdate(d *schema.ResourceData, meta interface{})
 	return resourceMsSqlJobAgentRead(d, meta)
 }
 
-func resourceMsSqlJobAgentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +140,7 @@ func resourceMsSqlJobAgentRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMsSqlJobAgentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

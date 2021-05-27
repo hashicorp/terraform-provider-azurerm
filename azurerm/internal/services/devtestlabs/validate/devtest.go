@@ -5,17 +5,17 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func DevTestLabName() schema.SchemaValidateFunc {
+func DevTestLabName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
 		"Lab Name can only include alphanumeric characters, underscores, hyphens.")
 }
 
-func DevTestVirtualMachineName(maxLength int) schema.SchemaValidateFunc {
+func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, k string) ([]string, []error) {
 		v, ok := i.(string)
 		if !ok {
@@ -49,7 +49,7 @@ func DevTestVirtualMachineName(maxLength int) schema.SchemaValidateFunc {
 	}
 }
 
-func DevTestVirtualNetworkUsagePermissionType() schema.SchemaValidateFunc {
+func DevTestVirtualNetworkUsagePermissionType() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(dtl.Allow),
 		string(dtl.Default),

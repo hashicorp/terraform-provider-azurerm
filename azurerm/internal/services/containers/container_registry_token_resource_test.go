@@ -130,7 +130,7 @@ data "azurerm_container_registry_scope_map" "pull_repos" {
 }
 
 resource "azurerm_container_registry_token" "test" {
-  name                    = "testtoken%d"
+  name                    = "testtoken-%d"
   resource_group_name     = azurerm_resource_group.test.name
   container_registry_name = azurerm_container_registry.test.name
   scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id

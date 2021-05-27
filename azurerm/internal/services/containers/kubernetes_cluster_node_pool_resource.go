@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -102,8 +102,8 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.Delete),
-					string(containerservice.Deallocate),
+					string(containerservice.ScaleSetEvictionPolicyDelete),
+					string(containerservice.ScaleSetEvictionPolicyDeallocate),
 				}, false),
 			},
 
@@ -123,10 +123,10 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 			"mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(containerservice.User),
+				Default:  string(containerservice.AgentPoolModeUser),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.System),
-					string(containerservice.User),
+					string(containerservice.AgentPoolModeSystem),
+					string(containerservice.AgentPoolModeUser),
 				}, false),
 			},
 
@@ -174,10 +174,10 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  containerservice.Managed,
+				Default:  containerservice.OSDiskTypeManaged,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.Ephemeral),
-					string(containerservice.Managed),
+					string(containerservice.OSDiskTypeEphemeral),
+					string(containerservice.OSDiskTypeManaged),
 				}, false),
 			},
 
@@ -185,10 +185,10 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(containerservice.Linux),
+				Default:  string(containerservice.OSTypeLinux),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.Linux),
-					string(containerservice.Windows),
+					string(containerservice.OSTypeLinux),
+					string(containerservice.OSTypeWindows),
 				}, false),
 			},
 
@@ -196,10 +196,10 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(containerservice.Regular),
+				Default:  string(containerservice.ScaleSetPriorityRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.Regular),
-					string(containerservice.Spot),
+					string(containerservice.ScaleSetPriorityRegular),
+					string(containerservice.ScaleSetPrioritySpot),
 				}, false),
 			},
 
@@ -261,7 +261,7 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 	if props := cluster.ManagedClusterProperties; props != nil {
 		if pools := props.AgentPoolProfiles; pools != nil {
 			for _, p := range *pools {
-				if p.Type == containerservice.VirtualMachineScaleSets {
+				if p.Type == containerservice.AgentPoolTypeVirtualMachineScaleSets {
 					defaultPoolIsVMSS = true
 					break
 				}
@@ -301,8 +301,8 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 		Mode:                   mode,
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
-		Type:                   containerservice.VirtualMachineScaleSets,
-		VMSize:                 containerservice.VMSizeTypes(vmSize),
+		Type:                   containerservice.AgentPoolTypeVirtualMachineScaleSets,
+		VMSize:                 utils.String(vmSize),
 		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
 		UpgradeSettings:        expandUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 
@@ -310,7 +310,7 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 		Count: utils.Int32(int32(count)),
 	}
 
-	if priority == string(containerservice.Spot) {
+	if priority == string(containerservice.ScaleSetPrioritySpot) {
 		profile.ScaleSetEvictionPolicy = containerservice.ScaleSetEvictionPolicy(evictionPolicy)
 		profile.SpotMaxPrice = utils.Float(spotMaxPrice)
 	} else {
@@ -502,7 +502,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interf
 		//   > You must replace your existing spot node pool with a new one to do operations such as upgrading
 		//   > the Kubernetes version. To replace a spot node pool, create a new spot node pool with a different
 		//   > version of Kubernetes, wait until its status is Ready, then remove the old node pool.
-		if strings.EqualFold(string(props.ScaleSetPriority), string(containerservice.Spot)) {
+		if strings.EqualFold(string(props.ScaleSetPriority), string(containerservice.ScaleSetPrioritySpot)) {
 			// ^ the Scale Set Priority isn't returned when Regular
 			return fmt.Errorf("the Orchestrator Version cannot be updated when using a Spot Node Pool")
 		}
@@ -638,7 +638,7 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 		}
 		d.Set("min_count", minCount)
 
-		mode := string(containerservice.User)
+		mode := string(containerservice.AgentPoolModeUser)
 		if props.Mode != "" {
 			mode = string(props.Mode)
 		}
@@ -665,7 +665,7 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 
-		osDiskType := containerservice.Managed
+		osDiskType := containerservice.OSDiskTypeManaged
 		if props.OsDiskType != "" {
 			osDiskType = props.OsDiskType
 		}
@@ -673,7 +673,7 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
-		priority := string(containerservice.Regular)
+		priority := string(containerservice.ScaleSetPriorityRegular)
 		if props.ScaleSetPriority != "" {
 			priority = string(props.ScaleSetPriority)
 		}
@@ -688,7 +688,7 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 		d.Set("spot_max_price", spotMaxPrice)
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
-		d.Set("vm_size", string(props.VMSize))
+		d.Set("vm_size", props.VMSize)
 
 		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)

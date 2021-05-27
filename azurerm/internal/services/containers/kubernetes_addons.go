@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	applicationGatewayValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	subnetValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
 const (
@@ -191,6 +190,26 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							"effective_gateway_id": {
 								Type:     schema.TypeString,
 								Computed: true,
+							},
+							"ingress_application_gateway_identity": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"client_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"object_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"user_assigned_identity_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -421,7 +440,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			}
 		}
 
-		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
+		omsagentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"enabled":                    enabled,
@@ -457,12 +476,15 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			subnetId = *v
 		}
 
+		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
-			"enabled":              enabled,
-			"gateway_id":           gatewayId,
-			"effective_gateway_id": effectiveGatewayId,
-			"subnet_cidr":          subnetCIDR,
-			"subnet_id":            subnetId,
+			"enabled":                              enabled,
+			"gateway_id":                           gatewayId,
+			"effective_gateway_id":                 effectiveGatewayId,
+			"subnet_cidr":                          subnetCIDR,
+			"subnet_id":                            subnetId,
+			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
 		})
 	}
 
@@ -483,7 +505,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 }
 
-func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+func flattenKubernetesClusterAddOnIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}

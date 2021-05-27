@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -143,6 +143,26 @@ func dataSourceKubernetesCluster() *schema.Resource {
 									"subnet_id": {
 										Type:     schema.TypeString,
 										Computed: true,
+									},
+									"ingress_application_gateway_identity": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"client_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -815,7 +835,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			workspaceID = *v
 		}
 
-		omsagentIdentity, err := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
+		omsagentIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(omsAgent.Identity)
 		if err != nil {
 			return err
 		}
@@ -883,12 +903,18 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			subnetId = *v
 		}
 
+		ingressApplicationGatewayIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(ingressApplicationGateway.Identity)
+		if err != nil {
+			return err
+		}
+
 		output := map[string]interface{}{
-			"enabled":              enabled,
-			"gateway_id":           gatewayId,
-			"effective_gateway_id": effectiveGatewayId,
-			"subnet_cidr":          subnetCIDR,
-			"subnet_id":            subnetId,
+			"enabled":                              enabled,
+			"gateway_id":                           gatewayId,
+			"effective_gateway_id":                 effectiveGatewayId,
+			"subnet_cidr":                          subnetCIDR,
+			"subnet_id":                            subnetId,
+			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
 		}
 		ingressApplicationGateways = append(ingressApplicationGateways, output)
 	}
@@ -897,7 +923,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) ([]interface{}, error) {
+func flattenKubernetesClusterDataSourceAddOnIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
 	}
@@ -1005,6 +1031,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			enableNodePublicIP = *profile.EnableNodePublicIP
 		}
 
+		vmSize := ""
+		if profile.VMSize != nil {
+			vmSize = *profile.VMSize
+		}
+
 		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
 			"availability_zones":    utils.FlattenStringSlice(profile.AvailabilityZones),
 			"count":                 count,
@@ -1022,7 +1053,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			"tags":                  tags.Flatten(profile.Tags),
 			"type":                  string(profile.Type),
 			"upgrade_settings":      flattenUpgradeSettings(profile.UpgradeSettings),
-			"vm_size":               string(profile.VMSize),
+			"vm_size":               vmSize,
 			"vnet_subnet_id":        vnetSubnetId,
 		})
 	}

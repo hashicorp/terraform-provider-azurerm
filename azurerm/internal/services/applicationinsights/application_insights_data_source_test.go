@@ -6,8 +6,6 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 type AppInsightsDataSource struct {
@@ -16,10 +14,10 @@ type AppInsightsDataSource struct {
 func TestAccApplicationInsightsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_insights", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AppInsightsDataSource{}.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("instrumentation_key").Exists(),
 				check.That(data.ResourceName).Key("app_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),

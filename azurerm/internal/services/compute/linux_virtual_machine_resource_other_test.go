@@ -261,6 +261,21 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.otherSkipShutdownAndForceDelete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherLicenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -995,6 +1010,48 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r LinuxVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      skip_shutdown_and_force_delete = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LinuxVirtualMachineResource) otherLicenseType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1623,7 +1680,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS3_V2"
+  size                = "Standard_DS3_v2"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,

@@ -7,8 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-type CustomizeDiffFunc = func(context.Context, *ResourceDiff, interface{}) error
-type ValueChangeConditionFunc = func(ctx context.Context, old, new, meta interface{}) bool
+type (
+	CustomizeDiffFunc        = func(context.Context, *ResourceDiff, interface{}) error
+	ValueChangeConditionFunc = func(ctx context.Context, old, new, meta interface{}) bool
+)
 
 // CustomDiffWithAll returns a CustomizeDiffFunc that runs all of the given
 // CustomizeDiffFuncs and returns all of the errors produced.
