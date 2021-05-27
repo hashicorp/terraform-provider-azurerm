@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"net/http"
 	"strings"
@@ -2527,7 +2526,7 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) ([]interfa
 			"type":         string(identity.Type),
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
-			"identity_ids": pluginsdk.NewSet(schema.HashString, identityIds),
+			"identity_ids": pluginsdk.NewSet(pluginsdk.HashString, identityIds),
 		},
 	}, nil
 }
