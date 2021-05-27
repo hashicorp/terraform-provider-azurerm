@@ -190,7 +190,7 @@ func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku 
 }
 
 func flattenEventHubClusterSkuName(input *eventhubsclusters.ClusterSku) string {
-	if input == nil {
+	if input == nil || input.Capacity == nil {
 		return ""
 	}
 
