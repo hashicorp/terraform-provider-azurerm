@@ -24,17 +24,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-<<<<<<< HEAD
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_vmware_private_cloud":               resourceVmwarePrivateCloud(),
 		"azurerm_vmware_cluster":                     resourceVmwareCluster(),
 		"azurerm_vmware_express_route_authorization": resourceVmwareExpressRouteAuthorization(),
-=======
-func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_vmware_private_cloud": resourceVmwarePrivateCloud(),
-		"azurerm_vmware_cluster":       resourceVmwareCluster(),
->>>>>>> 0a29f734f5406e4772c65b871df5ef871454ab81
 	}
 }

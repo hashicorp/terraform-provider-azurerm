@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -21,10 +20,10 @@ func TestAccVmwareExpressRouteAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_express_route_authorization", "test")
 	r := VmwareExpressRouteAuthorizationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("express_route_authorization_id").Exists(),
 				check.That(data.ResourceName).Key("express_route_authorization_key").Exists(),
@@ -38,10 +37,10 @@ func TestAccVmwareExpressRouteAuthorization_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_express_route_authorization", "test")
 	r := VmwareExpressRouteAuthorizationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

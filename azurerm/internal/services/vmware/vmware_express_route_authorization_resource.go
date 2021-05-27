@@ -6,63 +6,62 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVmwareExpressRouteAuthorization() *schema.Resource {
-	return &schema.Resource{
+func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVmwareExpressRouteAuthorizationCreate,
 		Read:   resourceVmwareExpressRouteAuthorizationRead,
 		Delete: resourceVmwareExpressRouteAuthorizationDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ExpressRouteAuthorizationID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"private_cloud_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.PrivateCloudID,
 			},
 
 			"express_route_authorization_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"express_route_authorization_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 		},
 	}
 }
-func resourceVmwareExpressRouteAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -101,7 +100,7 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *schema.ResourceData, meta 
 	return resourceVmwareExpressRouteAuthorizationRead(d, meta)
 }
 
-func resourceVmwareExpressRouteAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -131,7 +130,7 @@ func resourceVmwareExpressRouteAuthorizationRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceVmwareExpressRouteAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
