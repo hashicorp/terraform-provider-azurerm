@@ -9,6 +9,9 @@ import (
 )
 
 type LongRunningPoller struct {
+	// HttpResponse is the latest HTTP Response
+	HttpResponse *http.Response
+
 	future *azure.Future
 	ctx    context.Context
 	client autorest.Client
@@ -30,5 +33,7 @@ func NewLongRunningPollerFromResponse(ctx context.Context, resp *http.Response, 
 
 // PollUntilDone polls until this Long Running Poller is completed
 func (fw *LongRunningPoller) PollUntilDone() error {
-	return fw.future.WaitForCompletionRef(fw.ctx, fw.client)
+	err := fw.future.WaitForCompletionRef(fw.ctx, fw.client)
+	fw.HttpResponse = fw.future.Response()
+	return err
 }
