@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -19,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceEventHubAuthorizationRule() *schema.Resource {
-	return &schema.Resource{
+func resourceEventHubAuthorizationRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventHubAuthorizationRuleCreateUpdate,
 		Read:   resourceEventHubAuthorizationRuleRead,
 		Update: resourceEventHubAuthorizationRuleCreateUpdate,
@@ -29,30 +27,30 @@ func resourceEventHubAuthorizationRule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
@@ -65,7 +63,7 @@ func resourceEventHubAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -101,27 +99,27 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta 
 		},
 	}
 
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
 		if _, err := authorizationRulesClient.EventHubsCreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("creating %s: %+v", id, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("creating %s: %+v", id, err))
 		}
 
 		read, err := eventhubsClient.GetAuthorizationRule(ctx, id)
 		if err != nil {
 			if response.WasNotFound(read.HttpResponse) {
-				return resource.RetryableError(fmt.Errorf("expected %s to be created but was in non existent state, retrying", id))
+				return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was in non existent state, retrying", id))
 			}
-			return resource.NonRetryableError(fmt.Errorf("Expected %s was not be found", id))
+			return pluginsdk.NonRetryableError(fmt.Errorf("Expected %s was not be found", id))
 		}
 
 		d.SetId(id.ID())
 
-		return resource.NonRetryableError(resourceEventHubAuthorizationRuleRead(d, meta))
+		return pluginsdk.NonRetryableError(resourceEventHubAuthorizationRuleRead(d, meta))
 	})
 }
 
-func resourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -173,7 +171,7 @@ func resourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
