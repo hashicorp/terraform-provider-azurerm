@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
-	return &schema.Resource{
+func resourceEventHubNamespaceAuthorizationRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
 		Read:   resourceEventHubNamespaceAuthorizationRuleRead,
 		Update: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
@@ -34,23 +33,23 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 			1: migration.NamespaceAuthorizationRuleV1ToV2{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
@@ -63,7 +62,7 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -103,7 +102,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceDa
 	return resourceEventHubNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +151,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
