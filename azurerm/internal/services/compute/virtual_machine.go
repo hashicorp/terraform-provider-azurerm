@@ -5,30 +5,30 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func virtualMachineAdditionalCapabilitiesSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// TODO: confirm this command
 
 				// NOTE: requires registration to use:
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
 				"ultra_ssd_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -67,15 +67,15 @@ func flattenVirtualMachineAdditionalCapabilities(input *compute.AdditionalCapabi
 	}
 }
 
-func virtualMachineIdentitySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func virtualMachineIdentitySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.ResourceIdentityTypeSystemAssigned),
@@ -85,21 +85,21 @@ func virtualMachineIdentitySchema() *schema.Schema {
 				},
 
 				"identity_ids": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 
 				"principal_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"tenant_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -121,7 +121,7 @@ func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineI
 		Type: compute.ResourceIdentityType(raw["type"].(string)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
 	identityIds := make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
 	for _, v := range identityIdsRaw {
 		identityIds[v.(string)] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
@@ -207,15 +207,15 @@ func flattenVirtualMachineNetworkInterfaceIDs(input *[]compute.NetworkInterfaceR
 	return output
 }
 
-func virtualMachineOSDiskSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func virtualMachineOSDiskSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.CachingTypesNone),
@@ -224,7 +224,7 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 					}, false),
 				},
 				"storage_account_type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
@@ -239,14 +239,14 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 
 				// Optional
 				"diff_disk_settings": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
 					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"option": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -258,7 +258,7 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
@@ -266,21 +266,21 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
 					Computed: true,
 				},
 
 				"write_accelerator_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
