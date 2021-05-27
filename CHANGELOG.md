@@ -1,5 +1,9 @@
 ## 2.62.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_container_registry`: support for  versionless encryption keys for ACR [GH-11856]
+
 ## 2.61.0 (May 27, 2021)
 
 FEATURES:
