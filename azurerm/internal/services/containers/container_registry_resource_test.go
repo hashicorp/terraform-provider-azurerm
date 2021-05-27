@@ -509,6 +509,36 @@ func TestAccContainerRegistry_identity(t *testing.T) {
 	})
 }
 
+func TestAccContainerRegistry_encrypt(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "acr")
+	r := ContainerRegistryResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		// creates an ACR with encryption
+		{
+			Config: r.encryption(data, "id"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").MatchesOtherKey(
+					check.That("azurerm_key_vault_key.key-acr").Key("id"),
+				),
+			),
+		},
+		// update ACR to use a versionless key
+		{
+			Config: r.encryption(data, "versionless_id"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").MatchesOtherKey(
+					check.That("azurerm_key_vault_key.key-acr").Key("versionless_id"),
+				),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
@@ -1035,4 +1065,99 @@ resource "azurerm_user_assigned_identity" "test" {
   name = "testaccuai%d"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) encryption(data acceptance.TestData, key string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-acr-%d"
+	location = "%s"
+}
+  
+data "azurerm_client_config" "current" {}
+  
+resource "azurerm_key_vault" "kv-acr" {
+	name                        = "testkv%d" 
+	location                    = azurerm_resource_group.test.location
+	resource_group_name         = azurerm_resource_group.test.name
+	tenant_id                   = data.azurerm_client_config.current.tenant_id
+	purge_protection_enabled    = true
+	sku_name                    = "standard"
+}
+  
+resource "azurerm_user_assigned_identity" "mi-acr" {
+	resource_group_name = azurerm_resource_group.test.name
+	location            = azurerm_resource_group.test.location
+  
+	name = "mi-acr-%d"
+}
+  
+resource "azurerm_key_vault_access_policy" "kv-policy-admin" {
+	key_vault_id = azurerm_key_vault.kv-acr.id
+	tenant_id    = data.azurerm_client_config.current.tenant_id
+	object_id    = data.azurerm_client_config.current.object_id
+  
+	key_permissions = [
+	  "Get",
+	  "List",
+	  "Create",
+	  "Delete",
+	  "Purge"
+	]
+}
+  
+resource "azurerm_key_vault_access_policy" "kv-policy-acr" {
+	key_vault_id = azurerm_key_vault.kv-acr.id
+	tenant_id    = azurerm_user_assigned_identity.mi-acr.tenant_id
+	object_id    = azurerm_user_assigned_identity.mi-acr.principal_id
+  
+	key_permissions = [
+	  "Get",
+	  "unwrapKey",
+	  "wrapKey"
+	]
+}
+  
+resource "azurerm_key_vault_key" "key-acr" {
+	name         = "key-acr"
+	key_vault_id = azurerm_key_vault.kv-acr.id
+	key_type     = "RSA"
+	key_size     = 2048
+  
+	key_opts = [
+	  "decrypt",
+	  "encrypt",
+	  "sign",
+	  "unwrapKey",
+	  "verify",
+	  "wrapKey",
+	]
+
+	depends_on = [ azurerm_key_vault_access_policy.kv-policy-admin ]
+}
+  
+resource "azurerm_container_registry" "acr" {
+	name                = "testacr%d" 
+	resource_group_name = azurerm_resource_group.test.name
+	location            = azurerm_resource_group.test.location
+	sku                 = "Premium"
+  
+	identity {
+	  type = "UserAssigned"
+	  identity_ids = [
+		azurerm_user_assigned_identity.mi-acr.id
+	  ]
+	}
+  
+	encryption {
+	  enabled            = true
+	  key_vault_key_id   = azurerm_key_vault_key.key-acr.%s 
+	  identity_client_id = azurerm_user_assigned_identity.mi-acr.client_id
+	}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, key)
 }
