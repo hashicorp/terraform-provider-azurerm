@@ -17,11 +17,11 @@ import (
 type NetworkConnectionMonitorResource struct {
 }
 
-func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
+func TestAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -32,11 +32,11 @@ func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
+func TestAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -50,11 +50,11 @@ func testAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
+func TestAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeAddressConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -65,11 +65,11 @@ func testAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
+func TestAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -86,11 +86,11 @@ func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
+func TestAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVmConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -101,11 +101,11 @@ func testAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
+func TestAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeVmConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -116,11 +116,11 @@ func testAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
+func TestAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVmConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -137,11 +137,11 @@ func testAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
+func TestAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -164,11 +164,11 @@ func testAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
+func TestAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.missingDestinationConfig(data),
 			ExpectError: regexp.MustCompile("should have at least one destination"),
@@ -176,11 +176,11 @@ func testAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
+func TestAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.conflictingDestinationsConfig(data),
 			ExpectError: regexp.MustCompile("don't allow creating different endpoints for the same VM"),
@@ -188,11 +188,11 @@ func testAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
+func TestAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAddressAndVirtualMachineIdConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -203,11 +203,11 @@ func testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T
 	})
 }
 
-func testAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
+func TestAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpConfigurationConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -218,11 +218,11 @@ func testAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
+func TestAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.icmpConfigurationConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -233,11 +233,11 @@ func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
+func TestAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.endpointDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -262,11 +262,11 @@ func testAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *testing.T) {
+func TestAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.endpointIPAddressAndCoverageLevel(data),
 			Check: acceptance.ComposeTestCheckFunc(

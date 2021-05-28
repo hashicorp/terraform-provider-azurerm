@@ -12,13 +12,13 @@ import (
 type NetworkWatcherDataSource struct {
 }
 
-func testAccDataSourceNetworkWatcher_basic(t *testing.T) {
+func TestAccDataSourceNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_watcher", "test")
 	r := NetworkWatcherDataSource{}
 
 	name := fmt.Sprintf("acctestnw-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

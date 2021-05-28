@@ -16,74 +16,11 @@ import (
 type NetworkWatcherResource struct {
 }
 
-func TestAccNetworkWatcher(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one per region at once
-	// (which our test suite can't easily workaround)
-	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic":          testAccNetworkWatcher_basic,
-			"requiresImport": testAccNetworkWatcher_requiresImport,
-			"complete":       testAccNetworkWatcher_complete,
-			"update":         testAccNetworkWatcher_update,
-			"disappears":     testAccNetworkWatcher_disappears,
-		},
-		"DataSource": {
-			"basic": testAccDataSourceNetworkWatcher_basic,
-		},
-		"PacketCaptureOld": {
-			"localDisk":                  testAccPacketCapture_localDisk,
-			"storageAccount":             testAccPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccPacketCapture_withFilters,
-			"requiresImport":             testAccPacketCapture_requiresImport,
-		},
-		"ConnectionMonitor": {
-			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
-			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
-			"addressUpdate":                  testAccNetworkConnectionMonitor_addressUpdate,
-			"vmBasic":                        testAccNetworkConnectionMonitor_vmBasic,
-			"vmComplete":                     testAccNetworkConnectionMonitor_vmComplete,
-			"vmUpdate":                       testAccNetworkConnectionMonitor_vmUpdate,
-			"destinationUpdate":              testAccNetworkConnectionMonitor_destinationUpdate,
-			"missingDestinationInvalid":      testAccNetworkConnectionMonitor_missingDestination,
-			"bothDestinationsInvalid":        testAccNetworkConnectionMonitor_conflictingDestinations,
-			"requiresImport":                 testAccNetworkConnectionMonitor_requiresImport,
-			"httpConfiguration":              testAccNetworkConnectionMonitor_httpConfiguration,
-			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
-			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
-			"endpointType":                   testAccNetworkConnectionMonitor_endpointDeprecated,
-			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
-		},
-		"PacketCapture": {
-			"localDisk":                  testAccNetworkPacketCapture_localDisk,
-			"storageAccount":             testAccNetworkPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccNetworkPacketCapture_withFilters,
-			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
-		},
-
-		// The FlowLog has been removed from this list as all its test cases are not parallel test cases, which are guaranteed to run in sequential and exclusively.
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
-func testAccNetworkWatcher_basic(t *testing.T) {
+func TestAccNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -94,10 +31,10 @@ func testAccNetworkWatcher_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkWatcher_requiresImport(t *testing.T) {
+func TestAccNetworkWatcher_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -111,10 +48,10 @@ func testAccNetworkWatcher_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetworkWatcher_complete(t *testing.T) {
+func TestAccNetworkWatcher_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -125,11 +62,11 @@ func testAccNetworkWatcher_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkWatcher_update(t *testing.T) {
+func TestAccNetworkWatcher_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -145,11 +82,11 @@ func testAccNetworkWatcher_update(t *testing.T) {
 	})
 }
 
-func testAccNetworkWatcher_disappears(t *testing.T) {
+func TestAccNetworkWatcher_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicConfig,
 			TestResource: r,
