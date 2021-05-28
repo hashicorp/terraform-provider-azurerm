@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -55,20 +55,20 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Static),
-					string(network.Dynamic),
+					string(network.IPAllocationMethodStatic),
+					string(network.IPAllocationMethodDynamic),
 				}, false),
 			},
 
 			"ip_version": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          string(network.IPv4),
+				Default:          string(network.IPVersionIPv4),
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPv4),
-					string(network.IPv6),
+					string(network.IPVersionIPv4),
+					string(network.IPVersionIPv6),
 				}, true),
 			},
 

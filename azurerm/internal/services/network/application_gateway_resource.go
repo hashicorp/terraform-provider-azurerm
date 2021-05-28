@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -169,8 +169,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTP),
-								string(network.HTTPS),
+								string(network.ProtocolHTTP),
+								string(network.ProtocolHTTPS),
 							}, true),
 						},
 
@@ -179,8 +179,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Enabled),
-								string(network.Disabled),
+								string(network.ApplicationGatewayCookieBasedAffinityEnabled),
+								string(network.ApplicationGatewayCookieBasedAffinityDisabled),
 							}, true),
 						},
 
@@ -307,8 +307,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Computed:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
+								string(network.IPAllocationMethodDynamic),
+								string(network.IPAllocationMethodStatic),
 							}, true),
 						},
 
@@ -394,8 +394,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTP),
-								string(network.HTTPS),
+								string(network.ProtocolHTTP),
+								string(network.ProtocolHTTPS),
 							}, true),
 						},
 
@@ -451,8 +451,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.HTTPStatus403),
-											string(network.HTTPStatus502),
+											string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus403),
+											string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus502),
 										}, false),
 									},
 
@@ -493,8 +493,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Basic),
-								string(network.PathBasedRouting),
+								string(network.ApplicationGatewayRequestRoutingRuleTypeBasic),
+								string(network.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting),
 							}, false),
 						},
 
@@ -583,10 +583,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Permanent),
-								string(network.Temporary),
-								string(network.Found),
-								string(network.SeeOther),
+								string(network.ApplicationGatewayRedirectTypePermanent),
+								string(network.ApplicationGatewayRedirectTypeTemporary),
+								string(network.ApplicationGatewayRedirectTypeFound),
+								string(network.ApplicationGatewayRedirectTypeSeeOther),
 							}, false),
 						},
 
@@ -656,13 +656,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.StandardSmall),
-								string(network.StandardMedium),
-								string(network.StandardLarge),
-								string(network.StandardV2),
-								string(network.WAFLarge),
-								string(network.WAFMedium),
-								string(network.WAFV2),
+								string(network.ApplicationGatewaySkuNameStandardSmall),
+								string(network.ApplicationGatewaySkuNameStandardMedium),
+								string(network.ApplicationGatewaySkuNameStandardLarge),
+								string(network.ApplicationGatewaySkuNameStandardV2),
+								string(network.ApplicationGatewaySkuNameWAFLarge),
+								string(network.ApplicationGatewaySkuNameWAFMedium),
+								string(network.ApplicationGatewaySkuNameWAFV2),
 							}, true),
 						},
 
@@ -759,9 +759,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(network.TLSv10),
-									string(network.TLSv11),
-									string(network.TLSv12),
+									string(network.ApplicationGatewaySslProtocolTLSv10),
+									string(network.ApplicationGatewaySslProtocolTLSv11),
+									string(network.ApplicationGatewaySslProtocolTLSv12),
 								}, false),
 							},
 						},
@@ -770,8 +770,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Custom),
-								string(network.Predefined),
+								string(network.ApplicationGatewaySslPolicyTypeCustom),
+								string(network.ApplicationGatewaySslPolicyTypePredefined),
 							}, false),
 						},
 
@@ -793,9 +793,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.TLSv10),
-								string(network.TLSv11),
-								string(network.TLSv12),
+								string(network.ApplicationGatewaySslProtocolTLSv10),
+								string(network.ApplicationGatewaySslProtocolTLSv11),
+								string(network.ApplicationGatewaySslProtocolTLSv12),
 							}, false),
 						},
 					},
@@ -822,8 +822,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTP),
-								string(network.HTTPS),
+								string(network.ProtocolHTTP),
+								string(network.ProtocolHTTPS),
 							}, true),
 						},
 
@@ -1218,8 +1218,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Detection),
-								string(network.Prevention),
+								string(network.ApplicationGatewayFirewallModeDetection),
+								string(network.ApplicationGatewayFirewallModePrevention),
 							}, true),
 						},
 
@@ -1283,9 +1283,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.RequestArgNames),
-											string(network.RequestCookieNames),
-											string(network.RequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
 										}, false),
 									},
 
@@ -1327,8 +1327,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTPStatus403),
-								string(network.HTTPStatus502),
+								string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus403),
+								string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus502),
 							}, false),
 						},
 
@@ -1482,8 +1482,8 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	appGWSkuTier := d.Get("sku.0.tier").(string)
 	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
 
-	if appGWSkuTier != string(network.WAFV2) && wafFileUploadLimit > 500 {
-		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.WAFV2)
+	if appGWSkuTier != string(network.ApplicationGatewayTierWAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.ApplicationGatewayTierWAFV2)
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
@@ -2185,13 +2185,13 @@ func expandApplicationGatewaySslPolicy(d *pluginsdk.ResourceData) *network.Appli
 			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
 		}
 
-		if policyType == network.Predefined {
+		if policyType == network.ApplicationGatewaySslPolicyTypePredefined {
 			policyName := network.ApplicationGatewaySslPolicyName(v["policy_name"].(string))
 			policy = network.ApplicationGatewaySslPolicy{
 				PolicyType: policyType,
 				PolicyName: policyName,
 			}
-		} else if policyType == network.Custom {
+		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom {
 			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
 			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
 
