@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -19,10 +18,10 @@ func TestAccDataSourcePublicIP_static(t *testing.T) {
 	name := fmt.Sprintf("acctestpublicip-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.static(name, resourceGroupName, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(fmt.Sprintf("acctest-%d", data.RandomInteger)),
@@ -45,10 +44,10 @@ func TestAccDataSourcePublicIP_dynamic(t *testing.T) {
 	name := fmt.Sprintf("acctestpublicip-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.dynamic(data, "Ipv4"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(""),

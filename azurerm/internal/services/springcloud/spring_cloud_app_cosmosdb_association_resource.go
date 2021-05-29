@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	cosmosValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,8 +30,8 @@ const (
 	springCloudAppCosmosDbAssociationAPITypeTable     = "table"
 )
 
-func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceSpringCloudAppCosmosDBAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSpringCloudAppCosmosDBAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppCosmosDBAssociationRead,
 		Update: resourceSpringCloudAppCosmosDBAssociationCreateUpdate,
@@ -43,37 +42,37 @@ func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
 			return err
 		}, importSpringCloudAppAssociation(springCloudAppAssociationTypeCosmosDb)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppAssociationName,
 			},
 
 			"spring_cloud_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
 			"cosmosdb_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: cosmosValidate.DatabaseAccountID,
 			},
 
 			"api_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -86,20 +85,20 @@ func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
 			},
 
 			"cosmosdb_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"cosmosdb_cassandra_keyspace_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  cosmosValidate.CosmosEntityName,
 				ConflictsWith: []string{"cosmosdb_gremlin_database_name", "cosmosdb_gremlin_graph_name", "cosmosdb_mongo_database_name", "cosmosdb_sql_database_name"},
 			},
 
 			"cosmosdb_gremlin_database_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  cosmosValidate.CosmosEntityName,
 				RequiredWith:  []string{"cosmosdb_gremlin_graph_name"},
@@ -107,7 +106,7 @@ func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
 			},
 
 			"cosmosdb_gremlin_graph_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  cosmosValidate.CosmosEntityName,
 				RequiredWith:  []string{"cosmosdb_gremlin_database_name"},
@@ -115,14 +114,14 @@ func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
 			},
 
 			"cosmosdb_mongo_database_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  cosmosValidate.CosmosEntityName,
 				ConflictsWith: []string{"cosmosdb_cassandra_keyspace_name", "cosmosdb_gremlin_database_name", "cosmosdb_gremlin_graph_name", "cosmosdb_sql_database_name"},
 			},
 
 			"cosmosdb_sql_database_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  cosmosValidate.CosmosEntityName,
 				ConflictsWith: []string{"cosmosdb_cassandra_keyspace_name", "cosmosdb_gremlin_database_name", "cosmosdb_gremlin_graph_name", "cosmosdb_mongo_database_name"},
@@ -131,7 +130,7 @@ func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -209,7 +208,7 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *schema.ResourceDat
 	return resourceSpringCloudAppCosmosDBAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppCosmosDBAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +271,7 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudAppCosmosDBAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCosmosDBAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

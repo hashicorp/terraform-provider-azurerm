@@ -3,14 +3,13 @@ package consumption
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	resourceParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func resourceArmConsumptionBudgetResourceGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceArmConsumptionBudgetResourceGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmConsumptionBudgetResourceGroupCreateUpdate,
 		Read:   resourceArmConsumptionBudgetResourceGroupRead,
 		Update: resourceArmConsumptionBudgetResourceGroupCreateUpdate,
@@ -20,18 +19,18 @@ func resourceArmConsumptionBudgetResourceGroup() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: SchemaConsumptionBudgetResourceGroupResource(),
 	}
 }
 
-func resourceArmConsumptionBudgetResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	resourceGroupId, err := resourceParse.ResourceGroupID(d.Get("resource_group_id").(string))
 	if err != nil {
@@ -48,7 +47,7 @@ func resourceArmConsumptionBudgetResourceGroupCreateUpdate(d *schema.ResourceDat
 	return resourceArmConsumptionBudgetResourceGroupRead(d, meta)
 }
 
-func resourceArmConsumptionBudgetResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	consumptionBudgetId, err := parse.ConsumptionBudgetResourceGroupID(d.Id())
 	if err != nil {
 		return err
@@ -67,7 +66,7 @@ func resourceArmConsumptionBudgetResourceGroupRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmConsumptionBudgetResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	consumptionBudgetId, err := parse.ConsumptionBudgetResourceGroupID(d.Id())
 	if err != nil {
 		return err

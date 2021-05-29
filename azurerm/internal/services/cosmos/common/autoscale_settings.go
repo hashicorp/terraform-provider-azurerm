@@ -4,11 +4,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func ExpandCosmosDbAutoscaleSettings(d *schema.ResourceData) *documentdb.AutoscaleSettings {
+func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettings {
 	i := d.Get("autoscale_settings").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		log.Printf("[DEBUG] Cosmos DB autoscale settings are not set on the resource")
@@ -53,7 +53,7 @@ func FlattenCosmosDbAutoscaleSettings(throughputResponse documentdb.ThroughputSe
 	return append(results, result)
 }
 
-func ExpandCosmosDbAutoscaleSettingsResource(d *schema.ResourceData) *documentdb.AutoscaleSettingsResource {
+func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettingsResource {
 	autoscaleSettings := ExpandCosmosDbAutoscaleSettings(d)
 	autoscaleSettingResource := documentdb.AutoscaleSettingsResource{}
 

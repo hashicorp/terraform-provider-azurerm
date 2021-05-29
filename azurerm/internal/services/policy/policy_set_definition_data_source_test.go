@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +14,10 @@ func TestAccDataSourceAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 	d := PolicySetDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.builtIn("Audit machines with insecure password security settings"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("095e4ed9-c835-4ab6-9439-b5644362a06c"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Audit machines with insecure password security settings"),
 				check.That(data.ResourceName).Key("policy_type").HasValue("BuiltIn"),
@@ -34,10 +33,10 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 	d := PolicySetDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.customByName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPolSet-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctestPolSet-display-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("policy_type").HasValue("Custom"),
@@ -53,10 +52,10 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(t *testing.
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 	d := PolicySetDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.customByDisplayName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPolSet-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctestPolSet-display-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("policy_type").HasValue("Custom"),

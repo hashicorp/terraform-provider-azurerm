@@ -6,25 +6,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var SubnetResourceName = "azurerm_subnet"
 
-func resourceSubnet() *schema.Resource {
-	return &schema.Resource{
+func resourceSubnet() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSubnetCreate,
 		Read:   resourceSubnetRead,
 		Update: resourceSubnetUpdate,
@@ -34,16 +32,16 @@ func resourceSubnet() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -51,13 +49,13 @@ func resourceSubnet() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"address_prefix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				// TODO Remove this in the next major version release
@@ -66,50 +64,50 @@ func resourceSubnet() *schema.Resource {
 			},
 
 			"address_prefixes": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
 			},
 
 			"service_endpoints": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"service_endpoint_policy_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.SubnetServiceEndpointStoragePolicyID,
 				},
 			},
 
 			"delegation": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"service_delegation": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"Microsoft.ApiManagement/service",
@@ -142,11 +140,11 @@ func resourceSubnet() *schema.Resource {
 									},
 
 									"actions": {
-										Type:       schema.TypeList,
+										Type:       pluginsdk.TypeList,
 										Optional:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
 												"Microsoft.Network/virtualNetworks/subnets/action",
@@ -164,13 +162,13 @@ func resourceSubnet() *schema.Resource {
 			},
 
 			"enforce_private_link_endpoint_network_policies": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"enforce_private_link_service_network_policies": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -179,7 +177,7 @@ func resourceSubnet() *schema.Resource {
 }
 
 // TODO: refactor the create/flatten functions
-func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -229,7 +227,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
-	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
+	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
 	delegationsRaw := d.Get("delegation").([]interface{})
@@ -253,7 +251,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceSubnetRead(d, meta)
 }
 
-func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -318,7 +316,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
-		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
+		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
 		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 	}
 
@@ -339,7 +337,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceSubnetRead(d, meta)
 }
 
-func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -396,7 +394,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

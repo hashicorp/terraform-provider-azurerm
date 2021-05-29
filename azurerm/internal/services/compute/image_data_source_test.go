@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
 	r := ImageDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("os_disk.#").HasValue("1"),
@@ -43,20 +42,20 @@ func TestAccDataSourceImage_localFilter(t *testing.T) {
 
 	descDataSourceName := "data.azurerm_image.test2"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources
 			Config: r.localFilter_setup(data),
 		},
 		{
 			Config: r.localFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
-				resource.TestCheckResourceAttrSet(descDataSourceName, "name"),
-				resource.TestCheckResourceAttrSet(descDataSourceName, "resource_group_name"),
-				resource.TestCheckResourceAttr(descDataSourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
+				acceptance.TestCheckResourceAttrSet(descDataSourceName, "name"),
+				acceptance.TestCheckResourceAttrSet(descDataSourceName, "resource_group_name"),
+				acceptance.TestCheckResourceAttr(descDataSourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
 			),
 		},
 	})

@@ -32,6 +32,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

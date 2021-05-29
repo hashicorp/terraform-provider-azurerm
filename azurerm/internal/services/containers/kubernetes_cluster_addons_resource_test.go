@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -33,10 +32,10 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileAciConnectorLinuxConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.#").HasValue("1"),
@@ -57,10 +56,10 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileAciConnectorLinuxDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -82,11 +81,11 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enable with V2
 			Config: r.addonProfileAzurePolicyConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
@@ -96,7 +95,7 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		{
 			// Disable it
 			Config: r.addonProfileAzurePolicyConfig(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("false"),
@@ -106,7 +105,7 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		{
 			// Enable with V2
 			Config: r.addonProfileAzurePolicyConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
@@ -125,10 +124,10 @@ func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileKubeDashboardConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
@@ -147,10 +146,10 @@ func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
@@ -174,10 +173,10 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -189,7 +188,7 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -201,7 +200,7 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
@@ -213,7 +212,7 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -235,10 +234,10 @@ func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileRoutingConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("true"),
@@ -249,7 +248,7 @@ func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileRoutingConfigDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("false"),
@@ -270,10 +269,10 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileIngressApplicationGatewayAppGatewayConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
@@ -297,10 +296,10 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileIngressApplicationGatewaySubnetCIDRConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
@@ -309,7 +308,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 		data.ImportStep(),
 		{
 			Config: r.addonProfileIngressApplicationGatewayDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("false"),
@@ -328,10 +327,10 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileIngressApplicationGatewaySubnetIdConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
