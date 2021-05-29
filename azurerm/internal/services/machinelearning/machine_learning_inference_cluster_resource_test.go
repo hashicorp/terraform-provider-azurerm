@@ -49,10 +49,25 @@ func TestAccInferenceCluster_completeCustomSSL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
 	r := InferenceClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Config: r.completeCustomSSL(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssl"),
+	})
+}
+
+func TestAccInferenceCluster_completeMicrosoftSSL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
+	r := InferenceClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeMicrosoftSSL(data),
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
