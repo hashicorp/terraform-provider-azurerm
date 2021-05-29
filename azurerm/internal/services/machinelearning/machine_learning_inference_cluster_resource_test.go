@@ -52,7 +52,7 @@ func TestAccInferenceCluster_completeCustomSSL(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeCustomSSL(data),
-			Check: accceptance.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
