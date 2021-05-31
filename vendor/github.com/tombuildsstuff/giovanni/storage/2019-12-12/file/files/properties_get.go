@@ -111,7 +111,7 @@ func (client Client) GetPropertiesResponder(resp *http.Response) (result GetResu
 		result.ContentDisposition = resp.Header.Get("Content-Disposition")
 		result.ContentEncoding = resp.Header.Get("Content-Encoding")
 		result.ContentLanguage = resp.Header.Get("Content-Language")
-		result.ContentMD5 = resp.Header.Get("x-ms-content-md5")
+		result.ContentMD5 = resp.Header.Get("Content-MD5")
 		result.ContentType = resp.Header.Get("Content-Type")
 		result.CopyID = resp.Header.Get("x-ms-copy-id")
 		result.CopyProgress = resp.Header.Get("x-ms-copy-progress")
