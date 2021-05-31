@@ -2,6 +2,8 @@ package keyvault
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
@@ -11,40 +13,39 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"golang.org/x/crypto/pkcs12"
 )
 
-func dataSourceKeyVaultCertificateData() *schema.Resource {
-	return &schema.Resource{
+func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceArmKeyVaultCertificateDataRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NestedItemName,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.VaultID,
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
@@ -52,23 +53,28 @@ func dataSourceKeyVaultCertificateData() *schema.Resource {
 			// Computed
 
 			"hex": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"pem": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 
 			"expires": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"certificates_count": {
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
@@ -77,7 +83,7 @@ func dataSourceKeyVaultCertificateData() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -145,20 +151,81 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("retrieving certificate %q from keyvault: %+v", id.Name, err)
 	}
 
-	pfxBytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
-	if err != nil {
-		return fmt.Errorf("decoding base64 certificate (%q): %+v", id.Name, err)
+	var PEMBlocks []*pem.Block
+
+	if *pfx.ContentType == "application/x-pkcs12" {
+		bytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
+		if err != nil {
+			return fmt.Errorf("decoding base64 certificate (%q): %+v", id.Name, err)
+		}
+
+		// note PFX passwords are set to an empty string in Key Vault, this include password protected PFX uploads.
+		blocks, err := pkcs12.ToPEM(bytes, "")
+		if err != nil {
+			return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
+		}
+		PEMBlocks = blocks
+	} else {
+		block, rest := pem.Decode([]byte(*pfx.Value))
+		if block == nil {
+			return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
+		}
+		PEMBlocks = append(PEMBlocks, block)
+		for len(rest) > 0 {
+			block, rest = pem.Decode(rest)
+			PEMBlocks = append(PEMBlocks, block)
+		}
 	}
 
-	// note PFX passwords are set to an empty string in Key Vault, this include password protected PFX uploads.
-	pfxKey, pfxCert, err := pkcs12.Decode(pfxBytes, "")
-	if err != nil {
-		return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
+	var pemKey []byte
+	var pemCerts [][]byte
+
+	for _, block := range PEMBlocks {
+		if strings.Contains(block.Type, "PRIVATE KEY") {
+			pemKey = block.Bytes
+		}
+
+		if strings.Contains(block.Type, "CERTIFICATE") {
+			log.Printf("[DEBUG] Adding Cerrtificate block")
+			pemCerts = append(pemCerts, block.Bytes)
+		}
 	}
 
-	keyX509, err := x509.MarshalPKCS8PrivateKey(pfxKey)
-	if err != nil {
-		return fmt.Errorf("reading key from certificate (%q): %+v", id.Name, err)
+	var privateKey interface{}
+
+	if *pfx.ContentType == "application/x-pkcs12" {
+		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)
+		if err != nil {
+			// try to parse as a EC key
+			eckey, err := x509.ParseECPrivateKey(pemKey)
+			if err != nil {
+				return fmt.Errorf("decoding private key: not RSA or ECDSA type (%q): %+v", id.Name, err)
+			}
+			privateKey = eckey
+		} else {
+			privateKey = rsakey
+		}
+	} else {
+		pkey, err := x509.ParsePKCS8PrivateKey(pemKey)
+		if err != nil {
+			return fmt.Errorf("decoding PKCS8 RSA private key (%q): %+v", id.Name, err)
+		}
+		privateKey = pkey
+	}
+
+	var keyX509 []byte
+	if privateKey != nil {
+		switch v := privateKey.(type) {
+		case *ecdsa.PrivateKey:
+			keyX509, err = x509.MarshalECPrivateKey(privateKey.(*ecdsa.PrivateKey))
+			if err != nil {
+				return fmt.Errorf("marshalling private key type %+v (%q): %+v", v, id.Name, err)
+			}
+		case *rsa.PrivateKey:
+			keyX509 = x509.MarshalPKCS1PrivateKey(privateKey.(*rsa.PrivateKey))
+		default:
+			return fmt.Errorf("marshalling private key type %+v (%q): key type is not supported", v, id.Name)
+		}
 	}
 
 	// Encode Key and PEM
@@ -173,19 +240,25 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("encoding Key Vault Certificate Key: %+v", err)
 	}
 
-	certBlock := &pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: pfxCert.Raw,
+	certs := ""
+
+	for _, pemCert := range pemCerts {
+		certBlock := &pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: pemCert,
+		}
+
+		var certPEM bytes.Buffer
+		err = pem.Encode(&certPEM, certBlock)
+		if err != nil {
+			return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
+		}
+		certs += certPEM.String()
 	}
 
-	var certPEM bytes.Buffer
-	err = pem.Encode(&certPEM, certBlock)
-	if err != nil {
-		return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
-	}
-
-	d.Set("pem", certPEM.String())
+	d.Set("pem", certs)
 	d.Set("key", keyPEM.String())
+	d.Set("certificates_count", len(pemCerts))
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }

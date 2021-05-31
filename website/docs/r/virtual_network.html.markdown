@@ -93,8 +93,6 @@ The following arguments are supported:
 
 -> **NOTE** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
-* `vm_protection_enabled` - (Optional) Whether to enable VM protection for all the subnets in this Virtual Network. Defaults to `false`.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

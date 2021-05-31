@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +12,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionDoNotRunOnOverProvisionedMach
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionDoNotRunOnOverProvisionedMachines(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -30,10 +29,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsDoNotRunOnOverProvisionedMac
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionDoNotRunOnOverProvisionedMachines(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -42,7 +41,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsDoNotRunOnOverProvisionedMac
 		),
 		{
 			Config: r.extensionDoNotRunOnOverProvisionedMachines(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,7 +50,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsDoNotRunOnOverProvisionedMac
 		),
 		{
 			Config: r.extensionDoNotRunOnOverProvisionedMachines(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,10 +64,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -80,17 +79,17 @@ func TestAccWindowsVirtualMachineScaleSet_extensionForceUpdateTag(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionForceUpdateTag(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionForceUpdateTag(data, "second"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -102,10 +101,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionMultiple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -117,10 +116,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionOnlySettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionOnlySettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -132,24 +131,24 @@ func TestAccWindowsVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -161,10 +160,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExte
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionsRollingUpgradeWithHealthExtension(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -176,10 +175,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthEx
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -195,10 +194,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionWithTimeBudget(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionWithTimeBudget(data, "PT30M"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -210,24 +209,24 @@ func TestAccWindowsVirtualMachineScaleSet_extensionWithTimeBudgetUpdate(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionWithTimeBudget(data, "PT30M"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionWithTimeBudget(data, "PT1H"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionWithTimeBudget(data, "PT30M"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -239,10 +238,10 @@ func TestAccWindowsVirtualMachineScaleSet_extensionTimeBudgetWithoutExtensions(t
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT30M"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -254,28 +253,69 @@ func TestAccWindowsVirtualMachineScaleSet_extensionTimeBudgetWithoutExtensionsUp
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT30M"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT1H"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT30M"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceFabricExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionsAutomaticUpgradeWithServiceFabricExtension(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"extension.0.protected_settings",
+			"enable_automatic_updates",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionsWithHealthExtension(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
+		{
+			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
 	})
 }
 
@@ -682,6 +722,63 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineScaleSetResource) extensionsWithHealthExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -691,14 +788,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  upgrade_mode        = "Automatic"
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
 
   automatic_os_upgrade_policy {
     disable_automatic_rollback  = true
@@ -856,4 +954,97 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   extensions_time_budget = "%s"
 }
 `, template, duration)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithServiceFabricExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                 = local.vm_name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  reliability_level    = "Silver"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "8.0.516.9590"
+  vm_image             = "Windows"
+  management_endpoint  = "http://example:80"
+
+  node_type {
+    name                 = "backend"
+    instance_count       = 5
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+    durability_level     = "Silver"
+  }
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
+  overprovision            = false
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
+  }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT0S"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "ServiceFabric"
+    publisher                  = "Microsoft.Azure.ServiceFabric"
+    type                       = "ServiceFabricNode"
+    type_handler_version       = "1.1"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint
+      nodeTypeRef        = "backend"
+      dataPath           = "C:\\SvcFab"
+      durabilityLevel    = "Silver"
+      enableParallelJobs = true
+    })
+  }
+}
+`, r.template(data))
 }

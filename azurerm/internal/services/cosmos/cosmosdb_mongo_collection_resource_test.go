@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccCosmosDbMongoCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("throughput").HasValue("400"),
 			),
@@ -38,10 +37,10 @@ func TestAccCosmosDbMongoCollection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("shard_key").HasValue("seven"),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("707"),
@@ -55,16 +54,16 @@ func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("shard_key").HasValue("seven"),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("707"),
@@ -73,7 +72,7 @@ func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("70707"),
 			),
@@ -86,24 +85,24 @@ func TestAccCosmosDbMongoCollection_throughput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.throughput(data, 700),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.throughput(data, 1400),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -115,10 +114,10 @@ func TestAccCosmosDbMongoCollection_withIndex(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withIndex(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("707"),
 				check.That(data.ResourceName).Key("index.#").HasValue("4"),
@@ -129,14 +128,30 @@ func TestAccCosmosDbMongoCollection_withIndex(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbMongoCollection_analyticalStorageTTL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+	r := CosmosMongoCollectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.analyticalStorageTTL(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("analytical_storage_ttl").HasValue("600"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDbMongoCollection_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscale(data, 4000),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
 			),
@@ -144,7 +159,7 @@ func TestAccCosmosDbMongoCollection_autoscale(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.autoscale(data, 5000),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("5000"),
 			),
@@ -152,7 +167,7 @@ func TestAccCosmosDbMongoCollection_autoscale(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.autoscale(data, 4000),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
 			),
@@ -165,10 +180,10 @@ func TestAccCosmosDbMongoCollection_ver36(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ver36(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -180,10 +195,10 @@ func TestAccCosmosDbMongoCollection_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serverless(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -191,7 +206,7 @@ func TestAccCosmosDbMongoCollection_serverless(t *testing.T) {
 	})
 }
 
-func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.MongodbCollectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -388,4 +403,30 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 }
 `, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
+}
+
+func (CosmosMongoCollectionResource) analyticalStorageTTL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+
+  analytical_storage_ttl = 600
+}
+`, CosmosDBAccountResource{}.mongoAnalyticalStorage(data, documentdb.Eventual), data.RandomInteger, data.RandomInteger)
 }

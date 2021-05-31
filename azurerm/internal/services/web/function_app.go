@@ -7,23 +7,23 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -31,7 +31,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"cors": SchemaWebCorsSettings(),
 
 				"ftps_state": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -42,7 +42,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				},
 
 				"http2_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -50,13 +50,13 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"ip_restriction": schemaAppServiceIpRestriction(),
 
 				"linux_fx_version": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
 				},
 
 				"min_tls_version": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -67,16 +67,16 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				},
 
 				"pre_warmed_instance_count": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 10),
+					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
 				"scm_ip_restriction": schemaAppServiceIpRestriction(),
 
 				"scm_type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -98,36 +98,36 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 
 				"use_32_bit_worker_process": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
 				},
 
 				"websockets_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 
 				// The following is only used for "slots"
 				"auto_swap_slot_name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
 				"health_check_path": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
 				"java_version": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
@@ -136,81 +136,81 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 	}
 }
 
-func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"cors": SchemaWebCorsSettings(),
 
 				"use_32_bit_worker_process": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"websockets_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"linux_fx_version": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"http2_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"ip_restriction": schemaAppServiceDataSourceIpRestriction(),
 
 				"min_tls_version": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"ftps_state": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"pre_warmed_instance_count": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 
 				// The following is only used for "slots"
 				"auto_swap_slot_name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"scm_ip_restriction": schemaAppServiceDataSourceIpRestriction(),
 
 				"scm_type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"scm_use_main_ip_restriction": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"health_check_path": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"java_version": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -218,7 +218,7 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 	}
 }
 
-func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -308,7 +308,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
 	output := expandAppServiceAppSettings(d)
 
 	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
@@ -322,7 +322,7 @@ func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpoi
 	return output, nil
 }
 
-func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
+func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, error) {
 	configs := d.Get("site_config").([]interface{})
 	siteConfig := web.SiteConfig{}
 
@@ -475,8 +475,8 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	return results
 }
 
-func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
-	input := d.Get("connection_string").(*schema.Set).List()
+func expandFunctionAppConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {
+	input := d.Get("connection_string").(*pluginsdk.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
 	for _, v := range input {

@@ -5,34 +5,32 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementProductApi() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementProductApi() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementProductApiCreate,
 		Read:   resourceApiManagementProductApiRead,
 		Delete: resourceApiManagementProductApiDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"product_id": schemaz.SchemaApiManagementChildName(),
@@ -44,7 +42,7 @@ func resourceApiManagementProductApi() *schema.Resource {
 	}
 }
 
-func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -78,7 +76,7 @@ func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interfac
 	return resourceApiManagementProductApiRead(d, meta)
 }
 
-func resourceApiManagementProductApiRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +117,7 @@ func resourceApiManagementProductApiRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceApiManagementProductApiDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

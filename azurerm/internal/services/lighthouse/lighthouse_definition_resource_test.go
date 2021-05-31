@@ -7,13 +7,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,7 +20,7 @@ type LighthouseDefinitionResource struct {
 }
 
 func TestAccLighthouseDefinition_basic(t *testing.T) {
-	// Multiple tenants are needed to test this resource.
+	// Multiple tenants are needed to test this acceptance.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
 	// ObjectId for user, usergroup or service principal from second Tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
@@ -33,13 +32,13 @@ func TestAccLighthouseDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(uuid.New().String(), secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("authorization.0.principal_display_name").HasValue("Tier 1 Support"),
 			),
 		},
@@ -57,13 +56,13 @@ func TestAccLighthouseDefinition_requiresImport(t *testing.T) {
 	r := LighthouseDefinitionResource{}
 	id := uuid.New().String()
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(id, secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 			),
 		},
 		{
@@ -83,13 +82,13 @@ func TestAccLighthouseDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(uuid.New().String(), secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test Lighthouse Definition"),
 			),
 		},
@@ -108,40 +107,40 @@ func TestAccLighthouseDefinition_update(t *testing.T) {
 	r := LighthouseDefinitionResource{}
 	id := uuid.New().String()
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(id, secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 			),
 		},
 		{
 			Config: r.complete(id, secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test Lighthouse Definition"),
 			),
 		},
 		// multiple DelegatedRoleDefinitionIds
 		{
 			Config: r.updateDelegatedRoleDefinitionIds(id, secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.complete(id, secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basic(id, secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -158,10 +157,10 @@ func TestAccLighthouseDefinition_emptyID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.emptyId(secondTenantID, principalID, data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("lighthouse_definition_id").Exists(),
@@ -170,7 +169,7 @@ func TestAccLighthouseDefinition_emptyID(t *testing.T) {
 	})
 }
 
-func (LighthouseDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (LighthouseDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LighthouseDefinitionID(state.ID)
 	if err != nil {
 		return nil, err

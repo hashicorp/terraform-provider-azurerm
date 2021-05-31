@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ type HDInsightKafkaClusterResource struct {
 func TestAccHDInsightKafkaCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -42,10 +41,10 @@ func TestAccHDInsightKafkaCluster_basic(t *testing.T) {
 func TestAccHDInsightKafkaCluster_gen2storage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.gen2storage(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -65,10 +64,10 @@ func TestAccHDInsightKafkaCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -84,10 +83,10 @@ func TestAccHDInsightKafkaCluster_requiresImport(t *testing.T) {
 func TestAccHDInsightKafkaCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -102,7 +101,7 @@ func TestAccHDInsightKafkaCluster_update(t *testing.T) {
 			"storage_account"),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -121,10 +120,10 @@ func TestAccHDInsightKafkaCluster_update(t *testing.T) {
 func TestAccHDInsightKafkaCluster_sshKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshKeys(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -143,10 +142,10 @@ func TestAccHDInsightKafkaCluster_sshKeys(t *testing.T) {
 func TestAccHDInsightKafkaCluster_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualNetwork(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -165,10 +164,10 @@ func TestAccHDInsightKafkaCluster_virtualNetwork(t *testing.T) {
 func TestAccHDInsightKafkaCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -187,10 +186,10 @@ func TestAccHDInsightKafkaCluster_complete(t *testing.T) {
 func TestAccHDInsightKafkaCluster_tls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tls(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -209,10 +208,10 @@ func TestAccHDInsightKafkaCluster_tls(t *testing.T) {
 func TestAccHDInsightKafkaCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.allMetastores(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -234,10 +233,10 @@ func TestAccHDInsightKafkaCluster_allMetastores(t *testing.T) {
 func TestAccHDInsightKafkaCluster_hiveMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.hiveMetastore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -249,10 +248,10 @@ func TestAccHDInsightKafkaCluster_hiveMetastore(t *testing.T) {
 func TestAccHDInsightKafkaCluster_updateMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.hiveMetastore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -270,7 +269,7 @@ func TestAccHDInsightKafkaCluster_updateMetastore(t *testing.T) {
 			"metastores.0.ambari.0.password"),
 		{
 			Config: r.allMetastores(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -292,10 +291,10 @@ func TestAccHDInsightKafkaCluster_updateMetastore(t *testing.T) {
 func TestAccHDInsightKafkaCluster_monitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.monitor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -314,11 +313,11 @@ func TestAccHDInsightKafkaCluster_monitor(t *testing.T) {
 func TestAccHDInsightKafkaCluster_updateMonitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// No monitor
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -334,7 +333,7 @@ func TestAccHDInsightKafkaCluster_updateMonitor(t *testing.T) {
 		// Add monitor
 		{
 			Config: r.monitor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -353,7 +352,7 @@ func TestAccHDInsightKafkaCluster_updateMonitor(t *testing.T) {
 				data.RandomString += "new"
 			},
 			Config: r.monitor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -369,7 +368,7 @@ func TestAccHDInsightKafkaCluster_updateMonitor(t *testing.T) {
 		// Remove monitor
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -388,10 +387,10 @@ func TestAccHDInsightKafkaCluster_updateMonitor(t *testing.T) {
 func TestAccHDInsightKafkaCluster_restProxy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.restProxy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kafka_rest_proxy_endpoint").Exists(),
 			),
@@ -408,7 +407,29 @@ func TestAccHDInsightKafkaCluster_restProxy(t *testing.T) {
 	})
 }
 
-func (t HDInsightKafkaClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccHDInsightKafkaCluster_encryptionInTransitEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionInTransitEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"roles.0.kafka_management_node.0.password",
+			"roles.0.kafka_management_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func (t HDInsightKafkaClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1304,4 +1325,58 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r HDInsightKafkaClusterResource) encryptionInTransitEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_kafka_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+
+  encryption_in_transit_enabled = true
+
+  component_version {
+    kafka = "2.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size                  = "Standard_D3_V2"
+      username                 = "acctestusrvm"
+      password                 = "AccTestvdSC4daf986!"
+      target_instance_count    = 3
+      number_of_disks_per_node = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

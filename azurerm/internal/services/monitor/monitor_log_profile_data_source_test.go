@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -20,10 +19,10 @@ func testAccDataSourceMonitorLogProfile_storageaccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.storageaccountConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("categories.#").Exists(),
 				check.That(data.ResourceName).Key("locations.#").Exists(),
@@ -41,10 +40,10 @@ func testAccDataSourceMonitorLogProfile_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.eventhubConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("categories.#").Exists(),
 				check.That(data.ResourceName).Key("locations.#").Exists(),

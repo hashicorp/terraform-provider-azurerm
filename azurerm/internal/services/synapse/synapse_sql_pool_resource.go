@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	mssqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
@@ -17,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,52 +26,49 @@ const (
 	PointInTimeRestoreCreateMode = "PointInTimeRestore"
 )
 
-func resourceSynapseSqlPool() *schema.Resource {
-	return &schema.Resource{
+func resourceSynapseSqlPool() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSynapseSqlPoolCreate,
 		Read:   resourceSynapseSqlPoolRead,
 		Update: resourceSynapseSqlPoolUpdate,
 		Delete: resourceSynapseSqlPoolDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.SqlPoolID(d.Id()); err != nil {
-					return []*schema.ResourceData{d}, err
-				}
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.SqlPoolID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			d.Set("create_mode", DefaultCreateMode)
+			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+				d.Set("create_mode", v)
+			}
 
-				d.Set("create_mode", DefaultCreateMode)
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
-				}
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
-				return []*schema.ResourceData{d}, nil
-			},
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SqlPoolName,
 			},
 
 			"synapse_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DW100c",
@@ -95,7 +91,7 @@ func resourceSynapseSqlPool() *schema.Resource {
 			},
 
 			"create_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  DefaultCreateMode,
 				ForceNew: true,
@@ -107,7 +103,7 @@ func resourceSynapseSqlPool() *schema.Resource {
 			},
 
 			"collation": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -115,7 +111,7 @@ func resourceSynapseSqlPool() *schema.Resource {
 			},
 
 			"recovery_database_id": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"restore"},
@@ -126,22 +122,22 @@ func resourceSynapseSqlPool() *schema.Resource {
 			},
 
 			"restore": {
-				Type:          schema.TypeList,
+				Type:          pluginsdk.TypeList,
 				ForceNew:      true,
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"recovery_database_id"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"point_in_time": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 
 						"source_database_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.Any(
@@ -154,7 +150,7 @@ func resourceSynapseSqlPool() *schema.Resource {
 			},
 
 			"data_encrypted": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
@@ -163,7 +159,7 @@ func resourceSynapseSqlPool() *schema.Resource {
 	}
 }
 
-func resourceSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
@@ -255,7 +251,7 @@ func resourceSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -296,7 +292,7 @@ func resourceSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		// wait for sku scale completion
 		if d.HasChange("sku_name") {
-			stateConf := &resource.StateChangeConf{
+			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{
 					"Scaling",
 				},
@@ -306,7 +302,7 @@ func resourceSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) erro
 				Refresh:                   synapseSqlPoolScaleStateRefreshFunc(ctx, sqlClient, id.ResourceGroup, id.WorkspaceName, id.Name),
 				MinTimeout:                5 * time.Second,
 				ContinuousTargetOccurence: 3,
-				Timeout:                   d.Timeout(schema.TimeoutUpdate),
+				Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 			}
 
 			if _, err := stateConf.WaitForState(); err != nil {
@@ -318,7 +314,7 @@ func resourceSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -364,7 +360,7 @@ func resourceSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -385,7 +381,7 @@ func resourceSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQLPoolsClient, resourceGroup, workspaceName, name string) resource.StateRefreshFunc {
+func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQLPoolsClient, resourceGroup, workspaceName, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 		if err != nil {
