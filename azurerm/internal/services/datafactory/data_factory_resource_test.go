@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -196,14 +197,12 @@ func TestAccDataFactory_keyVaultKeyEncryption(t *testing.T) {
 }
 
 func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DataFactoryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["factories"]
 
-	resp, err := clients.DataFactory.FactoriesClient.Get(ctx, resourceGroup, name, "")
+	resp, err := clients.DataFactory.FactoriesClient.Get(ctx, id.ResourceGroup, id.FactoryName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Data Factory (%s): %+v", id, err)
 	}
@@ -212,14 +211,12 @@ func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (DataFactoryResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DataFactoryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["factories"]
 
-	resp, err := client.DataFactory.FactoriesClient.Delete(ctx, resourceGroup, name)
+	resp, err := client.DataFactory.FactoriesClient.Delete(ctx, id.ResourceGroup, id.FactoryName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return nil, fmt.Errorf("delete on dataFactoryClient: %+v", err)
