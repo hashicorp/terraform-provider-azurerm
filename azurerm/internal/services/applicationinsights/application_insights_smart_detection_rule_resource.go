@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,39 +31,9 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					/*
-						Acceptable values referred from link below. Cleaner to use the internal name of the rule directly instead of translating UI name to internal name in the code.
-						This will also be simpler to maintain going forward as more rules get added (and when rule names don't match word to word)
-
-						https://docs.microsoft.com/en-us/azure/azure-monitor/app/proactive-arm-config#smart-detection-rule-names
-						Azure portal rule name	Internal name
-						---------------------- <> ---------------
-						Slow page load time	slowpageloadtime
-						Slow server response time	slowserverresponsetime
-						Long dependency duration	longdependencyduration
-						Degradation in server response time	degradationinserverresponsetime
-						Degradation in dependency duration	degradationindependencyduration
-						Degradation in trace severity ratio (preview)	extension_traceseveritydetector
-						Abnormal rise in exception volume (preview)	extension_exceptionchangeextension
-						Potential memory leak detected (preview)	extension_memoryleakextension
-						Potential security issue detected (preview)	extension_securityextensionspackage
-						Abnormal rise in daily data volume (preview)	extension_billingdatavolumedailyspikeextension
-					*/
-					"slowpageloadtime",
-					"slowserverresponsetime",
-					"longdependencyduration",
-					"degradationinserverresponsetime",
-					"degradationindependencyduration",
-					"extension_traceseveritydetector",
-					"extension_exceptionchangeextension",
-					"extension_memoryleakextension",
-					"extension_securityextensionspackage",
-					"extension_billingdatavolumedailyspikeextension",
-				}, false),
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: smartDetectionRuleNameDiff,
 			},
 
@@ -102,7 +71,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Samrt Detection Rule update.")
-	name := d.Get("name").(string)
+	name := strings.Join(strings.Split(strings.ToLower(d.Get("name").(string)), " "), "")
 	appInsightsID := d.Get("application_insights_id").(string)
 
 	id, err := parse.ComponentID(appInsightsID)

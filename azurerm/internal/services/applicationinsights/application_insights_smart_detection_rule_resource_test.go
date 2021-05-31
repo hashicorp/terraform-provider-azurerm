@@ -86,6 +86,34 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 	})
 }
 
+func TestAccApplicationInsightsSmartDetectionRule_degradationinserverresponsetime(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
+	r := AppInsightsSmartDetectionRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.degradationinserverresponsetime(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccApplicationInsightsSmartDetectionRule_degradationindependencyduration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
+	r := AppInsightsSmartDetectionRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.degradationindependencyduration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SmartDetectionRuleID(state.Attributes["id"])
 	if err != nil {
@@ -119,7 +147,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "test" {
-  name                    = "Slow page load time"
+  name                    = "slowpageloadtime"
   application_insights_id = azurerm_application_insights.test.id
   enabled                 = false
 }
@@ -145,7 +173,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "test" {
-  name                    = "Slow page load time"
+  name                    = "slowpageloadtime"
   application_insights_id = azurerm_application_insights.test.id
   enabled                 = false
 
@@ -174,13 +202,13 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "test" {
-  name                    = "Slow page load time"
+  name                    = "slowpageloadtime"
   application_insights_id = azurerm_application_insights.test.id
   enabled                 = false
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "test2" {
-  name                    = "Slow server response time"
+  name                    = "slowserverresponsetime"
   application_insights_id = azurerm_application_insights.test.id
   enabled                 = false
 }
@@ -206,7 +234,59 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "test" {
-  name                    = "Long dependency duration"
+  name                    = "longdependencyduration"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppInsightsSmartDetectionRule) degradationinserverresponsetime(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test" {
+  name                    = "degradationinserverresponsetime"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppInsightsSmartDetectionRule) degradationindependencyduration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test" {
+  name                    = "degradationindependencyduration"
   application_insights_id = azurerm_application_insights.test.id
   enabled                 = false
 }
