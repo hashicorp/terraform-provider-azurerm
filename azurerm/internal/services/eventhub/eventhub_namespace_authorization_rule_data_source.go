@@ -4,31 +4,32 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func EventHubNamespaceDataSourceAuthorizationRule() *schema.Resource {
-	return &schema.Resource{
+func EventHubNamespaceDataSourceAuthorizationRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: EventHubNamespaceDataSourceAuthorizationRuleRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
@@ -36,103 +37,102 @@ func EventHubNamespaceDataSourceAuthorizationRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"listen": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"manage": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_connection_string_alias": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_connection_string_alias": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"send": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func EventHubNamespaceDataSourceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Eventhub.NamespacesClient
+func EventHubNamespaceDataSourceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-
-	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+	id := authorizationrulesnamespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	resp, err := client.NamespacesGetAuthorizationRule(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("EventHub Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving EventHub Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving EventHub Authorization Rule %q (Resource Group %q): `id` was nil", name, resourceGroup)
+	d.SetId(id.ID())
+
+	d.Set("name", id.Name)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			listen, send, manage := flattenEventHubAuthorizationRuleRights(props.Rights)
+			d.Set("manage", manage)
+			d.Set("listen", listen)
+			d.Set("send", send)
+		}
 	}
-	d.SetId(*resp.ID)
 
-	d.Set("name", name)
-	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resourceGroup)
-
-	if props := resp.AuthorizationRuleProperties; props != nil {
-		listen, send, manage := flattenEventHubAuthorizationRuleRights(props.Rights)
-		d.Set("manage", manage)
-		d.Set("listen", listen)
-		d.Set("send", send)
-	}
-
-	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, name)
+	keysResp, err := client.NamespacesListKeys(ctx, id)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule List Keys %s: %+v", name, err)
+		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.Set("primary_key", keysResp.PrimaryKey)
-	d.Set("secondary_key", keysResp.SecondaryKey)
-	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
-	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
-	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
-	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
+	if model := keysResp.Model; model != nil {
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("secondary_key", model.SecondaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+		d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
+		d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
+	}
 
 	return nil
 }
