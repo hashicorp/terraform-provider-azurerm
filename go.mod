@@ -2,6 +2,9 @@ module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
 	github.com/Azure/azure-sdk-for-go v54.3.0+incompatible
+	github.com/Azure/azure-sdk-for-go/sdk/armcore v0.7.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.16.2
+	github.com/Azure/azure-sdk-for-go/sdk/to v0.1.4 // indirect
 	github.com/Azure/go-autorest/autorest v0.11.18
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
@@ -18,6 +21,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
+	github.com/magodo/adalwrapper v0.0.0-20210531090938-8d7ce0939f72
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.2.0

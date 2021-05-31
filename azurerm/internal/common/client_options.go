@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
@@ -23,9 +24,11 @@ type ClientOptions struct {
 	GraphEndpoint             string
 	KeyVaultAuthorizer        autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
-	ResourceManagerEndpoint   string
-	StorageAuthorizer         autorest.Authorizer
-	SynapseAuthorizer         autorest.Authorizer
+	// ResourceManagerTokenCredential is the Azure SDK for Go Track2 token credential
+	ResourceManagerTokenCredential azcore.TokenCredential
+	ResourceManagerEndpoint        string
+	StorageAuthorizer              autorest.Authorizer
+	SynapseAuthorizer              autorest.Authorizer
 
 	SkipProviderReg             bool
 	CustomCorrelationRequestID  string

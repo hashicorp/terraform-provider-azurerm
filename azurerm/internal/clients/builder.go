@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/magodo/adalwrapper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -84,6 +85,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to get authorization token for resource manager: %+v", err)
 	}
+	cred := adalwrapper.NewTokenCredential(auth)
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
@@ -113,24 +115,25 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
 	o := &common.ClientOptions{
-		SubscriptionId:              builder.AuthConfig.SubscriptionID,
-		TenantID:                    builder.AuthConfig.TenantID,
-		PartnerId:                   builder.PartnerId,
-		TerraformVersion:            builder.TerraformVersion,
-		GraphAuthorizer:             graphAuth,
-		GraphEndpoint:               graphEndpoint,
-		KeyVaultAuthorizer:          keyVaultAuth,
-		ResourceManagerAuthorizer:   auth,
-		ResourceManagerEndpoint:     endpoint,
-		StorageAuthorizer:           storageAuth,
-		SynapseAuthorizer:           synapseAuth,
-		SkipProviderReg:             builder.SkipProviderRegistration,
-		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
-		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
-		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		Environment:                 *env,
-		Features:                    builder.Features,
-		StorageUseAzureAD:           builder.StorageUseAzureAD,
+		SubscriptionId:                 builder.AuthConfig.SubscriptionID,
+		TenantID:                       builder.AuthConfig.TenantID,
+		PartnerId:                      builder.PartnerId,
+		TerraformVersion:               builder.TerraformVersion,
+		GraphAuthorizer:                graphAuth,
+		GraphEndpoint:                  graphEndpoint,
+		KeyVaultAuthorizer:             keyVaultAuth,
+		ResourceManagerAuthorizer:      auth,
+		ResourceManagerTokenCredential: cred,
+		ResourceManagerEndpoint:        endpoint,
+		StorageAuthorizer:              storageAuth,
+		SynapseAuthorizer:              synapseAuth,
+		SkipProviderReg:                builder.SkipProviderRegistration,
+		DisableCorrelationRequestID:    builder.DisableCorrelationRequestID,
+		CustomCorrelationRequestID:     builder.CustomCorrelationRequestID,
+		DisableTerraformPartnerID:      builder.DisableTerraformPartnerID,
+		Environment:                    *env,
+		Features:                       builder.Features,
+		StorageUseAzureAD:              builder.StorageUseAzureAD,
 	}
 
 	if err := client.Build(ctx, o); err != nil {
