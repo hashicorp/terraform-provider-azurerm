@@ -39,7 +39,6 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 					/*
 						Acceptable values referred from link below. Cleaner to use the internal name of the rule directly instead of translating UI name to internal name in the code.
 						This will also be simpler to maintain going forward as more rules get added (and when rule names don't match word to word)
-						For backwards compatibility, we can use a flag temporarily to allow UI name.
 
 						https://docs.microsoft.com/en-us/azure/azure-monitor/app/proactive-arm-config#smart-detection-rule-names
 						Azure portal rule name	Internal name
@@ -81,11 +80,6 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
-			"use_internal_rule_names": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
 
 			"send_emails_to_subscription_owners": {
 				Type:     pluginsdk.TypeBool,
@@ -109,12 +103,6 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Samrt Detection Rule update.")
 	name := d.Get("name").(string)
-	if !(d.Get("use_internal_rule_names").(bool)) {
-		// if not use_internal_name, then convert the rule name from UI name to internal name
-		// The Smart Detection Rule name from the UI doesn't match what the API accepts.
-		// We'll have the user submit what the name looks like in the UI and trim it behind the scenes to match what the API accepts
-		name = strings.ToLower(strings.Join(strings.Split(name, " "), ""))
-	}
 	appInsightsID := d.Get("application_insights_id").(string)
 
 	id, err := parse.ComponentID(appInsightsID)
@@ -210,6 +198,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 	return nil
 }
 
+// Update: We should move towards using internal rule name. The below comment will be obsolete soon.
 // The Smart Detection Rule name from the UI doesn't match what the API accepts.
 // This Diff checks that the name UI name matches the API name when spaces are removed
 func smartDetectionRuleNameDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
