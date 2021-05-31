@@ -25,10 +25,17 @@ resource "azurerm_application_insights" "example" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_smart_detection_rule" "example" {
-  name                    = "Slow server response time"
+resource "azurerm_application_insights_smart_detection_rule" "example_rule_1" {
+  name                    = "slowserverresponsetime"
   application_insights_id = azurerm_application_insights.example.id
   enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "example_rule_2" {
+  name                               = "degradationindependencyduration"
+  application_insights_id            = azurerm_application_insights.example.id
+  enabled                            = true
+  send_emails_to_subscription_owners = false
 }
 ```
 
@@ -36,8 +43,7 @@ resource "azurerm_application_insights_smart_detection_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Application Insights Smart Detection Rule. Valid values include `Slow page load time`, `Slow server response time`, 
-`Long dependency duration`.  Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Application Insights Smart Detection Rule. This rule name should refer to the internal rule name specified in the azure docs [here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/proactive-arm-config#smart-detection-rule-names). Changing this forces a new resource to be created.
 
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the Smart Detection Rule operates. Changing this forces a new resource to be created.
 
