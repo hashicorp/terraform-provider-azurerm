@@ -68,7 +68,7 @@ The following attributes are exported:
 
 * `app_id` - The App ID associated with this Application Insights component.
 
-* `instrumentation_key` - The Instrumentation Key for this Application Insights component.
+* `instrumentation_key` - The Instrumentation Key for this Application Insights component. (Sensitive)
 
 * `connection_string` - The Connection String for this Application Insights component. (Sensitive)
 
