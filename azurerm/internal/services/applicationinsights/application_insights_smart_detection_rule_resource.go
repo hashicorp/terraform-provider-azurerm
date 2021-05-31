@@ -36,9 +36,35 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Slow page load time",
-					"Slow server response time",
-					"Long dependency duration",
+					/*
+						Acceptable values referred from link below. Cleaner to use the internal name of the rule directly instead of translating UI name to internal name in the code.
+						This will also be simpler to maintain going forward as more rules get added (and when rule names don't match word to word)
+						For backwards compatibility, we can use a flag temporarily to allow UI name.
+
+						https://docs.microsoft.com/en-us/azure/azure-monitor/app/proactive-arm-config#smart-detection-rule-names
+						Azure portal rule name	Internal name
+						---------------------- <> ---------------
+						Slow page load time	slowpageloadtime
+						Slow server response time	slowserverresponsetime
+						Long dependency duration	longdependencyduration
+						Degradation in server response time	degradationinserverresponsetime
+						Degradation in dependency duration	degradationindependencyduration
+						Degradation in trace severity ratio (preview)	extension_traceseveritydetector
+						Abnormal rise in exception volume (preview)	extension_exceptionchangeextension
+						Potential memory leak detected (preview)	extension_memoryleakextension
+						Potential security issue detected (preview)	extension_securityextensionspackage
+						Abnormal rise in daily data volume (preview)	extension_billingdatavolumedailyspikeextension
+					*/
+					"slowpageloadtime",
+					"slowserverresponsetime",
+					"longdependencyduration",
+					"degradationinserverresponsetime",
+					"degradationindependencyduration",
+					"extension_traceseveritydetector",
+					"extension_exceptionchangeextension",
+					"extension_memoryleakextension",
+					"extension_securityextensionspackage",
+					"extension_billingdatavolumedailyspikeextension",
 				}, false),
 				DiffSuppressFunc: smartDetectionRuleNameDiff,
 			},
@@ -54,6 +80,11 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+			"use_internal_rule_names": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"send_emails_to_subscription_owners": {
@@ -77,10 +108,13 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Samrt Detection Rule update.")
-
-	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
-	// We'll have the user submit what the name looks like in the UI and trim it behind the scenes to match what the API accepts
-	name := strings.ToLower(strings.Join(strings.Split(d.Get("name").(string), " "), ""))
+	name := d.Get("name").(string)
+	if !(d.Get("use_internal_rule_names").(bool)) {
+		// if not use_internal_name, then convert the rule name from UI name to internal name
+		// The Smart Detection Rule name from the UI doesn't match what the API accepts.
+		// We'll have the user submit what the name looks like in the UI and trim it behind the scenes to match what the API accepts
+		name = strings.ToLower(strings.Join(strings.Split(name, " "), ""))
+	}
 	appInsightsID := d.Get("application_insights_id").(string)
 
 	id, err := parse.ComponentID(appInsightsID)
