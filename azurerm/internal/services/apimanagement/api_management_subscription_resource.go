@@ -153,11 +153,12 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	allowTracing := d.Get("allow_tracing").(bool)
 
 	var scope string
-	if productSet {
+	switch {
+	case productSet:
 		scope = productId.(string)
-	} else if apiSet {
+	case apiSet:
 		scope = apiId.(string)
-	} else {
+	default:
 		scope = "all_apis"
 	}
 
