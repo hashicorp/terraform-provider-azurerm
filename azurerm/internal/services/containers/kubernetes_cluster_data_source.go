@@ -975,6 +975,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			count = int(*profile.Count)
 		}
 
+		enableNodePublicIP := false
+		if profile.EnableNodePublicIP != nil {
+			enableNodePublicIP = *profile.EnableNodePublicIP
+		}
+
 		minCount := 0
 		if profile.MinCount != nil {
 			minCount = int(*profile.MinCount)
@@ -1034,11 +1039,6 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 		nodeTaints := make([]string, 0)
 		if profile.NodeTaints != nil {
 			nodeTaints = *profile.NodeTaints
-		}
-
-		enableNodePublicIP := false
-		if profile.EnableNodePublicIP != nil {
-			enableNodePublicIP = *profile.EnableNodePublicIP
 		}
 
 		vmSize := ""
