@@ -933,12 +933,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 			blobProperties := expandBlobProperties(val.([]interface{}))
 
-			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-					Enable: utils.Bool(v),
-				}
-			}
-
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
@@ -1272,16 +1266,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
-
-			if d.HasChange("blob_properties.0.last_access_time_enabled") {
-				lastAccessTimeTracking := false
-				if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-					lastAccessTimeTracking = true
-				}
-				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-					Enable: utils.Bool(lastAccessTimeTracking),
-				}
-			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
@@ -1821,6 +1805,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 			ChangeFeed: &storage.ChangeFeed{
 				Enabled: utils.Bool(false),
 			},
+			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
+				Enable: utils.Bool(false),
+			},
+
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
@@ -1850,6 +1838,9 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
+	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
+	}
 	return &props
 }
 
