@@ -788,34 +788,34 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.basic(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.azureFilesAuthenticationAD(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		//data.ImportStep(),
-		//{
-		//	Config: r.azureFilesAuthenticationADUpdate(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
-		//{
-		//	Config: r.basic(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		data.ImportStep(),
+		{
+			Config: r.azureFilesAuthenticationADUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -2351,8 +2351,15 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   azure_files_authentication {
-    directory_type = "AADDS"
-    
+    directory_type = "AD"
+    active_directory {
+      storage_sid         = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_name         = "adtest.com"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_guid         = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
+      forest_name         = "adtest.com"
+      netbios_domain_name = "adtest.com"
+    }
   }
 
   tags = {
