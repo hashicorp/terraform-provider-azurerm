@@ -256,7 +256,7 @@ func (ApiManagementSubscriptionResource) withApiId(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_api" "test" {
-  name                  = "Test Api"
+  name                  = "TestApi"
   resource_group_name   = azurerm_api_management.test.resource_group_name
   api_management_name   = azurerm_api_management.test.name
   revision            = "1"
@@ -268,7 +268,6 @@ resource "azurerm_api_management_api" "test" {
 resource "azurerm_api_management_subscription" "test" {
   resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
-  user_id             = azurerm_api_management_user.test.id
   api_id              = azurerm_api_management_api.test.id
   display_name        = "Butter Parser API Enterprise Edition"
 }
