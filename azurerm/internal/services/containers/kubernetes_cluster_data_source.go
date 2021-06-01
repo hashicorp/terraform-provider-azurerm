@@ -265,6 +265,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"node_public_ip_prefix_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 					},
 				},
@@ -990,6 +995,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			name = *profile.Name
 		}
 
+		nodePublicIPPrefixID := ""
+		if profile.NodePublicIPPrefixID != nil {
+			nodePublicIPPrefixID = *profile.NodePublicIPPrefixID
+		}
+
 		osDiskSizeGb := 0
 		if profile.OsDiskSizeGB != nil {
 			osDiskSizeGb = int(*profile.OsDiskSizeGB)
@@ -1037,24 +1047,25 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
-			"availability_zones":    utils.FlattenStringSlice(profile.AvailabilityZones),
-			"count":                 count,
-			"enable_auto_scaling":   enableAutoScaling,
-			"enable_node_public_ip": enableNodePublicIP,
-			"max_count":             maxCount,
-			"max_pods":              maxPods,
-			"min_count":             minCount,
-			"name":                  name,
-			"node_labels":           nodeLabels,
-			"node_taints":           nodeTaints,
-			"orchestrator_version":  orchestratorVersion,
-			"os_disk_size_gb":       osDiskSizeGb,
-			"os_type":               string(profile.OsType),
-			"tags":                  tags.Flatten(profile.Tags),
-			"type":                  string(profile.Type),
-			"upgrade_settings":      flattenUpgradeSettings(profile.UpgradeSettings),
-			"vm_size":               vmSize,
-			"vnet_subnet_id":        vnetSubnetId,
+			"availability_zones":       utils.FlattenStringSlice(profile.AvailabilityZones),
+			"count":                    count,
+			"enable_auto_scaling":      enableAutoScaling,
+			"enable_node_public_ip":    enableNodePublicIP,
+			"max_count":                maxCount,
+			"max_pods":                 maxPods,
+			"min_count":                minCount,
+			"name":                     name,
+			"node_labels":              nodeLabels,
+			"node_public_ip_prefix_id": nodePublicIPPrefixID,
+			"node_taints":              nodeTaints,
+			"orchestrator_version":     orchestratorVersion,
+			"os_disk_size_gb":          osDiskSizeGb,
+			"os_type":                  string(profile.OsType),
+			"tags":                     tags.Flatten(profile.Tags),
+			"type":                     string(profile.Type),
+			"upgrade_settings":         flattenUpgradeSettings(profile.UpgradeSettings),
+			"vm_size":                  vmSize,
+			"vnet_subnet_id":           vnetSubnetId,
 		})
 	}
 

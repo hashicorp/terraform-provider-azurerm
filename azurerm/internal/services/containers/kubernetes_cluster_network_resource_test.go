@@ -232,26 +232,7 @@ func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Enabled
-			Config: r.enableNodePublicIPConfig(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Disabled
-			Config: r.enableNodePublicIPConfig(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Enabled
-			Config: r.enableNodePublicIPConfig(data, true),
+			Config: r.enableNodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
@@ -276,6 +257,28 @@ func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").HasValue("60"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_nodePublicIPPrefix(t)
+}
+
+func testAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePublicIPPrefixConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -971,7 +974,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkMode, networkPlugin, networkPolicy)
 }
 
-func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -992,14 +995,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                  = "default"
     node_count            = 1
     vm_size               = "Standard_DS2_v2"
-    enable_node_public_ip = %t
+    enable_node_public_ip = true
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) internalNetworkConfig(data acceptance.TestData) string {
@@ -1054,6 +1057,45 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) nodePublicIPPrefixConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpipprefix%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  prefix_length       = 31
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                     = "default"
+    node_count               = 1
+    vm_size                  = "Standard_DS2_v2"
+    enable_node_public_ip    = true
+    node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) outboundTypeLoadBalancerConfig(data acceptance.TestData) string {

@@ -95,6 +95,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				},
 			},
 
+			"node_public_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"node_taints": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -240,6 +245,8 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
 			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
+
+		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)

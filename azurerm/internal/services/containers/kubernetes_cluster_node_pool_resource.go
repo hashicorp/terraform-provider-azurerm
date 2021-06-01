@@ -92,8 +92,10 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"enable_node_public_ip": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"node_public_ip_prefix_id"},
 			},
 
 			"eviction_policy": {
@@ -143,6 +145,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"node_public_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"node_taints": {
@@ -298,6 +306,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		Mode:                   mode,
+		NodePublicIPPrefixID:   utils.String(d.Get("node_public_ip_prefix_id").(string)),
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
 		Type:                   containerservice.AgentPoolTypeVirtualMachineScaleSets,
@@ -495,6 +504,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Count = utils.Int32(int32(d.Get("node_count").(int)))
 	}
 
+	if d.HasChange("node_public_ip_prefix_id") {
+		props.NodePublicIPPrefixID = utils.String(d.Get("node_public_ip_prefix_id").(string))
+	}
+
 	if d.HasChange("orchestrator_version") {
 		// Spot Node pool's can't be updated - Azure Docs: https://docs.microsoft.com/en-us/azure/aks/spot-node-pool
 		//   > You can't upgrade a spot node pool since spot node pools can't guarantee cordon and drain.
@@ -652,6 +665,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
 			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
+
+		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
