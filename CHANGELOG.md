@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_container_registry`: support for  versionless encryption keys for ACR [GH-11856]
+* `azurerm_kubernetes_cluster`: Support for `gateway_name` for Application Gateway add-on [GH-11984]
 
 ## 2.61.0 (May 27, 2021)
 
