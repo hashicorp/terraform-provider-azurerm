@@ -1,5 +1,9 @@
 ## 2.62.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` [GH-11834]
+
 ENHANCEMENTS:
 
 * `azurerm_container_registry`: support for  versionless encryption keys for ACR [GH-11856]
