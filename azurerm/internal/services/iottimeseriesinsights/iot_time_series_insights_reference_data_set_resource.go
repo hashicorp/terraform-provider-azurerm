@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
-	return &schema.Resource{
+func resourceIoTTimeSeriesInsightsReferenceDataSet() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
 		Read:   resourceIoTTimeSeriesInsightsReferenceDataSetRead,
 		Update: resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
@@ -31,16 +30,16 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -50,14 +49,14 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			},
 
 			"time_series_insights_environment_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.TimeSeriesInsightsEnvironmentID,
 			},
 
 			"data_string_comparison_behavior": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(timeseriesinsights.Ordinal),
@@ -68,19 +67,19 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			},
 
 			"key_property": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -101,7 +100,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 	}
 }
 
-func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +132,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Resourc
 		Tags:     tags.Expand(t),
 		ReferenceDataSetCreationProperties: &timeseriesinsights.ReferenceDataSetCreationProperties{
 			DataStringComparisonBehavior: timeseriesinsights.DataStringComparisonBehavior(d.Get("data_string_comparison_behavior").(string)),
-			KeyProperties:                expandIoTTimeSeriesInsightsReferenceDataSetKeyProperties(d.Get("key_property").(*schema.Set).List()),
+			KeyProperties:                expandIoTTimeSeriesInsightsReferenceDataSetKeyProperties(d.Get("key_property").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -155,7 +154,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Resourc
 	return resourceIoTTimeSeriesInsightsReferenceDataSetRead(d, meta)
 }
 
-func resourceIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsReferenceDataSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +190,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData, m
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceIoTTimeSeriesInsightsReferenceDataSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsReferenceDataSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

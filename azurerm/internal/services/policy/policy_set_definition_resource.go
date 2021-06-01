@@ -12,21 +12,19 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPolicySetDefinition() *schema.Resource {
-	return &schema.Resource{
+func resourceArmPolicySetDefinition() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmPolicySetDefinitionCreate,
 		Update: resourceArmPolicySetDefinitionUpdate,
 		Read:   resourceArmPolicySetDefinitionRead,
@@ -37,23 +35,23 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"policy_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,7 +63,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"management_group_id": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true,
@@ -74,7 +72,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"management_group_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
@@ -82,18 +80,18 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"metadata": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
@@ -101,14 +99,14 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"parameters": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
 			"policy_definitions": { // TODO -- remove in the next major version
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
@@ -118,30 +116,30 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,                                                          // TODO -- change this to Required after the deprecation
 				Computed:     true,                                                          // TODO -- remove Computed after the deprecation
 				ExactlyOneOf: []string{"policy_definitions", "policy_definition_reference"}, // TODO -- remove after the deprecation
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"policy_definition_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.PolicyDefinitionID,
 						},
 
 						"parameters": { // TODO -- remove this attribute after the deprecation
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							Deprecated: "Deprecated in favour of `parameter_values`",
 						},
 
 						"parameter_values": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true, // TODO -- remove Computed after the deprecation
 							ValidateFunc:     validation.StringIsJSON,
@@ -149,16 +147,16 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 						},
 
 						"reference_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"policy_group_names": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -167,36 +165,36 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"policy_definition_group": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"display_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"category": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"description": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"additional_metadata_resource_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -208,7 +206,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 	}
 }
 
-func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	var oldPolicySetDefinitionsMetadata map[string]interface{}
 	errOld := json.Unmarshal([]byte(old), &oldPolicySetDefinitionsMetadata)
 	if errOld != nil {
@@ -234,7 +232,7 @@ func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.
 // This function only serves the deprecated attribute `policy_definitions` in the old api-version.
 // The old api-version only support two attribute - `policy_definition_id` and `parameters` in each element.
 // Therefore this function is used for ignoring any other keys and then compare if there is a diff
-func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	var oldPolicyDefinitions []DefinitionReferenceInOldApiVersion
 	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitions)
 	if errOld != nil {
@@ -257,7 +255,7 @@ type DefinitionReferenceInOldApiVersion struct {
 	Parameters map[string]*policy.ParameterValuesValue `json:"parameters"`
 }
 
-func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -321,7 +319,7 @@ func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("policy_definition_group"); ok {
-		properties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(v.(*schema.Set).List())
+		properties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(v.(*pluginsdk.Set).List())
 	}
 
 	definition := policy.SetDefinition{
@@ -340,7 +338,7 @@ func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Set Definition %q to become available", name)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   policySetDefinitionRefreshFunc(ctx, client, name, managementGroupName),
@@ -349,9 +347,9 @@ func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
@@ -369,7 +367,7 @@ func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
 
-func resourceArmPolicySetDefinitionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -469,7 +467,7 @@ func resourceArmPolicySetDefinitionUpdate(d *schema.ResourceData, meta interface
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
 
-func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -547,7 +545,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicySetDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -580,7 +578,7 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupId string) resource.StateRefreshFunc {
+func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupId string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupId)
 		if err != nil {
@@ -591,7 +589,7 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefin
 	}
 }
 
-func expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d *schema.ResourceData) (*[]policy.DefinitionReference, error) {
+func expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d *pluginsdk.ResourceData) (*[]policy.DefinitionReference, error) {
 	result := make([]policy.DefinitionReference, 0)
 	input := d.Get("policy_definition_reference").([]interface{})
 
@@ -656,7 +654,7 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 			PolicyDefinitionID:          utils.String(v["policy_definition_id"].(string)),
 			Parameters:                  parameters,
 			PolicyDefinitionReferenceID: utils.String(v["reference_id"].(string)),
-			GroupNames:                  utils.ExpandStringSlice(v["policy_group_names"].(*schema.Set).List()),
+			GroupNames:                  utils.ExpandStringSlice(v["policy_group_names"].(*pluginsdk.Set).List()),
 		})
 	}
 
@@ -778,5 +776,5 @@ func resourceARMPolicySetDefinitionPolicyDefinitionGroupHash(v interface{}) int 
 		buf.WriteString(m["name"].(string))
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }

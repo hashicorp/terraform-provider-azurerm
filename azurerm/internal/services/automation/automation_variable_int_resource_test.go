@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type AutomationVariableIntResource struct {
@@ -19,10 +18,10 @@ func TestAccAutomationVariableInt_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("1234"),
 			),
@@ -35,10 +34,10 @@ func TestAccAutomationVariableInt_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("This variable is created by Terraform acceptance test."),
 				check.That(data.ResourceName).Key("value").HasValue("12345"),
@@ -52,17 +51,17 @@ func TestAccAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("1234"),
 			),
 		},
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("This variable is created by Terraform acceptance test."),
 				check.That(data.ResourceName).Key("value").HasValue("12345"),
@@ -70,7 +69,7 @@ func TestAccAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("1234"),
 			),
@@ -78,7 +77,7 @@ func TestAccAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
 	})
 }
 
-func (t AutomationVariableIntResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationVariableIntResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return testCheckAzureRMAutomationVariableExists(ctx, clients, state, "Int")
 }
 

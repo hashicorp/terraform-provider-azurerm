@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ type PostgresqlFlexibleServerResource struct {
 func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -39,10 +38,10 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 func TestAccPostgresqlflexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +52,10 @@ func TestAccPostgresqlflexibleServer_requiresImport(t *testing.T) {
 func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
@@ -70,10 +69,10 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
@@ -83,7 +82,7 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.completeUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
@@ -97,10 +96,10 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -111,7 +110,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.updateMaintenanceWindow(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -122,7 +121,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.updateMaintenanceWindowUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -133,7 +132,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -148,10 +147,10 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -162,7 +161,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.updateSku(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -173,7 +172,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -188,10 +187,10 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
@@ -203,7 +202,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 		{
 			PreConfig: func() { time.Sleep(15 * time.Minute) },
 			Config:    r.pitr(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.pitr").ExistsInAzure(r),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("zone").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("cmk_enabled").Exists(),
@@ -215,7 +214,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 	})
 }
 
-func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerID(state.ID)
 	if err != nil {
 		return nil, err

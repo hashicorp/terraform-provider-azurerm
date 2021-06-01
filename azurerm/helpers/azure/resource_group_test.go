@@ -68,7 +68,7 @@ func TestValidateResourceGroupName(t *testing.T) {
 			t.Fatalf("Expected "+
 				"validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
 		} else if len(errors) == 1 && tc.Message != "" {
-			var errorMessage = errors[0].Error()
+			errorMessage := errors[0].Error()
 
 			if !strings.Contains(errorMessage, tc.Message) {
 				t.Fatalf("Expected "+

@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 func alertRuleID(rule securityinsight.BasicAlertRule) *string {
@@ -31,7 +29,7 @@ func alertRuleID(rule securityinsight.BasicAlertRule) *string {
 }
 
 func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
 		id, err := parse.AlertRuleID(d.Id())
 		if err != nil {
 			return nil, err

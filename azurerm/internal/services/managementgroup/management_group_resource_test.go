@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAcc_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,10 +54,10 @@ func TestAccManagementGroup_nested(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "parent")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nested(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_management_group.parent").ExistsInAzure(r),
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
 			),
@@ -72,10 +71,10 @@ func TestAccManagementGroup_multiLevel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "parent")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multiLevel(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_management_group.grandparent").ExistsInAzure(r),
 				check.That("azurerm_management_group.parent").ExistsInAzure(r),
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
@@ -91,10 +90,10 @@ func TestAccManagementGroup_multiLevelUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "parent")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nested(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_management_group.parent").ExistsInAzure(r),
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
 			),
@@ -103,7 +102,7 @@ func TestAccManagementGroup_multiLevelUpdated(t *testing.T) {
 		data.ImportStepFor("azurerm_management_group.child"),
 		{
 			Config: r.multiLevel(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_management_group.grandparent").ExistsInAzure(r),
 				check.That("azurerm_management_group.parent").ExistsInAzure(r),
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
@@ -119,10 +118,10 @@ func TestAccManagementGroup_withName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -134,16 +133,16 @@ func TestAccManagementGroup_updateName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.withName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
 			),
@@ -157,24 +156,24 @@ func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 	r := ManagementGroupResource{}
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
 		},
 		{
 			Config: r.withSubscriptions(subscriptionID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("1"),
 			),
 		},
 		{
 			Config: r.removeSubscriptions(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
@@ -182,7 +181,7 @@ func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 	})
 }
 
-func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagementGroupID(state.ID)
 	if err != nil {
 		return nil, err

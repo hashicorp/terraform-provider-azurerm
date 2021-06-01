@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccVmwarePrivateCloudDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("management_cluster.0.size").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),

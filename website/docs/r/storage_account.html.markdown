@@ -147,6 +147,8 @@ A `blob_properties` block supports the following:
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
+* `change_feed_enabled` - (Optional) Is the blob service properties for change feed events enabled? Default to `false`.
+
 * `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
 
 * `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
@@ -257,9 +259,9 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 A `private_link_access` block supports the following:
 
-* `endpoint_resource_id` - (Required) The resource id of the `azurerm_private_endpoint` of the resource access rule.
+* `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
 
-* `endpoint_tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint` of the resource access rule. Defaults to the current tenant id.
+* `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
 ---
 
