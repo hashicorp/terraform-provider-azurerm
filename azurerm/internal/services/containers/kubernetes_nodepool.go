@@ -63,10 +63,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				},
 
 				"enable_node_public_ip": {
-					Type:         pluginsdk.TypeBool,
-					Optional:     true,
-					ForceNew:     true,
-					RequiredWith: []string{"default_node_pool.0.node_public_ip_prefix_id"},
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
 				},
 
 				"enable_host_encryption": {
@@ -117,6 +116,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
+					RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
 				},
 
 				"node_taints": {

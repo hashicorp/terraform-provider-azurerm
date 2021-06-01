@@ -92,10 +92,9 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"enable_node_public_ip": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"node_public_ip_prefix_id"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"eviction_policy": {
@@ -148,9 +147,10 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"node_public_ip_prefix_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"enable_node_public_ip"},
 			},
 
 			"node_taints": {
