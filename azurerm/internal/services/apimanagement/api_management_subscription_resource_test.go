@@ -256,9 +256,9 @@ func (ApiManagementSubscriptionResource) withApiId(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_api" "test" {
-  name                  = "TestApi"
-  resource_group_name   = azurerm_api_management.test.resource_group_name
-  api_management_name   = azurerm_api_management.test.name
+  name                = "TestApi"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   revision            = "1"
   protocols           = ["https"]
   display_name        = "Test API"
