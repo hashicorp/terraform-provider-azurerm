@@ -306,7 +306,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		Mode:                   mode,
-		NodePublicIPPrefixID:   utils.String(d.Get("node_public_ip_prefix_id").(string)),
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
 		Type:                   containerservice.AgentPoolTypeVirtualMachineScaleSets,
@@ -352,6 +351,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
 	if nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw); len(nodeLabels) > 0 {
 		profile.NodeLabels = nodeLabels
+	}
+
+	if nodePublicIPPrefixID := d.Get("node_public_ip_prefix_id").(string); nodePublicIPPrefixID != "" {
+		profile.NodePublicIPPrefixID = utils.String(nodePublicIPPrefixID)
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
