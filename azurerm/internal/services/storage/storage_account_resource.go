@@ -934,6 +934,18 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 			blobProperties := expandBlobProperties(val.([]interface{}))
 
+			// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
+			// Fix issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/11772
+			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
+				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+					Enable: utils.Bool(v),
+				}
+			}
+
+			if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
+			}
+
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
@@ -1267,6 +1279,22 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+
+			// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
+			// Fix issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/11772
+			if d.HasChange("blob_properties.0.last_access_time_enabled") {
+				lastAccessTimeTracking := false
+				if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
+					lastAccessTimeTracking = true
+				}
+				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+					Enable: utils.Bool(lastAccessTimeTracking),
+				}
+			}
+
+			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
@@ -1806,10 +1834,6 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 			ChangeFeed: &storage.ChangeFeed{
 				Enabled: utils.Bool(false),
 			},
-			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(false),
-			},
-
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
@@ -1823,9 +1847,7 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
-	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw, true)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -1839,27 +1861,27 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
-	}
 	return &props
 }
 
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
-	deleteRetentionPolicy := storage.DeleteRetentionPolicy{
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}, isupdate bool) *storage.DeleteRetentionPolicy {
+	result := storage.DeleteRetentionPolicy{
 		Enabled: utils.Bool(false),
 	}
+	if (len(input) == 0 || input[0] == nil) && !isupdate {
+		return nil
+	}
 
-	if len(input) == 0 {
-		return &deleteRetentionPolicy
+	if (len(input) == 0 || input[0] == nil) && isupdate {
+		return &result
 	}
 
 	policy := input[0].(map[string]interface{})
-	days := policy["days"].(int)
-	deleteRetentionPolicy.Enabled = utils.Bool(true)
-	deleteRetentionPolicy.Days = utils.Int32(int32(days))
 
-	return &deleteRetentionPolicy
+	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
 }
 
 func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
