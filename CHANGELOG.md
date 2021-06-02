@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` [GH-11834]
+* **New Resource** `azurerm_vmware_express_route_authorization` [GH-11812]
 
 ENHANCEMENTS:
 
