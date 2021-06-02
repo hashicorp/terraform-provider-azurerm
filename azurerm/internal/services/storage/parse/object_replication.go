@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-//This is manual for concating two ids are not supported in auto-generation
+// This is manual for concat two ids are not supported in auto-generation
 
 type ObjectReplicationId struct {
 	SrcSubscriptionId     string

@@ -1,6 +1,6 @@
 package parse
 
-//This is manual for concating two ids are not supported in auto-generation
+// This is manual for concat two ids are not supported in auto-generation
 
 import (
 	"testing"
