@@ -244,10 +244,10 @@ resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
-    source_container_name      = azurerm_storage_container.src.name
-    destination_container_name = azurerm_storage_container.dst.name
-    copy_blobs_created_after        = "Everything"
-    filter_out_blobs_with_prefix      = ["blobA", "blobB"]
+    source_container_name        = azurerm_storage_container.src.name
+    destination_container_name   = azurerm_storage_container.dst.name
+    copy_blobs_created_after     = "Everything"
+    filter_out_blobs_with_prefix = ["blobA", "blobB"]
   }
 }
 
@@ -262,10 +262,10 @@ resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
-    source_container_name      = azurerm_storage_container.src.name
-    destination_container_name = azurerm_storage_container.dst.name
-    copy_blobs_created_after        = "%s"
-    filter_out_blobs_with_prefix      = ["blobA", "blobB", "blobC"]
+    source_container_name        = azurerm_storage_container.src.name
+    destination_container_name   = azurerm_storage_container.dst.name
+    copy_blobs_created_after     = "%s"
+    filter_out_blobs_with_prefix = ["blobA", "blobB", "blobC"]
   }
 }
 
@@ -280,15 +280,15 @@ resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
-    source_container_name      = azurerm_storage_container.src.name
-    destination_container_name = azurerm_storage_container.dst.name
-    copy_blobs_created_after        = "%s"
-    filter_out_blobs_with_prefix      = ["blobA", "blobB", "blobC"]
+    source_container_name        = azurerm_storage_container.src.name
+    destination_container_name   = azurerm_storage_container.dst.name
+    copy_blobs_created_after     = "%s"
+    filter_out_blobs_with_prefix = ["blobA", "blobB", "blobC"]
   }
   rules {
     source_container_name      = azurerm_storage_container.src_second.name
     destination_container_name = azurerm_storage_container.dst_second.name
-    copy_blobs_created_after        = "Everything"
+    copy_blobs_created_after   = "Everything"
   }
 }
 
