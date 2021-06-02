@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMediaAsset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := MediaAssetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccMediaAsset_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := MediaAssetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
 			),
 		},
@@ -51,10 +50,10 @@ func TestMediaAccAsset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := MediaAssetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("alternate_id").HasValue("Asset-alternateid"),
 				check.That(data.ResourceName).Key("storage_account_name").HasValue(fmt.Sprintf("acctestsa1%s", data.RandomString)),
 				check.That(data.ResourceName).Key("container").HasValue("asset-container"),
@@ -69,17 +68,17 @@ func TestAccMediaAsset_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := MediaAssetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("alternate_id").HasValue("Asset-alternateid"),
 				check.That(data.ResourceName).Key("storage_account_name").HasValue(fmt.Sprintf("acctestsa1%s", data.RandomString)),
 				check.That(data.ResourceName).Key("container").HasValue("asset-container"),
@@ -88,7 +87,7 @@ func TestAccMediaAsset_update(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
 				check.That(data.ResourceName).Key("alternate_id").HasValue(""),
@@ -99,7 +98,7 @@ func TestAccMediaAsset_update(t *testing.T) {
 	})
 }
 
-func (MediaAssetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MediaAssetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AssetID(state.ID)
 	if err != nil {
 		return nil, err

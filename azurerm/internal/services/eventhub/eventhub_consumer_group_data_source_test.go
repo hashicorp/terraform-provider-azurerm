@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccEventHubConsumerGroupDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")
 	r := EventHubConsumerGroupDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("user_metadata").HasValue("some-meta-data"),
 			),
 		},
@@ -30,10 +29,10 @@ func TestAccEventHubConsumerGroupDataSource_completeDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")
 	r := EventHubConsumerGroupDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.completeDefault(data),
-			Check:  resource.ComposeTestCheckFunc(),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }

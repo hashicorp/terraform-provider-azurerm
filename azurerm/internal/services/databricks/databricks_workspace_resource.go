@@ -8,8 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,22 +16,23 @@ import (
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDatabricksWorkspace() *schema.Resource {
-	return &schema.Resource{
+func resourceDatabricksWorkspace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreateUpdate,
 		Read:   resourceDatabricksWorkspaceRead,
 		Update: resourceDatabricksWorkspaceCreateUpdate,
 		Delete: resourceDatabricksWorkspaceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -41,9 +40,9 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.WorkspaceName,
@@ -54,7 +53,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"standard",
@@ -66,7 +65,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"managed_resource_group_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
@@ -74,14 +73,14 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			},
 
 			"custom_parameters": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"no_public_ip": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							ForceNew: true,
 							Optional: true,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
@@ -90,7 +89,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 						},
 
 						"public_subnet_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
@@ -99,7 +98,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 						},
 
 						"private_subnet_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
@@ -108,7 +107,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 						},
 
 						"virtual_network_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
@@ -121,22 +120,22 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			},
 
 			"managed_resource_group_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"workspace_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"workspace_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if d.HasChange("sku") {
 				sku, changedSKU := d.GetChange("sku")
 
@@ -153,7 +152,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 	}
 }
 
-func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -236,7 +235,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
-func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,7 +286,7 @@ func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

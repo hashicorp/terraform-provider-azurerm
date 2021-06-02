@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -19,18 +18,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDigitalTwinsInstance() *schema.Resource {
-	return &schema.Resource{
+func resourceDigitalTwinsInstance() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDigitalTwinsInstanceCreate,
 		Read:   resourceDigitalTwinsInstanceRead,
 		Update: resourceDigitalTwinsInstanceUpdate,
 		Delete: resourceDigitalTwinsInstanceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -38,9 +37,9 @@ func resourceDigitalTwinsInstance() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DigitalTwinsInstanceName,
@@ -51,7 +50,7 @@ func resourceDigitalTwinsInstance() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"host_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -59,7 +58,7 @@ func resourceDigitalTwinsInstance() *schema.Resource {
 		},
 	}
 }
-func resourceDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -103,7 +102,7 @@ func resourceDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interface{}
 	return resourceDigitalTwinsInstanceRead(d, meta)
 }
 
-func resourceDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +132,7 @@ func resourceDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDigitalTwinsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +155,7 @@ func resourceDigitalTwinsInstanceUpdate(d *schema.ResourceData, meta interface{}
 	return resourceDigitalTwinsInstanceRead(d, meta)
 }
 
-func resourceDigitalTwinsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

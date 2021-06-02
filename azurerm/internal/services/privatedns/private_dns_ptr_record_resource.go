@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -14,12 +12,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePrivateDnsPtrRecord() *schema.Resource {
-	return &schema.Resource{
+func resourcePrivateDnsPtrRecord() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePrivateDnsPtrRecordCreateUpdate,
 		Read:   resourcePrivateDnsPtrRecordRead,
 		Update: resourcePrivateDnsPtrRecordCreateUpdate,
@@ -29,16 +28,16 @@ func resourcePrivateDnsPtrRecord() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
@@ -49,27 +48,27 @@ func resourcePrivateDnsPtrRecord() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"zone_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"records": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"ttl": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(1, 2147483647),
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -78,7 +77,7 @@ func resourcePrivateDnsPtrRecord() *schema.Resource {
 	}
 }
 
-func resourcePrivateDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -120,7 +119,7 @@ func resourcePrivateDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interf
 	return resourcePrivateDnsPtrRecordRead(d, meta)
 }
 
-func resourcePrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +154,7 @@ func resourcePrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourcePrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,8 +186,8 @@ func flattenAzureRmPrivateDnsPtrRecords(records *[]privatedns.PtrRecord) []strin
 	return results
 }
 
-func expandAzureRmPrivateDnsPtrRecords(d *schema.ResourceData) *[]privatedns.PtrRecord {
-	recordStrings := d.Get("records").(*schema.Set).List()
+func expandAzureRmPrivateDnsPtrRecords(d *pluginsdk.ResourceData) *[]privatedns.PtrRecord {
+	recordStrings := d.Get("records").(*pluginsdk.Set).List()
 	records := make([]privatedns.PtrRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
