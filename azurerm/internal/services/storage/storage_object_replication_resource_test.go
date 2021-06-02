@@ -14,26 +14,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type StorageObjectReplicationPolicyResource struct{}
+type StorageObjectReplicationResource struct{}
 
-func TestAccStorageObjectReplicationPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
-	r := StorageObjectReplicationPolicyResource{}
+func TestAccStorageObjectReplication_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
+	r := StorageObjectReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccStorageObjectReplicationPolicy_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
-	r := StorageObjectReplicationPolicyResource{}
+func TestAccStorageObjectReplication_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
+	r := StorageObjectReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,24 +46,25 @@ func TestAccStorageObjectReplicationPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStorageObjectReplicationPolicy_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
-	r := StorageObjectReplicationPolicyResource{}
+func TestAccStorageObjectReplication_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
+	r := StorageObjectReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication_policy", "test")
-	r := StorageObjectReplicationPolicyResource{}
+func TestAccStorageObjectReplication_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
+	r := StorageObjectReplicationResource{}
 	loc, _ := time.LoadLocation("Australia/Perth")
 	copyTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z")
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -70,7 +72,8 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -78,7 +81,8 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -86,7 +90,8 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 			Config: r.update(data, copyTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -94,7 +99,8 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 			Config: r.updateMoreRules(data, copyTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -102,29 +108,39 @@ func TestAccStorageObjectReplicationPolicy_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("source_object_replication_policy_id").Exists(),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (r StorageObjectReplicationPolicyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ObjectReplicationPolicyID(state.ID)
+func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ObjectReplicationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.ObjectReplicationPolicyClient.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+	dstResp, err := client.Storage.ObjectReplicationClient.Get(ctx, id.DstResourceGroup, id.DstStorageAccountName, id.DstName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(dstResp.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
+
+	srcResp, err := client.Storage.ObjectReplicationClient.Get(ctx, id.SrcResourceGroup, id.SrcStorageAccountName, id.SrcName)
+	if err != nil {
+		if utils.ResponseWasNotFound(srcResp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
+	}
+
 	return utils.Bool(true), nil
 }
 
-func (r StorageObjectReplicationPolicyResource) template(data acceptance.TestData) string {
+func (r StorageObjectReplicationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,11 +206,11 @@ resource "azurerm_storage_container" "dst_second" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }
 
-func (r StorageObjectReplicationPolicyResource) basic(data acceptance.TestData) string {
+func (r StorageObjectReplicationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_object_replication_policy" "test" {
+resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
@@ -205,13 +221,13 @@ resource "azurerm_storage_object_replication_policy" "test" {
 `, r.template(data))
 }
 
-func (r StorageObjectReplicationPolicyResource) requiresImport(data acceptance.TestData) string {
+func (r StorageObjectReplicationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_object_replication_policy" "import" {
-  source_storage_account_id      = azurerm_storage_object_replication_policy.test.source_storage_account_id
-  destination_storage_account_id = azurerm_storage_object_replication_policy.test.destination_storage_account_id
+resource "azurerm_storage_object_replication" "import" {
+  source_storage_account_id      = azurerm_storage_object_replication.test.source_storage_account_id
+  destination_storage_account_id = azurerm_storage_object_replication.test.destination_storage_account_id
   rules {
     source_container_name      = azurerm_storage_container.src.name
     destination_container_name = azurerm_storage_container.dst.name
@@ -220,59 +236,59 @@ resource "azurerm_storage_object_replication_policy" "import" {
 `, r.basic(data))
 }
 
-func (r StorageObjectReplicationPolicyResource) complete(data acceptance.TestData) string {
+func (r StorageObjectReplicationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_object_replication_policy" "test" {
+resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
     source_container_name      = azurerm_storage_container.src.name
     destination_container_name = azurerm_storage_container.dst.name
-    copy_over_from_time        = "Everything"
-    filter_prefix_matches      = ["blobA", "blobB"]
+    copy_blobs_created_after        = "Everything"
+    filter_out_blobs_with_prefix      = ["blobA", "blobB"]
   }
 }
 
 `, r.template(data))
 }
 
-func (r StorageObjectReplicationPolicyResource) update(data acceptance.TestData, copyTime string) string {
+func (r StorageObjectReplicationResource) update(data acceptance.TestData, copyTime string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_object_replication_policy" "test" {
+resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
     source_container_name      = azurerm_storage_container.src.name
     destination_container_name = azurerm_storage_container.dst.name
-    copy_over_from_time        = "%s"
-    filter_prefix_matches      = ["blobA", "blobB", "blobC"]
+    copy_blobs_created_after        = "%s"
+    filter_out_blobs_with_prefix      = ["blobA", "blobB", "blobC"]
   }
 }
 
 `, r.template(data), copyTime)
 }
 
-func (r StorageObjectReplicationPolicyResource) updateMoreRules(data acceptance.TestData, copyTime string) string {
+func (r StorageObjectReplicationResource) updateMoreRules(data acceptance.TestData, copyTime string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_object_replication_policy" "test" {
+resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
   rules {
     source_container_name      = azurerm_storage_container.src.name
     destination_container_name = azurerm_storage_container.dst.name
-    copy_over_from_time        = "%s"
-    filter_prefix_matches      = ["blobA", "blobB", "blobC"]
+    copy_blobs_created_after        = "%s"
+    filter_out_blobs_with_prefix      = ["blobA", "blobB", "blobC"]
   }
   rules {
     source_container_name      = azurerm_storage_container.src_second.name
     destination_container_name = azurerm_storage_container.dst_second.name
-    copy_over_from_time        = "Everything"
+    copy_blobs_created_after        = "Everything"
   }
 }
 
