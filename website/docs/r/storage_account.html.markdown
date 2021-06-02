@@ -155,6 +155,8 @@ A `blob_properties` block supports the following:
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
+~> **Note:** Before setting `container_delete_retention_policy`, the feature `ContainerSoftDelete` needs to be enabled by [steps](https://docs.microsoft.com/en-us/azure/storage/blobs/soft-delete-container-overview?tabs=powershell#register-for-the-preview)
+
 ---
 
 A `cors_rule` block supports the following:
