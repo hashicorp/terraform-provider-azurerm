@@ -269,7 +269,7 @@ When `managed` is set to `true` the following properties can be specified:
 
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
-* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled? Changing this forces a new resource to be created.
+* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
 
 ~> **Note:** Azure AD based RBAC is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac).
 

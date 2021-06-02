@@ -305,6 +305,7 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.azure_rbac_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -337,6 +338,24 @@ func testAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
 	clientData := data.Client()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.azure_rbac_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(
+			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+		),
 		{
 			Config: r.roleBasedAccessControlAzureConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -746,8 +765,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     enabled = true
 
     azure_active_directory {
-      tenant_id = var.tenant_id
-      managed   = true
+      tenant_id          = var.tenant_id
+      managed            = true
+      azure_rbac_enabled = false
     }
   }
 }
