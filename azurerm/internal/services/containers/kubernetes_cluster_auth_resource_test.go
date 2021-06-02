@@ -60,11 +60,6 @@ func TestAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
 	testAccKubernetesCluster_managedClusterIdentity(t)
 }
 
-func TestAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_userAssignedIdentity(t)
-}
-
 func testAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -83,6 +78,11 @@ func testAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_userAssignedIdentity(t)
 }
 
 func testAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
