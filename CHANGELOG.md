@@ -12,6 +12,10 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` -  Support for `gateway_name` for Application Gateway add-on [GH-11984]
 * `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties [GH-11830]
 
+BUG FIXES:
+
+* `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors [GH-11960]
+
 ## 2.61.0 (May 27, 2021)
 
 FEATURES:
