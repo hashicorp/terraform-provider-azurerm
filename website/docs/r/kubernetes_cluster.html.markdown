@@ -96,6 +96,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
+* `kubelet_identity` - A `kubelet_identity` block as defined below. Changing this forces a new resource to be created.
+
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 -> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
@@ -366,6 +368,17 @@ An `identity` block supports the following:
 
 ---
 
+The `kubelet_identity` block supports the following:
+
+* `client_id` - (Optional) The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically. Requires `kubelet_identity.0.object_id`,`kubelet_identity.0.user_assigned_identity_id` and `identity.0.user_assigned_identity_id` to be specified.
+
+* `object_id` - (Optional) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically. Requires `kubelet_identity.0.client_id`,`kubelet_identity.0.user_assigned_identity_id` and `identity.0.user_assigned_identity_id` to be specified.
+
+* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically. Requires `kubelet_identity.0.client_id`,`kubelet_identity.0.object_id` and `identity.0.user_assigned_identity_id` to be specified.
+
+-> **NOTE:** The functionality to bring your own `kubelet_identity` is in Public Preview, and therefore has some limitations - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity#limitations-2).
+---
+
 A `kube_dashboard` block supports the following:
 
 * `enabled` - (Required) Is the Kubernetes Dashboard enabled?
@@ -518,9 +531,7 @@ The following attributes are exported:
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
-
-* `kubelet_identity` - A `kubelet_identity` block as defined below.  
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. 
 
 * `addon_profile` - An `addon_profile` block as defined below.
 
@@ -543,16 +554,6 @@ The `identity` block exports the following:
 * `principal_id` - The principal id of the system assigned identity which is used by master components.
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by master components.
-
----
-
-The `kubelet_identity` block exports the following:
-
-* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
-
-* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
-
-* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 
