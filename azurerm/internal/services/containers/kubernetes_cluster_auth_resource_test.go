@@ -129,6 +129,29 @@ func testAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_userAssignedKubeletIdentity(t)
+}
+
+func testAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedKubeletIdentityConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
+				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_roleBasedAccessControl(t)
@@ -611,6 +634,63 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   tags = {
     Env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) userAssignedKubeletIdentityConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "aks_identity_test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_user_assigned_identity" "kubelet_identity_test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_kubelet_identity"
+}
+
+resource "azurerm_role_assignment" "manage_kubelet_identity" {
+  scope                            = azurerm_resource_group.test.id
+  role_definition_name             = "Managed Identity Operator"
+  principal_id                     = azurerm_user_assigned_identity.aks_identity_test.principal_id
+  skip_service_principal_aad_check = false
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  depends_on = [azurerm_role_assignment.manage_kubelet_identity]
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.aks_identity_test.id
+  }
+
+  kubelet_identity {
+    user_assigned_identity_id = azurerm_user_assigned_identity.kubelet_identity_test.id
+    client_id                 = azurerm_user_assigned_identity.kubelet_identity_test.client_id
+    object_id                 = azurerm_user_assigned_identity.kubelet_identity_test.principal_id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
