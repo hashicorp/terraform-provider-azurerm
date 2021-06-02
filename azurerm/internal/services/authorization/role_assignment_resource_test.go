@@ -3,6 +3,7 @@ package authorization_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -124,6 +125,28 @@ func TestAccRoleAssignment_custom(t *testing.T) {
 			),
 		},
 		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
+// delegatedManagedIdentityResourceID is used in a cross tenant scenario.
+// users should set up lighthouse delegation first and then use managing tenant SP to run this test.
+func TestAccRoleAssignment_delegatedManagedIdentityResourceID(t *testing.T) {
+	if os.Getenv("HAS_LIGHTHOUSE_DELEGATION_SETUP") == "" {
+		t.Skip("Skipping as HAS_LIGHTHOUSE_DELEGATION_SETUP is not specified")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.delegatedManagedIdentityResourceID(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -362,6 +385,73 @@ resource "azurerm_role_assignment" "test" {
   principal_id       = data.azurerm_client_config.test.object_id
 }
 `, roleDefinitionId, rInt, roleAssignmentId)
+}
+
+func (RoleAssignmentResource) delegatedManagedIdentityResourceID(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Compute/virtualMachines"
+          }
+        ]
+      },
+      "then": {
+        "effect": "modify",
+        "details": {
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+          ],
+          "operations": [
+            {
+              "operation": "addOrReplace",
+              "field": "tags['managedByTenant']",
+              "value": "Lighthouse"
+            }
+          ]
+        }
+      }
+    }
+POLICY_RULE
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestpa-%d"
+  location             = "%s"
+  scope                = data.azurerm_subscription.primary.id
+  policy_definition_id = azurerm_policy_definition.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                                  = data.azurerm_subscription.primary.id
+  role_definition_id                     = "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+  delegated_managed_identity_resource_id = azurerm_policy_assignment.test.id
+  principal_id                           = azurerm_policy_assignment.test.identity.0.principal_id
+}
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func (RoleAssignmentResource) servicePrincipal(rInt int, roleAssignmentID string) string {
