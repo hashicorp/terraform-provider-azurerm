@@ -35,7 +35,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
-	"enableNodePublicIP":                               testAccDataSourceKubernetesCluster_enableNodePublicIP,
+	"nodePublicIP":                                     testAccDataSourceKubernetesCluster_nodePublicIP,
 	"privateCluster":                                   testAccDataSourceKubernetesCluster_privateCluster,
 }
 
@@ -596,20 +596,21 @@ func testAccDataSourceKubernetesCluster_nodeLabels(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_enableNodePublicIP(t)
+	testAccDataSourceKubernetesCluster_nodePublicIP(t)
 }
 
-func testAccDataSourceKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func testAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.enableNodePublicIPConfig(data),
+			Config: r.nodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
 	})
@@ -857,7 +858,7 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.nodeLabelsConfig(data, labels))
 }
 
-func (KubernetesClusterDataSource) enableNodePublicIPConfig(data acceptance.TestData) string {
+func (KubernetesClusterDataSource) nodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -865,5 +866,5 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.enableNodePublicIPConfig(data, true))
+`, KubernetesClusterResource{}.nodePublicIPPrefixConfig(data))
 }
