@@ -94,6 +94,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"enable_node_public_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"eviction_policy": {
@@ -143,6 +144,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"node_public_ip_prefix_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"enable_node_public_ip"},
 			},
 
 			"node_taints": {
@@ -345,6 +353,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodeLabels = nodeLabels
 	}
 
+	if nodePublicIPPrefixID := d.Get("node_public_ip_prefix_id").(string); nodePublicIPPrefixID != "" {
+		profile.NodePublicIPPrefixID = utils.String(nodePublicIPPrefixID)
+	}
+
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
 	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
@@ -493,6 +505,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_count") {
 		props.Count = utils.Int32(int32(d.Get("node_count").(int)))
+	}
+
+	if d.HasChange("node_public_ip_prefix_id") {
+		props.NodePublicIPPrefixID = utils.String(d.Get("node_public_ip_prefix_id").(string))
 	}
 
 	if d.HasChange("orchestrator_version") {
@@ -652,6 +668,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
 			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
+
+		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)

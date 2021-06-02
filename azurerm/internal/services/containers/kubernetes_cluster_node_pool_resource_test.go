@@ -1243,14 +1243,22 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  enable_node_public_ip = true
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpipprefix%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  prefix_length       = 31
 }
-`, r.templateConfig(data))
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                     = "internal"
+  kubernetes_cluster_id    = azurerm_kubernetes_cluster.test.id
+  vm_size                  = "Standard_DS2_v2"
+  node_count               = 1
+  enable_node_public_ip    = true
+  node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+}
+`, r.templateConfig(data), data.RandomInteger)
 }
 
 func (r KubernetesClusterNodePoolResource) nodeTaintsConfig(data acceptance.TestData) string {
