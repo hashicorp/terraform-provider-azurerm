@@ -62,7 +62,6 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO this now sets the scope property - either a scope block needs adding or additional properties `api_id` and maybe `all_apis`
 			"product_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
