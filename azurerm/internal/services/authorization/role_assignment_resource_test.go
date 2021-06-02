@@ -139,10 +139,10 @@ func TestAccRoleAssignment_delegatedManagedIdentityResourceID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	r := RoleAssignmentResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.delegatedManagedIdentityResourceID(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
