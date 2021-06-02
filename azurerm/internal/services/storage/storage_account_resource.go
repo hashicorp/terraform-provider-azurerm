@@ -134,6 +134,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"active_directory": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
