@@ -18,7 +18,7 @@ import (
 type NetworkWatcherFlowLogResource struct {
 }
 
-func TestAccNetworkWatcherFlowLog_basic(t *testing.T) {
+func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -41,7 +41,7 @@ func TestAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_disabled(t *testing.T) {
+func testAccNetworkWatcherFlowLog_disabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -64,7 +64,7 @@ func TestAccNetworkWatcherFlowLog_disabled(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
+func testAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -101,7 +101,7 @@ func TestAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
+func testAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -139,7 +139,7 @@ func TestAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
+func testAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -177,7 +177,7 @@ func TestAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
+func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -272,7 +272,7 @@ func TestAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_version(t *testing.T) {
+func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -296,7 +296,7 @@ func TestAccNetworkWatcherFlowLog_version(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_location(t *testing.T) {
+func testAccNetworkWatcherFlowLog_location(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
@@ -311,7 +311,7 @@ func TestAccNetworkWatcherFlowLog_location(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcherFlowLog_tags(t *testing.T) {
+func testAccNetworkWatcherFlowLog_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 

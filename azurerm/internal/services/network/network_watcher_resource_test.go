@@ -16,7 +16,84 @@ import (
 type NetworkWatcherResource struct {
 }
 
-func TestAccNetworkWatcher_basic(t *testing.T) {
+func TestAccNetworkWatcher(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning one per region at once
+	// (which our test suite can't easily workaround)
+
+	// NOTE: Normally these tests can be separated to its own test cases, rather than this big composite one, since
+	// we are not calling the `t.Parallel()` for each sub-test. However, currently nightly test are using the jen20/teamcity-go-test
+	// which will invoke a `go test` for each test function, which effectively making them to be in parallel, even if they are intended
+	// to be run in sequential.
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":          testAccNetworkWatcher_basic,
+			"requiresImport": testAccNetworkWatcher_requiresImport,
+			"complete":       testAccNetworkWatcher_complete,
+			"update":         testAccNetworkWatcher_update,
+			"disappears":     testAccNetworkWatcher_disappears,
+		},
+		"DataSource": {
+			"basic": testAccDataSourceNetworkWatcher_basic,
+		},
+		"PacketCaptureOld": {
+			"localDisk":                  testAccPacketCapture_localDisk,
+			"storageAccount":             testAccPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccPacketCapture_withFilters,
+			"requiresImport":             testAccPacketCapture_requiresImport,
+		},
+		"ConnectionMonitor": {
+			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
+			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
+			"addressUpdate":                  testAccNetworkConnectionMonitor_addressUpdate,
+			"vmBasic":                        testAccNetworkConnectionMonitor_vmBasic,
+			"vmComplete":                     testAccNetworkConnectionMonitor_vmComplete,
+			"vmUpdate":                       testAccNetworkConnectionMonitor_vmUpdate,
+			"destinationUpdate":              testAccNetworkConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid":      testAccNetworkConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":        testAccNetworkConnectionMonitor_conflictingDestinations,
+			"requiresImport":                 testAccNetworkConnectionMonitor_requiresImport,
+			"httpConfiguration":              testAccNetworkConnectionMonitor_httpConfiguration,
+			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
+			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
+			"endpointType":                   testAccNetworkConnectionMonitor_endpointDeprecated,
+			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
+		},
+		"PacketCapture": {
+			"localDisk":                  testAccNetworkPacketCapture_localDisk,
+			"storageAccount":             testAccNetworkPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccNetworkPacketCapture_withFilters,
+			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
+		},
+		"FlowLog": {
+			"basic":                testAccNetworkWatcherFlowLog_basic,
+			"disabled":             testAccNetworkWatcherFlowLog_disabled,
+			"reenabled":            testAccNetworkWatcherFlowLog_reenabled,
+			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
+			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
+			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
+			"version":              testAccNetworkWatcherFlowLog_version,
+			"location":             testAccNetworkWatcherFlowLog_location,
+			"tags":                 testAccNetworkWatcherFlowLog_tags,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
@@ -31,7 +108,7 @@ func TestAccNetworkWatcher_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcher_requiresImport(t *testing.T) {
+func testAccNetworkWatcher_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -48,7 +125,7 @@ func TestAccNetworkWatcher_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcher_complete(t *testing.T) {
+func testAccNetworkWatcher_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -62,7 +139,7 @@ func TestAccNetworkWatcher_complete(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcher_update(t *testing.T) {
+func testAccNetworkWatcher_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
@@ -82,7 +159,7 @@ func TestAccNetworkWatcher_update(t *testing.T) {
 	})
 }
 
-func TestAccNetworkWatcher_disappears(t *testing.T) {
+func testAccNetworkWatcher_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 

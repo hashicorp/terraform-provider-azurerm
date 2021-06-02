@@ -17,7 +17,7 @@ import (
 type NetworkConnectionMonitorResource struct {
 }
 
-func TestAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
+func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -32,7 +32,7 @@ func TestAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
+func testAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -50,7 +50,7 @@ func TestAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
+func testAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -65,7 +65,7 @@ func TestAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
+func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -86,7 +86,7 @@ func TestAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
+func testAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -101,7 +101,7 @@ func TestAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
+func testAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -116,7 +116,7 @@ func TestAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
+func testAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -137,7 +137,7 @@ func TestAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
+func testAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -164,7 +164,7 @@ func TestAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
+func testAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -176,7 +176,7 @@ func TestAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
+func testAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -188,7 +188,7 @@ func TestAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
+func testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -203,7 +203,7 @@ func TestAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T
 	})
 }
 
-func TestAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
+func testAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -218,7 +218,7 @@ func TestAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
+func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -233,7 +233,7 @@ func TestAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
+func testAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
@@ -262,7 +262,7 @@ func TestAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *testing.T) {
+func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 

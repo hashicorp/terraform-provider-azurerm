@@ -16,7 +16,7 @@ import (
 type PacketCaptureResource struct {
 }
 
-func TestAccPacketCapture_localDisk(t *testing.T) {
+func testAccPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
@@ -31,7 +31,7 @@ func TestAccPacketCapture_localDisk(t *testing.T) {
 	})
 }
 
-func TestAccPacketCapture_requiresImport(t *testing.T) {
+func testAccPacketCapture_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
@@ -49,7 +49,7 @@ func TestAccPacketCapture_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPacketCapture_storageAccount(t *testing.T) {
+func testAccPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
@@ -64,7 +64,7 @@ func TestAccPacketCapture_storageAccount(t *testing.T) {
 	})
 }
 
-func TestAccPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
+func testAccPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
@@ -79,7 +79,7 @@ func TestAccPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	})
 }
 
-func TestAccPacketCapture_withFilters(t *testing.T) {
+func testAccPacketCapture_withFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 

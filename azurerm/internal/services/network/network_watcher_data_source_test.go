@@ -12,7 +12,7 @@ import (
 type NetworkWatcherDataSource struct {
 }
 
-func TestAccDataSourceNetworkWatcher_basic(t *testing.T) {
+func testAccDataSourceNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_watcher", "test")
 	r := NetworkWatcherDataSource{}
 
