@@ -45,6 +45,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new == "Free"
 			}),
+			// Migration of `identity` to `service_principal` is not allowed, the other way around is
+			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old == "msi" || old == ""
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
