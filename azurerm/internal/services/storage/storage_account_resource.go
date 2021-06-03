@@ -316,6 +316,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

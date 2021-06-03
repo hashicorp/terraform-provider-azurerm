@@ -499,13 +499,6 @@ func TestAccStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
 			),
 		},
-		{
-			Config: r.identityDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
-			),
-		},
 	})
 }
 
@@ -981,7 +974,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-                %s
+                    %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
