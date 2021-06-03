@@ -219,7 +219,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if strings.EqualFold(sku, "Basic") {
-		if zonesSet {
+		if zonesSet && len(*zones) > 0 {
 			return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
 		}
 		zones = &[]string{}
