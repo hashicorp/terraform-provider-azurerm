@@ -144,6 +144,22 @@ func resourceEventHub() *pluginsdk.Resource {
 				},
 			},
 
+			"status": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(eventhubs.EntityStatusActive),
+					string(eventhubs.EntityStatusCreating),
+					string(eventhubs.EntityStatusDeleting),
+					string(eventhubs.EntityStatusDisabled),
+					string(eventhubs.EntityStatusReceiveDisabled),
+					string(eventhubs.EntityStatusRenaming),
+					string(eventhubs.EntityStatusRestoring),
+					string(eventhubs.EntityStatusSendDisabled),
+					string(eventhubs.EntityStatusUnknown),
+				}, false),
+			},
+
 			"partition_ids": {
 				Type:     pluginsdk.TypeSet,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
@@ -187,6 +203,11 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
+	if v, ok := d.GetOk("status"); ok {
+		eventhubStatus := eventhubs.EntityStatus(v.(string))
+		parameters.Properties.Status = &eventhubStatus
+	}
+
 	if _, ok := d.GetOk("capture_description"); ok {
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
 	}
@@ -228,6 +249,10 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("partition_count", props.PartitionCount)
 			d.Set("message_retention", props.MessageRetentionInDays)
 			d.Set("partition_ids", props.PartitionIds)
+
+			if eventhubStatus := props.Status; eventhubStatus != nil {
+				d.Set("status", eventhubStatus)
+			}
 
 			captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
 			if err := d.Set("capture_description", captureDescription); err != nil {

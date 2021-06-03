@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub"
 description: |-
-  Manages a Event Hubs as a nested resource within an Event Hubs namespace.
+Manages a Event Hubs as a nested resource within an Event Hubs namespace.
 ---
 
 # azurerm_eventhub
@@ -58,6 +58,8 @@ The following arguments are supported:
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `message_retention` is 90 days. When using a shared parent EventHub Namespace, maximum value is 7 days; or 1 day when using a Basic SKU for the shared parent EventHub Namespace.
 
 * `capture_description` - (Optional) A `capture_description` block as defined below.
+
+* `status` - (Optional) Specifies the status of the Event Hub resource.
 
 ---
 
