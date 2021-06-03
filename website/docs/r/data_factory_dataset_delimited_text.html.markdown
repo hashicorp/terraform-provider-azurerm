@@ -78,11 +78,13 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Dataset.
 
-The following supported locations for a Delimited Text Dataset:
+The following supported locations for a Delimited Text Dataset (exactly one of them must be set):
 
-* `http_server_location` - (Required) A `http_server_location` block as defined below.
+* `azure_blob_fs_location` - (Optional) An `azure_blob_fs_location` block as defined below.
 
-* `azure_blob_storage_location` - (Required) A `azure_blob_storage_location` block as defined below.
+* `azure_blob_storage_location` - (Optional) An `azure_blob_storage_location` block as defined below.
+
+* `http_server_location` - (Optional) A `http_server_location` block as defined below.
 
 The following supported arguments are specific to Delimited Text Dataset:
 
@@ -116,6 +118,26 @@ A `schema_column` block supports the following:
 
 ---
 
+An `azure_blob_fs_location` block supports the following:
+
+* `file_system` - (Required) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
+
+* `path` - (Required) The folder path to the file.
+
+* `filename` - (Required) The filename of the file.
+
+---
+
+An `azure_blob_storage_location` block supports the following:
+
+* `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
+
+* `path` - (Required) The folder path to the file.
+
+* `filename` - (Required) The filename of the file.
+
+---
+
 A `http_server_location` block supports the following:
 
 * `relative_url` - (Required) The base URL to the web server hosting the file.
@@ -123,17 +145,6 @@ A `http_server_location` block supports the following:
 * `path` - (Required) The folder path to the file on the web server.
 
 * `filename` - (Required) The filename of the file on the web server.
-
----
-
-A `azure_blob_storage_location` block supports the following:
-
-* `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
-
-* `path` - (Required) The folder path to the file on the web server.
-
-* `filename` - (Required) The filename of the file on the web server.
-
 
 ## Attributes Reference
 
