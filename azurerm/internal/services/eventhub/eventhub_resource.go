@@ -147,6 +147,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			"status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(eventhubs.EntityStatusActive),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(eventhubs.EntityStatusActive),
 					string(eventhubs.EntityStatusCreating),
