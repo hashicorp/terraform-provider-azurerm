@@ -218,8 +218,11 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if zonesSet && strings.EqualFold(sku, "Basic") {
-		return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
+	if strings.EqualFold(sku, "Basic") {
+		if zonesSet {
+			return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
+		}
+		zones = &[]string{}
 	}
 
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
