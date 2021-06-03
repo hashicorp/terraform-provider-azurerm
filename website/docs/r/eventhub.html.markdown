@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub"
 description: |-
-Manages a Event Hubs as a nested resource within an Event Hubs namespace.
+  Manages a Event Hubs as a nested resource within an Event Hubs namespace.
 ---
 
 # azurerm_eventhub
