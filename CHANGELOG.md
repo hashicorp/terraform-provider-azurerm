@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * 
 BUG FIXES:
 
+* `azuerrm_postgres_server` - do no update `password` unless its changed [GH-12008]
 * `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors [GH-11960]
 
 ## 2.61.0 (May 27, 2021)
