@@ -14,7 +14,9 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for `node_public_ip_prefix_id` [GH-11635]
 * `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_prefix_id` [GH-11635]
 * `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties [GH-11830]
+* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
 * `azurerm_role_assignment` - support the `delegated_managed_identity_resource_id` property [GH-11848]
+* 
 BUG FIXES:
 
 * `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors [GH-11960]
