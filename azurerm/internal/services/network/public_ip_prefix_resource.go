@@ -3,8 +3,9 @@ package network
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -46,6 +47,24 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"availability_zone": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				//Default:  "Zone-Redundant",
+				Computed: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"zones",
+				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"No-Zone",
+					"1",
+					"2",
+					"3",
+					"Zone-Redundant",
+				}, false),
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -69,7 +88,22 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"zones": azure.SchemaSingleZone(),
+			// TODO - 3.0 make Computed only
+			"zones": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"availability_zone",
+				},
+				Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
+				MaxItems:   1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -100,22 +134,27 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	prefix_length := d.Get("prefix_length").(int)
+	prefixLength := d.Get("prefix_length").(int)
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
-	// TODO: remove in 3.0
-	// to address this breaking change : https://azure.microsoft.com/en-us/updates/zone-behavior-change/, by setting a location's available zone list as default value to keep the behavior unchanged,
-	// to create a non-zonal resource, user can set zones to ["no_zone"]
-	if zones == nil || len(*zones) == 0 {
-		allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPPrefixes", location)
-		if err != nil {
-			return fmt.Errorf("failed to get available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)
-		} else {
-			zones = allZones
+	zones := &[]string{"1", "2", "3"}
+	// TODO - Remove in 3.0
+	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
+		deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
+		if deprecatedZones != nil {
+			zones = deprecatedZones
 		}
-	} else if (*zones)[0] == "no_zone" {
-		zones = nil
+	}
+
+	if availabilityZones, ok := d.GetOk("availability_zone"); ok {
+		switch availabilityZones.(string) {
+		case "1", "2", "3":
+			zones = &[]string{availabilityZones.(string)}
+		case "Zone-Redundant":
+			zones = &[]string{"1", "2", "3"}
+		case "No-Zone":
+			zones = &[]string{}
+		}
 	}
 
 	publicIpPrefix := network.PublicIPPrefix{
@@ -124,7 +163,7 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Name: network.PublicIPPrefixSkuName(sku),
 		},
 		PublicIPPrefixPropertiesFormat: &network.PublicIPPrefixPropertiesFormat{
-			PrefixLength: utils.Int32(int32(prefix_length)),
+			PrefixLength: utils.Int32(int32(prefixLength)),
 		},
 		Tags:  tags.Expand(t),
 		Zones: zones,
@@ -166,28 +205,23 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.PublicIPPrefixeName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	// TODO: remove in 3.0
-	zones := make([]string, 0)
-	if resp.Location != nil && resp.Sku != nil && strings.EqualFold(string(resp.Sku.Name), "standard") {
-		allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPPrefixes", *resp.Location)
-		if err != nil {
-			return fmt.Errorf("failed to get available zones for resourceType: publicIPPrefixes, location: %s:%+v", *resp.Location, err)
+
+	availabilityZones := "No-Zone"
+	zonesDeprecated := make([]string, 0)
+	if resp.Zones != nil {
+		if len(*resp.Zones) > 1 {
+			availabilityZones = "Zone-Redundant"
 		}
-		switch {
-		case allZones == nil || len(*allZones) == 0:
-			zones = make([]string, 0)
-		case resp.Zones == nil || len(*resp.Zones) == 0:
-			zones = append(zones, "no_zone")
-		case len(*resp.Zones) == 1:
-			zones = append(zones, (*resp.Zones)[0])
-		default:
-			zones = make([]string, 0)
+		if len(*resp.Zones) == 1 {
+			zones := *resp.Zones
+			availabilityZones = zones[0]
+			zonesDeprecated = zones
 		}
 	}
-	d.Set("zones", &zones)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("availability_zone", availabilityZones)
+	d.Set("zones", zonesDeprecated)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
