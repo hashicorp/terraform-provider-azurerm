@@ -28,6 +28,7 @@ func Required() map[string]struct{} {
 		"Microsoft.DataLakeAnalytics":       {},
 		"Microsoft.DataLakeStore":           {},
 		"Microsoft.DataMigration":           {},
+		"Microsoft.DataProtection":          {},
 		"Microsoft.DBforMariaDB":            {},
 		"Microsoft.DBforMySQL":              {},
 		"Microsoft.DBforPostgreSQL":         {},
