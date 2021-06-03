@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties [GH-12026]
 * `azurerm_api_management_api_subscription` - support for the `api_id` property [GH-12025]
 * `azurerm_container_registry` - support for  versionless encryption keys for ACR [GH-11856]
 * `azurerm_kubernetes_cluster` -  support for `gateway_name` for Application Gateway add-on [GH-11984]
@@ -18,7 +19,7 @@ ENHANCEMENTS:
 * `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties [GH-11830]
 * `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
 * `azurerm_role_assignment` - support the `delegated_managed_identity_resource_id` property [GH-11848]
-* 
+
 BUG FIXES:
 
 * `azuerrm_postgres_server` - do no update `password` unless its changed [GH-12008]
