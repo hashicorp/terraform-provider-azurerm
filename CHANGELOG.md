@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_data_protection_backup_vault` [GH-11955]
 * **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` [GH-11834]
 * **New Resource** `azurerm_vmware_express_route_authorization` [GH-11812]
 * **New Resource** `azurerm_storage_object_replication_policy` [GH-11744]
