@@ -271,8 +271,6 @@ When `managed` is set to `true` the following properties can be specified:
 
 * `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
 
-~> **Note:** Azure AD based RBAC is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac).
-
 When `managed` is set to `false` the following properties can be specified:
 
 * `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
