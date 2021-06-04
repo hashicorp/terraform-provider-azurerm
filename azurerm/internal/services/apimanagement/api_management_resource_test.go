@@ -844,7 +844,7 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
-      host_name                    = "api.pluginsdk.io"
+      host_name                    = "api.terraform.io"
       certificate                  = filebase64("testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
       default_ssl_binding          = true
@@ -852,20 +852,20 @@ resource "azurerm_api_management" "test" {
     }
 
     proxy {
-      host_name                    = "api2.pluginsdk.io"
+      host_name                    = "api2.terraform.io"
       certificate                  = filebase64("testdata/api_management_api2_test.pfx")
       certificate_password         = "terraform"
       negotiate_client_certificate = true
     }
 
     portal {
-      host_name            = "portal.pluginsdk.io"
+      host_name            = "portal.terraform.io"
       certificate          = filebase64("testdata/api_management_portal_test.pfx")
       certificate_password = "terraform"
     }
 
     developer_portal {
-      host_name   = "developer-portal.pluginsdk.io"
+      host_name   = "developer-portal.terraform.io"
       certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
     }
   }
@@ -918,14 +918,56 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
-resource "azurerm_network_security_rule" "port_3443" {
-  name                        = "Port_3443"
+resource "azurerm_network_security_rule" "client" {
+  name                        = "Client_communication_to_API_Management"
   priority                    = 100
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "secure_client" {
+  name                        = "Secure_Client_communication_to_API_Management"
+  priority                    = 110
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "443"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "endpoint" {
+  name                        = "Management_endpoint_for_Azure_portal_and_Powershell"
+  priority                    = 120
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
   destination_port_range      = "3443"
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "authenticate" {
+  name                        = "Authenticate_To_Azure_Active_Directory"
+  priority                    = 200
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["80", "443"]
   source_address_prefix       = "ApiManagement"
   destination_address_prefix  = "VirtualNetwork"
   resource_group_name         = azurerm_resource_group.test.name
@@ -990,9 +1032,37 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
   network_security_group_id = azurerm_network_security_group.test2.id
 }
 
-resource "azurerm_network_security_rule" "port_3443_2" {
-  name                        = "Port_3443"
+resource "azurerm_network_security_rule" "client2" {
+  name                        = "Client_communication_to_API_Management"
   priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
+resource "azurerm_network_security_rule" "secure_client2" {
+  name                        = "Secure_Client_communication_to_API_Management"
+  priority                    = 110
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "443"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
+resource "azurerm_network_security_rule" "endpoint2" {
+  name                        = "Management_endpoint_for_Azure_portal_and_Powershell"
+  priority                    = 120
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -1003,6 +1073,21 @@ resource "azurerm_network_security_rule" "port_3443_2" {
   resource_group_name         = azurerm_resource_group.test2.name
   network_security_group_name = azurerm_network_security_group.test2.name
 }
+
+resource "azurerm_network_security_rule" "authenticate2" {
+  name                        = "Authenticate_To_Azure_Active_Directory"
+  priority                    = 200
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["80", "443"]
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%[2]d"
@@ -1058,7 +1143,7 @@ resource "azurerm_api_management" "test" {
   identity {
     type = "UserAssigned"
     identity_ids = [
-      azurerm_user_assigned_identity.test.principal_id,
+      azurerm_user_assigned_identity.test.id,
     ]
   }
 }
@@ -1152,11 +1237,14 @@ func (ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsT
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
+
 data "azurerm_client_config" "current" {}
+
 resource "azurerm_key_vault" "test" {
   name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
@@ -1164,6 +1252,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
+
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
@@ -1181,6 +1270,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Manageissuers",
     "Setissuers",
     "Update",
+    "Purge",
   ]
   secret_permissions = [
     "Delete",
@@ -1189,6 +1279,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
   ]
 }
+
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_api_management.test.identity[0].tenant_id
@@ -1198,6 +1289,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "List",
   ]
 }
+
 resource "azurerm_key_vault_certificate" "test" {
   depends_on   = [azurerm_key_vault_access_policy.test]
   name         = "acctestKVCert-%[3]d"
