@@ -1,5 +1,7 @@
 package appconfiguration
 
+import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
 func flattenTags(input *map[string]string) map[string]*string {
 	output := make(map[string]*string)
 	if input == nil {
@@ -7,7 +9,7 @@ func flattenTags(input *map[string]string) map[string]*string {
 	}
 
 	for k, v := range *input {
-		output[k] = &v
+		output[k] = utils.String(v)
 	}
 
 	return output
