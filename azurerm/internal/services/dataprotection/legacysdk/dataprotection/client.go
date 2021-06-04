@@ -11,10 +11,11 @@ package dataprotection
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 const (
