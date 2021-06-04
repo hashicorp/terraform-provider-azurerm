@@ -87,22 +87,39 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
 						},
 						"key": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
 						},
 						"cname": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
+						},
+						"leaf_domain_label": {
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
+						},
+						"overwrite_existing_domain": {
+							Type:          pluginsdk.TypeBool,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
 						},
 					},
 				},
@@ -272,10 +289,17 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		sslStatus = "Enabled"
 	}
 
+	if !(v["leaf_domain_label"].(string) == "") {
+		sslStatus = "Auto"
+		v["cname"] = ""
+	}
+
 	return &machinelearningservices.SslConfiguration{
-		Status: machinelearningservices.Status1(sslStatus),
-		Cert:   utils.String(v["cert"].(string)),
-		Key:    utils.String(v["key"].(string)),
-		Cname:  utils.String(v["cname"].(string)),
+		Status:                  machinelearningservices.Status1(sslStatus),
+		Cert:                    utils.String(v["cert"].(string)),
+		Key:                     utils.String(v["key"].(string)),
+		Cname:                   utils.String(v["cname"].(string)),
+		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
+		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool)),
 	}
 }

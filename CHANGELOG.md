@@ -1,8 +1,29 @@
 ## 2.62.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource** `azurerm_data_protection_backup_vault` [GH-11955]
+* **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` [GH-11834]
+* **New Resource** `azurerm_vmware_express_route_authorization` [GH-11812]
+* **New Resource** `azurerm_storage_object_replication_policy` [GH-11744]
+
 ENHANCEMENTS:
 
-* `azurerm_container_registry`: support for  versionless encryption keys for ACR [GH-11856]
+* `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties [GH-12026]
+* `azurerm_api_management_api_subscription` - support for the `api_id` property [GH-12025]
+* `azurerm_container_registry` - support for  versionless encryption keys for ACR [GH-11856]
+* `azurerm_kubernetes_cluster` -  support for `gateway_name` for Application Gateway add-on [GH-11984]
+* `azurerm_kubernetes_cluster` - support update of `azure_rbac_enabled` [GH-12029]
+* `azurerm_kubernetes_cluster` - support for `node_public_ip_prefix_id` [GH-11635]
+* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_prefix_id` [GH-11635]
+* `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties [GH-11830]
+* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
+* `azurerm_role_assignment` - support the `delegated_managed_identity_resource_id` property [GH-11848]
+
+BUG FIXES:
+
+* `azuerrm_postgres_server` - do no update `password` unless its changed [GH-12008]
+* `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors [GH-11960]
 
 ## 2.61.0 (May 27, 2021)
 
@@ -22,8 +43,8 @@ ENHANCEMENTS:
 * Data Source: `azurerm_key_vault_certificate_data` - support certificate bundles and add support for ECDSA keys ([#11974](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11974))
 * `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties ([#11825](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11825))
 * `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` ([#11824](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11824))
-* `azurerm_static_site`: Add support for `tags` attribute ([#11849](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11849))
-* `azurerm_storage_account`: `private_link_access` supports more values ([#11957](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11957))
+* `azurerm_static_site` - Add support for `tags` attribute ([#11849](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11849))
+* `azurerm_storage_account` - `private_link_access` supports more values ([#11957](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11957))
 * `azurerm_storage_account_network_rules`: `private_link_access` supports more values ([#11957](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11957))
 * `azurerm_synapse_spark_pool` - `spark_version` now supports `3.0` ([#11972](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11972))
 

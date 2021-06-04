@@ -145,6 +145,26 @@ func resourceAppServiceEnvironment() *pluginsdk.Resource {
 			"tags": tags.ForceNewSchema(),
 
 			// Computed
+
+			// VipInfo
+			"internal_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"service_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"outbound_ip_addresses": {
+				Type: pluginsdk.TypeList,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+				Computed: true,
+			},
+
 			"location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -385,6 +405,19 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
+
+	// Get IP attributes for ASE.
+	vipInfo, err := client.GetVipInfo(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	if err != nil {
+		if utils.ResponseWasNotFound(vipInfo.Response) {
+			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
+		}
+		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+	}
+
+	d.Set("internal_ip_address", vipInfo.InternalIPAddress)
+	d.Set("service_ip_address", vipInfo.ServiceIPAddress)
+	d.Set("outbound_ip_addresses", vipInfo.OutboundIPAddresses)
 
 	return tags.FlattenAndSet(d, existing.Tags)
 }

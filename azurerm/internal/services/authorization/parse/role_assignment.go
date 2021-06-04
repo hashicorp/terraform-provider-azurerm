@@ -12,9 +12,10 @@ type RoleAssignmentId struct {
 	ResourceGroup   string
 	ManagementGroup string
 	Name            string
+	TenantId        string
 }
 
-func NewRoleAssignmentID(subscriptionId, resourceGroup, managementGroup, name string) (*RoleAssignmentId, error) {
+func NewRoleAssignmentID(subscriptionId, resourceGroup, managementGroup, name, tenantId string) (*RoleAssignmentId, error) {
 	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" {
 		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, or managementGroup must be provided")
 	}
@@ -36,10 +37,13 @@ func NewRoleAssignmentID(subscriptionId, resourceGroup, managementGroup, name st
 		ResourceGroup:   resourceGroup,
 		ManagementGroup: managementGroup,
 		Name:            name,
+		TenantId:        tenantId,
 	}, nil
 }
 
-func (id RoleAssignmentId) ID() string {
+// in general case, the id format does not change
+// for cross tenant scenario, add the tenantId info
+func (id RoleAssignmentId) AzureResourceID() string {
 	if id.ManagementGroup != "" {
 		fmtString := "/providers/Microsoft.Management/managementGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
 		return fmt.Sprintf(fmtString, id.ManagementGroup, id.Name)
@@ -54,12 +58,29 @@ func (id RoleAssignmentId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionID, id.Name)
 }
 
+func (id RoleAssignmentId) ID() string {
+	return ConstructRoleAssignmentId(id.AzureResourceID(), id.TenantId)
+}
+
+func ConstructRoleAssignmentId(azureResourceId, tenantId string) string {
+	if tenantId == "" {
+		return azureResourceId
+	}
+	return fmt.Sprintf("%s|%s", azureResourceId, tenantId)
+}
+
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("Role Assignment ID is empty string")
 	}
 
 	roleAssignmentId := RoleAssignmentId{}
+
+	parts := strings.Split(input, "|")
+	if len(parts) == 2 {
+		roleAssignmentId.TenantId = parts[1]
+		input = parts[0]
+	}
 
 	switch {
 	case strings.HasPrefix(input, "/subscriptions/"):
