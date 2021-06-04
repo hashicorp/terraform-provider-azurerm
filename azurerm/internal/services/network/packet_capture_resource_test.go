@@ -20,7 +20,7 @@ func testAccPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localDiskConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -35,7 +35,7 @@ func testAccPacketCapture_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localDiskConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -53,7 +53,7 @@ func testAccPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -68,7 +68,7 @@ func testAccPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountAndLocalDiskConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -83,7 +83,7 @@ func testAccPacketCapture_withFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 	r := PacketCaptureResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localDiskConfigWithFilters(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -188,7 +188,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                       = "network-watcher"
-  virtual_machine_id         = azurerm_virtual_machine.src.id
+  virtual_machine_id         = azurerm_virtual_machine.test.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"
