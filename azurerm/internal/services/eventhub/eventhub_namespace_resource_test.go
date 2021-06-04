@@ -322,7 +322,10 @@ func TestAccEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 			Config: r.basicWithTagsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.sauce").HasValue("Hot"),
+				check.That(data.ResourceName).Key("tags.terraform").HasValue("true"),
 			),
 		},
 	})
@@ -895,6 +898,8 @@ resource "azurerm_eventhub_namespace" "test" {
 
   tags = {
     environment = "Production"
+    sauce       = "Hot"
+    terraform   = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
