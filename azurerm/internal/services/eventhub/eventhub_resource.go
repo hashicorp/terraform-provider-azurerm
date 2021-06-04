@@ -150,14 +150,8 @@ func resourceEventHub() *pluginsdk.Resource {
 				Default:  string(eventhubs.EntityStatusActive),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(eventhubs.EntityStatusActive),
-					string(eventhubs.EntityStatusCreating),
-					string(eventhubs.EntityStatusDeleting),
 					string(eventhubs.EntityStatusDisabled),
-					string(eventhubs.EntityStatusReceiveDisabled),
-					string(eventhubs.EntityStatusRenaming),
-					string(eventhubs.EntityStatusRestoring),
 					string(eventhubs.EntityStatusSendDisabled),
-					string(eventhubs.EntityStatusUnknown),
 				}, false),
 			},
 
