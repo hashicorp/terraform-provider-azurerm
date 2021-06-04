@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 )
 
 func dataSourceResourceGroups() *schema.Resource {
@@ -64,13 +65,12 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	// ListComplete returns an iterator struct
-	top := int32(0)
-	results, err := rgClient.ListComplete(ctx, "", &top)
+	results, err := rgClient.ListComplete(ctx, "", nil)
 	if err != nil {
-		return fmt.Errorf("listing subscriptions: %+v", err)
+		return fmt.Errorf("listing resource groups: %+v", err)
 	}
 
-	// iterate across each subscriptions and append them to slice
+	// iterate across each resource groups and append them to slice
 	resource_groups := make([]map[string]interface{}, 0)
 	for results.NotDone() {
 		val := results.Value()
@@ -79,6 +79,7 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 
 		if v := val.ID; v != nil {
 			rg["id"] = *v
+			rg["subscription_id"] = parse.ResourceGroupID.SubscriptionId
 		}
 		if v := val.Name; v != nil {
 			rg["name"] = *v
@@ -91,7 +92,7 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if err = results.Next(); err != nil {
-			return fmt.Errorf("going to next subscriptions value: %+v", err)
+			return fmt.Errorf("going to next resource groups value: %+v", err)
 		}
 
 		rg["tags"] = tags.Flatten(val.Tags)
