@@ -1,3 +1,13 @@
+## 2.63.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+* `azurerm_storage_account` - support for user assigned identities [GH-11752]
+
+BUG FIXES:
+
 ## 2.62.0 (June 04, 2021)
 
 FEATURES:
