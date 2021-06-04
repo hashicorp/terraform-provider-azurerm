@@ -6,8 +6,11 @@ ENHANCEMENTS:
 
 * `azurerm_storage_account` - support for user assigned identities [GH-11752]
 * `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
-* 
+
 BUG FIXES:
+
+* Service: App Configuration - Fixed a bug in tags on resources all being set to the same value [GH-12062]
+* Service: Event Hubs - Fixed a bug in tags on resources all being set to the same value [GH-12062]
 
 ## 2.62.0 (June 04, 2021)
 
