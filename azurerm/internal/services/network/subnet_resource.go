@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -221,8 +221,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// Network policies like network security groups are not supported by private endpoints.
 	privateEndpointNetworkPolicies := d.Get("enforce_private_link_endpoint_network_policies").(bool)
 	privateLinkServiceNetworkPolicies := d.Get("enforce_private_link_service_network_policies").(bool)
-	properties.PrivateEndpointNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies)
-	properties.PrivateLinkServiceNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies)
+	properties.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies))
+	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies))
 
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
@@ -302,12 +302,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("enforce_private_link_endpoint_network_policies") {
 		v := d.Get("enforce_private_link_endpoint_network_policies").(bool)
-		props.PrivateEndpointNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(v)
+		props.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(v))
 	}
 
 	if d.HasChange("enforce_private_link_service_network_policies") {
 		v := d.Get("enforce_private_link_service_network_policies").(bool)
-		props.PrivateLinkServiceNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(v)
+		props.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(v))
 	}
 
 	if d.HasChange("service_endpoints") {
@@ -377,8 +377,8 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error flattening `delegation`: %+v", err)
 		}
 
-		d.Set("enforce_private_link_endpoint_network_policies", flattenSubnetPrivateLinkNetworkPolicy(props.PrivateEndpointNetworkPolicies))
-		d.Set("enforce_private_link_service_network_policies", flattenSubnetPrivateLinkNetworkPolicy(props.PrivateLinkServiceNetworkPolicies))
+		d.Set("enforce_private_link_endpoint_network_policies", flattenSubnetPrivateLinkNetworkPolicy(string(props.PrivateEndpointNetworkPolicies)))
+		d.Set("enforce_private_link_service_network_policies", flattenSubnetPrivateLinkNetworkPolicy(string(props.PrivateLinkServiceNetworkPolicies)))
 
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
@@ -521,26 +521,22 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 
 // TODO: confirm this logic below
 
-func expandSubnetPrivateLinkNetworkPolicy(enabled bool) *string {
+func expandSubnetPrivateLinkNetworkPolicy(enabled bool) string {
 	// This is strange logic, but to get the schema to make sense for the end user
 	// I exposed it with the same name that the Azure CLI does to be consistent
 	// between the tool sets, which means true == Disabled.
 	if enabled {
-		return utils.String("Disabled")
+		return "Disabled"
 	}
 
-	return utils.String("Enabled")
+	return "Enabled"
 }
 
-func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
+func flattenSubnetPrivateLinkNetworkPolicy(input string) bool {
 	// This is strange logic, but to get the schema to make sense for the end user
 	// I exposed it with the same name that the Azure CLI does to be consistent
 	// between the tool sets, which means true == Disabled.
-	if input == nil {
-		return false
-	}
-
-	return strings.EqualFold(*input, "Disabled")
+	return strings.EqualFold(input, "Disabled")
 }
 
 func expandSubnetServiceEndpointPolicies(input []interface{}) *[]network.ServiceEndpointPolicy {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -162,12 +162,12 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.AboveAverage),
-								string(network.Average),
-								string(network.BelowAverage),
-								string(network.Default),
-								string(network.Full),
-								string(network.Low),
+								string(network.CoverageLevelAboveAverage),
+								string(network.CoverageLevelAverage),
+								string(network.CoverageLevelBelowAverage),
+								string(network.CoverageLevelDefault),
+								string(network.CoverageLevelFull),
+								string(network.CoverageLevelLow),
 							}, false),
 						},
 
@@ -204,9 +204,9 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 												"type": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Default:  string(network.AgentAddress),
+													Default:  string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
 													ValidateFunc: validation.StringInSlice([]string{
-														string(network.AgentAddress),
+														string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
 													}, false),
 												},
 											},
@@ -216,9 +216,9 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 									"type": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(network.Include),
+										Default:  string(network.ConnectionMonitorEndpointFilterTypeInclude),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.Include),
+											string(network.ConnectionMonitorEndpointFilterTypeInclude),
 										}, false),
 									},
 								},
@@ -254,12 +254,12 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.AzureSubnet),
-								string(network.AzureVM),
-								string(network.AzureVNet),
-								string(network.ExternalAddress),
-								string(network.MMAWorkspaceMachine),
-								string(network.MMAWorkspaceNetwork),
+								string(network.EndpointTypeAzureSubnet),
+								string(network.EndpointTypeAzureVM),
+								string(network.EndpointTypeAzureVNet),
+								string(network.EndpointTypeExternalAddress),
+								string(network.EndpointTypeMMAWorkspaceMachine),
+								string(network.EndpointTypeMMAWorkspaceNetwork),
 							}, false),
 						},
 
@@ -304,10 +304,10 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 									"method": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(network.Get),
+										Default:  string(network.HTTPConfigurationMethodGet),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.Get),
-											string(network.Post),
+											string(network.HTTPConfigurationMethodGet),
+											string(network.HTTPConfigurationMethodPost),
 										}, false),
 									},
 
@@ -595,7 +595,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
-	if resp.ConnectionMonitorType == network.SingleSourceDestination {
+	if resp.ConnectionMonitorType == network.ConnectionMonitorTypeSingleSourceDestination {
 		return fmt.Errorf("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 pluginsdk.")
 	}
 
@@ -898,7 +898,7 @@ func expandNetworkConnectionMonitorOutput(input []interface{}) *[]network.Connec
 
 	for _, item := range input {
 		result := network.ConnectionMonitorOutput{
-			Type: network.Workspace,
+			Type: network.OutputTypeWorkspace,
 			WorkspaceSettings: &network.ConnectionMonitorWorkspaceSettings{
 				WorkspaceResourceID: utils.String(item.(string)),
 			},

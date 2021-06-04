@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -100,9 +100,9 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPv4),
+								string(network.IPVersionIPv4),
 							}, false),
-							Default: string(network.IPv4),
+							Default: string(network.IPVersionIPv4),
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
@@ -348,9 +348,9 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.Pri
 		}
 
 		if privateIpAddress != "" {
-			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.Static
+			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethodStatic
 		} else {
-			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.Dynamic
+			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethodDynamic
 		}
 
 		results = append(results, result)

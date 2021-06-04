@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -79,10 +79,10 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"private_ip_address_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(network.IPv4),
+							Default:  string(network.IPVersionIPv4),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPv4),
-								string(network.IPv6),
+								string(network.IPVersionIPv4),
+								string(network.IPVersionIPv6),
 							}, false),
 						},
 
@@ -90,8 +90,8 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
+								string(network.IPAllocationMethodDynamic),
+								string(network.IPAllocationMethodStatic),
 							}, true),
 							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -531,7 +531,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 			PrivateIPAddressVersion:   privateIpAddressVersion,
 		}
 
-		if privateIpAddressVersion == network.IPv4 && subnetId == "" {
+		if privateIpAddressVersion == network.IPVersionIPv4 && subnetId == "" {
 			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
 		}
 

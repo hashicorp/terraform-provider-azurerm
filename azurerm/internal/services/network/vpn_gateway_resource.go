@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -497,10 +497,10 @@ func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.Vp
 
 		log.Printf("[DEBUG] VPN Gateway %q (Resource Group %q) is %q..", name, resourceGroup, string(resp.VpnGatewayProperties.ProvisioningState))
 		switch resp.VpnGatewayProperties.ProvisioningState {
-		case network.Succeeded:
+		case network.ProvisioningStateSucceeded:
 			return "available", "available", nil
 
-		case network.Failed:
+		case network.ProvisioningStateFailed:
 			return "error", "error", fmt.Errorf("VPN Gateway %q (Resource Group %q) is in provisioningState `Failed`", name, resourceGroup)
 
 		default:
