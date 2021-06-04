@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -142,6 +141,24 @@ func TestAccApiManagementSubscription_withoutUser(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementSubscription_withApiId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+	r := ApiManagementSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withApiId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_id").Exists(),
+				check.That(data.ResourceName).Key("product_id").HasValue(""),
+				check.That(data.ResourceName).Key("user_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionID(state.ID)
 	if err != nil {
@@ -231,6 +248,30 @@ resource "azurerm_api_management_subscription" "test" {
   allow_tracing       = false
 }
 `, r.template(data))
+}
+
+func (ApiManagementSubscriptionResource) withApiId(data acceptance.TestData) string {
+	template := ApiManagementSubscriptionResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "TestApi"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
+  revision            = "1"
+  protocols           = ["https"]
+  display_name        = "Test API"
+  path                = "test"
+}
+
+resource "azurerm_api_management_subscription" "test" {
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
+  api_id              = azurerm_api_management_api.test.id
+  display_name        = "Butter Parser API Enterprise Edition"
+}
+`, template)
 }
 
 func (ApiManagementSubscriptionResource) template(data acceptance.TestData) string {

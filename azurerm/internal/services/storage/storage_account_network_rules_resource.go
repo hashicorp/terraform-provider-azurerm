@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -101,7 +100,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 						"endpoint_resource_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.PrivateEndpointID,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"endpoint_tenant_id": {

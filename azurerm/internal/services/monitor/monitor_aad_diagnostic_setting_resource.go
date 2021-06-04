@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
-
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,6 +14,7 @@ import (
 	eventhubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	logAnalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
 	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"

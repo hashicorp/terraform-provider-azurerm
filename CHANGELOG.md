@@ -1,23 +1,60 @@
-## 2.61.0 (Unreleased)
+## 2.62.0 (June 04, 2021)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_spatial_anchors_account` [GH-11824]
+* **New Resource** `azurerm_data_protection_backup_vault` ([#11955](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11955))
+* **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` ([#11834](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11834))
+* **New Resource** `azurerm_vmware_express_route_authorization` ([#11812](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11812))
+* **New Resource** `azurerm_storage_object_replication_policy` ([#11744](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11744))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v54.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11813]
-* dependencies: updating `mixedreality` to use API Version `2021-01-01` [GH-11824]
-* refactor: switching to use an embedded SDK for `appconfiguration` [GH-11959]
-* `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties [GH-11825]
-* `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` [GH-11824]
-* `azurerm_static_site`: Add support for `tags` attribute [GH-11849]
+* dependencies: updating `network` to use API Version `2020-11-01` [GH-11627]
+* `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties ([#12026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12026))
+* `azurerm_api_management_api_subscription` - support for the `api_id` property ([#12025](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12025))
+* `azurerm_container_registry` - support for  versionless encryption keys for ACR ([#11856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11856))
+* `azurerm_kubernetes_cluster` -  support for `gateway_name` for Application Gateway add-on ([#11984](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11984))
+* `azurerm_kubernetes_cluster` - support update of `azure_rbac_enabled` ([#12029](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12029))
+* `azurerm_kubernetes_cluster` - support for `node_public_ip_prefix_id` ([#11635](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11635))
+* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_prefix_id` ([#11635](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11635))
+* `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties ([#11830](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11830))
+* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties ([#11670](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11670))
+* `azurerm_role_assignment` - support the `delegated_managed_identity_resource_id` property ([#11848](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11848))
 
 BUG FIXES:
 
-* `azurerm_cdn_endpoint` - do not send an empty `origin_host_header` to the api [GH-11852]
-* `azurerm_windows_virtual_machine_scale_set`: changing the `disable_automatic_rollback` and `enable_automatic_os_upgrade` properties no longer created a new resource [GH-11723]
-* `azurerm_linux_virtual_machine_scale_set`: changing the `disable_automatic_rollback` and `enable_automatic_os_upgrade` properties no longer created a new resource [GH-11723]
+* `azuerrm_postgres_server` - do no update `password` unless its changed ([#12008](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12008))
+* `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors ([#11960](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11960))
+
+## 2.61.0 (May 27, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_spatial_anchors_account` ([#11824](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11824))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v54.3.0` of `github.com/Azure/azure-sdk-for-go` ([#11813](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11813))
+* dependencies: updating `mixedreality` to use API Version `2021-01-01` ([#11824](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11824))
+* refactor: switching to use an embedded SDK for `appconfiguration` ([#11959](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11959))
+* refactor: switching to use an embedded SDK for `eventhub` ([#11973](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11973))
+* provider: support for the Virtual Machine `skip_shutdown_and_force_delete` feature ([#11216](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11216))
+* provider: support for the Virtual Machine Scale Set `force_delete` feature ([#11216](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11216))
+* provider: no longer auto register the Microsoft.DevSpaces RP ([#11822](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11822))
+* Data Source: `azurerm_key_vault_certificate_data` - support certificate bundles and add support for ECDSA keys ([#11974](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11974))
+* `azurerm_data_factory_linked_service_sftp` - support for hostkey related properties ([#11825](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11825))
+* `azurerm_spatial_anchors_account` - support for `account_domain` and `account_id` ([#11824](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11824))
+* `azurerm_static_site` - Add support for `tags` attribute ([#11849](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11849))
+* `azurerm_storage_account` - `private_link_access` supports more values ([#11957](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11957))
+* `azurerm_storage_account_network_rules`: `private_link_access` supports more values ([#11957](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11957))
+* `azurerm_synapse_spark_pool` - `spark_version` now supports `3.0` ([#11972](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11972))
+
+BUG FIXES:
+
+* `azurerm_cdn_endpoint` - do not send an empty `origin_host_header` to the api ([#11852](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11852))
+* `azurerm_linux_virtual_machine_scale_set`: changing the `disable_automatic_rollback` and `enable_automatic_os_upgrade` properties no longer created a new resource ([#11723](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11723))
+* `azurerm_storage_share`: Fix ID for `resource_manager_id` ([#11828](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11828))
+* `azurerm_windows_virtual_machine_scale_set`: changing the `disable_automatic_rollback` and `enable_automatic_os_upgrade` properties no longer created a new resource ([#11723](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11723))
 
 ## 2.60.0 (May 20, 2021)
 

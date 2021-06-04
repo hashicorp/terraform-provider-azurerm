@@ -14,6 +14,7 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 		ResourceGroup   string
 		ManagementGroup string
 		Name            string
+		TenantId        string
 		Expected        string
 	}{
 		{
@@ -21,24 +22,28 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			ResourceGroup:   "",
 			ManagementGroup: "",
 			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "",
 		},
 		{
 			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
 			ResourceGroup:   "group1",
 			ManagementGroup: "managementGroup1",
 			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "",
 		},
 		{
 			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
 			ResourceGroup:   "",
 			ManagementGroup: "managementGroup1",
 			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "",
 		},
 		{
 			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
 			ResourceGroup:   "",
 			ManagementGroup: "",
 			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "",
 			Expected:        "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
 		},
 		{
@@ -46,6 +51,7 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			ResourceGroup:   "group1",
 			ManagementGroup: "",
 			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "",
 			Expected:        "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
 		},
 		{
@@ -53,12 +59,21 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			ResourceGroup:   "",
 			ManagementGroup: "12345678-1234-9876-4563-123456789012",
 			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "",
 			Expected:        "/providers/Microsoft.Management/managementGroups/12345678-1234-9876-4563-123456789012/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+		},
+		{
+			SubscriptionId:  "",
+			ResourceGroup:   "",
+			ManagementGroup: "12345678-1234-9876-4563-123456789012",
+			Name:            "23456781-2349-8764-5631-234567890121",
+			TenantId:        "34567812-3456-7653-6742-345678901234",
+			Expected:        "/providers/Microsoft.Management/managementGroups/12345678-1234-9876-4563-123456789012/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
 	}
 	for _, v := range testData {
 		t.Logf("testing %+v", v)
-		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ManagementGroup, v.Name)
+		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ManagementGroup, v.Name, v.TenantId)
 		if err != nil {
 			if v.Expected == "" {
 				continue
@@ -149,6 +164,16 @@ func TestRoleAssignmentID(t *testing.T) {
 				ResourceGroup:   "",
 				ManagementGroup: "managementGroup1",
 				Name:            "23456781-2349-8764-5631-234567890121",
+			},
+		},
+		{
+			Input: "/providers/Microsoft.Management/managementGroups/managementGroup1/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:  "",
+				ResourceGroup:   "",
+				ManagementGroup: "managementGroup1",
+				Name:            "23456781-2349-8764-5631-234567890121",
+				TenantId:        "34567812-3456-7653-6742-345678901234",
 			},
 		},
 	}
