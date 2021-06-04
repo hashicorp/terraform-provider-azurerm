@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceResourceGroups() *schema.Resource {
@@ -46,10 +46,6 @@ func dataSourceResourceGroups() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"tags": tags.SchemaDataSource(),
 					},
 				},
@@ -79,7 +75,11 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 
 		if v := val.ID; v != nil {
 			rg["id"] = *v
-			rg["subscription_id"] = parse.ResourceGroupID.SubscriptionId
+			rgStruct, err := parse.ResourceGroupID(*v)
+			if err != nil {
+				return fmt.Errorf("parsing Resource Group ID")
+			}
+			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
 		if v := val.Name; v != nil {
 			rg["name"] = *v
