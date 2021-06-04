@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `network` to use API Version `2020-11-01` [GH-11627]
 * `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties ([#12026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12026))
 * `azurerm_api_management_api_subscription` - support for the `api_id` property ([#12025](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12025))
 * `azurerm_container_registry` - support for  versionless encryption keys for ACR ([#11856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11856))
