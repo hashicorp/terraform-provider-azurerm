@@ -241,7 +241,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("partition_count", props.PartitionCount)
 			d.Set("message_retention", props.MessageRetentionInDays)
 			d.Set("partition_ids", props.PartitionIds)
-			d.Set("status", props.Status)
+			d.Set("status", string(*props.Status))
 
 			captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
 			if err := d.Set("capture_description", captureDescription); err != nil {
