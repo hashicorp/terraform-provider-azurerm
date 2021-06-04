@@ -1,29 +1,29 @@
-## 2.62.0 (Unreleased)
+## 2.62.0 (June 04, 2021)
 
 FEATURES:
 
-* **New Resource** `azurerm_data_protection_backup_vault` [GH-11955]
-* **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` [GH-11834]
-* **New Resource** `azurerm_vmware_express_route_authorization` [GH-11812]
-* **New Resource** `azurerm_storage_object_replication_policy` [GH-11744]
+* **New Resource** `azurerm_data_protection_backup_vault` ([#11955](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11955))
+* **New Resource** `azurerm_postgresql_flexible_server_firewall_rule` ([#11834](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11834))
+* **New Resource** `azurerm_vmware_express_route_authorization` ([#11812](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11812))
+* **New Resource** `azurerm_storage_object_replication_policy` ([#11744](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11744))
 
 ENHANCEMENTS:
 
-* `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties [GH-12026]
-* `azurerm_api_management_api_subscription` - support for the `api_id` property [GH-12025]
-* `azurerm_container_registry` - support for  versionless encryption keys for ACR [GH-11856]
-* `azurerm_kubernetes_cluster` -  support for `gateway_name` for Application Gateway add-on [GH-11984]
-* `azurerm_kubernetes_cluster` - support update of `azure_rbac_enabled` [GH-12029]
-* `azurerm_kubernetes_cluster` - support for `node_public_ip_prefix_id` [GH-11635]
-* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_prefix_id` [GH-11635]
-* `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties [GH-11830]
-* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
-* `azurerm_role_assignment` - support the `delegated_managed_identity_resource_id` property [GH-11848]
+* `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties ([#12026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12026))
+* `azurerm_api_management_api_subscription` - support for the `api_id` property ([#12025](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12025))
+* `azurerm_container_registry` - support for  versionless encryption keys for ACR ([#11856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11856))
+* `azurerm_kubernetes_cluster` -  support for `gateway_name` for Application Gateway add-on ([#11984](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11984))
+* `azurerm_kubernetes_cluster` - support update of `azure_rbac_enabled` ([#12029](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12029))
+* `azurerm_kubernetes_cluster` - support for `node_public_ip_prefix_id` ([#11635](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11635))
+* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_prefix_id` ([#11635](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11635))
+* `azurerm_machine_learning_inference_cluster` - support for the `ssl.leaf_domain_label` and `ssl.overwrite_existing_domain` properties ([#11830](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11830))
+* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties ([#11670](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11670))
+* `azurerm_role_assignment` - support the `delegated_managed_identity_resource_id` property ([#11848](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11848))
 
 BUG FIXES:
 
-* `azuerrm_postgres_server` - do no update `password` unless its changed [GH-12008]
-* `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors [GH-11960]
+* `azuerrm_postgres_server` - do no update `password` unless its changed ([#12008](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12008))
+* `azuerrm_storage_acount` - prevent `containerDeleteRetentionPolicy` and `lastAccessTimeTrackingPolicy` not supported in `AzureUSGovernment` errors ([#11960](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11960))
 
 ## 2.61.0 (May 27, 2021)
 
