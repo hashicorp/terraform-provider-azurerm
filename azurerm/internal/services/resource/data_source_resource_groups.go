@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -90,14 +91,16 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 			}
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
-		if rg["subscription_id_filter"] == nil || contains(resource_groups["subscription_id_filter"], rg["subscription_id"]) {
+		subscription_id_filter := d.Get("subscription_id_filter").([]string)
+		subscription_id := rg["subscription_id"].(string)
+		if subscription_id_filter == nil || contains(subscription_id_filter, subscription_id) {
 			if v := val.Name; v != nil {
 				rg["name"] = *v
 			}
 			if v := val.Type; v != nil {
 				rg["type"] = *v
 			}
-			v := val.Location; v != nil {
+			if v := val.Location; v != nil {
 				rg["location"] = *v
 			}
 			if err = results.Next(); err != nil {
@@ -117,7 +120,6 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 
 	return nil
 }
-
 
 func contains(s []string, str string) bool {
 	for _, v := range s {

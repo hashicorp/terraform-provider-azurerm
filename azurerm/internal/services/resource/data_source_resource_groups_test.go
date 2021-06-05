@@ -18,7 +18,11 @@ func TestAccDataSourceResourceGroups_basic(t *testing.T) {
 			Config: ResourceGroupsDataSource{}.basic(),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resource_groups.0.id").Exists(),
+				check.That(data.ResourceName).Key("resource_groups.0.name").Exists(),
+				check.That(data.ResourceName).Key("resource_groups.0.type").Exists(),
+				check.That(data.ResourceName).Key("resource_groups.0.location").Exists(),
 				check.That(data.ResourceName).Key("resource_groups.0.subscription_id").Exists(),
+				check.That(data.ResourceName).Key("resource_groups.0.tags").Exists(),
 			),
 		},
 	})
