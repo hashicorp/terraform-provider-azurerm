@@ -46,6 +46,15 @@ func dataSourceResourceGroups() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"subscription_id_filter": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 						"tags": tags.SchemaDataSource(),
 					},
 				},
@@ -81,23 +90,24 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 			}
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
-		if v := val.Name; v != nil {
-			rg["name"] = *v
-		}
-		if v := val.Type; v != nil {
-			rg["type"] = *v
-		}
-		if v := val.Location; v != nil {
-			rg["location"] = *v
-		}
+		if rg["subscription_id_filter"] == nil || contains(resource_groups["subscription_id_filter"], rg["subscription_id"]) {
+			if v := val.Name; v != nil {
+				rg["name"] = *v
+			}
+			if v := val.Type; v != nil {
+				rg["type"] = *v
+			}
+			v := val.Location; v != nil {
+				rg["location"] = *v
+			}
+			if err = results.Next(); err != nil {
+				return fmt.Errorf("going to next resource groups value: %+v", err)
+			}
 
-		if err = results.Next(); err != nil {
-			return fmt.Errorf("going to next resource groups value: %+v", err)
+			rg["tags"] = tags.Flatten(val.Tags)
+
+			resource_groups = append(resource_groups, rg)
 		}
-
-		rg["tags"] = tags.Flatten(val.Tags)
-
-		resource_groups = append(resource_groups, rg)
 	}
 
 	d.SetId("resource_groups-" + armClient.Account.TenantId)
@@ -106,4 +116,15 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
 }
