@@ -76,8 +76,14 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("listing resource groups: %+v", err)
 	}
 
+	subscription_id_filter := []string(nil)
+	if v, ok := d.GetOk("subscription_id_filter"); ok {
+		subscription_id_filter = v.([]string)
+	}
+
 	// iterate across each resource groups and append them to slice
 	resource_groups := make([]map[string]interface{}, 0)
+
 	for results.NotDone() {
 		val := results.Value()
 
@@ -91,9 +97,8 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 			}
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
-		subscription_id_filter := d.Get("subscription_id_filter").([]string)
-		subscription_id := rg["subscription_id"].(string)
-		if subscription_id_filter == nil || contains(subscription_id_filter, subscription_id) {
+
+		if subscription_id_filter == nil || contains(subscription_id_filter, rg["subscription_id"].(string)) {
 			if v := val.Name; v != nil {
 				rg["name"] = *v
 			}
