@@ -3,7 +3,7 @@ subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_resource_groups"
 description: |-
-    Get information about the available resource groups.
+  Get information about the available resource groups.
 ---
 
 # Data Source: azurerm_resource_groups
@@ -26,7 +26,7 @@ output "id" {
 
 The following arguments are supported:
 
-
+* `filter_by_subscription_id` - (Optional) List of IDs of the subscriptions to filter.
 
 ## Attributes Reference
 
@@ -48,13 +48,11 @@ A `resource_groups` block exports the following:
 
 * `subscription_id` - The ID of the subscription the resource group resides in.
 
-* `subscription_id_filter` - A `subscription_id_filter` block as defined below.
-
 * `tags` - A mapping of tags assigned to the Resource Group.
 
 * `tenant_id` - The ID of the tenant.
 
-* `type` - The Microsoft type of the resource group.
+* `type` - The Microsoft resource type of the resource group.
 
 ## Timeouts
 
