@@ -88,7 +88,7 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 
 	// iterate across each resource groups and append them to slice
 	resource_groups := make([]map[string]interface{}, 0)
-	sub_tenant_id_map := make(map[string]string, 0)
+	sub_tenant_id_map := make(map[string]string)
 	for results.NotDone() {
 		val := results.Value()
 
