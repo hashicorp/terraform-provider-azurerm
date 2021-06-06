@@ -47,6 +47,10 @@ func dataSourceResourceGroups() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"subscription_id_filter": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -67,6 +71,7 @@ func dataSourceResourceGroups() *schema.Resource {
 func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
 	rgClient := armClient.Resource.GroupsClient
+	subClient := armClient.Subscription.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -97,7 +102,13 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 			}
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
+		resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
 
+		if err != nil {
+			return fmt.Errorf("reading subscription: %+v", err)
+		} else {
+			rg["tenant_id"] = resp.TenantID
+		}
 		if subscription_id_filter == nil || contains(subscription_id_filter, rg["subscription_id"].(string)) {
 			if v := val.Name; v != nil {
 				rg["name"] = *v

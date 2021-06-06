@@ -52,6 +52,8 @@ A `resource_groups` block exports the following:
 
 * `tags` - A mapping of tags assigned to the Resource Group.
 
+* `tenant_id` - The ID of the tenant.
+
 * `type` - The Microsoft type of the resource group.
 
 ## Timeouts

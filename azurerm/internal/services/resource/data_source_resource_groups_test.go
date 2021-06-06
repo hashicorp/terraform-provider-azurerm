@@ -22,6 +22,7 @@ func TestAccDataSourceResourceGroups_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_groups.0.type").Exists(),
 				check.That(data.ResourceName).Key("resource_groups.0.location").Exists(),
 				check.That(data.ResourceName).Key("resource_groups.0.subscription_id").Exists(),
+				check.That(data.ResourceName).Key("resource_groups.0.tenant_id").Exists(),
 			),
 		},
 	})
