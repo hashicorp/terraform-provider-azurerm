@@ -88,7 +88,7 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 
 	// iterate across each resource groups and append them to slice
 	resource_groups := make([]map[string]interface{}, 0)
-
+	sub_tenant_id_map := make(map[string]string, 0)
 	for results.NotDone() {
 		val := results.Value()
 
@@ -102,12 +102,18 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 			}
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
-		resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
 
-		if err != nil {
-			return fmt.Errorf("reading subscription: %+v", err)
+		if val, ok := sub_tenant_id_map[rg["subscription_id"].(string)]; ok {
+			rg["tenant_id"] = val
 		} else {
-			rg["tenant_id"] = resp.TenantID
+			resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
+
+			if err != nil {
+				return fmt.Errorf("reading subscription: %+v", err)
+			} else {
+				rg["tenant_id"] = *resp.TenantID
+				sub_tenant_id_map[rg["subscription_id"].(string)] = rg["tenant_id"].(string)
+			}
 		}
 		if subscription_id_filter == nil || contains(subscription_id_filter, rg["subscription_id"].(string)) {
 			if v := val.Name; v != nil {
