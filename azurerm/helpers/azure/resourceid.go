@@ -11,10 +11,11 @@ import (
 // level fields, and other key-value pairs available via a map in the
 // Path field.
 type ResourceID struct {
-	SubscriptionID string
-	ResourceGroup  string
-	Provider       string
-	Path           map[string]string
+	SubscriptionID    string
+	ResourceGroup     string
+	Provider          string
+	SecondaryProvider string
+	Path              map[string]string
 }
 
 // ParseAzureResourceID converts a long-form Azure Resource Manager ID
@@ -90,6 +91,11 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 	if provider != "" {
 		idObj.Provider = provider
+	}
+
+	if secondaryProvider := componentMap["providers"]; secondaryProvider != "" {
+		idObj.SecondaryProvider = secondaryProvider
+		delete(componentMap, "providers")
 	}
 
 	return idObj, nil
