@@ -6,59 +6,60 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceResourceGroups() *schema.Resource {
-	return &schema.Resource{
+func dataSourceResourceGroups() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceResourceGroupsRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
+			"filter_by_subscription_id": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"resource_groups": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"location": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"subscription_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
-						},
-						"subscription_id_filter": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
 						},
 						"tags": tags.SchemaDataSource(),
 					},
@@ -68,7 +69,7 @@ func dataSourceResourceGroups() *schema.Resource {
 	}
 }
 
-func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
 	rgClient := armClient.Resource.GroupsClient
 	subClient := armClient.Subscription.Client
@@ -81,14 +82,16 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("listing resource groups: %+v", err)
 	}
 
-	subscription_id_filter := []string(nil)
-	if v, ok := d.GetOk("subscription_id_filter"); ok {
-		subscription_id_filter = v.([]string)
+	filterBySubscriptionId := []string(nil)
+	if v, ok := d.GetOk("filter_by_subscription_id"); ok {
+		for _, p := range v.([]interface{}) {
+			filterBySubscriptionId = append(filterBySubscriptionId, p.(string))
+		}
 	}
 
 	// iterate across each resource groups and append them to slice
-	resource_groups := make([]map[string]interface{}, 0)
-	sub_tenant_id_map := make(map[string]string)
+	resourceGroups := make([]map[string]interface{}, 0)
+	subTenantIdMap := make(map[string]string)
 	for results.NotDone() {
 		val := results.Value()
 
@@ -103,7 +106,7 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
 
-		if val, ok := sub_tenant_id_map[rg["subscription_id"].(string)]; ok {
+		if val, ok := subTenantIdMap[rg["subscription_id"].(string)]; ok {
 			rg["tenant_id"] = val
 		} else {
 			resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
@@ -112,10 +115,12 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 				return fmt.Errorf("reading subscription: %+v", err)
 			} else {
 				rg["tenant_id"] = *resp.TenantID
-				sub_tenant_id_map[rg["subscription_id"].(string)] = rg["tenant_id"].(string)
+				subTenantIdMap[rg["subscription_id"].(string)] = rg["tenant_id"].(string)
 			}
 		}
-		if subscription_id_filter == nil || contains(subscription_id_filter, rg["subscription_id"].(string)) {
+
+		filterCondition := contains(filterBySubscriptionId, rg["subscription_id"].(string))
+		if filterBySubscriptionId == nil || filterCondition {
 			if v := val.Name; v != nil {
 				rg["name"] = *v
 			}
@@ -131,12 +136,12 @@ func dataSourceResourceGroupsRead(d *schema.ResourceData, meta interface{}) erro
 
 			rg["tags"] = tags.Flatten(val.Tags)
 
-			resource_groups = append(resource_groups, rg)
+			resourceGroups = append(resourceGroups, rg)
 		}
 	}
 
 	d.SetId("resource_groups-" + armClient.Account.TenantId)
-	if err = d.Set("resource_groups", resource_groups); err != nil {
+	if err = d.Set("resource_groups", resourceGroups); err != nil {
 		return fmt.Errorf("setting `resource_groups`: %+v", err)
 	}
 
