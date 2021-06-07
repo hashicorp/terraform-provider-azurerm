@@ -61,6 +61,10 @@ The following arguments are supported:
 
 -> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `all_apis` scope is used for the subscription.
 
+* `primary_key` - (Optional) The primary subscription key to use for the subscription.
+
+* `secondary_key` - (Optional) The secondary subscription key to use for the subscription.
+
 ---
 
 * `state` - (Optional) The state of this Subscription. Possible values are `active`, `cancelled`, `expired`, `rejected`, `submitted` and `suspended`. Defaults to `submitted`.
