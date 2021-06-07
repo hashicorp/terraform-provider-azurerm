@@ -102,11 +102,9 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if id.Provider != "Microsoft.Authorization" && id.Provider != "" {
 			roleAssignmentId.ResourceProvider = id.Provider
 			// logic to save resource scope
-			result := strings.Split(input, "/")
-			for k, v := range result {
-				if v == id.Provider && len(result) >= k+1 {
-					roleAssignmentId.ResourceScope = fmt.Sprintf("%s/%s", result[k+1], result[k+2])
-				}
+			result := strings.Split(input, "/providers/")
+			if len(result) == 3 {
+				roleAssignmentId.ResourceScope = strings.TrimPrefix(result[1], fmt.Sprintf("%s/", id.Provider))
 			}
 		}
 

@@ -208,6 +208,18 @@ func TestRoleAssignmentID(t *testing.T) {
 				TenantId:         "34567812-3456-7653-6742-345678901234",
 			},
 		},
+		{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "group1",
+				ResourceProvider: "Microsoft.AppPlatform",
+				ResourceScope:    "Spring/spring1/apps/app1",
+				ManagementGroup:  "",
+				Name:             "23456781-2349-8764-5631-234567890121",
+				TenantId:         "34567812-3456-7653-6742-345678901234",
+			},
+		},
 	}
 
 	for _, v := range testData {
@@ -231,15 +243,23 @@ func TestRoleAssignmentID(t *testing.T) {
 		}
 
 		if actual.SubscriptionID != v.Expected.SubscriptionID {
-			t.Fatalf("Expected %q but got %q for Role Assignment Name", v.Expected.SubscriptionID, actual.SubscriptionID)
+			t.Fatalf("Expected %q but got %q for Role Assignment Subscription ID", v.Expected.SubscriptionID, actual.SubscriptionID)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Role Assignment Name", v.Expected.ResourceGroup, actual.ResourceGroup)
+			t.Fatalf("Expected %q but got %q for Role Assignment Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.ResourceProvider != v.Expected.ResourceProvider {
+			t.Fatalf("Expected %q but got %q for Role Assignment Resource Provider", v.Expected.ResourceProvider, actual.ResourceProvider)
+		}
+
+		if actual.ResourceScope != v.Expected.ResourceScope {
+			t.Fatalf("Expected %q but got %q for Role Assignment Resource Scope", v.Expected.ResourceScope, actual.ResourceScope)
 		}
 
 		if actual.ManagementGroup != v.Expected.ManagementGroup {
-			t.Fatalf("Expected %q but got %q for Role Assignment Name", v.Expected.ManagementGroup, actual.ManagementGroup)
+			t.Fatalf("Expected %q but got %q for Role Assignment Management Group", v.Expected.ManagementGroup, actual.ManagementGroup)
 		}
 	}
 }
