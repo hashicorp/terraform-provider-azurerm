@@ -9,17 +9,19 @@ import (
 )
 
 var kubernetesAuthTests = map[string]func(t *testing.T){
-	"apiServerAuthorizedIPRanges":    testAccKubernetesCluster_apiServerAuthorizedIPRanges,
-	"managedClusterIdentity":         testAccKubernetesCluster_managedClusterIdentity,
-	"userAssignedIdentity":           testAccKubernetesCluster_userAssignedIdentity,
-	"updateWithUserAssignedIdentity": testAccKubernetesCluster_updateWithUserAssignedIdentity,
-	"roleBasedAccessControl":         testAccKubernetesCluster_roleBasedAccessControl,
-	"AAD":                            testAccKubernetesCluster_roleBasedAccessControlAAD,
-	"AADUpdateToManaged":             testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
-	"AADManaged":                     testAccKubernetesCluster_roleBasedAccessControlAADManaged,
-	"AADManagedChange":               testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
-	"roleBasedAccessControlAzure":    testAccKubernetesCluster_roleBasedAccessControlAzure,
-	"servicePrincipal":               testAccKubernetesCluster_servicePrincipal,
+	"apiServerAuthorizedIPRanges":      testAccKubernetesCluster_apiServerAuthorizedIPRanges,
+	"managedClusterIdentity":           testAccKubernetesCluster_managedClusterIdentity,
+	"userAssignedIdentity":             testAccKubernetesCluster_userAssignedIdentity,
+	"updateWithUserAssignedIdentity":   testAccKubernetesCluster_updateWithUserAssignedIdentity,
+	"roleBasedAccessControl":           testAccKubernetesCluster_roleBasedAccessControl,
+	"AAD":                              testAccKubernetesCluster_roleBasedAccessControlAAD,
+	"AADUpdateToManaged":               testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
+	"AADManaged":                       testAccKubernetesCluster_roleBasedAccessControlAADManaged,
+	"AADManagedChange":                 testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
+	"roleBasedAccessControlAzure":      testAccKubernetesCluster_roleBasedAccessControlAzure,
+	"servicePrincipal":                 testAccKubernetesCluster_servicePrincipal,
+	"servicePrincipalToSystemAssigned": testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity,
+	"servicePrincipalToUserAssigned":   testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity,
 }
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
@@ -414,6 +416,71 @@ func testAccKubernetesCluster_servicePrincipal(t *testing.T) {
 			),
 		},
 		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
+
+func TestAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t)
+}
+
+func testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.servicePrincipalConfig(data, clientData.Default.ClientID, clientData.Default.ClientSecret),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+		{
+			Config: r.managedClusterIdentityConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("kubelet_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("kubelet_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
+				check.That(data.ResourceName).Key("service_principal.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t)
+}
+
+func testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.servicePrincipalConfig(data, clientData.Default.ClientID, clientData.Default.ClientSecret),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+		{
+			Config: r.userAssignedIdentityConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
