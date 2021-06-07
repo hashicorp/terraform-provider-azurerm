@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` [GH-12049]
+* `azurerm_kubernetes_cluster`: Support for BYO `kubelet_identity` [GH-12037]
 * `azurerm_storage_account` - support for user assigned identities [GH-11752]
 * `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
 
