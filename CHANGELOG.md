@@ -12,6 +12,7 @@ BUG FIXES:
 
 * Service: App Configuration - Fixed a bug in tags on resources all being set to the same value [GH-12062]
 * Service: Event Hubs - Fixed a bug in tags on resources all being set to the same value [GH-12062]
+* `azurerm_subscription` - fix ability to specify `DevTest` as `workload` [GH-12066]
 
 ## 2.62.0 (June 04, 2021)
 
