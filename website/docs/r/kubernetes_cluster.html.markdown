@@ -370,13 +370,13 @@ An `identity` block supports the following:
 
 The `kubelet_identity` block supports the following:
 
-* `client_id` - (Optional) The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically. Requires `kubelet_identity.0.object_id`,`kubelet_identity.0.user_assigned_identity_id` and `identity.0.user_assigned_identity_id` to be specified.
+* `client_id` - (Required) The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.
 
-* `object_id` - (Optional) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically. Requires `kubelet_identity.0.client_id`,`kubelet_identity.0.user_assigned_identity_id` and `identity.0.user_assigned_identity_id` to be specified.
+* `object_id` - (Required) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically.
 
-* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically. Requires `kubelet_identity.0.client_id`,`kubelet_identity.0.object_id` and `identity.0.user_assigned_identity_id` to be specified.
+* `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically. 
 
--> **NOTE:** The functionality to bring your own `kubelet_identity` is in Public Preview, and therefore has some limitations - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity#limitations-2).
+-> **NOTE:** The functionality to bring your own `kubelet_identity` is in Public Preview, and therefore has some limitations - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity#limitations-2). It requires a BYO Cluster Identity  `identity.0.user_assigned_identity_id`) to be specified.
 ---
 
 A `kube_dashboard` block supports the following:
