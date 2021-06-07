@@ -86,7 +86,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				}, false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return old == ""
+					return new == ""
 				},
 			},
 
@@ -152,7 +152,8 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
 
 	workload := subscriptionAlias.Production
-	if workloadRaw := d.Get("workload").(string); workloadRaw != "" {
+	workloadRaw := d.Get("workload").(string)
+	if workloadRaw != "" {
 		workload = subscriptionAlias.Workload(workloadRaw)
 	}
 
