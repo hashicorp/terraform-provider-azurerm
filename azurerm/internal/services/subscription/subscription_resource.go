@@ -86,10 +86,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				}, false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					if new != "" {
-						return false
-					}
-					return true
+					return new == ""
 				},
 			},
 
