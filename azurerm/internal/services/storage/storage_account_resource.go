@@ -549,6 +549,89 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"share_properties": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"cors_rule": schemaStorageAccountCorsRule(true),
+
+						"delete_retention_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+
+						"smb": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"versions": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"SMB2.1",
+												"SMB3.0",
+												"SMB3.1.1",
+											}, false),
+										}},
+
+									"authentication_methods": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"NTLMv2",
+												"Kerberos",
+											}, false),
+										}},
+
+									"kerberos_ticket_encryption": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"RC4-HMAC",
+												"AES-256",
+											}, false),
+										}},
+
+									"channel_encryption": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"AES-128-CCM",
+												"AES-128-GCM",
+												"AES-256-GCM",
+											}, false),
+										}},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			//lintignore:XS003
 			"static_website": {
 				Type:     pluginsdk.TypeList,
@@ -993,6 +1076,19 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if val, ok := d.GetOk("share_properties"); ok {
+		// BlobStorage, Premium general purpose does not support file share settings
+		if accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage / Block Blob Storage /Premium accounts")
+		}
+	}
+
 	if val, ok := d.GetOk("static_website"); ok {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
@@ -1347,6 +1443,19 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("share_properties") {
+		// BlobStorage, BlockBlobStorage, Premium does not support file share settings
+		if accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage /Block Blob Storage / Premium accounts")
+		}
+	}
+
 	if d.HasChange("static_website") {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
@@ -1559,6 +1668,22 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
+	fileServiceClient := storageClient.FileServicesClient
+
+	// FileStorage does not support blob settings
+	if resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
+		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(shareProps.Response) {
+				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", name, err)
+			}
+		}
+
+		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
+			return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", name, err)
 		}
 	}
 
@@ -1935,6 +2060,55 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	blobCorsRules.CorsRules = &corsRules
 
 	return &blobCorsRules
+}
+
+func expandShareProperties(input []interface{}) storage.FileServiceProperties {
+	props := storage.FileServiceProperties{
+		FileServicePropertiesProperties: &storage.FileServicePropertiesProperties{
+			Cors: &storage.CorsRules{
+				CorsRules: &[]storage.CorsRule{},
+			},
+			ShareDeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
+				Enabled: utils.Bool(false),
+			},
+		},
+	}
+
+	if len(input) == 0 || input[0] == nil {
+		return props
+	}
+
+	v := input[0].(map[string]interface{})
+
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["delete_retention_policy"].([]interface{}), false)
+
+	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
+
+	props.ProtocolSettings = &storage.ProtocolSettings{
+		Smb: expandSharePropertiesSMB(v["smb"].([]interface{})),
+	}
+
+	return props
+}
+
+func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
+	if len(input) == 0 || input[0] == nil {
+		return &storage.SmbSetting{
+			Versions:                 utils.String(""),
+			AuthenticationMethods:    utils.String(""),
+			KerberosTicketEncryption: utils.String(""),
+			ChannelEncryption:        utils.String(""),
+		}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &storage.SmbSetting{
+		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_methods"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption"].(*pluginsdk.Set).List(), ";"),
+	}
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
@@ -2452,6 +2626,77 @@ func flattenCorsProperty(input string) []interface{} {
 	}
 
 	return results
+}
+
+func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
+	if input.FileServicePropertiesProperties == nil {
+		return []interface{}{}
+	}
+
+	flattenedCorsRules := make([]interface{}, 0)
+	if corsRules := input.FileServicePropertiesProperties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	}
+
+	flattenedDeletePolicy := make([]interface{}, 0)
+	if deletePolicy := input.FileServicePropertiesProperties.ShareDeleteRetentionPolicy; deletePolicy != nil {
+		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+	}
+
+	flattenedSMB := make([]interface{}, 0)
+	if protocol := input.FileServicePropertiesProperties.ProtocolSettings; protocol != nil {
+		flattenedSMB = flattenedSharePropertiesSMB(protocol.Smb)
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedSMB) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"cors_rule":               flattenedCorsRules,
+			"delete_retention_policy": flattenedDeletePolicy,
+			"smb":                     flattenedSMB,
+		},
+	}
+}
+
+func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	versions := []interface{}{}
+	if input.Versions != nil {
+		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
+	}
+
+	authenticationMethods := []interface{}{}
+	if input.AuthenticationMethods != nil {
+		authenticationMethods = utils.FlattenStringSliceWithDelimiter(input.AuthenticationMethods, ";")
+	}
+
+	kerberosTicketEncryption := []interface{}{}
+	if input.KerberosTicketEncryption != nil {
+		kerberosTicketEncryption = utils.FlattenStringSliceWithDelimiter(input.KerberosTicketEncryption, ";")
+	}
+
+	channelEncryption := []interface{}{}
+	if input.ChannelEncryption != nil {
+		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
+	}
+
+	if len(versions) == 0 && len(authenticationMethods) == 0 &&len(kerberosTicketEncryption)==0 &&len(channelEncryption)==0{
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"versions":                   versions,
+			"authentication_methods":     authenticationMethods,
+			"kerberos_ticket_encryption": kerberosTicketEncryption,
+			"channel_encryption":         channelEncryption,
+		},
+	}
 }
 
 func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {

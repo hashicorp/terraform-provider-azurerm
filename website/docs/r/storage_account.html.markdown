@@ -398,6 +398,14 @@ The following attributes are exported in addition to the arguments listed above:
 * `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
 
 ---
+A `share_properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
+
+
+---
 
 `identity` exports the following:
 
