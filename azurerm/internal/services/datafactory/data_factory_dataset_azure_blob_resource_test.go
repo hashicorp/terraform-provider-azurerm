@@ -279,10 +279,10 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
-  path                = "@concat('run-', pipeline().RunId)"
-  filename            = "@concat('run-', pipeline().RunId, '.txt')"
-  is_path_dynamic     = true
-  is_filename_dynamic = true
+  path                     = "@concat('run-', pipeline().RunId)"
+  filename                 = "@concat('run-', pipeline().RunId, '.txt')"
+  dynamic_filename_enabled = true
+  dynamic_path_enabled     = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

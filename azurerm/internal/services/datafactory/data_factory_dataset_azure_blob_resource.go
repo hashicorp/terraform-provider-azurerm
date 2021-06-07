@@ -71,13 +71,13 @@ func resourceDataFactoryDatasetAzureBlob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"is_path_dynamic": {
+			"dynamic_path_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
-			"is_filename_dynamic": {
+			"dynamic_filename_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -193,8 +193,8 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 
 	azureBlobTableset := datafactory.AzureBlobDataset{
 		AzureBlobDatasetTypeProperties: &datafactory.AzureBlobDatasetTypeProperties{
-			FolderPath: expandDataFactoryExpressionResultType(d.Get("path").(string), d.Get("is_path_dynamic").(bool)),
-			FileName:   expandDataFactoryExpressionResultType(d.Get("filename").(string), d.Get("is_filename_dynamic").(bool)),
+			FolderPath: expandDataFactoryExpressionResultType(d.Get("path").(string), d.Get("dynamic_path_enabled").(bool)),
+			FileName:   expandDataFactoryExpressionResultType(d.Get("filename").(string), d.Get("dynamic_filename_enabled").(bool)),
 		},
 		LinkedServiceName: linkedService,
 		Description:       utils.String(d.Get("description").(string)),
@@ -303,12 +303,12 @@ func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	if properties := azureBlobTable.AzureBlobDatasetTypeProperties; properties != nil {
-		filename, isFileNameDynamic := flattenDataFactoryExpressionResultType(properties.FileName)
-		path, isPathDynamic := flattenDataFactoryExpressionResultType(properties.FolderPath)
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(properties.FileName)
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(properties.FolderPath)
 		d.Set("filename", filename)
 		d.Set("path", path)
-		d.Set("is_filename_dynamic", isFileNameDynamic)
-		d.Set("is_path_dynamic", isPathDynamic)
+		d.Set("dynamic_filename_enabled", dynamicFilenameEnabled)
+		d.Set("dynamic_path_enabled", dynamicPathEnabled)
 	}
 
 	if folder := azureBlobTable.Folder; folder != nil {
