@@ -56,6 +56,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		case key == "subscriptions" && subscriptionID == "":
 			// Catch the subscriptionID before it can be overwritten by another "subscriptions"
 			// value in the ID which is the case for the Service Bus subscription resource
+			subscriptionID = value
 		case key == "providers" && provider == "":
 			// Catch the provider before it can be overwritten by another "providers"
 			// value in the ID which can be the case for the Role Assignment resource
