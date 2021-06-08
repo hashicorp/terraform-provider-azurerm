@@ -264,7 +264,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	managedVirtualNetwork := ""
 	if d.Get("managed_virtual_network_enabled").(bool) {
-		managedVirtualNetwork = "default"
+		managedVirtualNetwork = "true"
 	}
 
 	workspaceInfo := synapse.Workspace{
