@@ -17,6 +17,12 @@ BUG FIXES:
 * Service: Event Hubs - Fixed a bug in tags on resources all being set to the same value [GH-12062]
 * `azurerm_subscription` - fix ability to specify `DevTest` as `workload` [GH-12066]
 
+## 2.62.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_role_assignment` - use the correct ID when assigning roles to resources [GH-12076]
+
 ## 2.62.0 (June 04, 2021)
 
 FEATURES:
