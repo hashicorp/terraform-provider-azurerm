@@ -1,8 +1,8 @@
-## 2.62.1 (Unreleased)
+## 2.62.1 (June 08, 2021)
 
 BUG FIXES:
 
-* `azurerm_role_assignment` - use the correct ID when assigning roles to resources [GH-12076]
+* `azurerm_role_assignment` - use the correct ID when assigning roles to resources ([#12076](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12076))
 
 ## 2.62.0 (June 04, 2021)
 
