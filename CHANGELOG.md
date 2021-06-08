@@ -4,6 +4,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `data.azurerm_synapse_workspace`: Add `identity` attribute [GH-12098]
 * `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` [GH-12049]
 * `azurerm_kubernetes_cluster`: Support for BYO `kubelet_identity` [GH-12037]
 * `azurerm_storage_account` - support for user assigned identities [GH-11752]
