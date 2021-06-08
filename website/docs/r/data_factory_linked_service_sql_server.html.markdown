@@ -115,6 +115,14 @@ A `key_vault_password` block supports the following:
 
 ---
 
+A `key_vault_connection_string` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores SQL Server connection string.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:
