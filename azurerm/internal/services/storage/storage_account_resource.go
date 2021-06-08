@@ -590,7 +590,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 												"SMB3.0",
 												"SMB3.1.1",
 											}, false),
-										}},
+										},
+									},
 
 									"authentication_methods": {
 										Type:     pluginsdk.TypeSet,
@@ -601,7 +602,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 												"NTLMv2",
 												"Kerberos",
 											}, false),
-										}},
+										},
+									},
 
 									"kerberos_ticket_encryption": {
 										Type:     pluginsdk.TypeSet,
@@ -612,7 +614,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 												"RC4-HMAC",
 												"AES-256",
 											}, false),
-										}},
+										},
+									},
 
 									"channel_encryption": {
 										Type:     pluginsdk.TypeSet,
@@ -624,7 +627,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 												"AES-128-GCM",
 												"AES-256-GCM",
 											}, false),
-										}},
+										},
+									},
 								},
 							},
 						},
