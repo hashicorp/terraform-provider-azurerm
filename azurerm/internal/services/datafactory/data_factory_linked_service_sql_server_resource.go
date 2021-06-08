@@ -276,12 +276,14 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
 		if properties.ConnectionString != nil {
-			if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(properties.ConnectionString.(map[string]interface{}))); err != nil {
-				if val, ok := properties.ConnectionString.(string); ok {
-					d.Set("connection_string", val)
-				} else {
-					return fmt.Errorf("setting `connection_string` or `key_vault_connection_string`: %+v", err)
+			if val, ok := properties.ConnectionString.(map[string]interface{}); ok {
+				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
+					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
 				}
+			} else if val, ok := properties.ConnectionString.(string); ok {
+				d.Set("connection_string", val)
+			} else {
+				return fmt.Errorf("setting `connection_string`: %+v", err)
 			}
 		}
 
