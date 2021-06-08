@@ -148,6 +148,20 @@ func TestParseAzureResourceID(t *testing.T) {
 			false,
 		},
 		{
+			"/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example-resources/providers/Microsoft.Storage/storageAccounts/nameStorageAccount/providers/Microsoft.Authorization/roleAssignments/22222222-2222-2222-2222-222222222222",
+			&azure.ResourceID{
+				SubscriptionID:    "11111111-1111-1111-1111-111111111111",
+				ResourceGroup:     "example-resources",
+				Provider:          "Microsoft.Storage",
+				SecondaryProvider: "Microsoft.Authorization",
+				Path: map[string]string{
+					"storageAccounts": "nameStorageAccount",
+					"roleAssignments": "22222222-2222-2222-2222-222222222222",
+				},
+			},
+			false,
+		},
+		{
 			// missing resource group
 			"/subscriptions/11111111-1111-1111-1111-111111111111/providers/Microsoft.ApiManagement/service/service1/subscriptions/22222222-2222-2222-2222-222222222222",
 			&azure.ResourceID{
