@@ -398,12 +398,27 @@ The following attributes are exported in addition to the arguments listed above:
 * `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
 
 ---
+
 A `share_properties` block supports the following:
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
+* `smb` - (Optional) A `smb` block as defined below.
+
+
+---
+
+A `smb` block supports the following:
+
+* `versions` - (Optional) A set of SMB protocol versions. Possible values are `SMB2.1`, `SMB3.0`, and `SMB3.1.1`.
+
+* `authentication_methods` - (Optional) A set of SMB authentication methods. Possible values are `NTLMv2`, and `Kerberos`.
+
+* `kerberos_ticket_encryption` - (Optional) A set of Kerberos ticket encryption. Possible values are `RC4-HMAC`, and `AES-256`.
+
+* `channel_encryption` - (Optional) A set of SMB channel encryption. Possible values are `AES-128-CCM`, `AES-128-GCM`, and `AES-256-GCM`.
 
 ---
 

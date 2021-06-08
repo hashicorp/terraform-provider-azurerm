@@ -1078,14 +1078,15 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if val, ok := d.GetOk("share_properties"); ok {
 		// BlobStorage does not support file share settings
-		if accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) {
+		// FileStorage Premium is supported
+		if accountKind == string(storage.FileStorage) || accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
-			return fmt.Errorf("`share_properties` aren't supported for Blob Storage / Block Blob Storage accounts")
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage / Block Blob / StorageV2 Premium Storage accounts")
 		}
 	}
 
@@ -1445,14 +1446,15 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("share_properties") {
 		// BlobStorage, BlockBlobStorage does not support file share settings
-		if accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) {
+		// FileStorage Premium is supported
+		if accountKind == string(storage.FileStorage) || accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
-			return fmt.Errorf("`share_properties` aren't supported for Blob Storage /Block Blob Storage accounts")
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage /Block Blob /StorageV2 Premium Storage accounts")
 		}
 	}
 
@@ -1673,8 +1675,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	fileServiceClient := storageClient.FileServicesClient
 
-	// FileStorage does not support blob settings
-	if resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
+	// FileStorage does not support blob kind, FileStorage Premium is supported
+	if resp.Kind == storage.FileStorage || resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
