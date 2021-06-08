@@ -236,6 +236,23 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 	})
 }
 
+func TestAccRoleAssignment_resourceScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	id := uuid.New().String()
+
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleResourceScoped(data, id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
@@ -289,6 +306,42 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = data.azurerm_client_config.test.object_id
 }
 `, id)
+}
+
+func (RoleAssignmentResource) roleResourceScoped(data acceptance.TestData, id string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-role-assigment-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23xst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = data.azurerm_client_config.test.object_id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, id)
 }
 
 func (RoleAssignmentResource) requiresImportConfig(id string) string {
