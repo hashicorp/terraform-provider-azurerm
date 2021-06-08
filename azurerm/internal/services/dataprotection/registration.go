@@ -25,6 +25,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_data_protection_backup_vault":             resourceDataProtectionBackupVault(),
-		"azurerm_data_protection_backup_policy_postgresql": resourceDataProtectionBackupPolicyPostgreSql(),
+		"azurerm_data_protection_backup_policy_postgresql": resourceDataProtectionBackupPolicyPostgreSQL(),
 	}
 }

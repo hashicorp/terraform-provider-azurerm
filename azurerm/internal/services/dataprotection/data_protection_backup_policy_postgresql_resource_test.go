@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type DataProtectionBackupPolicyPostgreSqlResource struct{}
+type DataProtectionBackupPolicyPostgreSQLResource struct{}
 
-func TestAccDataProtectionBackupPolicyPostgreSql_basic(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSqlResource{}
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,9 +30,9 @@ func TestAccDataProtectionBackupPolicyPostgreSql_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSql_requiresImport(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSqlResource{}
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,9 +44,9 @@ func TestAccDataProtectionBackupPolicyPostgreSql_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSql_complete(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSqlResource{}
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
@@ -58,9 +58,9 @@ func TestAccDataProtectionBackupPolicyPostgreSql_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSql_update(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSqlResource{}
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
@@ -86,7 +86,7 @@ func TestAccDataProtectionBackupPolicyPostgreSql_update(t *testing.T) {
 	})
 }
 
-func (r DataProtectionBackupPolicyPostgreSqlResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DataProtectionBackupPolicyPostgreSQLResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.BackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (r DataProtectionBackupPolicyPostgreSqlResource) Exists(ctx context.Context
 	return utils.Bool(true), nil
 }
 
-func (r DataProtectionBackupPolicyPostgreSqlResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -122,7 +122,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSqlResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -132,8 +132,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
   resource_group_name = azurerm_resource_group.test.name
   vault_name          = azurerm_data_protection_backup_vault.test.name
 
-  backup_rules {
-    name                     = "backup"
+  backup_rule {
     repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   }
   default_retention_duration = "P4M"
@@ -141,7 +140,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSqlResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -150,8 +149,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "import" {
   name                = azurerm_data_protection_backup_policy_postgresql.test.name
   resource_group_name = azurerm_data_protection_backup_policy_postgresql.test.resource_group_name
   vault_name          = azurerm_data_protection_backup_policy_postgresql.test.vault_name
-  backup_rules {
-    name                     = "backup"
+  backup_rule {
     repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   }
   default_retention_duration = "P4M"
@@ -159,7 +157,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "import" {
 `, config)
 }
 
-func (r DataProtectionBackupPolicyPostgreSqlResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -169,12 +167,11 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
   resource_group_name = azurerm_resource_group.test.name
   vault_name          = azurerm_data_protection_backup_vault.test.name
 
-  backup_rules {
-    name                     = "backup"
+  backup_rule {
     repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   }
   default_retention_duration = "P4M"
-  retention_rules {
+  retention_rule {
     name             = "weekly"
     duration         = "P6M"
     tagging_priority = 20
@@ -183,24 +180,24 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
     }
   }
 
-  retention_rules {
+  retention_rule {
     name             = "thursday"
     duration         = "P1W"
     tagging_priority = 25
     tagging_criteria {
-      days_of_the_week = ["Thursday"]
-      schedule_times   = ["2021-05-23T02:30:00Z"]
+      days_of_week           = ["Thursday"]
+      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
     }
   }
 
-  retention_rules {
+  retention_rule {
     name             = "monthly"
     duration         = "P1D"
     tagging_priority = 30
     tagging_criteria {
-      weeks_of_the_month = ["First", "Last"]
-      days_of_the_week   = ["Tuesday"]
-      schedule_times     = ["2021-05-23T02:30:00Z"]
+      weeks_of_month         = ["First", "Last"]
+      days_of_week           = ["Tuesday"]
+      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
     }
   }
 }
