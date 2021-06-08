@@ -151,7 +151,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 		Description: utils.String(d.Get("description").(string)),
 		SnowflakeLinkedServiceTypeProperties: &datafactory.SnowflakeLinkedServiceTypeProperties{
 			ConnectionString: d.Get("connection_string").(string),
-			Password:         expandAzureKeyVaultPassword(password),
+			Password:         expandAzureKeyVaultSecretReference(password),
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeSnowflake,
 	}

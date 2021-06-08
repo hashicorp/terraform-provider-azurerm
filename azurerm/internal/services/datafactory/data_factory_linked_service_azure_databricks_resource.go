@@ -300,7 +300,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 
 	if len(accessTokenKeyVaultAuth) > 0 && accessTokenKeyVaultAuth[0] != nil {
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
-			AccessToken: expandAzureKeyVaultPassword(accessTokenKeyVaultAuth),
+			AccessToken: expandAzureKeyVaultSecretReference(accessTokenKeyVaultAuth),
 		}
 	}
 

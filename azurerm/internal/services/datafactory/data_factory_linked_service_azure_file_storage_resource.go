@@ -200,7 +200,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
 		password := v.([]interface{})
-		fileStorageProperties.Password = expandAzureKeyVaultPassword(password)
+		fileStorageProperties.Password = expandAzureKeyVaultSecretReference(password)
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {

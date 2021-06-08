@@ -151,7 +151,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 		Description: utils.String(d.Get("description").(string)),
 		AzureSQLDWLinkedServiceTypeProperties: &datafactory.AzureSQLDWLinkedServiceTypeProperties{
 			ConnectionString: d.Get("connection_string").(string),
-			Password:         expandAzureKeyVaultPassword(password),
+			Password:         expandAzureKeyVaultSecretReference(password),
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureSQLDW,
 	}
