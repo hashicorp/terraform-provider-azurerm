@@ -1,3 +1,9 @@
+## 2.62.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_role_assignment` - use the correct ID when assigning roles to resources [GH-12076]
+
 ## 2.62.0 (June 04, 2021)
 
 FEATURES:
