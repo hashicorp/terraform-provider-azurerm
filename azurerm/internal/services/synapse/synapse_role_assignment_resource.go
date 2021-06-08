@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol"
 	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -45,14 +44,20 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"synapse_scope": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.Any(
-					validate.WorkspaceID,
-					validate.SparkPoolID,
-				),
+			"synapse_workspace_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
+				ValidateFunc: validate.WorkspaceID,
+			},
+
+			"synapse_spark_pool_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
+				ValidateFunc: validate.SparkPoolID,
 			},
 
 			"principal_id": {
@@ -89,7 +94,13 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
 
-	synapseScope := d.Get("synapse_scope").(string)
+	synapseScope := ""
+	if v, ok := d.GetOk("synapse_workspace_id"); ok {
+		synapseScope = v.(string)
+	} else if v, ok := d.GetOk("synapse_spark_pool_id"); ok {
+		synapseScope = v.(string)
+	}
+
 	workspaceName, scope, err := parse.SynapseScope(synapseScope)
 	if err != nil {
 		return err
@@ -196,7 +207,17 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 		principalID = resp.PrincipalID.String()
 	}
 	d.Set("principal_id", principalID)
-	d.Set("synapse_scope", id.Scope)
+
+	synapseWorkspaceId := ""
+	synapseSparkPoolId := ""
+	if _, err := parse.WorkspaceID(id.Scope); err == nil {
+		synapseWorkspaceId = id.Scope
+	} else if _, err := parse.SparkPoolID(id.Scope); err == nil {
+		synapseSparkPoolId = id.Scope
+	}
+
+	d.Set("synapse_workspace_id", synapseWorkspaceId)
+	d.Set("synapse_spark_pool_id", synapseSparkPoolId)
 
 	if resp.RoleDefinitionID != nil {
 		role, err := roleDefinitionsClient.GetRoleDefinitionByID(ctx, resp.RoleDefinitionID.String())

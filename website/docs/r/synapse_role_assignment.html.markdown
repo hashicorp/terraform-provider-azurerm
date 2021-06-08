@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_synapse_role_assignment
 
-Allows you to Manages a Synapse Role Assignment.
+Manages a Synapse Role Assignment.
 
 ## Example Usage
 
@@ -52,9 +52,9 @@ resource "azurerm_synapse_firewall_rule" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_synapse_role_assignment" "example" {
-  synapse_scope = azurerm_synapse_workspace.example.id
-  role_name     = "Synapse SQL Administrator"
-  principal_id  = data.azurerm_client_config.current.object_id
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
+  role_name            = "Synapse SQL Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
 
   depends_on = [azurerm_synapse_firewall_rule.example]
 }
@@ -64,9 +64,11 @@ resource "azurerm_synapse_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `synapse_scope` - (Required) The scope at which the Synapse Role Assignment applies to. It could be a Synapse Workspace ID or Synapse Spark Pool ID. Changing this forces a new resource to be created.
+* `synapse_workspace_id` - (Optional) The Synapse Workspace which the Synapse Role Assignment applies to. Changing this forces a new resource to be created.
 
--> **NOTE:** A Synapse firewall rule including local IP is needed to allow access.
+* `synapse_spark_pool_id` - (Optional) The Synapse Spark Pool which the Synapse Role Assignment applies to. Changing this forces a new resource to be created.
+
+-> **NOTE:** A Synapse firewall rule including local IP is needed to allow access. Only one of `synapse_workspace_id`, `synapse_spark_pool_id` must be set.
 
 * `role_name` - (Required) The Role Name of the Synapse Built-In Role. Changing this forces a new resource to be created.
 

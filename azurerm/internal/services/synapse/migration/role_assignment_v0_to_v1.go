@@ -49,10 +49,6 @@ func (RoleAssignmentV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		}
 		rawState["role_name"] = name
 
-		synapseWorkspaceId := rawState["synapse_workspace_id"].(string)
-		delete(rawState, "synapse_workspace_id")
-		rawState["synapse_scope"] = synapseWorkspaceId
-
 		return rawState, nil
 	}
 }

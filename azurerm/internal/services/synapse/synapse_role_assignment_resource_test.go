@@ -45,6 +45,21 @@ func TestAccSynapseRoleAssignment_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccSynapseRoleAssignment_sparkPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
+	r := SynapseRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sparkPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
@@ -78,9 +93,9 @@ func (r SynapseRoleAssignmentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_synapse_role_assignment" "test" {
-  synapse_scope = azurerm_synapse_workspace.test.id
-  role_name     = "Synapse SQL Administrator"
-  principal_id  = data.azurerm_client_config.current.object_id
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  role_name            = "Synapse SQL Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
 
   depends_on = [azurerm_synapse_firewall_rule.test]
 }
@@ -93,11 +108,34 @@ func (r SynapseRoleAssignmentResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_synapse_role_assignment" "import" {
-  synapse_scope = azurerm_synapse_role_assignment.test.synapse_scope
-  role_name     = azurerm_synapse_role_assignment.test.role_name
-  principal_id  = azurerm_synapse_role_assignment.test.principal_id
+  synapse_workspace_id = azurerm_synapse_role_assignment.test.synapse_workspace_id
+  role_name            = azurerm_synapse_role_assignment.test.role_name
+  principal_id         = azurerm_synapse_role_assignment.test.principal_id
 }
 `, config)
+}
+
+func (r SynapseRoleAssignmentResource) sparkPool(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_spark_pool" "test" {
+  name                 = "acctestSSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  node_size_family     = "MemoryOptimized"
+  node_size            = "Small"
+  node_count           = 3
+}
+
+resource "azurerm_synapse_role_assignment" "test" {
+  synapse_spark_pool_id = azurerm_synapse_spark_pool.test.id
+  role_name             = "Synapse Contributor"
+  principal_id          = data.azurerm_client_config.current.object_id
+
+  depends_on = [azurerm_synapse_firewall_rule.test]
+}
+`, template, data.RandomString)
 }
 
 func (r SynapseRoleAssignmentResource) template(data acceptance.TestData) string {
