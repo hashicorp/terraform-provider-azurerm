@@ -197,7 +197,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
 		password := v.([]interface{})
-		sqlDatabaseProperties.Password = expandAzureKeyVaultPassword(password)
+		sqlDatabaseProperties.Password = expandAzureKeyVaultSecretReference(password)
 	}
 
 	azureSQLDatabaseLinkedService := &datafactory.AzureSQLDatabaseLinkedService{
@@ -292,7 +292,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 
 	if password := sql.Password; password != nil {
 		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
-			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
 				return fmt.Errorf("setting `key_vault_password`: %+v", err)
 			}
 		}
