@@ -28,6 +28,7 @@ var services = mapOf(
         "datalake" to "Data Lake",
         "datashare" to "Data Share",
         "databricks" to "DataBricks",
+        "dataprotection" to "DataProtection",
         "databasemigration" to "Database Migration",
         "databoxedge" to "Databox Edge",
         "desktopvirtualization" to "Desktop Virtualization",

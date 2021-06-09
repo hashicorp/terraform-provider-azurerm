@@ -111,6 +111,14 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 				},
 
+				"node_public_ip_prefix_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+					RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
+				},
+
 				"node_taints": {
 					Type:     pluginsdk.TypeList,
 					ForceNew: true,
@@ -191,6 +199,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
 			AvailabilityZones:         defaultCluster.AvailabilityZones,
 			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:      defaultCluster.NodePublicIPPrefixID,
 			ScaleSetPriority:          defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy:    defaultCluster.ScaleSetEvictionPolicy,
 			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
@@ -262,6 +271,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 
 	if maxPods := int32(raw["max_pods"].(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	if prefixID := raw["node_public_ip_prefix_id"].(string); prefixID != "" {
+		profile.NodePublicIPPrefixID = utils.String(prefixID)
 	}
 
 	if osDiskSizeGB := int32(raw["os_disk_size_gb"].(int)); osDiskSizeGB > 0 {
@@ -400,6 +413,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
+	nodePublicIPPrefixID := ""
+	if agentPool.NodePublicIPPrefixID != nil {
+		nodePublicIPPrefixID = *agentPool.NodePublicIPPrefixID
+	}
+
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
 		for _, taint := range *agentPool.NodeTaints {
@@ -453,6 +471,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                         name,
 			"node_count":                   count,
 			"node_labels":                  nodeLabels,
+			"node_public_ip_prefix_id":     nodePublicIPPrefixID,
 			"node_taints":                  []string{},
 			"os_disk_size_gb":              osDiskSizeGB,
 			"os_disk_type":                 string(osDiskType),

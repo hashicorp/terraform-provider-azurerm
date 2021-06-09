@@ -175,6 +175,11 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
 								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
 							},
+							"gateway_name": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 							"subnet_cidr": {
 								Type:          pluginsdk.TypeString,
 								Optional:      true,
@@ -319,6 +324,10 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			config["applicationGatewayId"] = utils.String(gatewayId.(string))
 		}
 
+		if gatewayName, ok := value["gateway_name"]; ok && gatewayName != "" {
+			config["applicationGatewayName"] = utils.String(gatewayName.(string))
+		}
+
 		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
 			config["subnetCIDR"] = utils.String(subnetCIDR.(string))
 		}
@@ -461,6 +470,11 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			gatewayId = *v
 		}
 
+		gatewayName := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
+			gatewayName = *v
+		}
+
 		effectiveGatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
 			effectiveGatewayId = *v
@@ -481,6 +495,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
 			"enabled":                              enabled,
 			"gateway_id":                           gatewayId,
+			"gateway_name":                         gatewayName,
 			"effective_gateway_id":                 effectiveGatewayId,
 			"subnet_cidr":                          subnetCIDR,
 			"subnet_id":                            subnetId,

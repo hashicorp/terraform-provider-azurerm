@@ -47,6 +47,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
 		"azurerm_storage_data_lake_gen2_path":          resourceStorageDataLakeGen2Path(),
 		"azurerm_storage_management_policy":            resourceStorageManagementPolicy(),
+		"azurerm_storage_object_replication":           resourceStorageObjectReplication(),
 		"azurerm_storage_queue":                        resourceStorageQueue(),
 		"azurerm_storage_share":                        resourceStorageShare(),
 		"azurerm_storage_share_file":                   resourceStorageShareFile(),

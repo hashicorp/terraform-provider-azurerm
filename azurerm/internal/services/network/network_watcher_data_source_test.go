@@ -18,7 +18,7 @@ func testAccDataSourceNetworkWatcher_basic(t *testing.T) {
 
 	name := fmt.Sprintf("acctestnw-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

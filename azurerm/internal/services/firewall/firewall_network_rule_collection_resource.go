@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -124,10 +124,10 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(network.Any),
-									string(network.ICMP),
-									string(network.TCP),
-									string(network.UDP),
+									string(network.AzureFirewallNetworkRuleProtocolAny),
+									string(network.AzureFirewallNetworkRuleProtocolICMP),
+									string(network.AzureFirewallNetworkRuleProtocolTCP),
+									string(network.AzureFirewallNetworkRuleProtocolUDP),
 								}, false),
 							},
 							Set: pluginsdk.HashString,

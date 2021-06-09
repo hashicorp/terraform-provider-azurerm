@@ -293,7 +293,7 @@ A `profile` block supports the following:
 
 * `capacity` - (Required) A `capacity` block as defined below.
 
-* `rule` - (Required) One or more (up to 10) `rule` blocks as defined below.
+* `rule` - (Optional) One or more (up to 10) `rule` blocks as defined below.
 
 * `fixed_date` - (Optional) A `fixed_date` block as defined below. This cannot be specified if a `recurrence` block is specified.
 
