@@ -32,7 +32,7 @@ func (id SqlVirtualMachineId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Sql Virtual Machine", segmentsStr)
 }
 
-func (id SqlVirtualMachineId) ID(_ string) string {
+func (id SqlVirtualMachineId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

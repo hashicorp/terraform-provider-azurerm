@@ -35,7 +35,7 @@ func (id ConfigurationId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Configuration", segmentsStr)
 }
 
-func (id ConfigurationId) ID(_ string) string {
+func (id ConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/configurations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }

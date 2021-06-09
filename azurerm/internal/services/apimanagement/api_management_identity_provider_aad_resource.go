@@ -5,61 +5,62 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderAADCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderAADRead,
-		Update: resourceArmApiManagementIdentityProviderAADCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderAADDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementIdentityProviderAADCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderAADRead,
+		Update: resourceApiManagementIdentityProviderAADCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderAADDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"client_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"client_secret": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"allowed_tenants": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
 			},
 			"signin_tenant": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -67,7 +68,7 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,21 +116,21 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderAADRead(d, meta)
+	return resourceApiManagementIdentityProviderAADRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
 	if err != nil {
@@ -154,18 +155,18 @@ func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderAADDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName), ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

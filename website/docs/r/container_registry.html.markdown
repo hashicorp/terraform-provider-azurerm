@@ -18,8 +18,8 @@ Manages an Azure Container Registry.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_container_registry" "acr" {
@@ -30,6 +30,51 @@ resource "azurerm_container_registry" "acr" {
   admin_enabled            = false
   georeplication_locations = ["East US", "West Europe"]
 }
+```
+
+## Example Usage (Encryption)
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                = "containerRegistry1"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Premium"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id
+    ]
+  }
+
+  encryption {
+    enabled            = true
+    key_vault_key_id   = data.azurerm_key_vault_key.example.id
+    identity_client_id = azurerm_user_assigned_identity.example.client_id
+  }
+
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  name = "registry-uai"
+}
+
+data "azurerm_key_vault_key" "example" {
+  name         = "super-secret"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+
+
 ```
 
 ## Argument Reference
@@ -52,19 +97,41 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
+* `georeplication_locations` - (Optional / **Deprecated in favor of `georeplications`**) A list of Azure locations where the container registry should be geo-replicated.
 
 ~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
 
 ~> **NOTE:** The `georeplication_locations` list cannot contain the location where the Container Registry exists.
 
+~> **NOTE:** The `georeplication_locations` is deprecated, use `georeplications` instead.
+
+* `georeplications` - (Optional) A `georeplications` block as documented below.
+
+~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
+
+~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
+
+* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-~> **NOTE:** `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
+* `identity` - (Optional) An `identity` block as documented below.
+
+* `encryption` - (Optional) An `encryption` block as documented below.
+
+~> **NOTE:** `quarantine_policy_enabled`, `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
+
+`georeplications` supports the following:
+
+* `location` - (Required) A location where the container registry should be geo-replicated.
+
+* `tags` - (Optional) A mapping of tags to assign to this replication location.
 
 `network_rule_set` supports the following:
 
@@ -99,6 +166,22 @@ The following arguments are supported:
 * `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
+
+`identity` supports the following:
+
+* `type` - (Required) The type of Managed Identity which should be assigned to the Container Registry. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Container Registry.
+
+`encryption` supports the following:
+
+* `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key.
+
+* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key. 
+
+~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
 ## Attributes Reference

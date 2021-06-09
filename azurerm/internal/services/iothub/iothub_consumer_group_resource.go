@@ -5,49 +5,48 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubConsumerGroup() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmIotHubConsumerGroupCreate,
-		Read:   resourceArmIotHubConsumerGroupRead,
-		Delete: resourceArmIotHubConsumerGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceIotHubConsumerGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceIotHubConsumerGroupCreate,
+		Read:   resourceIotHubConsumerGroupRead,
+		Delete: resourceIotHubConsumerGroupDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubConsumerGroupName,
 			},
 
 			"iothub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubName,
 			},
 
 			"eventhub_endpoint_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -57,7 +56,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,10 +98,10 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	return resourceArmIotHubConsumerGroupRead(d, meta)
+	return resourceIotHubConsumerGroupRead(d, meta)
 }
 
-func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +133,7 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

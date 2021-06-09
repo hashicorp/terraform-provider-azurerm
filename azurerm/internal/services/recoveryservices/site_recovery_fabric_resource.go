@@ -4,36 +4,36 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryFabric() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSiteRecoveryFabricCreate,
-		Read:   resourceArmSiteRecoveryFabricRead,
+func resourceSiteRecoveryFabric() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSiteRecoveryFabricCreate,
+		Read:   resourceSiteRecoveryFabricRead,
 		Update: nil,
-		Delete: resourceArmSiteRecoveryFabricDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Delete: resourceSiteRecoveryFabricDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -41,17 +41,17 @@ func resourceArmSiteRecoveryFabric() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"location": azure.SchemaLocation(),
 		},
 	}
 }
 
-func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -64,13 +64,14 @@ func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
+			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasBadRequest(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -96,12 +97,12 @@ func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryFabricRead(d, meta)
+	return resourceSiteRecoveryFabricRead(d, meta)
 }
 
-func resourceArmSiteRecoveryFabricRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ func resourceArmSiteRecoveryFabricRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmSiteRecoveryFabricDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

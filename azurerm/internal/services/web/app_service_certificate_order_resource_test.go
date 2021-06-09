@@ -6,18 +6,17 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AppServiceCertificateOrderResource struct{}
 
-func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
+func TestAccAppServiceCertificateOrder_basic(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
@@ -25,10 +24,10 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	r := AppServiceCertificateOrderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
@@ -40,7 +39,7 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
+func TestAccAppServiceCertificateOrder_wildcard(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
@@ -49,10 +48,10 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	r := AppServiceCertificateOrderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.wildcard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
@@ -64,7 +63,7 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
+func TestAccAppServiceCertificateOrder_requiresImport(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
@@ -73,10 +72,10 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	r := AppServiceCertificateOrderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -84,7 +83,7 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
+func TestAccAppServiceCertificateOrder_complete(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
@@ -92,10 +91,10 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	r := AppServiceCertificateOrderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, 4096),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
@@ -110,7 +109,7 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
+func TestAccAppServiceCertificateOrder_update(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
@@ -119,10 +118,10 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	r := AppServiceCertificateOrderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
@@ -132,7 +131,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 		},
 		{
 			Config: r.complete(data, 2048), // keySize cannot be updated
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
 				check.That(data.ResourceName).Key("distinguished_name").HasValue("CN=example.com"),
@@ -141,7 +140,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
 				check.That(data.ResourceName).Key("distinguished_name").HasValue("CN=example.com"),
@@ -153,13 +152,13 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 	})
 }
 
-func (r AppServiceCertificateOrderResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceCertificateOrderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CertificateOrderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.CertificatesOrderClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.CertificatesOrderClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

@@ -2,65 +2,68 @@ package helper
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func ExtendedAuditingSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeList,
+func ExtendedAuditingSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
 		Optional:   true,
 		Computed:   true,
 		Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
-		ConfigMode: schema.SchemaConfigModeAttr,
+		ConfigMode: pluginsdk.SchemaConfigModeAttr,
 		MaxItems:   1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"storage_account_access_key": {
-					Type:         schema.TypeString,
-					Required:     true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_endpoint": {
-					Type:         schema.TypeString,
-					Required:     true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPS,
 				},
 
 				"storage_account_access_key_is_secondary": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"retention_in_days": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 3285),
+				},
+
+				"log_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
 				},
 			},
 		},
 	}
 }
 
-func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
+func ExpandSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
 
 	ExtendedServerBlobAuditingPolicyProperties := sql.ExtendedServerBlobAuditingPolicyProperties{
-		State:                   sql.BlobAuditingPolicyStateEnabled,
-		StorageAccountAccessKey: utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
-		StorageEndpoint:         utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
+		State:                       sql.BlobAuditingPolicyStateEnabled,
+		StorageAccountAccessKey:     utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
+		StorageEndpoint:             utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
+		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := serverBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
 		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
@@ -72,7 +75,7 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 	return &ExtendedServerBlobAuditingPolicyProperties
 }
 
-func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
+func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if extendedServerBlobAuditingPolicy == nil || extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}
@@ -93,6 +96,10 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 	if extendedServerBlobAuditingPolicy.RetentionDays != nil {
 		retentionDays = *extendedServerBlobAuditingPolicy.RetentionDays
 	}
+	var monitor bool
+	if extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
+		monitor = *extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled
+	}
 
 	return []interface{}{
 		map[string]interface{}{
@@ -100,26 +107,24 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 			"storage_endpoint":                        storageEndpoint,
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
+			"log_monitoring_enabled":                  monitor,
 		},
 	}
 }
 
-func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
+func ExpandMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	dbBlobAuditingPolicies := input[0].(map[string]interface{})
 
 	ExtendedDatabaseBlobAuditingPolicyProperties := sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-		State:                   sql.BlobAuditingPolicyStateEnabled,
-		StorageAccountAccessKey: utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
-		StorageEndpoint:         utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
+		State:                       sql.BlobAuditingPolicyStateEnabled,
+		StorageAccountAccessKey:     utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
+		StorageEndpoint:             utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
+		IsAzureMonitorTargetEnabled: utils.Bool(dbBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := dbBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
 		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
@@ -131,7 +136,7 @@ func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.Extended
 	return &ExtendedDatabaseBlobAuditingPolicyProperties
 }
 
-func FlattenAzureRmMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.ExtendedDatabaseBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
+func FlattenMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.ExtendedDatabaseBlobAuditingPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if extendedDatabaseBlobAuditingPolicy == nil || extendedDatabaseBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}
@@ -152,6 +157,10 @@ func FlattenAzureRmMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolic
 	if extendedDatabaseBlobAuditingPolicy.RetentionDays != nil {
 		retentionDays = *extendedDatabaseBlobAuditingPolicy.RetentionDays
 	}
+	var monitor bool
+	if extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
+		monitor = *extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled
+	}
 
 	return []interface{}{
 		map[string]interface{}{
@@ -159,6 +168,7 @@ func FlattenAzureRmMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolic
 			"storage_endpoint":                        storageEndpoint,
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
+			"log_monitoring_enabled":                  monitor,
 		},
 	}
 }

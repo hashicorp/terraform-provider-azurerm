@@ -50,6 +50,15 @@ The following arguments are supported:
 
 * `storage_account` - (Required) One or more `storage_account` blocks as defined below.
 
+* `identity` - (Optional) An `identity` block is documented below.
+
+* `storage_authentication_type` - (Optional) Specifies the storage authentication type. 
+Possible value is  `ManagedIdentity` or `System`.
+
+* `key_delivery_access_control` - (Optional) An `key_delivery_access_control` block is documented below.
+
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+
 ---
 
 A `storage_account` block supports the following:
@@ -60,17 +69,19 @@ A `storage_account` block supports the following:
 
 ~> **NOTE:** Whilst multiple `storage_account` blocks can be specified - one of them must be set to the primary
 
-* `identity` - (Optional) An `identity` block is documented below.
-
-* `storage_authentication_type` - (Optional) Specifies the storage authentication type. 
-Possible value is  `ManagedIdentity` or `System`.
-
-* `tags` - (Optional) A mapping of tags assigned to the resource.
 ---
 
 A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Media Services Account. Possible value is  `SystemAssigned`. 
+
+---
+
+A `key_delivery_access_control` block supports the following:
+
+* `default_action` - (Optional) The Default Action to use when no rules match from `ip_allow_list`. Possible values are `Allow` and `Deny`. 
+
+* `ip_allow_list` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Delivery. 
 
 ---
 

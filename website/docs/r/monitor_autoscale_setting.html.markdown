@@ -15,7 +15,7 @@ Manages a AutoScale Setting which can be applied to Virtual Machine Scale Sets, 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
@@ -47,6 +47,12 @@ resource "azurerm_monitor_autoscale_setting" "example" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+        dimensions {
+          name     = "AppName"
+          operator = "Equals"
+          values   = ["App1"]
+        }
       }
 
       scale_action {
@@ -93,7 +99,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
@@ -179,7 +185,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
@@ -287,7 +293,7 @@ A `profile` block supports the following:
 
 * `capacity` - (Required) A `capacity` block as defined below.
 
-* `rule` - (Required) One or more (up to 10) `rule` blocks as defined below.
+* `rule` - (Optional) One or more (up to 10) `rule` blocks as defined below.
 
 * `fixed_date` - (Optional) A `fixed_date` block as defined below. This cannot be specified if a `recurrence` block is specified.
 
@@ -334,6 +340,10 @@ A `metric_trigger` block supports the following:
 * `time_window` - (Required) Specifies the time range for which data is collected, which must be greater than the delay in metric collection (which varies from resource to resource). This value must be between 5 minutes and 12 hours and be formatted as an ISO 8601 string.
 
 * `threshold` - (Required) Specifies the threshold of the metric that triggers the scale action.
+
+* `metric_namespace` - (Optional) The namespace of the metric that defines what the rule monitors, such as `microsoft.compute/virtualmachinescalesets` for `Virtual Machine Scale Sets`.
+
+* `dimensions` - (Optional) One or more `dimensions` block as defined below.
 
 ---
 
@@ -394,6 +404,16 @@ A `webhook` block supports the following:
 * `service_uri` - (Required) The HTTPS URI which should receive scale notifications.
 
 * `properties` - (Optional) A map of settings.
+
+---
+
+A `dimensions` block supports the following:
+
+* `name` - (Required) The name of the dimension.
+
+* `operator` - (Required) The dimension operator. Possible values are `Equals` and `NotEquals`. `Equals` means being equal to any of the values. `NotEquals` means being not equal to any of the values.
+
+* `values` - (Required) A list of dimension values.
 
 ## Attributes Reference
 

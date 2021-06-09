@@ -29,7 +29,7 @@ func (id ResourceGroupId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Resource Group", segmentsStr)
 }
 
-func (id ResourceGroupId) ID(_ string) string {
+func (id ResourceGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup)
 }

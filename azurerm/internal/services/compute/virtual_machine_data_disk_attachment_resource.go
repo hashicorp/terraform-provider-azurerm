@@ -5,38 +5,37 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVirtualMachineDataDiskAttachmentCreateUpdate,
-		Read:   resourceArmVirtualMachineDataDiskAttachmentRead,
-		Update: resourceArmVirtualMachineDataDiskAttachmentCreateUpdate,
-		Delete: resourceArmVirtualMachineDataDiskAttachmentDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Read:   resourceVirtualMachineDataDiskAttachmentRead,
+		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"managed_disk_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -44,21 +43,21 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 			},
 
 			"virtual_machine_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"lun": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"caching": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.CachingTypesNone),
@@ -69,7 +68,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 			},
 
 			"create_option": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(compute.DiskCreateOptionTypesAttach),
@@ -81,7 +80,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 			},
 
 			"write_accelerator_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -89,7 +88,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,10 +187,10 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(resourceId)
-	return resourceArmVirtualMachineDataDiskAttachmentRead(d, meta)
+	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +250,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,7 +303,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func retrieveDataDiskAttachmentManagedDisk(d *schema.ResourceData, meta interface{}, id string) (*compute.Disk, error) {
+func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta interface{}, id string) (*compute.Disk, error) {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -19,7 +19,7 @@ type StorageShareDataPlaneId struct {
 }
 
 // only present to comply with the interface
-func (id StorageShareDataPlaneId) ID(_ string) string {
+func (id StorageShareDataPlaneId) ID() string {
 	return fmt.Sprintf("https://%s.file.%s/%s", id.AccountName, id.DomainSuffix, id.Name)
 }
 

@@ -9,38 +9,37 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorAutoScaleSetting() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Read:   resourceArmMonitorAutoScaleSettingRead,
-		Update: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Delete: resourceArmMonitorAutoScaleSettingDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceMonitorAutoScaleSettingCreateUpdate,
+		Read:   resourceMonitorAutoScaleSettingRead,
+		Update: resourceMonitorAutoScaleSettingCreateUpdate,
+		Delete: resourceMonitorAutoScaleSettingDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -51,47 +50,47 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"target_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 20,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"capacity": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"minimum": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 									"maximum": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 									"default": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 1000),
 									},
@@ -99,34 +98,34 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 							},
 						},
 						"rule": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 10,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"metric_trigger": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"metric_name": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"metric_resource_id": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: azure.ValidateResourceID,
 												},
 												"time_grain": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ISO8601Duration,
 												},
 												"statistic": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.MetricStatisticTypeAverage),
@@ -137,12 +136,12 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"time_window": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ISO8601Duration,
 												},
 												"time_aggregation": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.TimeAggregationTypeAverage),
@@ -155,7 +154,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"operator": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.Equals),
@@ -168,20 +167,58 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"threshold": {
-													Type:     schema.TypeFloat,
+													Type:     pluginsdk.TypeFloat,
 													Required: true,
+												},
+
+												"metric_namespace": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"dimensions": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"name": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+
+															"operator": {
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(insights.ScaleRuleMetricDimensionOperationTypeEquals),
+																	string(insights.ScaleRuleMetricDimensionOperationTypeNotEquals),
+																}, false),
+															},
+
+															"values": {
+																Type:     pluginsdk.TypeList,
+																Required: true,
+																Elem: &pluginsdk.Schema{
+																	Type:         pluginsdk.TypeString,
+																	ValidateFunc: validation.StringIsNotEmpty,
+																},
+															},
+														},
+													},
 												},
 											},
 										},
 									},
 									"scale_action": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"direction": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
@@ -190,7 +227,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"type": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ChangeCount),
@@ -200,12 +237,12 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"value": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Required:     true,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"cooldown": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ISO8601Duration,
 												},
@@ -216,24 +253,24 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 							},
 						},
 						"fixed_date": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"timezone": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
+										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"start": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 									"end": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
@@ -241,22 +278,22 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 							},
 						},
 						"recurrence": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"timezone": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
+										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"days": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Monday",
 												"Tuesday",
@@ -270,20 +307,20 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 										},
 									},
 									"hours": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeInt,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
 											ValidateFunc: validation.IntBetween(0, 23),
 										},
 									},
 									"minutes": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeInt,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
 											ValidateFunc: validation.IntBetween(0, 59),
 										},
 									},
@@ -295,56 +332,58 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 			},
 
 			"notification": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"email": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"send_to_subscription_administrator": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 									"send_to_subscription_co_administrator": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 									"custom_emails": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 						"webhook": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"service_uri": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"properties": {
-										Type:     schema.TypeMap,
+										Type:     pluginsdk.TypeMap,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 					},
 				},
@@ -355,7 +394,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -417,10 +456,10 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorAutoScaleSettingRead(d, meta)
+	return resourceMonitorAutoScaleSettingRead(d, meta)
 }
 
-func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -470,7 +509,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, tagMap)
 }
 
-func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -544,6 +583,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 		triggerRaw := triggersRaw[0].(map[string]interface{})
 		metricTrigger := insights.MetricTrigger{
 			MetricName:        utils.String(triggerRaw["metric_name"].(string)),
+			MetricNamespace:   utils.String(triggerRaw["metric_namespace"].(string)),
 			MetricResourceURI: utils.String(triggerRaw["metric_resource_id"].(string)),
 			TimeGrain:         utils.String(triggerRaw["time_grain"].(string)),
 			Statistic:         insights.MetricStatisticType(triggerRaw["statistic"].(string)),
@@ -551,6 +591,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 			TimeAggregation:   insights.TimeAggregationType(triggerRaw["time_aggregation"].(string)),
 			Operator:          insights.ComparisonOperationType(triggerRaw["operator"].(string)),
 			Threshold:         utils.Float(triggerRaw["threshold"].(float64)),
+			Dimensions:        expandAzureRmMonitorAutoScaleSettingRuleDimensions(triggerRaw["dimensions"].([]interface{})),
 		}
 
 		actionsRaw := ruleRaw["scale_action"].([]interface{})
@@ -709,6 +750,27 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	return &webhooks
 }
 
+func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]insights.ScaleRuleMetricDimension {
+	dimensions := make([]insights.ScaleRuleMetricDimension, 0)
+
+	for _, v := range input {
+		if v == nil {
+			continue
+		}
+		dimensionRaw := v.(map[string]interface{})
+
+		dimension := insights.ScaleRuleMetricDimension{
+			DimensionName: utils.String(dimensionRaw["name"].(string)),
+			Operator:      insights.ScaleRuleMetricDimensionOperationType(dimensionRaw["operator"].(string)),
+			Values:        utils.ExpandStringSlice(dimensionRaw["values"].([]interface{})),
+		}
+
+		dimensions = append(dimensions, dimension)
+	}
+
+	return &dimensions
+}
+
 func flattenAzureRmMonitorAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
 	if profiles == nil {
 		return []interface{}{}, nil
@@ -787,33 +849,44 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 
 		metricTriggers := make([]interface{}, 0)
 		if trigger := rule.MetricTrigger; trigger != nil {
-			output := make(map[string]interface{})
-
-			output["operator"] = string(trigger.Operator)
-			output["statistic"] = string(trigger.Statistic)
-			output["time_aggregation"] = string(trigger.TimeAggregation)
-
+			var metricName, metricNamespace, metricId, timeGrain, timeWindow string
+			var threshold float64
 			if trigger.MetricName != nil {
-				output["metric_name"] = *trigger.MetricName
+				metricName = *trigger.MetricName
+			}
+
+			if v := trigger.MetricNamespace; v != nil {
+				metricNamespace = *v
 			}
 
 			if trigger.MetricResourceURI != nil {
-				output["metric_resource_id"] = *trigger.MetricResourceURI
+				metricId = *trigger.MetricResourceURI
 			}
 
 			if trigger.TimeGrain != nil {
-				output["time_grain"] = *trigger.TimeGrain
+				timeGrain = *trigger.TimeGrain
 			}
 
 			if trigger.TimeWindow != nil {
-				output["time_window"] = *trigger.TimeWindow
+				timeWindow = *trigger.TimeWindow
 			}
 
 			if trigger.Threshold != nil {
-				output["threshold"] = *trigger.Threshold
+				threshold = *trigger.Threshold
 			}
 
-			metricTriggers = append(metricTriggers, output)
+			metricTriggers = append(metricTriggers, map[string]interface{}{
+				"metric_name":        metricName,
+				"metric_namespace":   metricNamespace,
+				"metric_resource_id": metricId,
+				"time_grain":         timeGrain,
+				"statistic":          string(trigger.Statistic),
+				"time_window":        timeWindow,
+				"time_aggregation":   string(trigger.TimeAggregation),
+				"operator":           string(trigger.Operator),
+				"threshold":          threshold,
+				"dimensions":         flattenAzureRmMonitorAutoScaleSettingRulesDimensions(trigger.Dimensions),
+			})
 		}
 
 		result["metric_trigger"] = metricTriggers
@@ -969,7 +1042,30 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights
 	return results
 }
 
-func validateMonitorAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
+func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights.ScaleRuleMetricDimension) []interface{} {
+	results := make([]interface{}, 0)
+
+	if dimensions == nil {
+		return results
+	}
+
+	for _, dimension := range *dimensions {
+		var name string
+
+		if v := dimension.DimensionName; v != nil {
+			name = *v
+		}
+
+		results = append(results, map[string]interface{}{
+			"name":     name,
+			"operator": string(dimension.Operator),
+			"values":   utils.FlattenStringSlice(dimension.Values),
+		})
+	}
+	return results
+}
+
+func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
 	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",

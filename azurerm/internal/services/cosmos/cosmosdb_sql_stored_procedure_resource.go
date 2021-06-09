@@ -5,43 +5,39 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmCosmosDbSQLStoredProcedureCreate,
-		Read:   resourceArmCosmosDbSQLStoredProcedureRead,
-		Update: resourceArmCosmosDbSQLStoredProcedureUpdate,
-		Delete: resourceArmCosmosDbSQLStoredProcedureDelete,
+func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceCosmosDbSQLStoredProcedureCreate,
+		Read:   resourceCosmosDbSQLStoredProcedureRead,
+		Update: resourceCosmosDbSQLStoredProcedureUpdate,
+		Delete: resourceCosmosDbSQLStoredProcedureDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -50,27 +46,27 @@ func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"body": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"container_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
@@ -79,7 +75,7 @@ func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbSQLStoredProcedureCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,10 +126,10 @@ func resourceArmCosmosDbSQLStoredProcedureCreate(d *schema.ResourceData, meta in
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbSQLStoredProcedureRead(d, meta)
+	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }
 
-func resourceArmCosmosDbSQLStoredProcedureUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,10 +163,10 @@ func resourceArmCosmosDbSQLStoredProcedureUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error waiting for update of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
-	return resourceArmCosmosDbSQLStoredProcedureRead(d, meta)
+	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }
 
-func resourceArmCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,15 +194,15 @@ func resourceArmCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta inte
 	d.Set("name", id.StoredProcedureName)
 
 	if props := resp.SQLStoredProcedureGetProperties; props != nil {
-		if resource := props.Resource; resource != nil {
-			d.Set("body", resource.Body)
+		if props.Resource != nil {
+			d.Set("body", props.Resource.Body)
 		}
 	}
 
 	return nil
 }
 
-func resourceArmCosmosDbSQLStoredProcedureDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

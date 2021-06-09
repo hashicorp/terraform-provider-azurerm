@@ -7,43 +7,42 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBackupProtectionContainerStorageAccount() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmBackupProtectionContainerStorageAccountCreate,
-		Read:   resourceArmBackupProtectionContainerStorageAccountRead,
+func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceBackupProtectionContainerStorageAccountCreate,
+		Read:   resourceBackupProtectionContainerStorageAccountRead,
 		Update: nil,
-		Delete: resourceArmBackupProtectionContainerStorageAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Delete: resourceBackupProtectionContainerStorageAccountDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -52,7 +51,7 @@ func resourceArmBackupProtectionContainerStorageAccount() *schema.Resource {
 	}
 }
 
-func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	opStatusClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -82,7 +81,7 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_backup_protection_container_storage", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_backup_protection_container_storage", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -105,7 +104,7 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 		return fmt.Errorf("Unable to determine operation URL for protection container registration status for %s. (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
@@ -113,7 +112,7 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 	}
 
 	operationID := parsedLocation.Path["operationResults"]
-	if _, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
+	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -122,12 +121,12 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 		return fmt.Errorf("Error retrieving site recovery protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmBackupProtectionContainerStorageAccountRead(d, meta)
+	return resourceBackupProtectionContainerStorageAccountRead(d, meta)
 }
 
-func resourceArmBackupProtectionContainerStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -161,7 +160,7 @@ func resourceArmBackupProtectionContainerStorageAccountRead(d *schema.ResourceDa
 	return nil
 }
 
-func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -187,7 +186,7 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 		return fmt.Errorf("Error unregistering backup protection container %s (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
@@ -195,7 +194,7 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 	}
 	operationID := parsedLocation.Path["backupOperationResults"]
 
-	if _, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d); err != nil {
+	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -203,20 +202,20 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 }
 
 // nolint unused - linter mistakenly things this function isn't used?
-func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
-	state := &resource.StateChangeConf{
+func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *pluginsdk.ResourceData) (backup.OperationStatus, error) {
+	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
 		Delay:                     10 * time.Second,
 		Pending:                   []string{"InProgress"},
 		Target:                    []string{"Succeeded"},
-		Refresh:                   resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
+		Refresh:                   resourceBackupProtectionContainerStorageAccountCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
 		ContinuousTargetOccurence: 5, // Without this buffer, file share backups and storage account deletions may fail if performed immediately after creating/destroying the container
 	}
 
 	if d.IsNewResource() {
-		state.Timeout = d.Timeout(schema.TimeoutCreate)
+		state.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		state.Timeout = d.Timeout(schema.TimeoutUpdate)
+		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
 	log.Printf("[DEBUG] Waiting for backup container operation %q (Vault %q) to complete", operationID, vaultName)
@@ -227,7 +226,7 @@ func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx cont
 	return resp.(backup.OperationStatus), nil
 }
 
-func resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) resource.StateRefreshFunc {
+func resourceBackupProtectionContainerStorageAccountCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {

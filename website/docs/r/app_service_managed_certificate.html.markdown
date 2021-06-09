@@ -15,6 +15,12 @@ This certificate can be used to secure custom domains on App Services (Windows a
 ## Example Usage
 
 ```hcl
+
+data "azurerm_dns_zone" "example" {
+  name                = "mydomain.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -40,14 +46,14 @@ resource "azurerm_app_service" "example" {
   app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
-resource "azurerm_dns_txt_record" "test" {
+resource "azurerm_dns_txt_record" "example" {
   name                = "asuid.mycustomhost.contoso.com"
-  zone_name           = data.azurerm_dns_zone.test.name
-  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.example.name
+  resource_group_name = data.azurerm_dns_zone.example.resource_group_name
   ttl                 = 300
 
   record {
-    value = azurerm_app_service.test.custom_domain_verification_id
+    value = azurerm_app_service.example.custom_domain_verification_id
   }
 }
 

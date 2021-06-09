@@ -6,54 +6,50 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSecurityCenterSubscriptionPricingUpdate,
-		Read:   resourceArmSecurityCenterSubscriptionPricingRead,
-		Update: resourceArmSecurityCenterSubscriptionPricingUpdate,
-		Delete: resourceArmSecurityCenterSubscriptionPricingDelete,
+func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSecurityCenterSubscriptionPricingUpdate,
+		Read:   resourceSecurityCenterSubscriptionPricingRead,
+		Update: resourceSecurityCenterSubscriptionPricingUpdate,
+		Delete: resourceSecurityCenterSubscriptionPricingDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SecurityCenterSubscriptionPricingID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    ResourceArmSecurityCenterSubscriptionPricingV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceArmSecurityCenterSubscriptionPricingUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SubscriptionPricingV0ToV1{},
+		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"tier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(security.Free),
-					string(security.Standard),
+					string(security.PricingTierFree),
+					string(security.PricingTierStandard),
 				}, false),
 			},
 			"resource_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "VirtualMachines",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,13 +61,15 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 					"SqlServerVirtualMachines",
 					"StorageAccounts",
 					"VirtualMachines",
+					"Arm",
+					"Dns",
 				}, false),
 			},
 		},
 	}
 }
 
-func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,10 +99,10 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSecurityCenterSubscriptionPricingRead(d, meta)
+	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
 
-func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +131,7 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceSecurityCenterSubscriptionPricingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil // cannot be deleted.
 }

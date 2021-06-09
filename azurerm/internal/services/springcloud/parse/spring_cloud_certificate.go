@@ -35,7 +35,7 @@ func (id SpringCloudCertificateId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Spring Cloud Certificate", segmentsStr)
 }
 
-func (id SpringCloudCertificateId) ID(_ string) string {
+func (id SpringCloudCertificateId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/certificates/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.CertificateName)
 }

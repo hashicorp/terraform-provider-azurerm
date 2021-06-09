@@ -17,7 +17,7 @@ Manages a Virtual Network Gateway to establish secure, cross-premises connectivi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "test"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `ip_configuration` block supports:
 
 * `name` - (Optional) A user-defined name of the IP configuration. Defaults to
@@ -178,6 +180,8 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
+
+---
 
 The `vpn_client_configuration` block supports:
 
@@ -221,22 +225,35 @@ The `vpn_client_configuration` block supports:
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
     Values `SSTP` and `IkeV2` are incompatible with the use of 
     `aad_tenant`, `aad_audience` and `aad_issuer`.
+  
+---
 
 The `bgp_settings` block supports:
 
 * `asn` - (Optional) The Autonomous System Number (ASN) to use as part of the BGP.
 
-* `peering_address` - (Optional) The BGP peer IP address of the virtual network
-    gateway. This address is needed to configure the created gateway as a BGP Peer
-    on the on-premises VPN devices. The IP address must be part of the subnet of
-    the Virtual Network Gateway. Changing this forces a new resource to be created.
+* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
+  
+---
 
 A `custom_route` block supports the following:
 
-* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation.
+
+---
+
+A `peering_addresses` supports the following:
+
+* `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
+
+* `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
+  
+~> **Note:** The valid range for the reserved APIPA address in Azure Public is from `169.254.21.0` to `169.254.22.255`.
+
+---
 
 The `root_certificate` block supports:
 
@@ -246,6 +263,8 @@ The `root_certificate` block supports:
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM). In particular, this argument *must not* include the
     `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
+ 
+---
 
 The `root_revoked_certificate` block supports:
 
@@ -253,12 +272,29 @@ The `root_revoked_certificate` block supports:
 
 * `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be
     revoked.
-
+  
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
+
+* `bgp_settings` - A block of `bgp_settings`.
+
+---
+
+The `bgp_settings` block supports:
+
+* `peering_addresses` - A list of `peering_addresses` as defined below.
+
+---
+
+The `peering_addresses` supports:
+
+* `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
+
+* `tunnel_ip_addresses` - A list of tunnel IP addresses assigned to the BGP peer of the Virtual Network Gateway.
+
 
 ## Timeouts
 

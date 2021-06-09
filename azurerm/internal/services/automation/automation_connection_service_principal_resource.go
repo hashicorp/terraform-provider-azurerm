@@ -6,40 +6,39 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAutomationConnectionServicePrincipal() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomationConnectionServicePrincipal() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomationConnectionServicePrincipalCreateUpdate,
 		Read:   resourceAutomationConnectionServicePrincipalRead,
 		Update: resourceAutomationConnectionServicePrincipalCreateUpdate,
 		Delete: resourceAutomationConnectionServicePrincipalDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ConnectionID(id)
 			return err
 		}, importAutomationConnection("AzureServicePrincipal")),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ConnectionName,
@@ -48,45 +47,45 @@ func resourceAutomationConnectionServicePrincipal() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"automation_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"application_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"certificate_thumbprint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"subscription_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 		},
 	}
 }
 
-func resourceAutomationConnectionServicePrincipalCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +143,7 @@ func resourceAutomationConnectionServicePrincipalCreateUpdate(d *schema.Resource
 	return resourceAutomationConnectionServicePrincipalRead(d, meta)
 }
 
-func resourceAutomationConnectionServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +186,7 @@ func resourceAutomationConnectionServicePrincipalRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAutomationConnectionServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

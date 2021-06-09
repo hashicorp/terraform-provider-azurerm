@@ -5,84 +5,83 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubRouteTable() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVirtualHubRouteTableCreateUpdate,
-		Read:   resourceArmVirtualHubRouteTableRead,
-		Update: resourceArmVirtualHubRouteTableCreateUpdate,
-		Delete: resourceArmVirtualHubRouteTableDelete,
+func resourceVirtualHubRouteTable() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVirtualHubRouteTableCreateUpdate,
+		Read:   resourceVirtualHubRouteTableRead,
+		Update: resourceVirtualHubRouteTableCreateUpdate,
+		Delete: resourceVirtualHubRouteTableDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.HubRouteTableID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"labels": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"route": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"destinations": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"destinations_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"CIDR",
@@ -92,13 +91,13 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 						},
 
 						"next_hop": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"next_hop_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "ResourceId",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -112,7 +111,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,8 +142,8 @@ func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta in
 	parameters := network.HubRouteTable{
 		Name: utils.String(d.Get("name").(string)),
 		HubRouteTableProperties: &network.HubRouteTableProperties{
-			Labels: utils.ExpandStringSlice(d.Get("labels").(*schema.Set).List()),
-			Routes: expandArmVirtualHubRouteTableHubRoutes(d.Get("route").(*schema.Set).List()),
+			Labels: utils.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
+			Routes: expandVirtualHubRouteTableHubRoutes(d.Get("route").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -168,10 +167,10 @@ func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubRouteTableRead(d, meta)
+	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,19 +192,19 @@ func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		d.Set("labels", utils.FlattenStringSlice(props.Labels))
 
-		if err := d.Set("route", flattenArmVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
+		if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}
 	}
 	return nil
 }
 
-func resourceArmVirtualHubRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,7 +229,7 @@ func resourceArmVirtualHubRouteTableDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandArmVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubRoute {
+func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubRoute {
 	results := make([]network.HubRoute, 0)
 
 	for _, item := range input {
@@ -239,7 +238,7 @@ func expandArmVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubR
 		result := network.HubRoute{
 			Name:            utils.String(v["name"].(string)),
 			DestinationType: utils.String(v["destinations_type"].(string)),
-			Destinations:    utils.ExpandStringSlice(v["destinations"].(*schema.Set).List()),
+			Destinations:    utils.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List()),
 			NextHopType:     utils.String(v["next_hop_type"].(string)),
 			NextHop:         utils.String(v["next_hop"].(string)),
 		}
@@ -250,7 +249,7 @@ func expandArmVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubR
 	return &results
 }
 
-func flattenArmVirtualHubRouteTableHubRoutes(input *[]network.HubRoute) []interface{} {
+func flattenVirtualHubRouteTableHubRoutes(input *[]network.HubRoute) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

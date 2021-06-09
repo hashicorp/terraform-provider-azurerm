@@ -35,7 +35,7 @@ func (id StreamInputId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Stream Input", segmentsStr)
 }
 
-func (id StreamInputId) ID(_ string) string {
+func (id StreamInputId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingjobs/%s/inputs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StreamingjobName, id.InputName)
 }

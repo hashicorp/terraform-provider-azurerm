@@ -4,33 +4,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSharedImageVersions() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmSharedImageVersionsRead,
+func dataSourceSharedImageVersions() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceSharedImageVersionsRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"gallery_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
 			"image_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageName,
 			},
@@ -40,39 +40,39 @@ func dataSourceArmSharedImageVersions() *schema.Resource {
 			"tags_filter": tags.Schema(),
 
 			"images": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"location": azure.SchemaLocationForDataSource(),
 
 						"managed_image_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"target_region": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"regional_replica_count": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
 
 									"storage_account_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -80,7 +80,7 @@ func dataSourceArmSharedImageVersions() *schema.Resource {
 						},
 
 						"exclude_from_latest": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
@@ -92,7 +92,7 @@ func dataSourceArmSharedImageVersions() *schema.Resource {
 	}
 }
 
-func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSharedImageVersionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,26 +102,34 @@ func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterTags := tags.Expand(d.Get("tags_filter").(map[string]interface{}))
 
-	resp, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, imageName)
+	resp, err := client.ListByGalleryImageComplete(ctx, resourceGroup, galleryName, imageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
-			return fmt.Errorf("Shared Image Versions (Image %q / Gallery %q / Resource Group %q) was not found", imageName, galleryName, resourceGroup)
+			return fmt.Errorf("No Versions were found for Shared Image %q / Gallery %q / Resource Group %q", imageName, galleryName, resourceGroup)
 		}
 		return fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", imageName, galleryName, resourceGroup, err)
 	}
 
-	images := flattenSharedImageVersions(resp.Values(), filterTags)
-	if len(images) == 0 {
+	images := make([]compute.GalleryImageVersion, 0)
+	for resp.NotDone() {
+		images = append(images, resp.Value())
+		if err := resp.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("listing next page of images for Shared Image %q / Gallery %q / Resource Group %q: %+v", imageName, galleryName, resourceGroup, err)
+		}
+	}
+
+	flattenedImages := flattenSharedImageVersions(images, filterTags)
+	if len(flattenedImages) == 0 {
 		return fmt.Errorf("unable to find any images")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("%s-%s-%s", imageName, galleryName, resourceGroup))
 
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if err := d.Set("images", images); err != nil {
+	if err := d.Set("images", flattenedImages); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
 	}
 

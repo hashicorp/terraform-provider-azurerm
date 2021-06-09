@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccDataShareDataSetKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
 	r := DataShareDataSetKustoDatabaseResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("kusto_cluster_location").Exists(),
@@ -38,10 +37,10 @@ func TestAccDataShareDataSetKustoDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
 	r := DataShareDataSetKustoDatabaseResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,7 +48,7 @@ func TestAccDataShareDataSetKustoDatabase_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +94,7 @@ resource "azurerm_data_share" "test" {
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                = "acctestkc%[3]d"
+  name                = "acctestkc%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -117,7 +116,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Contributor"
   principal_id         = azurerm_data_share_account.test.identity.0.principal_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r DataShareDataSetKustoDatabaseResource) basic(data acceptance.TestData) string {
@@ -144,5 +143,5 @@ resource "azurerm_data_share_dataset_kusto_database" "import" {
   share_id          = azurerm_data_share.test.id
   kusto_database_id = azurerm_kusto_database.test.id
 }
-`, r.template(data))
+`, r.basic(data))
 }

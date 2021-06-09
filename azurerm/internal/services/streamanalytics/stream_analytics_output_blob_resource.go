@@ -7,42 +7,44 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStreamAnalyticsOutputBlob() *schema.Resource {
-	return &schema.Resource{
+func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsOutputBlobCreateUpdate,
 		Read:   resourceStreamAnalyticsOutputBlobRead,
 		Update: resourceStreamAnalyticsOutputBlobCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputBlobDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.OutputID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"stream_analytics_job_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -51,47 +53,47 @@ func resourceStreamAnalyticsOutputBlob() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"date_format": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path_pattern": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"storage_account_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_container_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"time_format": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsOutputSerialization(),
+			"serialization": schemaStreamAnalyticsOutputSerialization(),
 		},
 	}
 }
 
-func resourceStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +124,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta 
 	timeFormat := d.Get("time_format").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `serialization`: %+v", err)
 	}
@@ -170,38 +172,35 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta 
 	return resourceStreamAnalyticsOutputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	jobName := id.Path["streamingjobs"]
-	name := id.Path["outputs"]
 
-	resp, err := client.Get(ctx, resourceGroup, jobName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Output Blob %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Output EventHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("stream_analytics_job_name", jobName)
+	d.Set("name", id.Name)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.OutputProperties; props != nil {
 		v, ok := props.Datasource.AsBlobOutputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Output Data Source to a Blob Output: %+v", err)
+			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", err)
 		}
 
 		d.Set("date_format", v.DateFormat)
@@ -214,30 +213,27 @@ func resourceStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interfac
 			d.Set("storage_account_name", account.AccountName)
 		}
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-			return fmt.Errorf("Error setting `serialization`: %+v", err)
+		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
 
 	return nil
 }
 
-func resourceStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	jobName := id.Path["streamingjobs"]
-	name := id.Path["outputs"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Output Blob %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

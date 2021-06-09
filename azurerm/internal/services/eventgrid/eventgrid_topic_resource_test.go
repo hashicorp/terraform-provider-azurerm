@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccEventGridTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 	r := EventGridTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
@@ -39,10 +38,10 @@ func TestAccEventGridTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 	r := EventGridTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -57,10 +56,10 @@ func TestAccEventGridTopic_mapping(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 	r := EventGridTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.mapping(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("test"),
 				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("test"),
@@ -76,10 +75,10 @@ func TestAccEventGridTopic_basicWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 	r := EventGridTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
@@ -92,7 +91,27 @@ func TestAccEventGridTopic_basicWithTags(t *testing.T) {
 	})
 }
 
-func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccEventGridTopic_inboundIPRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inboundIPRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("inbound_ip_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.0.ip_mask").HasValue("10.0.0.0/16"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.1.ip_mask").HasValue("10.1.0.0/16"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.0.action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.1.action").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TopicID(state.ID)
 	if err != nil {
 		return nil, err
@@ -190,4 +209,35 @@ resource "azurerm_eventgrid_topic" "test" {
   }
 }
 `, data.RandomInteger, location, data.RandomInteger)
+}
+
+func (EventGridTopicResource) inboundIPRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
+
+  inbound_ip_rule {
+    ip_mask = "10.0.0.0/16"
+    action  = "Allow"
+  }
+
+  inbound_ip_rule {
+    ip_mask = "10.1.0.0/16"
+    action  = "Allow"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

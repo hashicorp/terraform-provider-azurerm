@@ -35,7 +35,7 @@ func (id AttachedDatabaseConfigurationId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Attached Database Configuration", segmentsStr)
 }
 
-func (id AttachedDatabaseConfigurationId) ID(_ string) string {
+func (id AttachedDatabaseConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/AttachedDatabaseConfigurations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
 }

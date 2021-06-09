@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = BotChannelId{}
 
 func TestBotChannelIDFormatter(t *testing.T) {
-	actual := NewBotChannelID("12345678-1234-9876-4563-123456789012", "resGroup1", "botService1", "Discovery1").ID("")
+	actual := NewBotChannelID("12345678-1234-9876-4563-123456789012", "resGroup1", "botService1", "Discovery1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.BotService/botServices/botService1/channels/Discovery1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

@@ -32,7 +32,7 @@ func (id NatGatewayId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Nat Gateway", segmentsStr)
 }
 
-func (id NatGatewayId) ID(_ string) string {
+func (id NatGatewayId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/natGateways/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

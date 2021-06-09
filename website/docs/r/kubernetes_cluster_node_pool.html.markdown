@@ -10,6 +10,8 @@ description: |-
 
 Manages a Node Pool within a Kubernetes Cluster
 
+-> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
+
 ~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
 ## Example Usage
@@ -73,9 +75,11 @@ The following arguments are supported:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Defaults to `false`.
 
+* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to `false`.
+
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.
+* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.  Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -86,6 +90,8 @@ The following arguments are supported:
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool. Changing this forces a new resource to be created.
+
+* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
 
 * `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`). Changing this forces a new resource to be created.
 
@@ -115,6 +121,8 @@ The following arguments are supported:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
 
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
 
 -> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
@@ -136,6 +144,14 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
 * `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000`.
+
+---
+
+A `upgrade_settings` block supports the following:
+
+* `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+-> **Note:** If a percentage is provided, the number of surge nodes is calculated from the current node count on the cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 
 ## Attributes Reference
 

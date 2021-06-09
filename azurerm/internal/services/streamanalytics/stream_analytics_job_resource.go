@@ -6,37 +6,39 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStreamAnalyticsJob() *schema.Resource {
-	return &schema.Resource{
+func resourceStreamAnalyticsJob() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsJobCreateUpdate,
 		Read:   resourceStreamAnalyticsJobRead,
 		Update: resourceStreamAnalyticsJobCreateUpdate,
 		Delete: resourceStreamAnalyticsJobDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.StreamingJobID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -47,7 +49,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"compatibility_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -61,7 +63,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			},
 
 			"data_locale": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -69,7 +71,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 
 			"events_late_arrival_max_delay_in_seconds": {
 				// portal allows for up to 20d 23h 59m 59s
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-1, 1814399),
 				Default:      5,
@@ -77,14 +79,14 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 
 			"events_out_of_order_max_delay_in_seconds": {
 				// portal allows for up to 9m 59s
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 599),
 				Default:      0,
 			},
 
 			"events_out_of_order_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.Adjust),
@@ -94,7 +96,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			},
 
 			"output_error_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.OutputErrorPolicyDrop),
@@ -104,19 +106,19 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			},
 
 			"streaming_units": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
 			},
 
 			"transformation_query": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"job_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -125,7 +127,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 	}
 }
 
-func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -229,31 +231,29 @@ func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StreamingJobID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["streamingjobs"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, "transformation")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Stream Analytics Job %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if resp.Location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
@@ -273,37 +273,35 @@ func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) er
 
 		// Computed
 		d.Set("job_id", props.JobID)
-	}
 
-	if transformation := resp.StreamingJobProperties.Transformation; transformation != nil {
-		if units := transformation.StreamingUnits; units != nil {
-			d.Set("streaming_units", int(*units))
+		if transformation := props.Transformation; transformation != nil {
+			if units := transformation.StreamingUnits; units != nil {
+				d.Set("streaming_units", int(*units))
+			}
+			d.Set("transformation_query", transformation.Query)
 		}
-		d.Set("transformation_query", transformation.Query)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StreamingJobID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["streamingjobs"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

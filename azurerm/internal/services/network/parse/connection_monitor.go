@@ -35,7 +35,7 @@ func (id ConnectionMonitorId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Connection Monitor", segmentsStr)
 }
 
-func (id ConnectionMonitorId) ID(_ string) string {
+func (id ConnectionMonitorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkWatchers/%s/connectionMonitors/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 }

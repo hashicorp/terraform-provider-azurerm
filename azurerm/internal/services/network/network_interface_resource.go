@@ -5,43 +5,45 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var networkInterfaceResourceName = "azurerm_network_interface"
 
-func resourceArmNetworkInterface() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceCreate,
-		Read:   resourceArmNetworkInterfaceRead,
-		Update: resourceArmNetworkInterfaceUpdate,
-		Delete: resourceArmNetworkInterfaceDelete,
+func resourceNetworkInterface() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceNetworkInterfaceCreate,
+		Read:   resourceNetworkInterfaceRead,
+		Update: resourceNetworkInterfaceUpdate,
+		Delete: resourceNetworkInterfaceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NetworkInterfaceID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -51,58 +53,58 @@ func resourceArmNetworkInterface() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"subnet_id": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     azure.ValidateResourceID,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"private_ip_address_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(network.IPv4),
+							Default:  string(network.IPVersionIPv4),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPv4),
-								string(network.IPv6),
+								string(network.IPVersionIPv4),
+								string(network.IPVersionIPv6),
 							}, false),
 						},
 
 						"private_ip_address_allocation": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
+								string(network.IPAllocationMethodDynamic),
+								string(network.IPAllocationMethodStatic),
 							}, true),
 							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"public_ip_address_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"primary": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Computed: true,
 						},
@@ -111,36 +113,36 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"enable_accelerated_networking": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"enable_ip_forwarding": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"internal_dns_name_label": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"internal_domain_name_suffix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -148,57 +150,56 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 			// Computed
 			"applied_dns_servers": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"mac_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"private_ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"private_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"virtual_machine_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Network Interface %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_interface", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_network_interface", id.ID())
 		}
 	}
 
@@ -212,8 +213,8 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
-	locks.ByName(name, networkInterfaceResourceName)
-	defer locks.UnlockByName(name, networkInterfaceResourceName)
+	locks.ByName(id.Name, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
 
 	dns, hasDns := d.GetOk("dns_servers")
 	nameLabel, hasNameLabel := d.GetOk("internal_dns_name_label")
@@ -236,11 +237,11 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	ipConfigsRaw := d.Get("ip_configuration").([]interface{})
 	ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `ip_configuration`: %+v", err)
+		return fmt.Errorf("expanding `ip_configuration`: %+v", err)
 	}
 	lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
 	if err != nil {
-		return fmt.Errorf("Error determining locking details: %+v", err)
+		return fmt.Errorf("determining locking details: %+v", err)
 	}
 
 	lockingDetails.lock()
@@ -251,56 +252,46 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	iface := network.Interface{
-		Name:                      utils.String(name),
+		Name:                      utils.String(id.Name),
 		Location:                  utils.String(location),
 		InterfacePropertiesFormat: &properties,
 		Tags:                      tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, iface)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, iface)
 	if err != nil {
-		return fmt.Errorf("Error creating Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): ID was nil", name, resourceGroup)
-	}
-	d.SetId(*read.ID)
-
-	return resourceArmNetworkInterfaceRead(d, meta)
+	d.SetId(id.ID())
+	return resourceNetworkInterfaceRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkInterfaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkInterfaces"]
 
-	locks.ByName(name, networkInterfaceResourceName)
-	defer locks.UnlockByName(name, networkInterfaceResourceName)
+	locks.ByName(id.Name, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
 
 	// first get the existing one so that we can pull things as needed
-	existing, err := client.Get(ctx, resourceGroup, name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if existing.InterfacePropertiesFormat == nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	// then pull out things we need to lock on
@@ -308,7 +299,7 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	update := network.Interface{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
@@ -369,40 +360,38 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	// this can be managed in another resource, so just port it over
 	update.InterfacePropertiesFormat.NetworkSecurityGroup = existing.InterfacePropertiesFormat.NetworkSecurityGroup
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, update)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, update)
 	if err != nil {
-		return fmt.Errorf("Error updating Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkInterfaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkInterfaces"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -477,52 +466,50 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkInterfaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkInterfaces"]
 
-	locks.ByName(name, networkInterfaceResourceName)
-	defer locks.UnlockByName(name, networkInterfaceResourceName)
+	locks.ByName(id.Name, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
 
-	existing, err := client.Get(ctx, resourceGroup, name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			log.Printf("[DEBUG] Network Interface %q was not found in Resource Group %q - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] %q was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if existing.InterfacePropertiesFormat == nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 	props := *existing.InterfacePropertiesFormat
 
 	lockingDetails, err := determineResourcesToLockFromIPConfiguration(props.IPConfigurations)
 	if err != nil {
-		return fmt.Errorf("Error determining locking details: %+v", err)
+		return fmt.Errorf("determining locking details: %+v", err)
 	}
 
 	lockingDetails.lock()
 	defer lockingDetails.unlock()
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -544,7 +531,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 			PrivateIPAddressVersion:   privateIpAddressVersion,
 		}
 
-		if privateIpAddressVersion == network.IPv4 && subnetId == "" {
+		if privateIpAddressVersion == network.IPVersionIPv4 && subnetId == "" {
 			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
 		}
 

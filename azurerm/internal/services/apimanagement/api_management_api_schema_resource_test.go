@@ -1,114 +1,70 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
+type ApiManagementApiSchemaResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiSchemaDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApiSchema_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiSchemaExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementApiSchema_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
+	r := ApiManagementApiSchemaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
+func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
+	r := ApiManagementApiSchemaResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiSchemaDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApiSchema_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiSchemaExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementApiSchema_requiresImport),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMApiManagementApiSchemaDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiSchemasClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	apiName := id.Path["apis"]
+	schemaID := id.Path["schemas"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_api_schema" {
-			continue
-		}
-
-		schemaID := rs.Primary.Attributes["schema_id"]
-		apiName := rs.Primary.Attributes["api_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.ApiSchemasClient.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagementApi Schema (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMApiManagementApiSchemaExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiSchemasClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		schemaID := rs.Primary.Attributes["schema_id"]
-		apiName := rs.Primary.Attributes["api_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Schema %q (API %q / API Management Service %q / Resource Group: %q) does not exist", schemaID, apiName, serviceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on apiManagementApiSchemasClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMApiManagementApiSchema_basic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApiSchema_template(data)
+func (r ApiManagementApiSchemaResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -118,28 +74,27 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = file("testdata/api_management_api_schema.xml")
+  value               = file("testdata/api_management_api_pluginsdk.xml")
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiSchema_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApiSchema_basic(data)
+func (r ApiManagementApiSchemaResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_api_schema" "import" {
-  api_name            = azurerm_api_management_api_schema.test.api_name
-  api_management_name = azurerm_api_management_api_schema.test.api_management_name
-  resource_group_name = azurerm_api_management_api_schema.test.resource_group_name
-  schema_id           = azurerm_api_management_api_schema.test.schema_id
-  content_type        = azurerm_api_management_api_schema.test.content_type
-  value               = azurerm_api_management_api_schema.test.value
+  api_name            = azurerm_api_management_api_pluginsdk.test.api_name
+  api_management_name = azurerm_api_management_api_pluginsdk.test.api_management_name
+  resource_group_name = azurerm_api_management_api_pluginsdk.test.resource_group_name
+  schema_id           = azurerm_api_management_api_pluginsdk.test.schema_id
+  content_type        = azurerm_api_management_api_pluginsdk.test.content_type
+  value               = azurerm_api_management_api_pluginsdk.test.value
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementApiSchema_template(data acceptance.TestData) string {
+func (ApiManagementApiSchemaResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -3,51 +3,50 @@ package resource
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmManagementLock() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmManagementLockCreateUpdate,
-		Read:   resourceArmManagementLockRead,
-		Delete: resourceArmManagementLockDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceManagementLock() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceManagementLockCreateUpdate,
+		Read:   resourceManagementLockRead,
+		Delete: resourceManagementLockDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmManagementLockName,
+				ValidateFunc: validate.ManagementLockName,
 			},
 
 			"scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"lock_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -57,7 +56,7 @@ func resourceArmManagementLock() *schema.Resource {
 			},
 
 			"notes": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(0, 512),
@@ -66,7 +65,7 @@ func resourceArmManagementLock() *schema.Resource {
 	}
 }
 
-func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementLockCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,15 +111,15 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmManagementLockRead(d, meta)
+	return resourceManagementLockRead(d, meta)
 }
 
-func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRMLockId(d.Id())
+	id, err := ParseAzureRMLockId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -145,12 +144,12 @@ func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRMLockId(d.Id())
+	id, err := ParseAzureRMLockId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,7 +171,7 @@ type AzureManagementLockId struct {
 	Name  string
 }
 
-func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
+func ParseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 	segments := strings.Split(id, "/providers/Microsoft.Authorization/locks/")
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.Authorization/locks/{name} - got %d segments", len(segments))
@@ -185,18 +184,4 @@ func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 		Name:  name,
 	}
 	return &lockId, nil
-}
-
-func validateArmManagementLockName(v interface{}, k string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`[A-Za-z0-9-_]`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
-	}
-
-	if len(input) >= 260 {
-		errors = append(errors, fmt.Errorf("%s can only be a maximum of 260 characters", k))
-	}
-
-	return warnings, errors
 }

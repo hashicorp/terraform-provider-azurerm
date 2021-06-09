@@ -3,44 +3,43 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	kustoValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabase() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmKustoDatabaseCreateUpdate,
-		Read:   resourceArmKustoDatabaseRead,
-		Update: resourceArmKustoDatabaseCreateUpdate,
-		Delete: resourceArmKustoDatabaseDelete,
+func resourceKustoDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceKustoDatabaseCreateUpdate,
+		Read:   resourceKustoDatabaseRead,
+		Update: resourceKustoDatabaseCreateUpdate,
+		Delete: resourceKustoDatabaseDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDatabaseName,
+				ValidateFunc: kustoValidate.DatabaseName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -48,33 +47,33 @@ func resourceArmKustoDatabase() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cluster_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: kustoValidate.ClusterName,
 			},
 
 			"soft_delete_period": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"hot_cache_period": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"size": {
-				Type:     schema.TypeFloat,
+				Type:     pluginsdk.TypeFloat,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,10 +141,10 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*database.ID)
 
-	return resourceArmKustoDatabaseRead(d, meta)
+	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +192,7 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,25 +214,7 @@ func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func validateAzureRMKustoDatabaseName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespaces only", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes and dots: %q", k, name))
-	}
-
-	if len(name) > 260 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
-}
-
-func expandKustoDatabaseProperties(d *schema.ResourceData) *kusto.ReadWriteDatabaseProperties {
+func expandKustoDatabaseProperties(d *pluginsdk.ResourceData) *kusto.ReadWriteDatabaseProperties {
 	databaseProperties := &kusto.ReadWriteDatabaseProperties{}
 
 	if softDeletePeriod, ok := d.GetOk("soft_delete_period"); ok {

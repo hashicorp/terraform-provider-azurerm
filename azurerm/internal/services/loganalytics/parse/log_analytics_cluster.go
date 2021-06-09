@@ -32,7 +32,7 @@ func (id LogAnalyticsClusterId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Log Analytics Cluster", segmentsStr)
 }
 
-func (id LogAnalyticsClusterId) ID(_ string) string {
+func (id LogAnalyticsClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/clusters/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName)
 }

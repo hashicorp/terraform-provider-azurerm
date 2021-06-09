@@ -1,14 +1,14 @@
 package azure
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // shared schema
-func MergeSchema(a map[string]*schema.Schema, b map[string]*schema.Schema) map[string]*schema.Schema {
+func MergeSchema(a map[string]*pluginsdk.Schema, b map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	// TODO: Deprecate and remove this
 
-	s := map[string]*schema.Schema{}
+	s := map[string]*pluginsdk.Schema{}
 
 	for k, v := range a {
 		s[k] = v

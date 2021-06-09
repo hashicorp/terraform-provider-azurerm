@@ -5,47 +5,48 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var routeTableResourceName = "azurerm_route_table"
 
-func resourceArmRouteTable() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmRouteTableCreateUpdate,
-		Read:   resourceArmRouteTableRead,
-		Update: resourceArmRouteTableCreateUpdate,
-		Delete: resourceArmRouteTableDelete,
+func resourceRouteTable() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceRouteTableCreateUpdate,
+		Read:   resourceRouteTableRead,
+		Update: resourceRouteTableCreateUpdate,
+		Delete: resourceRouteTableDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseRouteTableID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.RouteTableID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateRouteTableName,
+				ValidateFunc: validate.RouteTableName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -53,26 +54,26 @@ func resourceArmRouteTable() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"route": {
-				Type:       schema.TypeList,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateRouteName,
+							ValidateFunc: validate.RouteName,
 						},
 
 						"address_prefix": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"next_hop_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.RouteNextHopTypeVirtualNetworkGateway),
@@ -85,7 +86,7 @@ func resourceArmRouteTable() *schema.Resource {
 						},
 
 						"next_hop_in_ip_address": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -94,16 +95,16 @@ func resourceArmRouteTable() *schema.Resource {
 			},
 
 			"disable_bgp_route_propagation": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"subnets": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"tags": tags.Schema(),
@@ -111,7 +112,7 @@ func resourceArmRouteTable() *schema.Resource {
 	}
 }
 
-func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,15 +167,15 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmRouteTableRead(d, meta)
+	return resourceRouteTableRead(d, meta)
 }
 
-func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteTableID(d.Id())
+	id, err := parse.RouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -208,12 +209,12 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteTableID(d.Id())
+	id, err := parse.RouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -232,7 +233,7 @@ func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandRouteTableRoutes(d *schema.ResourceData) *[]network.Route {
+func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]network.Route {
 	configs := d.Get("route").([]interface{})
 	routes := make([]network.Route, 0, len(configs))
 

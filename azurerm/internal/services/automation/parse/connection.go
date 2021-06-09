@@ -35,7 +35,7 @@ func (id ConnectionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Connection", segmentsStr)
 }
 
-func (id ConnectionId) ID(_ string) string {
+func (id ConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/automationAccounts/%s/connections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName, id.Name)
 }

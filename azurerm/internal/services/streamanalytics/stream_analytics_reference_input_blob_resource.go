@@ -7,45 +7,44 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStreamAnalyticsReferenceInputBlob() *schema.Resource {
-	return &schema.Resource{
+func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsReferenceInputBlobCreate,
 		Read:   resourceStreamAnalyticsReferenceInputBlobRead,
 		Update: resourceStreamAnalyticsReferenceInputBlobUpdate,
 		Delete: resourceStreamAnalyticsReferenceInputBlobDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StreamInputID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"stream_analytics_job_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -54,48 +53,48 @@ func resourceStreamAnalyticsReferenceInputBlob() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"date_format": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path_pattern": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_container_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"time_format": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }
 
-func resourceStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -112,7 +111,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", resourceId.ID())
 		}
 	}
 
@@ -125,11 +124,11 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, met
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +151,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, met
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +197,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, meta 
 			d.Set("storage_account_name", account.AccountName)
 		}
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
@@ -206,7 +205,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceStreamAnalyticsReferenceInputBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +224,7 @@ func resourceStreamAnalyticsReferenceInputBlobDelete(d *schema.ResourceData, met
 	return nil
 }
 
-func getBlobReferenceInputProps(d *schema.ResourceData) (streamanalytics.Input, error) {
+func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Input, error) {
 	name := d.Get("name").(string)
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
@@ -235,7 +234,7 @@ func getBlobReferenceInputProps(d *schema.ResourceData) (streamanalytics.Input, 
 	timeFormat := d.Get("time_format").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return streamanalytics.Input{}, fmt.Errorf("expanding `serialization`: %+v", err)
 	}

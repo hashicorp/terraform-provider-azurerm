@@ -32,7 +32,7 @@ func (id EmbeddedId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Embedded", segmentsStr)
 }
 
-func (id EmbeddedId) ID(_ string) string {
+func (id EmbeddedId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.PowerBIDedicated/capacities/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CapacityName)
 }

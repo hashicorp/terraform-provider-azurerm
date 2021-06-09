@@ -32,7 +32,7 @@ func (id ProximityPlacementGroupId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Proximity Placement Group", segmentsStr)
 }
 
-func (id ProximityPlacementGroupId) ID(_ string) string {
+func (id ProximityPlacementGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

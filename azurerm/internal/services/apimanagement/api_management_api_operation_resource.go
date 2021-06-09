@@ -5,110 +5,111 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiOperation() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementApiOperationCreateUpdate,
-		Read:   resourceArmApiManagementApiOperationRead,
-		Update: resourceArmApiManagementApiOperationCreateUpdate,
-		Delete: resourceArmApiManagementApiOperationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApiManagementApiOperation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementApiOperationCreateUpdate,
+		Read:   resourceApiManagementApiOperationRead,
+		Update: resourceApiManagementApiOperationCreateUpdate,
+		Delete: resourceApiManagementApiOperationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
+		Schema: map[string]*pluginsdk.Schema{
+			"operation_id": schemaz.SchemaApiManagementChildName(),
 
-		Schema: map[string]*schema.Schema{
-			"operation_id": azure.SchemaApiManagementChildName(),
+			"api_name": schemaz.SchemaApiManagementApiName(),
 
-			"api_name": azure.SchemaApiManagementApiName(),
-
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"display_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"method": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"url_template": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"request": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
-						"header": azure.SchemaApiManagementOperationParameterContract(),
+						"header": schemaz.SchemaApiManagementOperationParameterContract(),
 
-						"query_parameter": azure.SchemaApiManagementOperationParameterContract(),
+						"query_parameter": schemaz.SchemaApiManagementOperationParameterContract(),
 
-						"representation": azure.SchemaApiManagementOperationRepresentation(),
+						"representation": schemaz.SchemaApiManagementOperationRepresentation(),
 					},
 				},
 			},
 
 			"response": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"status_code": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
-						"header": azure.SchemaApiManagementOperationParameterContract(),
+						"header": schemaz.SchemaApiManagementOperationParameterContract(),
 
-						"representation": azure.SchemaApiManagementOperationRepresentation(),
+						"representation": schemaz.SchemaApiManagementOperationRepresentation(),
 					},
 				},
 			},
 
-			"template_parameter": azure.SchemaApiManagementOperationParameterContract(),
+			"template_parameter": schemaz.SchemaApiManagementOperationParameterContract(),
 		},
 	}
 }
 
-func resourceArmApiManagementApiOperationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +150,7 @@ func resourceArmApiManagementApiOperationCreateUpdate(d *schema.ResourceData, me
 	}
 
 	templateParametersRaw := d.Get("template_parameter").([]interface{})
-	templateParameters := azure.ExpandApiManagementOperationParameterContract(templateParametersRaw)
+	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(templateParametersRaw)
 
 	parameters := apimanagement.OperationContract{
 		OperationContractProperties: &apimanagement.OperationContractProperties{
@@ -174,23 +175,23 @@ func resourceArmApiManagementApiOperationCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiOperationRead(d, meta)
+	return resourceApiManagementApiOperationRead(d, meta)
 }
 
-func resourceArmApiManagementApiOperationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiOperationID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiId := id.Path["apis"]
-	operationId := id.Path["operations"]
+	serviceName := id.ServiceName
+	apiId := id.ApiName
+	operationId := id.OperationName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
 	if err != nil {
@@ -224,7 +225,7 @@ func resourceArmApiManagementApiOperationRead(d *schema.ResourceData, meta inter
 			return fmt.Errorf("flattening `response`: %+v", err)
 		}
 
-		flattenedTemplateParams := azure.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		flattenedTemplateParams := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
 		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
 			return fmt.Errorf("flattening `template_parameter`: %+v", err)
 		}
@@ -233,20 +234,20 @@ func resourceArmApiManagementApiOperationRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmApiManagementApiOperationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiOperationID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiId := id.Path["apis"]
-	operationId := id.Path["operations"]
+	serviceName := id.ServiceName
+	apiId := id.ApiName
+	operationId := id.OperationName
 
 	resp, err := client.Delete(ctx, resourceGroup, serviceName, apiId, operationId, "")
 	if err != nil {
@@ -273,19 +274,19 @@ func expandApiManagementOperationRequestContract(input []interface{}) (*apimanag
 	if headersRaw == nil {
 		headersRaw = []interface{}{}
 	}
-	headers := azure.ExpandApiManagementOperationParameterContract(headersRaw)
+	headers := schemaz.ExpandApiManagementOperationParameterContract(headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]interface{})
 	if queryParametersRaw == nil {
 		queryParametersRaw = []interface{}{}
 	}
-	queryParameters := azure.ExpandApiManagementOperationParameterContract(queryParametersRaw)
+	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]interface{})
 	if representationsRaw == nil {
 		representationsRaw = []interface{}{}
 	}
-	representations, err := azure.ExpandApiManagementOperationRepresentation(representationsRaw)
+	representations, err := schemaz.ExpandApiManagementOperationRepresentation(representationsRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -309,9 +310,9 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 		output["description"] = *input.Description
 	}
 
-	output["header"] = azure.FlattenApiManagementOperationParameterContract(input.Headers)
-	output["query_parameter"] = azure.FlattenApiManagementOperationParameterContract(input.QueryParameters)
-	output["representation"] = azure.FlattenApiManagementOperationRepresentation(input.Representations)
+	output["header"] = schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
+	output["query_parameter"] = schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
+	output["representation"] = schemaz.FlattenApiManagementOperationRepresentation(input.Representations)
 
 	return []interface{}{output}
 }
@@ -330,10 +331,10 @@ func expandApiManagementOperationResponseContract(input []interface{}) (*[]apima
 		statusCode := vs["status_code"].(int)
 
 		headersRaw := vs["header"].([]interface{})
-		headers := azure.ExpandApiManagementOperationParameterContract(headersRaw)
+		headers := schemaz.ExpandApiManagementOperationParameterContract(headersRaw)
 
 		representationsRaw := vs["representation"].([]interface{})
-		representations, err := azure.ExpandApiManagementOperationRepresentation(representationsRaw)
+		representations, err := schemaz.ExpandApiManagementOperationRepresentation(representationsRaw)
 		if err != nil {
 			return nil, err
 		}
@@ -369,8 +370,8 @@ func flattenApiManagementOperationResponseContract(input *[]apimanagement.Respon
 			output["status_code"] = int(*v.StatusCode)
 		}
 
-		output["header"] = azure.FlattenApiManagementOperationParameterContract(v.Headers)
-		output["representation"] = azure.FlattenApiManagementOperationRepresentation(v.Representations)
+		output["header"] = schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
+		output["representation"] = schemaz.FlattenApiManagementOperationRepresentation(v.Representations)
 
 		outputs = append(outputs, output)
 	}

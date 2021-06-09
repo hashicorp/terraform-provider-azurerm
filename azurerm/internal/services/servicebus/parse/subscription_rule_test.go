@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = SubscriptionRuleId{}
 
 func TestSubscriptionRuleIDFormatter(t *testing.T) {
-	actual := NewSubscriptionRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "topic1", "subscription1", "rule1").ID("")
+	actual := NewSubscriptionRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "topic1", "subscription1", "rule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ServiceBus/namespaces/namespace1/topics/topic1/subscriptions/subscription1/rules/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

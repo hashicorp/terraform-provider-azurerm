@@ -1,49 +1,50 @@
 package springcloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSpringCloudService() *schema.Resource {
-	return &schema.Resource{
+func resourceSpringCloudService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSpringCloudServiceCreate,
 		Read:   resourceSpringCloudServiceRead,
 		Update: resourceSpringCloudServiceUpdate,
 		Delete: resourceSpringCloudServiceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudServiceID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudServiceName,
@@ -56,7 +57,7 @@ func resourceSpringCloudService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "S0",
 				ForceNew: true,
@@ -67,45 +68,45 @@ func resourceSpringCloudService() *schema.Resource {
 			},
 
 			"network": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"app_subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: networkValidate.SubnetID,
 						},
 
 						"service_runtime_subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: networkValidate.SubnetID,
 						},
 
 						"cidr_ranges": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							ForceNew: true,
 							MinItems: 3,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"app_network_resource_group": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
 						},
 
 						"service_runtime_network_resource_group": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
@@ -115,27 +116,27 @@ func resourceSpringCloudService() *schema.Resource {
 			},
 
 			"config_server_git_setting": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"uri": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ConfigServerURI,
 						},
 
 						"label": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"search_paths": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -145,41 +146,41 @@ func resourceSpringCloudService() *schema.Resource {
 						"ssh_auth": SchemaConfigServerSSHAuth("config_server_git_setting.0.http_basic_auth"),
 
 						"repository": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"uri": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ConfigServerURI,
 									},
 
 									"label": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 
 									"pattern": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 
 									"search_paths": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -195,24 +196,70 @@ func resourceSpringCloudService() *schema.Resource {
 			},
 
 			"trace": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"instrumentation_key": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
+						},
+
+						"sample_rate": {
+							Type:         pluginsdk.TypeFloat,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.FloatBetween(0, 100),
 						},
 					},
 				},
 			},
 
 			"outbound_public_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"required_network_traffic_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"ip_addresses": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"fqdns": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"direction": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 
@@ -221,8 +268,10 @@ func resourceSpringCloudService() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
+	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,22 +279,21 @@ func resourceSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID("")
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_service", resourceId)
+		return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resource := appplatform.ServiceResource{
 		Location: utils.String(location),
 		Properties: &appplatform.ClusterResourceProperties{
-			Trace:          expandSpringCloudTrace(d.Get("trace").([]interface{})),
 			NetworkProfile: expandSpringCloudNetwork(d.Get("network").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
@@ -261,99 +309,102 @@ func resourceSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) 
 
 	// current create api doesn't take care parameters of config server.
 	// so we need to invoke create api first and then update api
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resource)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, resource)
 	if err != nil {
-		return fmt.Errorf("creating Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
-	if gitProperty != nil {
-		resource.Properties = &appplatform.ClusterResourceProperties{
-			ConfigServerProperties: &appplatform.ConfigServerProperties{
-				ConfigServer: &appplatform.ConfigServerSettings{
-					GitProperty: gitProperty,
-				},
-			},
-		}
-
-		updateFuture, err := client.Update(ctx, resourceGroup, name, resource)
-		if err != nil {
-			return fmt.Errorf("failure updating config server of Spring Cloud Service %q  (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("failure waiting for setting config server of Spring Cloud Service %q config server (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
+	if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
+		return err
 	}
+	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
+	monitorSettings := appplatform.MonitoringSettingResource{
+		Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
+	}
+	updateFuture, err := monitoringSettingsClient.UpdatePut(ctx, id.ResourceGroup, id.SpringName, monitorSettings)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating monitor settings for %s: %+v", id, err)
 	}
-	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil {
-		if err := resp.Properties.ConfigServerProperties.Error; err != nil {
-			return fmt.Errorf("failure setting config server of Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 	}
-
-	d.SetId(resourceId)
+	log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
-func resourceSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
+	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
-	gitProperty, err := expandSpringCloudConfigServerGitProperty(gitPropertyRaw)
+	id, err := parse.SpringCloudServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	springCloudService := appplatform.ServiceResource{
-		Properties: &appplatform.ClusterResourceProperties{
-			ConfigServerProperties: &appplatform.ConfigServerProperties{
-				ConfigServer: &appplatform.ConfigServerSettings{
-					GitProperty: gitProperty,
-				},
+	if d.HasChange("tags") {
+		model := appplatform.ServiceResource{
+			Sku: &appplatform.Sku{
+				Name: utils.String(d.Get("sku_name").(string)),
 			},
-			Trace: expandSpringCloudTrace(d.Get("trace").([]interface{})),
-		},
-		Sku: &appplatform.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	future, err := client.Update(ctx, resourceGroup, name, springCloudService)
-	if err != nil {
-		return fmt.Errorf("updating Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	resp, err := future.Result(*client)
-	if err != nil {
-		return fmt.Errorf("failure getting result of Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil {
-		if err := resp.Properties.ConfigServerProperties.Error; err != nil {
-			return fmt.Errorf("failure setting config server of Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.SpringName, model)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of %s: %+v", id, err)
+		}
+	}
+
+	if d.HasChange("config_server_git_setting") {
+		gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
+		gitProperty, err := expandSpringCloudConfigServerGitProperty(gitPropertyRaw)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
+		if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+	}
+
+	if d.HasChange("trace") {
+		log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
+		monitorSettings := appplatform.MonitoringSettingResource{
+			Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
+		}
+		updateFuture, err := monitoringSettingsClient.UpdatePut(ctx, id.ResourceGroup, id.SpringName, monitorSettings)
+		if err != nil {
+			return fmt.Errorf("updating monitor settings for %s: %+v", id, err)
+		}
+		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
+		}
+		log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 	}
 
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
-func resourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
+	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -372,18 +423,32 @@ func resourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	if err != nil {
+		return fmt.Errorf("retrieving config server settings for %s: %+v", id, err)
 	}
+
+	monitoringSettings, err := monitoringSettingsClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	if err != nil {
+		return fmt.Errorf("retrieving monitoring settings for %s: %+v", id, err)
+	}
+
+	d.Set("name", id.SpringName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
+
+	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
+		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+	}
+
+	if err := d.Set("trace", flattenSpringCloudTrace(monitoringSettings.Properties)); err != nil {
+		return fmt.Errorf("failure setting `trace`: %+v", err)
+	}
+
 	if props := resp.Properties; props != nil {
-		if err := d.Set("trace", flattenSpringCloudTrace(props.Trace)); err != nil {
-			return fmt.Errorf("failure setting `trace`: %+v", err)
-		}
 		if err := d.Set("network", flattenSpringCloudNetwork(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network`: %+v", err)
 		}
@@ -392,15 +457,16 @@ func resourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
-		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
-			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+
+		if err := d.Set("required_network_traffic_rules", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
 		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSpringCloudServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -412,15 +478,46 @@ func resourceSpringCloudServiceDelete(d *schema.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		return fmt.Errorf("failure deleting Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("failure waiting for deleting Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 		}
 	}
 
+	return nil
+}
+
+func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigServersClient, id parse.SpringCloudServiceId, gitProperty *appplatform.ConfigServerGitProperty) error {
+	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
+	configServer := appplatform.ConfigServerResource{
+		Properties: &appplatform.ConfigServerProperties{
+			ConfigServer: &appplatform.ConfigServerSettings{
+				GitProperty: gitProperty,
+			},
+		},
+	}
+	updateFuture, err := client.UpdatePut(ctx, id.ResourceGroup, id.SpringName, configServer)
+	if err != nil {
+		return fmt.Errorf("updating config server for %s: %+v", id, err)
+	}
+	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of config server for %s: %+v", id, err)
+	}
+
+	log.Printf("[DEBUG] Retrieving Config Server Settings for %s..", id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
+	if err != nil {
+		return fmt.Errorf("retrieving config server for %s: %+v", id, err)
+	}
+	if resp.Properties != nil && resp.Properties.Error != nil {
+		if err := resp.Properties.Error; err != nil {
+			return fmt.Errorf("setting config server for %s: %+v", id, err)
+		}
+	}
+	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	return nil
 }
 
@@ -547,20 +644,21 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 	return &results, nil
 }
 
-func expandSpringCloudTrace(input []interface{}) *appplatform.TraceProperties {
+func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingProperties {
 	if len(input) == 0 || input[0] == nil {
-		return &appplatform.TraceProperties{
-			Enabled: utils.Bool(false),
+		return &appplatform.MonitoringSettingProperties{
+			TraceEnabled: utils.Bool(false),
 		}
 	}
 	v := input[0].(map[string]interface{})
-	return &appplatform.TraceProperties{
-		Enabled:                      utils.Bool(true),
-		AppInsightInstrumentationKey: utils.String(v["instrumentation_key"].(string)),
+	return &appplatform.MonitoringSettingProperties{
+		TraceEnabled:                  utils.Bool(true),
+		AppInsightsInstrumentationKey: utils.String(v["instrumentation_key"].(string)),
+		AppInsightsSamplingRate:       utils.Float(v["sample_rate"].(float64)),
 	}
 }
 
-func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *schema.ResourceData) []interface{} {
+func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil || input.ConfigServer == nil || input.ConfigServer.GitProperty == nil {
 		return []interface{}{}
 	}
@@ -652,7 +750,7 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 	}
 }
 
-func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *schema.ResourceData) []interface{} {
+func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -759,18 +857,22 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 	return results
 }
 
-func flattenSpringCloudTrace(input *appplatform.TraceProperties) []interface{} {
+func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	enabled := false
 	instrumentationKey := ""
-	if input.Enabled != nil {
-		enabled = *input.Enabled
+	samplingRate := 0.0
+	if input.TraceEnabled != nil {
+		enabled = *input.TraceEnabled
 	}
-	if input.AppInsightInstrumentationKey != nil {
-		instrumentationKey = *input.AppInsightInstrumentationKey
+	if input.AppInsightsInstrumentationKey != nil {
+		instrumentationKey = *input.AppInsightsInstrumentationKey
+	}
+	if input.AppInsightsSamplingRate != nil {
+		samplingRate = *input.AppInsightsSamplingRate
 	}
 
 	if !enabled {
@@ -780,6 +882,7 @@ func flattenSpringCloudTrace(input *appplatform.TraceProperties) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"instrumentation_key": instrumentationKey,
+			"sample_rate":         samplingRate,
 		},
 	}
 }
@@ -829,4 +932,32 @@ func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []inter
 	}
 
 	return utils.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+}
+
+func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
+	if input == nil || input.RequiredTraffics == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0)
+	for _, v := range *input.RequiredTraffics {
+		protocol := ""
+		if v.Protocol != nil {
+			protocol = *v.Protocol
+		}
+
+		port := 0
+		if v.Port != nil {
+			port = int(*v.Port)
+		}
+
+		result = append(result, map[string]interface{}{
+			"protocol":     protocol,
+			"port":         port,
+			"ip_addresses": utils.FlattenStringSlice(v.Ips),
+			"fqdns":        utils.FlattenStringSlice(v.Fqdns),
+			"direction":    string(v.Direction),
+		})
+	}
+	return result
 }

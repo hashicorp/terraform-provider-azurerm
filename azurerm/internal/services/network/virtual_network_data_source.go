@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualNetwork() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmVnetRead,
+func dataSourceVirtualNetwork() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceVnetRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -31,67 +32,64 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
+
 			"address_space": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"guid": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"subnets": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"vnet_peerings": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	resp, err := client.Get(ctx, resGroup, name, "")
+	id := parse.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Virtual Network %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("Error: %s was not found", id)
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual Network %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Virtual Network %q (resource group %q): %+v", name, resGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

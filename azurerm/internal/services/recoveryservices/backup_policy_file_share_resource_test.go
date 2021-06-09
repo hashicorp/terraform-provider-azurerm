@@ -1,132 +1,356 @@
 package recoveryservices_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+type BackupProtectionPolicyFileShareResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data.ResourceName, data.RandomInteger),
-			},
-			data.ImportStep(),
+func TestAccBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) {
+func TestAccBackupProtectionPolicyFileShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data.ResourceName, data.RandomInteger),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMBackupProtectionPolicyFileShare_requiresImport),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
+func TestAccBackupProtectionPolicyFileShare_WeeklyRetention(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data.ResourceName, data.RandomInteger),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data.ResourceName, data.RandomInteger),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.WeeklyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_weekly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_weekly.0.weekdays.#").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMBackupProtectionPolicyFileShareDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccBackupProtectionPolicyFileShare_WeeklyRetentionImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_backup_policy_file_share" {
-			continue
-		}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.WeeklyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		policyName := rs.Primary.Attributes["name"]
+func TestAccBackupProtectionPolicyFileShare_MonthlyRetention(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
 
-		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.MonthlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_monthly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_monthly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_monthly.0.weeks.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-			return err
-		}
+func TestAccBackupProtectionPolicyFileShare_MonthlyRetentionImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
 
-		return fmt.Errorf("Recovery Services Vault Policy still exists:\n%#v", resp)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.MonthlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_YearlyRetention(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.YearlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_yearly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_yearly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.weeks.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.months.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_YearlyRetentionImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.YearlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_completeDaily(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_weekly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_weekly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_monthly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_monthly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_monthly.0.weeks.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_yearly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.weeks.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.months.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateDailyRetentionToWeekly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.WeeklyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_weekly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_weekly.0.weekdays.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateWeeklyRetentionToMonthly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.WeeklyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.MonthlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_monthly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_monthly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_monthly.0.weeks.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateMonthlyRetentionToYearly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.MonthlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.YearlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("retention_yearly.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("retention_yearly.0.weekdays.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.weeks.#").HasValue("2"),
+				check.That(data.ResourceName).Key("retention_yearly.0.months.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateYearlyRetentionToDaily(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.YearlyRetention(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateDailyToPartial(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeDailyPartial(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t BackupProtectionPolicyFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	policyName := id.Path["backupPolicies"]
+	vaultName := id.Path["vaults"]
+	resourceGroup := id.ResourceGroup
 
-func testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		policyName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault %q Policy: %q", vaultName, policyName)
-		}
-
-		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Recovery Services Vault Policy %q (resource group: %q) was not found: %+v", policyName, resourceGroup, err)
-			}
-
-			return fmt.Errorf("Bad: Get on recoveryServicesVaultsClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, vaultName, resourceGroup, policyName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Recovery Service Protection Policy (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_base(data acceptance.TestData) string {
+func (BackupProtectionPolicyFileShareResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -138,7 +362,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-RSV-%d"
+  name                = "acctest-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
@@ -148,13 +372,12 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyFileShare_base(data)
+func (r BackupProtectionPolicyFileShareResource) basicDaily(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_backup_policy_file_share" "test" {
-  name                = "acctest-PFS-%d"
+  name                = "acctest-%d"
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
 
@@ -167,33 +390,10 @@ resource "azurerm_backup_policy_file_share" "test" {
     count = 10
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyFileShare_base(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_policy_file_share" "test" {
-  name                = "acctest-PFS-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-
-  backup {
-    frequency = "Daily"
-    time      = "23:30"
-  }
-
-  retention_daily {
-    count = 180
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data)
+func (r BackupProtectionPolicyFileShareResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -211,29 +411,251 @@ resource "azurerm_backup_policy_file_share" "import" {
     count = 10
   }
 }
-`, template)
+`, r.basicDaily(data))
 }
 
-func checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-PFS-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-backup-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-RSV-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Daily"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
-		resource.TestCheckResourceAttr(resourceName, "retention_daily.0.count", "10"),
-	)
+func (r BackupProtectionPolicyFileShareResource) WeeklyRetention(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_weekly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+  }
+
+}
+`, r.template(data), data.RandomInteger)
 }
 
-func checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-PFS-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-backup-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-RSV-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Daily"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:30"),
-		resource.TestCheckResourceAttr(resourceName, "retention_daily.0.count", "180"),
-	)
+func (r BackupProtectionPolicyFileShareResource) WeeklyRetentionImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "import" {
+  name                = azurerm_backup_policy_file_share.test.name
+  resource_group_name = azurerm_backup_policy_file_share.test.resource_group_name
+  recovery_vault_name = azurerm_backup_policy_file_share.test.recovery_vault_name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_weekly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+  }
+
+}
+`, r.WeeklyRetention(data))
+}
+
+func (r BackupProtectionPolicyFileShareResource) MonthlyRetention(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+  }
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) MonthlyRetentionImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "import" {
+  name                = azurerm_backup_policy_file_share.test.name
+  resource_group_name = azurerm_backup_policy_file_share.test.resource_group_name
+  recovery_vault_name = azurerm_backup_policy_file_share.test.recovery_vault_name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+  }
+
+}
+`, r.MonthlyRetention(data))
+}
+
+func (r BackupProtectionPolicyFileShareResource) YearlyRetention(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_yearly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+    months   = ["January", "July"]
+  }
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) YearlyRetentionImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "import" {
+  name                = azurerm_backup_policy_file_share.test.name
+  resource_group_name = azurerm_backup_policy_file_share.test.resource_group_name
+  recovery_vault_name = azurerm_backup_policy_file_share.test.recovery_vault_name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_yearly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+    months   = ["January", "July"]
+  }
+
+}
+`, r.YearlyRetention(data))
+}
+
+func (r BackupProtectionPolicyFileShareResource) completeDaily(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_weekly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+  }
+
+  retention_yearly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+    months   = ["January", "July"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) completeDailyPartial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_weekly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First"]
+  }
+
+  retention_yearly {
+    count    = 7
+    weekdays = ["Sunday"]
+    weeks    = ["Last"]
+    months   = ["January"]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

@@ -4,36 +4,35 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitAuthorizationCreate,
-		Read:   resourceArmExpressRouteCircuitAuthorizationRead,
-		Delete: resourceArmExpressRouteCircuitAuthorizationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceExpressRouteCircuitAuthorizationCreate,
+		Read:   resourceExpressRouteCircuitAuthorizationRead,
+		Delete: resourceExpressRouteCircuitAuthorizationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -41,26 +40,26 @@ func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"express_route_circuit_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"authorization_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"authorization_use_status": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,10 +104,10 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmExpressRouteCircuitAuthorizationRead(d, meta)
+	return resourceExpressRouteCircuitAuthorizationRead(d, meta)
 }
 
-func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +142,7 @@ func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

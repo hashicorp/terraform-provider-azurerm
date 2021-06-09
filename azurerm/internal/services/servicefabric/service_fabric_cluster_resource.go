@@ -7,41 +7,41 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabric/mgmt/2018-02-01-preview/servicefabric"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/parse"
+	serviceFabricValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceServiceFabricCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceFabricCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceFabricClusterCreateUpdate,
 		Read:   resourceServiceFabricClusterRead,
 		Update: resourceServiceFabricClusterCreateUpdate,
 		Delete: resourceServiceFabricClusterDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -51,7 +51,7 @@ func resourceServiceFabricCluster() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"reliability_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicefabric.ReliabilityLevelNone),
@@ -63,7 +63,7 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"upgrade_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicefabric.UpgradeModeAutomatic),
@@ -72,48 +72,48 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"cluster_code_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"management_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"vm_image": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"add_on_features": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"azure_active_directory": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"tenant_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 						"cluster_application_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 						"client_application_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
@@ -122,22 +122,22 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"certificate": {
-				Type:          schema.TypeList,
+				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"certificate_common_names"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"thumbprint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"thumbprint_secondary": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"x509_store_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -145,25 +145,25 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"certificate_common_names": {
-				Type:          schema.TypeList,
+				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"certificate"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"common_names": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							MinItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"certificate_common_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"certificate_issuer_thumbprint": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -171,7 +171,7 @@ func resourceServiceFabricCluster() *schema.Resource {
 							},
 						},
 						"x509_store_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -180,38 +180,74 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"reverse_proxy_certificate": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"reverse_proxy_certificate_common_names"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"thumbprint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"thumbprint_secondary": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"x509_store_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
 				},
 			},
 
+			"reverse_proxy_certificate_common_names": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"reverse_proxy_certificate"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"common_names": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"certificate_common_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"certificate_issuer_thumbprint": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"x509_store_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"client_certificate_thumbprint": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"thumbprint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"is_admin": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -219,22 +255,22 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"client_certificate_common_name": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"common_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"issuer_thumbprint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"is_admin": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -242,49 +278,147 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"diagnostics_config": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"storage_account_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"protected_account_key_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"blob_endpoint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"queue_endpoint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"table_endpoint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
 				},
 			},
 
-			"fabric_settings": {
-				Type:     schema.TypeList,
+			"upgrade_policy": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"force_restart_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"health_check_retry_timeout": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "00:45:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"health_check_stable_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "00:01:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"health_check_wait_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "00:00:30",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"upgrade_domain_timeout": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "02:00:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"upgrade_replica_set_check_timeout": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "10675199.02:48:05.4775807",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"upgrade_timeout": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "12:00:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"health_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"max_unhealthy_applications_percent": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+									"max_unhealthy_nodes_percent": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+								},
+							},
+						},
+						"delta_health_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"max_delta_unhealthy_applications_percent": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+									"max_delta_unhealthy_nodes_percent": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+									"max_upgrade_domain_delta_unhealthy_nodes_percent": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"fabric_settings": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"parameters": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -292,51 +426,51 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"node_type": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"placement_properties": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 						"capacities": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 						"instance_count": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 						"is_primary": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 						"client_endpoint_port": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 						"http_endpoint_port": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 						"reverse_proxy_endpoint_port": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validate.PortNumber,
 						},
 						"durability_level": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  string(servicefabric.Bronze),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -347,18 +481,18 @@ func resourceServiceFabricCluster() *schema.Resource {
 						},
 
 						"application_ports": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"start_port": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Required: true,
 									},
 									"end_port": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Required: true,
 									},
 								},
@@ -366,18 +500,18 @@ func resourceServiceFabricCluster() *schema.Resource {
 						},
 
 						"ephemeral_ports": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"start_port": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Required: true,
 									},
 									"end_port": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Required: true,
 									},
 								},
@@ -390,14 +524,14 @@ func resourceServiceFabricCluster() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"cluster_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -427,17 +561,17 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
+	addOnFeaturesRaw := d.Get("add_on_features").(*pluginsdk.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
 
 	azureActiveDirectoryRaw := d.Get("azure_active_directory").([]interface{})
 	azureActiveDirectory := expandServiceFabricClusterAzureActiveDirectory(azureActiveDirectoryRaw)
 
-	reverseProxyCertificateRaw := d.Get("reverse_proxy_certificate").([]interface{})
-	reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw)
-
 	diagnosticsRaw := d.Get("diagnostics_config").([]interface{})
 	diagnostics := expandServiceFabricClusterDiagnosticsConfig(diagnosticsRaw)
+
+	upgradePolicyRaw := d.Get("upgrade_policy").([]interface{})
+	upgradePolicy := expandServiceFabricClusterUpgradePolicy(upgradePolicyRaw)
 
 	fabricSettingsRaw := d.Get("fabric_settings").([]interface{})
 	fabricSettings := expandServiceFabricClusterFabricSettings(fabricSettingsRaw)
@@ -449,23 +583,29 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		ClusterProperties: &servicefabric.ClusterProperties{
-			AddOnFeatures:                   addOnFeatures,
-			AzureActiveDirectory:            azureActiveDirectory,
-			CertificateCommonNames:          expandServiceFabricClusterCertificateCommonNames(d),
-			ReverseProxyCertificate:         reverseProxyCertificate,
-			DiagnosticsStorageAccountConfig: diagnostics,
-			FabricSettings:                  fabricSettings,
-			ManagementEndpoint:              utils.String(managementEndpoint),
-			NodeTypes:                       nodeTypes,
-			ReliabilityLevel:                servicefabric.ReliabilityLevel(reliabilityLevel),
-			UpgradeMode:                     servicefabric.UpgradeMode(upgradeMode),
-			VMImage:                         utils.String(vmImage),
+			AddOnFeatures:                      addOnFeatures,
+			AzureActiveDirectory:               azureActiveDirectory,
+			CertificateCommonNames:             expandServiceFabricClusterCertificateCommonNames(d),
+			ReverseProxyCertificateCommonNames: expandServiceFabricClusterReverseProxyCertificateCommonNames(d),
+			DiagnosticsStorageAccountConfig:    diagnostics,
+			FabricSettings:                     fabricSettings,
+			ManagementEndpoint:                 utils.String(managementEndpoint),
+			NodeTypes:                          nodeTypes,
+			ReliabilityLevel:                   servicefabric.ReliabilityLevel(reliabilityLevel),
+			UpgradeDescription:                 upgradePolicy,
+			UpgradeMode:                        servicefabric.UpgradeMode(upgradeMode),
+			VMImage:                            utils.String(vmImage),
 		},
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
 		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 		cluster.ClusterProperties.Certificate = certificate
+	}
+
+	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
+		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
+		cluster.ClusterProperties.ReverseProxyCertificate = reverseProxyCertificate
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
@@ -504,7 +644,7 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceServiceFabricClusterRead(d, meta)
 }
 
-func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -540,7 +680,7 @@ func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("upgrade_mode", string(props.UpgradeMode))
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
-		if err := d.Set("add_on_features", schema.NewSet(schema.HashString, addOnFeatures)); err != nil {
+		if err := d.Set("add_on_features", pluginsdk.NewSet(pluginsdk.HashString, addOnFeatures)); err != nil {
 			return fmt.Errorf("Error setting `add_on_features`: %+v", err)
 		}
 
@@ -564,6 +704,11 @@ func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `reverse_proxy_certificate`: %+v", err)
 		}
 
+		reverseProxyCertificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)
+		if err := d.Set("reverse_proxy_certificate_common_names", reverseProxyCertificateCommonNames); err != nil {
+			return fmt.Errorf("Error setting `reverse_proxy_certificate_common_names`: %+v", err)
+		}
+
 		clientCertificateThumbprints := flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)
 		if err := d.Set("client_certificate_thumbprint", clientCertificateThumbprints); err != nil {
 			return fmt.Errorf("Error setting `client_certificate_thumbprint`: %+v", err)
@@ -577,6 +722,11 @@ func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) 
 		diagnostics := flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)
 		if err := d.Set("diagnostics_config", diagnostics); err != nil {
 			return fmt.Errorf("Error setting `diagnostics_config`: %+v", err)
+		}
+
+		upgradePolicy := flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)
+		if err := d.Set("upgrade_policy", upgradePolicy); err != nil {
+			return fmt.Errorf("Error setting `upgrade_description`: %+v", err)
 		}
 
 		fabricSettings := flattenServiceFabricClusterFabricSettings(props.FabricSettings)
@@ -593,7 +743,7 @@ func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -723,14 +873,47 @@ func flattenServiceFabricClusterCertificate(input *servicefabric.CertificateDesc
 	return results
 }
 
-func expandServiceFabricClusterCertificateCommonNames(d *schema.ResourceData) *servicefabric.ServerCertificateCommonNames {
+func expandServiceFabricClusterCertificateCommonNames(d *pluginsdk.ResourceData) *servicefabric.ServerCertificateCommonNames {
 	i := d.Get("certificate_common_names").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 	input := i[0].(map[string]interface{})
 
-	commonNamesRaw := input["common_names"].(*schema.Set).List()
+	commonNamesRaw := input["common_names"].(*pluginsdk.Set).List()
+	commonNames := make([]servicefabric.ServerCertificateCommonName, 0)
+
+	for _, commonName := range commonNamesRaw {
+		commonNameDetails := commonName.(map[string]interface{})
+		certificateCommonName := commonNameDetails["certificate_common_name"].(string)
+		certificateIssuerThumbprint := commonNameDetails["certificate_issuer_thumbprint"].(string)
+
+		commonName := servicefabric.ServerCertificateCommonName{
+			CertificateCommonName:       &certificateCommonName,
+			CertificateIssuerThumbprint: &certificateIssuerThumbprint,
+		}
+
+		commonNames = append(commonNames, commonName)
+	}
+
+	x509StoreName := input["x509_store_name"].(string)
+
+	output := servicefabric.ServerCertificateCommonNames{
+		CommonNames:   &commonNames,
+		X509StoreName: servicefabric.X509StoreName1(x509StoreName),
+	}
+
+	return &output
+}
+
+func expandServiceFabricClusterReverseProxyCertificateCommonNames(d *pluginsdk.ResourceData) *servicefabric.ServerCertificateCommonNames {
+	i := d.Get("reverse_proxy_certificate_common_names").([]interface{})
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+	input := i[0].(map[string]interface{})
+
+	commonNamesRaw := input["common_names"].(*pluginsdk.Set).List()
 	commonNames := make([]servicefabric.ServerCertificateCommonName, 0)
 
 	for _, commonName := range commonNamesRaw {
@@ -974,6 +1157,140 @@ func flattenServiceFabricClusterDiagnosticsConfig(input *servicefabric.Diagnosti
 	}
 
 	return results
+}
+
+func expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input []interface{}) *servicefabric.ClusterUpgradeDeltaHealthPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	deltaHealthPolicy := &servicefabric.ClusterUpgradeDeltaHealthPolicy{}
+	v := input[0].(map[string]interface{})
+	deltaHealthPolicy.MaxPercentDeltaUnhealthyNodes = utils.Int32(int32(v["max_delta_unhealthy_nodes_percent"].(int)))
+	deltaHealthPolicy.MaxPercentUpgradeDomainDeltaUnhealthyNodes = utils.Int32(int32(v["max_upgrade_domain_delta_unhealthy_nodes_percent"].(int)))
+	deltaHealthPolicy.MaxPercentDeltaUnhealthyApplications = utils.Int32(int32(v["max_delta_unhealthy_applications_percent"].(int)))
+
+	return deltaHealthPolicy
+}
+
+func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) *servicefabric.ClusterHealthPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	healthPolicy := &servicefabric.ClusterHealthPolicy{}
+	v := input[0].(map[string]interface{})
+	healthPolicy.MaxPercentUnhealthyApplications = utils.Int32(int32(v["max_unhealthy_applications_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyNodes = utils.Int32(int32(v["max_unhealthy_nodes_percent"].(int)))
+
+	return healthPolicy
+}
+
+func expandServiceFabricClusterUpgradePolicy(input []interface{}) *servicefabric.ClusterUpgradePolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	policy := &servicefabric.ClusterUpgradePolicy{}
+	v := input[0].(map[string]interface{})
+
+	policy.ForceRestart = utils.Bool(v["force_restart_enabled"].(bool))
+	policy.HealthCheckStableDuration = utils.String(v["health_check_stable_duration"].(string))
+	policy.UpgradeDomainTimeout = utils.String(v["upgrade_domain_timeout"].(string))
+	policy.UpgradeReplicaSetCheckTimeout = utils.String(v["upgrade_replica_set_check_timeout"].(string))
+	policy.UpgradeTimeout = utils.String(v["upgrade_timeout"].(string))
+	policy.HealthCheckRetryTimeout = utils.String(v["health_check_retry_timeout"].(string))
+	policy.HealthCheckWaitDuration = utils.String(v["health_check_wait_duration"].(string))
+
+	if v["health_policy"] != nil {
+		policy.HealthPolicy = expandServiceFabricClusterUpgradePolicyHealthPolicy(v["health_policy"].([]interface{}))
+	}
+	if v["delta_health_policy"] != nil {
+		policy.DeltaHealthPolicy = expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(v["delta_health_policy"].([]interface{}))
+	}
+
+	return policy
+}
+
+func flattenServiceFabricClusterUpgradePolicy(input *servicefabric.ClusterUpgradePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if forceRestart := input.ForceRestart; forceRestart != nil {
+		output["force_restart_enabled"] = *forceRestart
+	}
+
+	if healthCheckRetryTimeout := input.HealthCheckRetryTimeout; healthCheckRetryTimeout != nil {
+		output["health_check_retry_timeout"] = *healthCheckRetryTimeout
+	}
+
+	if healthCheckStableDuration := input.HealthCheckStableDuration; healthCheckStableDuration != nil {
+		output["health_check_stable_duration"] = *healthCheckStableDuration
+	}
+
+	if healthCheckWaitDuration := input.HealthCheckWaitDuration; healthCheckWaitDuration != nil {
+		output["health_check_wait_duration"] = *healthCheckWaitDuration
+	}
+
+	if upgradeDomainTimeout := input.UpgradeDomainTimeout; upgradeDomainTimeout != nil {
+		output["upgrade_domain_timeout"] = *upgradeDomainTimeout
+	}
+
+	if upgradeReplicaSetCheckTimeout := input.UpgradeReplicaSetCheckTimeout; upgradeReplicaSetCheckTimeout != nil {
+		output["upgrade_replica_set_check_timeout"] = *upgradeReplicaSetCheckTimeout
+	}
+
+	if upgradeTimeout := input.UpgradeTimeout; upgradeTimeout != nil {
+		output["upgrade_timeout"] = *upgradeTimeout
+	}
+
+	output["health_policy"] = flattenServiceFabricClusterUpgradePolicyHealthPolicy(input.HealthPolicy)
+	output["delta_health_policy"] = flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input.DeltaHealthPolicy)
+
+	return []interface{}{output}
+}
+
+func flattenServiceFabricClusterUpgradePolicyHealthPolicy(input *servicefabric.ClusterHealthPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if input.MaxPercentUnhealthyApplications != nil {
+		output["max_unhealthy_applications_percent"] = *input.MaxPercentUnhealthyApplications
+	}
+
+	if input.MaxPercentUnhealthyNodes != nil {
+		output["max_unhealthy_nodes_percent"] = *input.MaxPercentUnhealthyNodes
+	}
+
+	return []interface{}{output}
+}
+
+func flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input *servicefabric.ClusterUpgradeDeltaHealthPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if input.MaxPercentDeltaUnhealthyApplications != nil {
+		output["max_delta_unhealthy_applications_percent"] = input.MaxPercentDeltaUnhealthyApplications
+	}
+
+	if input.MaxPercentDeltaUnhealthyNodes != nil {
+		output["max_delta_unhealthy_nodes_percent"] = input.MaxPercentDeltaUnhealthyNodes
+	}
+
+	if input.MaxPercentUpgradeDomainDeltaUnhealthyNodes != nil {
+		output["max_upgrade_domain_delta_unhealthy_nodes_percent"] = input.MaxPercentUpgradeDomainDeltaUnhealthyNodes
+	}
+
+	return []interface{}{output}
 }
 
 func expandServiceFabricClusterFabricSettings(input []interface{}) *[]servicefabric.SettingsSectionDescription {

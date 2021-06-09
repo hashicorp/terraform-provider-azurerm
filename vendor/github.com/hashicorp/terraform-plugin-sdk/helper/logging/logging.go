@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/hashicorp/logutils"
+	testing "github.com/mitchellh/go-testing-interface"
 )
 
 // These are the environmental variables that determine if we log, and if
@@ -48,10 +49,23 @@ func LogOutput() (logOutput io.Writer, err error) {
 	return
 }
 
+// SetTestOutput is equivalent to SetOutput, but declares itself a test
+// helper so it doesn't show up as the source of errors when testing.
+func SetTestOutput(t testing.T) {
+	setOutput(t)
+}
+
 // SetOutput checks for a log destination with LogOutput, and calls
 // log.SetOutput with the result. If LogOutput returns nil, SetOutput uses
 // ioutil.Discard. Any error from LogOutout is fatal.
 func SetOutput() {
+	setOutput(nil)
+}
+
+func setOutput(t testing.T) {
+	if t != nil {
+		t.Helper()
+	}
 	out, err := LogOutput()
 	if err != nil {
 		log.Fatal(err)

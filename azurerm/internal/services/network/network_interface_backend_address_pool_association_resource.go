@@ -6,50 +6,49 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate,
-		Read:   resourceArmNetworkInterfaceBackendAddressPoolAssociationRead,
-		Delete: resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
+		Read:   resourceNetworkInterfaceBackendAddressPoolAssociationRead,
+		Delete: resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"ip_configuration_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"backend_address_pool_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -58,7 +57,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource
 	}
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,7 +98,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -132,7 +131,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 	pools = append(pools, pool)
 	p.LoadBalancerBackendAddressPools = &pools
 
-	props.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
+	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
@@ -145,10 +144,10 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
+	return resourceNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +188,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		log.Printf("IP Configuration %q was not found in Network Interface %q (Resource Group %q) - removing from state!", ipConfigurationName, networkInterfaceName, resourceGroup)
 		d.SetId("")
@@ -226,7 +225,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 	return nil
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +267,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.Re
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -292,7 +291,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.Re
 		}
 	}
 	props.LoadBalancerBackendAddressPools = &backendAddressPools
-	nicProps.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
+	nicProps.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {

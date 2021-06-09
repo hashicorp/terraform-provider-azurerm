@@ -6,35 +6,34 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceArmSecurityCenterSetting() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSecurityCenterSettingUpdate,
-		Read:   resourceArmSecurityCenterSettingRead,
-		Update: resourceArmSecurityCenterSettingUpdate,
-		Delete: resourceArmSecurityCenterSettingDelete,
+func resourceSecurityCenterSetting() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSecurityCenterSettingUpdate,
+		Read:   resourceSecurityCenterSettingRead,
+		Update: resourceSecurityCenterSettingUpdate,
+		Delete: resourceSecurityCenterSettingDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(10 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(10 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
@@ -42,14 +41,14 @@ func resourceArmSecurityCenterSetting() *schema.Resource {
 				}, false),
 			},
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 		},
 	}
 }
 
-func resourceArmSecurityCenterSettingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,10 +78,10 @@ func resourceArmSecurityCenterSettingUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSecurityCenterSettingRead(d, meta)
+	return resourceSecurityCenterSettingRead(d, meta)
 }
 
-func resourceArmSecurityCenterSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +109,7 @@ func resourceArmSecurityCenterSettingRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmSecurityCenterSettingDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceSecurityCenterSettingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
 	log.Printf("[DEBUG] Security Center deletion invocation")
 	return nil // cannot be deleted.
 }

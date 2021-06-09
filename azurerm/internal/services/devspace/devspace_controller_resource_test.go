@@ -6,28 +6,34 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+// temporarily works around the unused test, since the tests are skipped
+var _ interface{} = DevSpaceControllerResource{}
+var _ interface{} = DevSpaceControllerResource{}.basic(acceptance.TestData{}, "", "")
+var _ interface{} = DevSpaceControllerResource{}.requiresImport(acceptance.TestData{}, "", "")
 
 type DevSpaceControllerResource struct {
 }
 
 func TestAccDevSpaceController_basic(t *testing.T) {
+	t.Skip("A breaking API change has means new DevSpace Controllers cannot be provisioned, so skipping..")
+
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	r := DevSpaceControllerResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, clientId, clientSecret),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -36,15 +42,17 @@ func TestAccDevSpaceController_basic(t *testing.T) {
 }
 
 func TestAccDevSpaceController_requiresImport(t *testing.T) {
+	t.Skip("A breaking API change has means new DevSpace Controllers cannot be provisioned, so skipping..")
+
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	r := DevSpaceControllerResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, clientId, clientSecret),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,7 +63,7 @@ func TestAccDevSpaceController_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DevSpaceControllerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DevSpaceControllerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ControllerID(state.ID)
 	if err != nil {
 		return nil, err

@@ -6,28 +6,28 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceAdvisorRecommendations() *schema.Resource {
-	return &schema.Resource{
+func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceAdvisorRecommendationsRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(10 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"filter_by_category": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(advisor.HighAvailability),
 						string(advisor.Security),
@@ -41,55 +41,55 @@ func dataSourceAdvisorRecommendations() *schema.Resource {
 			"filter_by_resource_groups": azure.SchemaResourceGroupNameSetOptional(),
 
 			"recommendations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"impact": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"recommendation_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"recommendation_type_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"resource_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"resource_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"suppression_names": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"updated_time": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -99,16 +99,16 @@ func dataSourceAdvisorRecommendations() *schema.Resource {
 	}
 }
 
-func dataSourceAdvisorRecommendationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Advisor.RecommendationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	filterList := make([]string, 0)
-	if categories := expandAzureRmAdvisorRecommendationsMapString("Category", d.Get("filter_by_category").(*schema.Set).List()); categories != "" {
+	if categories := expandAzureRmAdvisorRecommendationsMapString("Category", d.Get("filter_by_category").(*pluginsdk.Set).List()); categories != "" {
 		filterList = append(filterList, categories)
 	}
-	if resGroups := expandAzureRmAdvisorRecommendationsMapString("ResourceGroup", d.Get("filter_by_resource_groups").(*schema.Set).List()); resGroups != "" {
+	if resGroups := expandAzureRmAdvisorRecommendationsMapString("ResourceGroup", d.Get("filter_by_resource_groups").(*pluginsdk.Set).List()); resGroups != "" {
 		filterList = append(filterList, resGroups)
 	}
 

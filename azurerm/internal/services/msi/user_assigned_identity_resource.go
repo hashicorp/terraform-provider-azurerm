@@ -5,41 +5,46 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/msi/mgmt/2018-11-30/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmUserAssignedIdentity() *schema.Resource {
-	return &schema.Resource{
+func resourceArmUserAssignedIdentity() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmUserAssignedIdentityCreateUpdate,
 		Read:   resourceArmUserAssignedIdentityRead,
 		Update: resourceArmUserAssignedIdentityCreateUpdate,
 		Delete: resourceArmUserAssignedIdentityDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.UserAssignedIdentityID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.UserAssignedIdentityV0ToV1{},
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(3, 128),
@@ -52,19 +57,24 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"principal_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"client_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tenant_id": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -85,7 +95,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_user_assigned_identity", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_user_assigned_identity", resourceId.ID())
 		}
 	}
 
@@ -99,11 +109,11 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("creating/updating User Assigned Identity %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmUserAssignedIdentityRead(d, meta)
 }
 
-func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +136,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.IdentityProperties; props != nil {
+	if props := resp.UserAssignedIdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
 		}
@@ -134,12 +144,16 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 		if clientId := props.ClientID; clientId != nil {
 			d.Set("client_id", clientId.String())
 		}
+
+		if tenantId := props.TenantID; tenantId != nil {
+			d.Set("tenant_id", tenantId.String())
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmUserAssignedIdentityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

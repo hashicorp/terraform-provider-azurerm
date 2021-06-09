@@ -32,7 +32,7 @@ func (id DiskEncryptionSetId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Disk Encryption Set", segmentsStr)
 }
 
-func (id DiskEncryptionSetId) ID(_ string) string {
+func (id DiskEncryptionSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskEncryptionSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

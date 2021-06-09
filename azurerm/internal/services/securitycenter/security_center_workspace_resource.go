@@ -6,15 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,33 +21,32 @@ import (
 // Message="Invalid workspace settings name 'kttest' , only default is allowed "
 const securityCenterWorkspaceName = "default"
 
-func resourceArmSecurityCenterWorkspace() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSecurityCenterWorkspaceCreateUpdate,
-		Read:   resourceArmSecurityCenterWorkspaceRead,
-		Update: resourceArmSecurityCenterWorkspaceCreateUpdate,
-		Delete: resourceArmSecurityCenterWorkspaceDelete,
+func resourceSecurityCenterWorkspace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSecurityCenterWorkspaceCreateUpdate,
+		Read:   resourceSecurityCenterWorkspaceRead,
+		Update: resourceSecurityCenterWorkspaceCreateUpdate,
+		Delete: resourceSecurityCenterWorkspaceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"scope": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -57,7 +54,7 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	priceClient := meta.(*clients.Client).SecurityCenter.PricingClient
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -97,7 +94,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(workspaceID.ID("")),
+			WorkspaceID: utils.String(workspaceID.ID()),
 		},
 	}
 
@@ -110,7 +107,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	// api returns "" for workspace id after an create/update and eventually the new value
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
 		MinTimeout: 30 * time.Second,
@@ -131,9 +128,9 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
 	resp, err := stateConf.WaitForState()
@@ -145,7 +142,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		d.SetId(*resp.(security.WorkspaceSetting).ID)
 	}
 
-	return resourceArmSecurityCenterWorkspaceRead(d, meta)
+	return resourceSecurityCenterWorkspaceRead(d, meta)
 }
 
 func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient) (bool, error) {
@@ -160,7 +157,7 @@ func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient
 				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
 			}
 
-			if resourcePrice.PricingProperties.PricingTier == security.Standard {
+			if resourcePrice.PricingProperties.PricingTier == security.PricingTierStandard {
 				return true, nil
 			}
 		}
@@ -169,7 +166,7 @@ func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient
 	return false, nil
 }
 
-func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,13 +184,21 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
 		d.Set("scope", properties.Scope)
-		d.Set("workspace_id", properties.WorkspaceID)
+		workspaceId := ""
+		if properties.WorkspaceID != nil {
+			id, err := parse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
+			if err != nil {
+				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+			}
+			workspaceId = id.ID()
+		}
+		d.Set("workspace_id", utils.String(workspaceId))
 	}
 
 	return nil
 }
 
-func resourceArmSecurityCenterWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

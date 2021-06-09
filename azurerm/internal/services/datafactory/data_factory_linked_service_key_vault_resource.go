@@ -6,45 +6,45 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceKeyVault() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceKeyVaultRead,
-		Update: resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceKeyVaultDelete,
+func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceKeyVaultRead,
+		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -55,68 +55,67 @@ func resourceArmDataFactoryLinkedServiceKeyVault() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"integration_runtime_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"additional_properties": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	_, err := keyVaultParse.VaultID(keyVaultIdRaw)
+	keyVaultId, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
 
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultIdRaw)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultIdRaw, err)
+		return err
 	}
 
 	if d.IsNewResource() {
@@ -133,13 +132,13 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 	}
 
 	azureKeyVaultProperties := &datafactory.AzureKeyVaultLinkedServiceTypeProperties{
-		BaseURL: utils.String(keyVaultBaseUri),
+		BaseURL: keyVaultBaseUri,
 	}
 
 	azureKeyVaultLinkedService := &datafactory.AzureKeyVaultLinkedService{
 		Description:                              utils.String(d.Get("description").(string)),
 		AzureKeyVaultLinkedServiceTypeProperties: azureKeyVaultProperties,
-		Type:                                     datafactory.TypeAzureKeyVault,
+		Type:                                     datafactory.TypeBasicLinkedServiceTypeAzureKeyVault,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -178,40 +177,38 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceKeyVaultRead(d, meta)
+	return resourceDataFactoryLinkedServiceKeyVaultRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	keyVault, ok := resp.Properties.AsAzureKeyVaultLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureKeyVault, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureKeyVault, *resp.Type)
 	}
 
 	d.Set("additional_properties", keyVault.AdditionalProperties)
@@ -245,33 +242,32 @@ func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, met
 		}
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, baseUrl)
-	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault id from url %q: %+v", baseUrl, err)
+	var keyVaultId *string
+	if baseUrl != "" {
+		keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, baseUrl)
+		if err != nil {
+			return err
+		}
 	}
-
 	d.Set("key_vault_id", keyVaultId)
 
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

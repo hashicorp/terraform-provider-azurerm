@@ -4,65 +4,71 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVaultKey() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmKeyVaultKeyRead,
+func dataSourceKeyVaultKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceKeyVaultKeyRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildName,
+				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"key_size": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"key_opts": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"versionless_id": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"n": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"e": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -71,37 +77,41 @@ func dataSourceArmKeyVaultKey() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	if err != nil {
+		return err
+	}
 
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	resp, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+	resp, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Key %q was not found in Key Vault at URI %q", name, keyVaultBaseUri)
+			return fmt.Errorf("Key %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return err
 	}
 
 	id := *resp.Key.Kid
-	parsedId, err := azure.ParseKeyVaultChildID(id)
+	parsedId, err := parse.ParseNestedItemID(id)
 	if err != nil {
 		return err
 	}
 
 	d.SetId(id)
-	d.Set("key_vault_id", keyVaultId)
+	d.Set("key_vault_id", keyVaultId.ID())
+	d.Set("versionless_id", parsedId.VersionlessID())
 
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))

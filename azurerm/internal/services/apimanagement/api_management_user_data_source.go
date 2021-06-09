@@ -4,57 +4,58 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmApiManagementUser() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmApiManagementUserRead,
+func dataSourceApiManagementUser() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceApiManagementUserRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
-			"user_id": azure.SchemaApiManagementUserDataSourceName(),
+		Schema: map[string]*pluginsdk.Schema{
+			"user_id": schemaz.SchemaApiManagementUserDataSourceName(),
 
-			"api_management_name": azure.SchemaApiManagementDataSourceName(),
+			"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"first_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"email": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"last_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"note": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func dataSourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

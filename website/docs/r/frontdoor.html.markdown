@@ -17,12 +17,18 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
 
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+
+!> **BREAKING CHANGE:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the `v2.58.0` provider due to changes made by the service team. If you wish to enable the custom https configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
+
+!> **BREAKING CHANGE:** With the release of the `v2.58.0` provider, if you run the `apply` command against an existing Front Door resource it **will not** apply the detected changes. Instead it will persist the `explicit_resource_order` mapping structure to the state file. Once this operation has completed the resource will resume functioning normally.This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource via Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned. If your pre-existing Front Door instance contains `custom_https_configuration` blocks there are additional steps that will need to be completed to succefully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](../guides/2.58.0-frontdoor-upgrade-guide.html).
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
-  location = "EastUS2"
+  location = "West Europe"
 }
 
 resource "azurerm_frontdoor" "example" {
@@ -64,9 +70,8 @@ resource "azurerm_frontdoor" "example" {
   }
 
   frontend_endpoint {
-    name                              = "exampleFrontendEndpoint1"
-    host_name                         = "example-FrontDoor.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = "exampleFrontendEndpoint1"
+    host_name = "example-FrontDoor.azurefd.net"
   }
 }
 ```
@@ -82,6 +87,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
+
+-> Azure by default allows specifying up to 50 Backend Pools - but this quota can be increased via Microsoft Support.
 
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
@@ -145,12 +152,6 @@ The `frontend_endpoint` block supports the following:
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
 
-* `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for a custom domain associated with the Front Door?
-
-* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
-
--> **NOTE:** This block is required when `custom_https_provisioning_enabled` is set to `true`.
-
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
 ---
@@ -211,7 +212,7 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behaviour preserves the URL path.
 
@@ -235,29 +236,15 @@ The `redirect_configuration` block supports the following:
 
 ---
 
-The `custom_https_configuration` block supports the following:
-
-* `certificate_source` - (Optional) Certificate source to encrypted `HTTPS` traffic with. Allowed values are `FrontDoor` or `AzureKeyVault`. Defaults to `FrontDoor`.
-
-The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
-
-* `azure_key_vault_certificate_vault_id` - (Required) The ID of the Key Vault containing the SSL certificate.
-
-* `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
-
-* `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
-
-~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
-
--> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
-
----
-
 ## Attributes Reference
 
-`backend_pool` exports the following:
+-> **NOTE:** UPCOMING BREAKING CHANGE: In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as backend pool health probes, backend pool loadbalancer settings, backend pools, frontend endpoints and routing rules. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
 
-* `id` - The ID of the Azure Front Door Backend Pool.
+* `backend_pool_health_probes` - A map/dictionary of Backend Pool Health Probe Names (key) to the Backend Pool Health Probe ID (value)
+* `backend_pool_load_balancing_settings` - A map/dictionary of Backend Pool Load Balancing Setting Names (key) to the Backend Pool Load Balancing Setting ID (value)
+* `backend_pools` - A map/dictionary of Backend Pool Names (key) to the Backend Pool ID (value)
+* `frontend_endpoints` - A map/dictionary of Frontend Endpoint Names (key) to the Frontend Endpoint ID (value)
+* `routing_rules` - A map/dictionary of Routing Rule Names (key) to the Routing Rule ID (value)
 
 ---
 
@@ -267,15 +254,9 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
-`frontend_endpoint` exports the following:
+`backend_pool` exports the following:
 
-* `id` - The ID of the Azure Front Door Frontend Endpoint.
-
-* `provisioning_state` - Provisioning state of the Front Door.
-
-* `provisioning_substate` - Provisioning substate of the Front Door
-
-[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+* `id` - The ID of the Azure Front Door Backend Pool.
 
 ---
 
@@ -291,15 +272,21 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
-`routing_rule` exports the following:
+`frontend_endpoint` exports the following:
 
-* `id` - The ID of the Azure Front Door Backend Routing Rule.
+* `id` - The ID of the Azure Front Door Frontend Endpoint.
+
+* `provisioning_state` - Provisioning state of the Front Door.
+
+* `provisioning_substate` - Provisioning substate of the Front Door
+
+[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
 ---
 
-`custom_https_configuration` exports the following:
+`routing_rule` exports the following:
 
-* `minimum_tls_version` - Minimum client TLS version supported.
+* `id` - The ID of the Azure Front Door Backend Routing Rule.
 
 ---
 

@@ -6,107 +6,114 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementBackend() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementBackendCreateUpdate,
-		Read:   resourceArmApiManagementBackendRead,
-		Update: resourceArmApiManagementBackendCreateUpdate,
-		Delete: resourceArmApiManagementBackendDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApiManagementBackend() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementBackendCreateUpdate,
+		Read:   resourceApiManagementBackendRead,
+		Update: resourceApiManagementBackendCreateUpdate,
+		Delete: resourceApiManagementBackendDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ApiManagementBackendName,
 			},
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"credentials": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"authorization": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"parameter": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"credentials.0.authorization.0.parameter", "credentials.0.authorization.0.scheme"},
 									},
 									"scheme": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"credentials.0.authorization.0.parameter", "credentials.0.authorization.0.scheme"},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"certificate": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"header": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"query": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 					},
 				},
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 2000),
 			},
 
 			"protocol": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.BackendProtocolHTTP),
@@ -115,24 +122,24 @@ func resourceArmApiManagementBackend() *schema.Resource {
 			},
 
 			"proxy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"password": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"url": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"username": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -141,56 +148,56 @@ func resourceArmApiManagementBackend() *schema.Resource {
 			},
 
 			"resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 2000),
 			},
 
 			"service_fabric_cluster": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"client_certificate_thumbprint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"management_endpoints": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 						"max_partition_resolution_retries": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 						"server_certificate_thumbprints": {
-							Type:          schema.TypeSet,
+							Type:          pluginsdk.TypeSet,
 							Optional:      true,
 							ConflictsWith: []string{"service_fabric_cluster.0.server_x509_name"},
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 						"server_x509_name": {
-							Type:          schema.TypeSet,
+							Type:          pluginsdk.TypeSet,
 							Optional:      true,
 							ConflictsWith: []string{"service_fabric_cluster.0.server_certificate_thumbprints"},
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"issuer_certificate_thumbprint": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -202,31 +209,33 @@ func resourceArmApiManagementBackend() *schema.Resource {
 			},
 
 			"title": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 300),
 			},
 
 			"tls": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"validate_certificate_chain": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"tls.0.validate_certificate_chain", "tls.0.validate_certificate_name"},
 						},
 						"validate_certificate_name": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"tls.0.validate_certificate_chain", "tls.0.validate_certificate_name"},
 						},
 					},
 				},
 			},
 
 			"url": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -234,7 +243,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -308,21 +317,21 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementBackendRead(d, meta)
+	return resourceApiManagementBackendRead(d, meta)
 }
 
-func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BackendID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["backends"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -364,19 +373,19 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BackendID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["backends"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
@@ -461,7 +470,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	}
 	v := input[0].(map[string]interface{})
 	clientCertificatethumbprint := v["client_certificate_thumbprint"].(string)
-	managementEndpoints := v["management_endpoints"].(*schema.Set).List()
+	managementEndpoints := v["management_endpoints"].(*pluginsdk.Set).List()
 	maxPartitionResolutionRetries := int32(v["max_partition_resolution_retries"].(int))
 	properties := apimanagement.BackendServiceFabricClusterProperties{
 		ClientCertificatethumbprint:   utils.String(clientCertificatethumbprint),
@@ -471,11 +480,11 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	serverCertificateThumbprintsUnset := true
 	serverX509NamesUnset := true
 	if serverCertificateThumbprints := v["server_certificate_thumbprints"]; serverCertificateThumbprints != nil {
-		properties.ServerCertificateThumbprints = utils.ExpandStringSlice(serverCertificateThumbprints.(*schema.Set).List())
+		properties.ServerCertificateThumbprints = utils.ExpandStringSlice(serverCertificateThumbprints.(*pluginsdk.Set).List())
 		serverCertificateThumbprintsUnset = false
 	}
 	if serverX509Names := v["server_x509_name"]; serverX509Names != nil {
-		properties.ServerX509Names = expandApiManagementBackendServiceFabricClusterServerX509Names(serverX509Names.(*schema.Set).List())
+		properties.ServerX509Names = expandApiManagementBackendServiceFabricClusterServerX509Names(serverX509Names.(*pluginsdk.Set).List())
 		serverX509NamesUnset = false
 	}
 	if serverCertificateThumbprintsUnset && serverX509NamesUnset {

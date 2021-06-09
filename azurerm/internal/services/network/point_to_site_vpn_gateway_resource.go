@@ -5,40 +5,39 @@ import (
 	"log"
 	"time"
 
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPointToSiteVPNGateway() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmPointToSiteVPNGatewayCreateUpdate,
-		Read:   resourceArmPointToSiteVPNGatewayRead,
-		Update: resourceArmPointToSiteVPNGatewayCreateUpdate,
-		Delete: resourceArmPointToSiteVPNGatewayDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourcePointToSiteVPNGatewayCreateUpdate,
+		Read:   resourcePointToSiteVPNGatewayRead,
+		Update: resourcePointToSiteVPNGatewayCreateUpdate,
+		Delete: resourcePointToSiteVPNGatewayDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -49,44 +48,44 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.VirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVpnServerConfigurationID,
+				ValidateFunc: networkValidate.VpnServerConfigurationID,
 			},
 
 			"connection_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				// Code="P2SVpnGatewayCanHaveOnlyOneP2SConnectionConfiguration"
 				// Message="Currently, P2SVpnGateway [ID] can have only one P2SConnectionConfiguration. Specified number of P2SConnectionConfiguration are 2.
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"vpn_client_address_pool": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"address_prefixes": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Required: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validate.CIDR,
 										},
 									},
@@ -95,38 +94,38 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 						},
 
 						"route": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"associated_route_table_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate2.HubRouteTableID,
+										ValidateFunc: networkValidate.HubRouteTableID,
 									},
 
 									"propagated_route_table": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"ids": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Required: true,
-													Elem: &schema.Schema{
-														Type:         schema.TypeString,
-														ValidateFunc: validate2.HubRouteTableID,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
+														ValidateFunc: networkValidate.HubRouteTableID,
 													},
 												},
 
 												"labels": {
-													Type:     schema.TypeSet,
+													Type:     pluginsdk.TypeSet,
 													Optional: true,
-													Elem: &schema.Schema{
-														Type:         schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
 														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
@@ -141,16 +140,16 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 			},
 
 			"scale_unit": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsIPv4Address,
 				},
 			},
@@ -160,7 +159,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 	}
 }
 
-func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,31 +224,31 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPointToSiteVPNGatewayRead(d, meta)
+	return resourcePointToSiteVPNGatewayRead(d, meta)
 }
 
-func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Point-to-Site VPN Gateway %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Point-to-Site VPN Gateway %q was not found in Resource Group %q - removing from state!", id.P2sVpnGatewayName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.P2sVpnGatewayName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -285,23 +284,23 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -320,7 +319,7 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 		for _, clientV := range clientAddressPoolsRaw {
 			clientRaw := clientV.(map[string]interface{})
 
-			addressPrefixesRaw := clientRaw["address_prefixes"].(*schema.Set).List()
+			addressPrefixesRaw := clientRaw["address_prefixes"].(*pluginsdk.Set).List()
 			for _, prefix := range addressPrefixesRaw {
 				addressPrefixes = append(addressPrefixes, prefix.(string))
 			}
@@ -366,7 +365,7 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 		}
 	}
 	return &network.PropagatedRouteTable{
-		Labels: utils.ExpandStringSlice(v["labels"].(*schema.Set).List()),
+		Labels: utils.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
 		Ids:    &ids,
 	}
 }

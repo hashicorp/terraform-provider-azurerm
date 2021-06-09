@@ -5,42 +5,42 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSqlFailoverGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceSqlFailoverGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSqlFailoverGroupCreateUpdate,
 		Read:   resourceSqlFailoverGroupRead,
 		Update: resourceSqlFailoverGroupCreateUpdate,
 		Delete: resourceSqlFailoverGroupDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlFailoverGroupName,
+				ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -48,28 +48,28 @@ func resourceSqlFailoverGroup() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServerName,
+				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"databases": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"partner_servers": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -77,7 +77,7 @@ func resourceSqlFailoverGroup() *schema.Resource {
 						"location": azure.SchemaLocationForDataSource(),
 
 						"role": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -85,14 +85,14 @@ func resourceSqlFailoverGroup() *schema.Resource {
 			},
 
 			"readonly_endpoint_failover_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.ReadOnlyEndpointFailoverPolicyDisabled),
@@ -104,13 +104,13 @@ func resourceSqlFailoverGroup() *schema.Resource {
 			},
 
 			"read_write_endpoint_failover_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.Automatic),
@@ -118,7 +118,7 @@ func resourceSqlFailoverGroup() *schema.Resource {
 							}, false),
 						},
 						"grace_minutes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
@@ -127,7 +127,7 @@ func resourceSqlFailoverGroup() *schema.Resource {
 			},
 
 			"role": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -136,7 +136,7 @@ func resourceSqlFailoverGroup() *schema.Resource {
 	}
 }
 
-func resourceSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +169,7 @@ func resourceSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
-	if r, ok := d.Get("databases").(*schema.Set); ok && r.Len() > 0 {
+	if r, ok := d.Get("databases").(*pluginsdk.Set); ok && r.Len() > 0 {
 		var databases []string
 		for _, v := range r.List() {
 			s := v.(string)
@@ -198,7 +198,7 @@ func resourceSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interface
 	return resourceSqlFailoverGroupRead(d, meta)
 }
 
-func resourceSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFailoverGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +247,7 @@ func resourceSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSqlFailoverGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFailoverGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +269,7 @@ func resourceSqlFailoverGroupDelete(d *schema.ResourceData, meta interface{}) er
 	return err
 }
 
-func expandSqlFailoverGroupReadWritePolicy(d *schema.ResourceData) *sql.FailoverGroupReadWriteEndpoint {
+func expandSqlFailoverGroupReadWritePolicy(d *pluginsdk.ResourceData) *sql.FailoverGroupReadWriteEndpoint {
 	vs := d.Get("read_write_endpoint_failover_policy").([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -302,7 +302,7 @@ func flattenSqlFailoverGroupReadWritePolicy(input *sql.FailoverGroupReadWriteEnd
 	return []interface{}{policy}
 }
 
-func expandSqlFailoverGroupReadOnlyPolicy(d *schema.ResourceData) *sql.FailoverGroupReadOnlyEndpoint {
+func expandSqlFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sql.FailoverGroupReadOnlyEndpoint {
 	vs := d.Get("readonly_endpoint_failover_policy").([]interface{})
 	if len(vs) == 0 {
 		return nil
@@ -327,7 +327,7 @@ func flattenSqlFailoverGroupReadOnlyPolicy(input *sql.FailoverGroupReadOnlyEndpo
 	return []interface{}{policy}
 }
 
-func expandSqlFailoverGroupPartnerServers(d *schema.ResourceData) *[]sql.PartnerInfo {
+func expandSqlFailoverGroupPartnerServers(d *pluginsdk.ResourceData) *[]sql.PartnerInfo {
 	servers := d.Get("partner_servers").([]interface{})
 	partners := make([]sql.PartnerInfo, 0)
 

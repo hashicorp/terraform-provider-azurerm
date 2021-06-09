@@ -5,23 +5,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLoadBalancerProbe() *schema.Resource {
-	return &schema.Resource{
+func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerProbeCreateUpdate,
 		Read:   resourceArmLoadBalancerProbeRead,
 		Update: resourceArmLoadBalancerProbeCreateUpdate,
@@ -37,16 +37,16 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			return &lbId, nil
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -55,14 +55,14 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: loadBalancerValidate.LoadBalancerID,
 			},
 
 			"protocol": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Computed:         true,
 				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -74,72 +74,73 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			},
 
 			"port": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.PortNumber,
 			},
 
 			"request_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"interval_in_seconds": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      15,
 				ValidateFunc: validation.IntAtLeast(5),
 			},
 
 			"number_of_probes": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  2,
 			},
 
 			"load_balancer_rules": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 		},
 	}
 }
 
-func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
-	loadBalancerIDRaw := loadBalancerId.ID("")
+	loadBalancerIDRaw := loadBalancerId.ID()
+	id := parse.NewLoadBalancerProbeID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerId)
+	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
-	}
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
-		return nil
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing Proe %q from state", id.LoadBalancerName, id.ProbeName)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	newProbe := expandAzureRmLoadBalancerProbe(d)
 	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
 
-	existingProbe, existingProbeIndex, exists := FindLoadBalancerProbeByName(loadBalancer, name)
+	existingProbe, existingProbeIndex, exists := FindLoadBalancerProbeByName(&loadBalancer, id.ProbeName)
 	if exists {
-		if name == *existingProbe.Name {
+		if id.ProbeName == *existingProbe.Name {
 			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_probe", *existingProbe.ID)
 			}
@@ -151,40 +152,21 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 
 	loadBalancer.LoadBalancerPropertiesFormat.Probes = &probes
 
-	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
+		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
-	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
-
-	var createdProbeId string
-	for _, Probe := range *read.LoadBalancerPropertiesFormat.Probes {
-		if *Probe.Name == name {
-			createdProbeId = *Probe.ID
-		}
-	}
-
-	if createdProbeId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer Probe ID %q", createdProbeId)
-	}
-
-	d.SetId(createdProbeId)
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerProbeRead(d, meta)
 }
 
-func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,18 +176,17 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
+	loadBalancer, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
-	}
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
-		return nil
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
-	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
+	config, _, exists := FindLoadBalancerProbeByName(&loadBalancer, id.ProbeName)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.ProbeName)
@@ -246,14 +227,14 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("load_balancer_rules", loadBalancerRules); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.ProbeName, err)
+			return fmt.Errorf("setting `load_balancer_rules` (Load Balancer %q Probe %q): %+v", id.LoadBalancerName, id.ProbeName, err)
 		}
 	}
 
 	return nil
 }
 
-func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,20 +245,20 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID("")
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
+	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
-	}
-	if !exists {
-		d.SetId("")
-		return nil
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Probe %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.ProbeName, err)
 	}
 
-	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
+	_, index, exists := FindLoadBalancerProbeByName(&loadBalancer, id.ProbeName)
 	if !exists {
 		return nil
 	}
@@ -286,27 +267,19 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	newProbes := append(oldProbes[:index], oldProbes[index+1:]...)
 	loadBalancer.LoadBalancerPropertiesFormat.Probes = &newProbes
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", id.LoadBalancerName, id.ResourceGroup)
+		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
+func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *network.Probe {
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
 		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),

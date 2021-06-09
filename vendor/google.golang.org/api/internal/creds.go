@@ -1,16 +1,6 @@
-// Copyright 2017 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2017 Google LLC.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package internal
 
@@ -21,6 +11,7 @@ import (
 	"io/ioutil"
 
 	"golang.org/x/oauth2"
+	"google.golang.org/api/internal/impersonate"
 
 	"golang.org/x/oauth2/google"
 )
@@ -28,6 +19,17 @@ import (
 // Creds returns credential information obtained from DialSettings, or if none, then
 // it returns default credential information.
 func Creds(ctx context.Context, ds *DialSettings) (*google.Credentials, error) {
+	creds, err := baseCreds(ctx, ds)
+	if err != nil {
+		return nil, err
+	}
+	if ds.ImpersonationConfig != nil {
+		return impersonateCredentials(ctx, creds, ds)
+	}
+	return creds, nil
+}
+
+func baseCreds(ctx context.Context, ds *DialSettings) (*google.Credentials, error) {
 	if ds.Credentials != nil {
 		return ds.Credentials, nil
 	}
@@ -99,4 +101,31 @@ func selfSignedJWTTokenSource(data []byte, endpoint string, audiences []string) 
 		audience = audiences[0]
 	}
 	return google.JWTAccessTokenSourceFromJSON(data, audience)
+}
+
+// QuotaProjectFromCreds returns the quota project from the JSON blob in the provided credentials.
+//
+// NOTE(cbro): consider promoting this to a field on google.Credentials.
+func QuotaProjectFromCreds(cred *google.Credentials) string {
+	var v struct {
+		QuotaProject string `json:"quota_project_id"`
+	}
+	if err := json.Unmarshal(cred.JSON, &v); err != nil {
+		return ""
+	}
+	return v.QuotaProject
+}
+
+func impersonateCredentials(ctx context.Context, creds *google.Credentials, ds *DialSettings) (*google.Credentials, error) {
+	if len(ds.ImpersonationConfig.Scopes) == 0 {
+		ds.ImpersonationConfig.Scopes = ds.Scopes
+	}
+	ts, err := impersonate.TokenSource(ctx, creds.TokenSource, ds.ImpersonationConfig)
+	if err != nil {
+		return nil, err
+	}
+	return &google.Credentials{
+		TokenSource: ts,
+		ProjectID:   creds.ProjectID,
+	}, nil
 }

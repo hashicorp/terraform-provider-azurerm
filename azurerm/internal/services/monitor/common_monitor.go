@@ -1,10 +1,8 @@
 package monitor
 
 import (
-	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,8 +19,8 @@ func flattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGrou
 	return []interface{}{v}
 }
 
-func expandMonitorScheduledQueryRulesCommonSource(d *schema.ResourceData) *insights.Source {
-	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
+func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) *insights.Source {
+	authorizedResourceIDs := d.Get("authorized_resource_ids").(*pluginsdk.Set).List()
 	dataSourceID := d.Get("data_source_id").(string)
 	query, ok := d.GetOk("query")
 	source := insights.Source{
@@ -115,24 +113,4 @@ func flattenAzureRmScheduledQueryRulesLogDimension(input *[]insights.Dimension) 
 	}
 
 	return result
-}
-
-// ValidateThreshold checks that a threshold value is between 0 and 10000
-// and is a whole number. The azure-sdk-for-go expects this value to be a float64
-// but the user validation rules want an integer.
-func validateMonitorScheduledQueryRulesAlertThreshold(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(float64)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be float64", k))
-	}
-
-	if v != float64(int64(v)) {
-		errors = append(errors, fmt.Errorf("%q must be a whole number", k))
-	}
-
-	if v < 0 || v > 10000 {
-		errors = append(errors, fmt.Errorf("%q must be between 0 and 10000 (inclusive)", k))
-	}
-
-	return warnings, errors
 }

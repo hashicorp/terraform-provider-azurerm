@@ -1,76 +1,146 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlDatabase() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmMsSqlDatabaseCreateUpdate,
-		Read:   resourceArmMsSqlDatabaseRead,
-		Update: resourceArmMsSqlDatabaseCreateUpdate,
-		Delete: resourceArmMsSqlDatabaseDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+func resourceMsSqlDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceMsSqlDatabaseCreateUpdate,
+		Read:   resourceMsSqlDatabaseRead,
+		Update: resourceMsSqlDatabaseCreateUpdate,
+		Delete: resourceMsSqlDatabaseDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+			resourceClient := meta.(*clients.Client).Resource.ResourcesClient
+
+			id, err := parse.DatabaseID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+			resp, err := replicationLinksClient.ListByDatabase(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+			}
+
+			for _, link := range *resp.Value {
+				linkProps := *link.ReplicationLinkProperties
+				if linkProps.Role == sql.ReplicationRoleSecondary || linkProps.Role == sql.ReplicationRoleNonReadableSecondary {
+					d.Set("create_mode", string(sql.CreateModeSecondary))
+					log.Printf("[INFO] replication link found for %s MsSql Database %s (MsSql Server Name %q / Resource Group %q) with Database %q on MsSql Server %q ", string(sql.CreateModeSecondary), id.Name, id.ServerName, id.ResourceGroup, *linkProps.PartnerDatabase, *linkProps.PartnerServer)
+
+					// get all SQL Servers with the name of the linked Primary
+					filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", *linkProps.PartnerServer)
+					var resourceList []resources.GenericResourceExpanded
+					for resourcesIterator, err := resourceClient.ListComplete(ctx, filter, "", nil); resourcesIterator.NotDone(); err = resourcesIterator.NextWithContext(ctx) {
+						if err != nil {
+							return nil, fmt.Errorf("loading SQL Server List: %+v", err)
+						}
+
+						resourceList = append(resourceList, resourcesIterator.Value())
+					}
+					if err != nil {
+						return nil, fmt.Errorf("reading Linked Servers for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+					}
+
+					for _, server := range resourceList {
+						serverID, err := parse.ServerID(*server.ID)
+						if err != nil {
+							return nil, err
+						}
+
+						// check if server named like the replication linked server has a database named like the partner database with a replication link
+						linksPossiblePrimary, err := replicationLinksClient.ListByDatabase(ctx, serverID.ResourceGroup, serverID.Name, *linkProps.PartnerDatabase)
+						if err != nil && !utils.ResponseWasNotFound(linksPossiblePrimary.Response) {
+							return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", *linkProps.PartnerDatabase, serverID.Name, serverID.ResourceGroup, err)
+						}
+						if err != nil && utils.ResponseWasNotFound(linksPossiblePrimary.Response) {
+							log.Printf("[INFO] no replication link found for Database %q (MsSql Server %q / Resource Group %q): %s", *linkProps.PartnerDatabase, serverID.Name, serverID.ResourceGroup, err)
+							continue
+						}
+
+						for _, linkPossiblePrimary := range *linksPossiblePrimary.Value {
+							linkPropsPossiblePrimary := *linkPossiblePrimary.ReplicationLinkProperties
+
+							// check if the database has a replication link for a primary role and specific partner location
+							if linkPropsPossiblePrimary.Role == sql.ReplicationRolePrimary && *linkPossiblePrimary.Location == *linkProps.PartnerLocation {
+								d.Set("creation_source_database_id", parse.NewDatabaseID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, *linkProps.PartnerDatabase).ID())
+							}
+						}
+					}
+					return []*pluginsdk.ResourceData{d}, nil
+				}
+			}
+			d.Set("create_mode", "Default")
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		SchemaVersion: 1,
+		StateUpgraders: []pluginsdk.StateUpgrader{
+			migration.DatabaseV0ToV1(),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlDatabaseName,
+				ValidateFunc: validate.ValidateMsSqlDatabaseName,
 			},
 
 			"server_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerID,
 			},
 
 			"auto_pause_delay_in_minutes": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.DatabaseAutoPauseDelay,
 			},
 
 			"create_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
+				Default:  string(sql.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.CreateModeCopy),
 					string(sql.CreateModeDefault),
@@ -86,7 +156,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -94,7 +164,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"elastic_pool_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ElasticPoolID,
 			},
@@ -102,7 +172,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
 			"license_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -116,21 +186,21 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
 
 			"max_size_gb": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 4096),
 			},
 
 			"min_capacity": {
-				Type:         schema.TypeFloat,
+				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: azValidate.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
 			},
 
 			"restore_point_in_time": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
@@ -138,32 +208,32 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"recover_database_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RecoverableDatabaseID,
 			},
 
 			"restore_dropped_database_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RestorableDatabaseID,
 			},
 
 			"read_replica_count": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
 
 			"read_scale": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"sample_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -172,7 +242,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validate.DatabaseSkuName(),
@@ -180,32 +250,44 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"creation_source_database_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
 				ValidateFunc: validate.DatabaseID,
 			},
 
+			"storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(sql.GRS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.GRS),
+					string(sql.LRS),
+					string(sql.ZRS),
+				}, false),
+			},
+
 			"zone_redundant": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"threat_detection_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disabled_alerts": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Set:      schema.HashString,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Sql_Injection",
 									"Sql_Injection_Vulnerability",
@@ -215,7 +297,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 
 						"email_account_admins": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
@@ -226,22 +308,22 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 
 						"email_addresses": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 
 						"retention_days": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"state": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Default:          string(sql.SecurityAlertPolicyStateDisabled),
@@ -253,20 +335,20 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 
 						"storage_account_access_key": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"storage_endpoint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"use_server_default": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
@@ -279,11 +361,17 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				},
 			},
 
+			"geo_backup_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
 				// "hyperscale can not change to other sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
@@ -291,13 +379,15 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -342,14 +432,15 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:        utils.String(d.Get("collation").(string)),
-			ElasticPoolID:    utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:      sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:      utils.Float(d.Get("min_capacity").(float64)),
-			ReadReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:       sql.SampleName(d.Get("sample_name").(string)),
-			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:     utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:          utils.String(d.Get("collation").(string)),
+			ElasticPoolID:      utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:        sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:        utils.Float(d.Get("min_capacity").(float64)),
+			ReadReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:         sql.SampleName(d.Get("sample_name").(string)),
+			StorageAccountType: sql.StorageAccountType(d.Get("storage_account_type").(string)),
+			ZoneRedundant:      utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -374,7 +465,14 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
-		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
+		// `max_size_gb` is Computed, so has a value after the first run
+		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.Secondary) {
+			params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
+		}
+		// `max_size_gb` only has change if it is configured
+		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) {
+			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size on SQL Database %q (Resource Group %q, Server %q) in secondary create mode", name, serverId.ResourceGroup, serverId.Name)
+		}
 	}
 
 	readScale := sql.DatabaseReadScaleDisabled
@@ -430,13 +528,38 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandArmMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
+	// For datawarehouse SKUs only
+	if strings.HasPrefix(skuName.(string), "DW") && (d.HasChange("geo_backup_enabled") || d.IsNewResource()) {
+		isEnabled := d.Get("geo_backup_enabled").(bool)
+		var geoBackupPolicyState sql.GeoBackupPolicyState
+
+		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
+		if !(d.IsNewResource() && isEnabled) {
+			if isEnabled {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateEnabled
+			} else {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateDisabled
+			}
+
+			geoBackupPolicy := sql.GeoBackupPolicy{
+				GeoBackupPolicyProperties: &sql.GeoBackupPolicyProperties{
+					State: geoBackupPolicyState,
+				},
+			}
+
+			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy); err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
+
+	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
 		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmMsSqlDBBlobAuditingPolicies(auditingPolicies),
+			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandMsSqlDBBlobAuditingPolicies(auditingPolicies),
 		}
 		if _, err = auditingClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, auditingProps); err != nil {
 			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
@@ -486,15 +609,16 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	return resourceArmMsSqlDatabaseRead(d, meta)
+	return resourceMsSqlDatabaseRead(d, meta)
 }
 
-func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -542,12 +666,13 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
-		if err := d.Set("threat_detection_policy", flattenArmMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
+		if err := d.Set("threat_detection_policy", flattenMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
@@ -557,10 +682,12 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
 
-	flattenBlobAuditing := helper.FlattenAzureRmMsSqlDBBlobAuditingPolicies(&auditingResp, d)
+	flattenBlobAuditing := helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
+
+	geoBackupPolicy := true
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
@@ -587,12 +714,30 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		zero := make([]interface{}, 0)
 		d.Set("long_term_retention_policy", zero)
 		d.Set("short_term_retention_policy", zero)
+
+		geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+		}
+
+		// For Datawarehouse SKUs, set the geo-backup policy setting
+		if strings.HasPrefix(skuName, "DW") && geoPoliciesResponse.GeoBackupPolicyProperties.State == sql.GeoBackupPolicyStateDisabled {
+			geoBackupPolicy = false
+		}
+	}
+
+	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
+		return fmt.Errorf("failure in setting `geo_backup_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -617,7 +762,7 @@ func resourceArmMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
+func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
 	// The SQL database threat detection API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.DatabaseSecurityAlertPolicyProperties
@@ -632,7 +777,7 @@ func flattenArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy s
 	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
-		flattenedAlerts := schema.NewSet(schema.HashString, []interface{}{})
+		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		if v := *disabledAlerts; v != "" {
 			parsedAlerts := strings.Split(v, ";")
 			for _, a := range parsedAlerts {
@@ -642,7 +787,7 @@ func flattenArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy s
 		threatDetectionPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
-		flattenedEmails := schema.NewSet(schema.HashString, []interface{}{})
+		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		if v := *emailAddresses; v != "" {
 			parsedEmails := strings.Split(*emailAddresses, ";")
 			for _, e := range parsedEmails {
@@ -666,7 +811,7 @@ func flattenArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy s
 	return []interface{}{threatDetectionPolicy}
 }
 
-func expandArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
+func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		Location: utils.String(location),
 		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
@@ -688,7 +833,7 @@ func expandArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, location 
 		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
 
 		if v, ok := threatDetection["disabled_alerts"]; ok {
-			alerts := v.(*schema.Set).List()
+			alerts := v.(*pluginsdk.Set).List()
 			expandedAlerts := make([]string, len(alerts))
 			for i, a := range alerts {
 				expandedAlerts[i] = a.(string)
@@ -696,7 +841,7 @@ func expandArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, location 
 			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
 		}
 		if v, ok := threatDetection["email_addresses"]; ok {
-			emails := v.(*schema.Set).List()
+			emails := v.(*pluginsdk.Set).List()
 			expandedEmails := make([]string, len(emails))
 			for i, e := range emails {
 				expandedEmails[i] = e.(string)

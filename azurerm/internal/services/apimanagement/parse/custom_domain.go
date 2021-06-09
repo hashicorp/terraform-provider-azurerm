@@ -35,7 +35,7 @@ func (id CustomDomainId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Custom Domain", segmentsStr)
 }
 
-func (id CustomDomainId) ID(_ string) string {
+func (id CustomDomainId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/customDomains/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
 }

@@ -15,7 +15,7 @@ Manages an Application Gateway.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -256,9 +256,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use.
-
--> **NOTE:** The Allocation Method for this Public IP Address should be set to `Dynamic`.
+* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-addresses#application-gateways) for details.
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
@@ -335,6 +333,8 @@ A `path_rule` block supports the following:
 * `redirect_configuration_name` - (Optional) The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
 
 ---
 
@@ -465,7 +465,7 @@ A `waf_configuration` block supports the following:
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
 
@@ -545,6 +545,8 @@ A `rewrite_rule` block supports the following:
 
 * `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
 
+* `url` - (Optional) One `url` block as defined above
+
 ---
 
 A `condition` block supports the following:
@@ -572,6 +574,18 @@ A `response_header_configuration` block supports the following:
 * `header_name` - (Required) Header name of the header configuration.
 
 * `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
+
+---
+
+A `url` block supports the following:
+
+* `path` - (Optional) The URL path to rewrite.
+
+* `query_string` - (Optional) The query string to rewrite.
+
+~> **Note:** One or both of `path` and `query_string` must be specified.
+
+* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
 ## Attributes Reference
 

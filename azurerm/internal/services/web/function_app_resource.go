@@ -7,44 +7,43 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // Azure Function App shares the same infrastructure with Azure App Service.
 // So this resource will reuse most of the App Service code, but remove the configurations which are not applicable for Function App.
-func resourceArmFunctionApp() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmFunctionAppCreate,
-		Read:   resourceArmFunctionAppRead,
-		Update: resourceArmFunctionAppUpdate,
-		Delete: resourceArmFunctionAppDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+func resourceFunctionApp() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceFunctionAppCreate,
+		Read:   resourceFunctionAppRead,
+		Update: resourceFunctionAppUpdate,
+		Delete: resourceFunctionAppDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FunctionAppID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: webValidate.AppServiceName,
@@ -55,34 +54,34 @@ func resourceArmFunctionApp() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"app_service_plan_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"app_settings": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"auth_settings": schemaAppServiceAuthSettings(),
 
 			"connection_string": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.APIHub),
@@ -101,7 +100,7 @@ func resourceArmFunctionApp() *schema.Resource {
 						},
 
 						"value": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							Sensitive: true,
 						},
@@ -110,30 +109,39 @@ func resourceArmFunctionApp() *schema.Resource {
 			},
 
 			"client_affinity_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
+			"client_cert_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Required",
+					"Optional",
+				}, false),
+			},
+
 			"daily_memory_time_quota": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"enable_builtin_logging": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"https_only": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -141,7 +149,7 @@ func resourceArmFunctionApp() *schema.Resource {
 			"identity": schemaAppServiceIdentity(),
 
 			"os_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -154,17 +162,17 @@ func resourceArmFunctionApp() *schema.Resource {
 			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
-				Type: schema.TypeString,
+				Type: pluginsdk.TypeString,
 				// Required: true, // Uncomment this in 3.0
 				Optional:      true,
 				Computed:      true, // Remove this in 3.0
 				ForceNew:      true,
-				ValidateFunc:  storage.ValidateArmStorageAccountName,
+				ValidateFunc:  storageValidate.StorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
 			"storage_account_access_key": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true, // Remove this in 3.0
 				// Required: true, // Uncomment this in 3.0
@@ -175,7 +183,7 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			// TODO remove this in 3.0
 			"storage_connection_string": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Computed:      true,
 				ForceNew:      true,
@@ -185,7 +193,7 @@ func resourceArmFunctionApp() *schema.Resource {
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "~1",
 			},
@@ -195,41 +203,41 @@ func resourceArmFunctionApp() *schema.Resource {
 			// Computed Only
 
 			"custom_domain_verification_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"default_hostname": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"outbound_ip_addresses": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"possible_outbound_ip_addresses": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"site_credential": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -240,7 +248,7 @@ func resourceArmFunctionApp() *schema.Resource {
 	}
 }
 
-func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -287,6 +295,8 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -315,10 +325,15 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if clientCertMode != "" {
+		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -374,10 +389,10 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
-	return resourceArmFunctionAppUpdate(d, meta)
+	return resourceFunctionAppUpdate(d, meta)
 }
 
-func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -399,6 +414,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -428,10 +445,15 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if clientCertMode != "" {
+		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -533,10 +555,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceArmFunctionAppRead(d, meta)
+	return resourceFunctionAppRead(d, meta)
 }
 
-func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -611,6 +633,12 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		clientCertMode := ""
+		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
+			clientCertMode = string(props.ClientCertMode)
+		}
+		d.Set("client_cert_mode", clientCertMode)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -665,7 +693,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	identity := flattenAppServiceIdentity(resp.Identity)
+	identity, err := flattenAppServiceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -702,7 +733,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

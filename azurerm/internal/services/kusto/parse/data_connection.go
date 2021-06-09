@@ -38,7 +38,7 @@ func (id DataConnectionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Data Connection", segmentsStr)
 }
 
-func (id DataConnectionId) ID(_ string) string {
+func (id DataConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s/DataConnections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 }

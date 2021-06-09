@@ -41,7 +41,7 @@ func (id DatabasePrincipalId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Database Principal", segmentsStr)
 }
 
-func (id DatabasePrincipalId) ID(_ string) string {
+func (id DatabasePrincipalId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s/Role/%s/FQN/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.RoleName, id.FQNName)
 }

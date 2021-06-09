@@ -15,7 +15,7 @@ Manages a Pipeline inside a Azure Data Factory.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -71,6 +71,8 @@ The following arguments are supported:
 * `description` - (Optional) The description for the Data Factory Pipeline.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Pipeline.
+
+* `folder` - (Optional) The folder that this Pipeline is in. If not specified, the Pipeline will appear at the root level.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
 

@@ -5,37 +5,36 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationSecurityGroup() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApplicationSecurityGroupCreateUpdate,
-		Read:   resourceArmApplicationSecurityGroupRead,
-		Update: resourceArmApplicationSecurityGroupCreateUpdate,
-		Delete: resourceArmApplicationSecurityGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApplicationSecurityGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApplicationSecurityGroupCreateUpdate,
+		Read:   resourceApplicationSecurityGroupRead,
+		Update: resourceApplicationSecurityGroupCreateUpdate,
+		Delete: resourceApplicationSecurityGroupDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -49,7 +48,7 @@ func resourceArmApplicationSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,10 +95,10 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(*read.ID)
 
-	return resourceArmApplicationSecurityGroupRead(d, meta)
+	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
-func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +128,7 @@ func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

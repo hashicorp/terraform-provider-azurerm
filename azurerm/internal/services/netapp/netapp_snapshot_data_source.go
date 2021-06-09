@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNetAppSnapshot() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmNetAppSnapshotRead,
+func dataSourceNetAppSnapshot() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceNetAppSnapshotRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppSnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -31,27 +32,27 @@ func dataSourceArmNetAppSnapshot() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"volume_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppVolumeName,
+				ValidateFunc: validate.VolumeName,
 			},
 		},
 	}
 }
 
-func dataSourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

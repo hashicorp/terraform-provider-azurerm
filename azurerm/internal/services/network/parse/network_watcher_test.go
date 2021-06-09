@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = NetworkWatcherId{}
 
 func TestNetworkWatcherIDFormatter(t *testing.T) {
-	actual := NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "resGroup1", "watcher1").ID("")
+	actual := NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "resGroup1", "watcher1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

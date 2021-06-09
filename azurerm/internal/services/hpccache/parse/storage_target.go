@@ -35,7 +35,7 @@ func (id StorageTargetId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Storage Target", segmentsStr)
 }
 
-func (id StorageTargetId) ID(_ string) string {
+func (id StorageTargetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageCache/caches/%s/storageTargets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CacheName, id.Name)
 }

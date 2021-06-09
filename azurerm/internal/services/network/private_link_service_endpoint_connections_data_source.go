@@ -4,30 +4,30 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmPrivateLinkServiceEndpointConnectionsRead,
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourcePrivateLinkServiceEndpointConnectionsRead,
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"service_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"service_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -36,36 +36,36 @@ func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"private_endpoint_connections": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"connection_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"connection_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"private_endpoint_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"private_endpoint_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"action_required": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"status": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -75,7 +75,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -107,7 +107,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
-		if err := d.Set("private_endpoint_connections", dataSourceflattenArmPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+		if err := d.Set("private_endpoint_connections", dataSourceflattenPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_endpoint_connections`: %+v", err)
 		}
 	}
@@ -117,7 +117,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 	return nil
 }
 
-func dataSourceflattenArmPrivateLinkServicePrivateEndpointConnections(input *[]network.PrivateEndpointConnection) []interface{} {
+func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]network.PrivateEndpointConnection) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

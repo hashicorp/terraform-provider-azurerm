@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,34 +22,33 @@ const typeLogicApp = "logicapp"
 const typeEventHub = "eventhub"
 const typeLogAnalytics = "loganalytics"
 
-func resourceArmSecurityCenterAutomation() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSecurityCenterAutomationCreateUpdate,
-		Read:   resourceArmSecurityCenterAutomationRead,
-		Update: resourceArmSecurityCenterAutomationCreateUpdate,
-		Delete: resourceArmSecurityCenterAutomationDelete,
+func resourceSecurityCenterAutomation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSecurityCenterAutomationCreateUpdate,
+		Read:   resourceSecurityCenterAutomationRead,
+		Update: resourceSecurityCenterAutomationCreateUpdate,
+		Delete: resourceSecurityCenterAutomationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				ForceNew:  true,
 				StateFunc: azure.NormalizeLocation,
@@ -58,35 +57,35 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Default:  true,
 				Optional: true,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"scopes": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 
 			"action": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								typeLogicApp,
@@ -96,20 +95,20 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 						},
 
 						"resource_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"trigger_url": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
 						"connection_string": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -119,41 +118,43 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 			},
 
 			"source": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"event_source": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Alerts",
-								"Assessments",
-								"SubAssessments",
-							}, true),
+								string(security.Alerts),
+								string(security.Assessments),
+								string(security.SecureScoreControls),
+								string(security.SecureScores),
+								string(security.SubAssessments),
+							}, false),
 						},
 
 						"rule_set": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"rule": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"property_path": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 												"expected_value": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 												"operator": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(security.Contains),
@@ -168,7 +169,7 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 													}, true),
 												},
 												"property_type": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(security.Integer),
@@ -192,7 +193,7 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,10 +248,10 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 
 	// Important steps
 	d.SetId(*resp.ID)
-	return resourceArmSecurityCenterAutomationRead(d, meta)
+	return resourceSecurityCenterAutomationRead(d, meta)
 }
 
-func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +313,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -541,7 +542,7 @@ func flattenSecurityCenterAutomationScopes(scopes *[]security.AutomationScope) (
 	return resultSlice, nil
 }
 
-func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationAction, d *schema.ResourceData) ([]map[string]string, error) {
+func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationAction, d *pluginsdk.ResourceData) ([]map[string]string, error) {
 	if actions == nil {
 		return []map[string]string{}, nil
 	}

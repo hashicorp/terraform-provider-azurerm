@@ -6,14 +6,17 @@ type UserFeatures struct {
 	KeyVault               KeyVaultFeatures
 	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
+	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 }
 
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion bool
-	GracefulShutdown       bool
+	DeleteOSDiskOnDeletion     bool
+	GracefulShutdown           bool
+	SkipShutdownAndForceDelete bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
+	ForceDelete               bool
 	RollInstancesWhenRequired bool
 }
 
@@ -28,4 +31,8 @@ type NetworkFeatures struct {
 
 type TemplateDeploymentFeatures struct {
 	DeleteNestedItemsDuringDeletion bool
+}
+
+type LogAnalyticsWorkspaceFeatures struct {
+	PermanentlyDeleteOnDestroy bool
 }

@@ -38,7 +38,7 @@ func (id NotificationHubAuthorizationRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Notification Hub Authorization Rule", segmentsStr)
 }
 
-func (id NotificationHubAuthorizationRuleId) ID(_ string) string {
+func (id NotificationHubAuthorizationRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NotificationHubs/namespaces/%s/notificationHubs/%s/AuthorizationRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
 }

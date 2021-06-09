@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -50,29 +51,28 @@ var hdInsightRServerClusterEdgeNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
 }
 
-func resourceArmHDInsightRServerCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceHDInsightRServerCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - R Server is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
 		
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create: resourceArmHDInsightRServerClusterCreate,
-		Read:   resourceArmHDInsightRServerClusterRead,
-		Update: hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),
+		Create: resourceHDInsightRServerClusterCreate,
+		Read:   resourceHDInsightRServerClusterRead,
+		Update: hdinsightClusterUpdate("RServer", resourceHDInsightRServerClusterRead),
 		Delete: hdinsightClusterDelete("RServer"),
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -88,7 +88,7 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 			"gateway": SchemaHDInsightsGateway(),
 
 			"rstudio": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 				ForceNew: true,
 			},
@@ -96,18 +96,18 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"roles": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightRServerClusterHeadNodeDefinition),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightRServerClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightRServerClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightRServerClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightRServerClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightRServerClusterZookeeperNodeDefinition, true),
 
-						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightRServerClusterEdgeNodeDefinition),
+						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightRServerClusterEdgeNodeDefinition, true),
 					},
 				},
 			},
@@ -115,17 +115,17 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 			"tags": tags.Schema(),
 
 			"edge_ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"https_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
@@ -142,13 +142,15 @@ func expandHDInsightsRServerConfigurations(gateway []interface{}, rStudio bool) 
 	return config
 }
 
-func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightRServerClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -192,7 +194,7 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
@@ -227,24 +229,24 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error reading ID for HDInsight RServer Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
-	return resourceArmHDInsightRServerClusterRead(d, meta)
+	return resourceHDInsightRServerClusterRead(d, meta)
 }
 
-func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightRServerClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {

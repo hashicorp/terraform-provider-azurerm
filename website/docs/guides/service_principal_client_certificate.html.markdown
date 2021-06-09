@@ -73,7 +73,7 @@ To associate the public portion of the Client Certificate (the `*.crt` file) wit
 
 The Public Key associated with the generated Certificate can be uploaded by selecting **Upload Certificate**, selecting the file which should be uploaded (in the example above, that'd be `service-principal.crt`) - and then hit **Add**.
 
-### Allowing the Service Principal to manage the Subscription
+### Allowing the Service Principal to manage the Subscription
 
 Now that we've created the Application within Azure Active Directory and assigned the certificate we're using for authentication, we can now grant the Application permissions to manage the Subscription via its linked Service Principal. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), select the Subscription you wish to use, then click **Access Control (IAM)** and finally **Add** > **Add role assignment**.
 
@@ -99,12 +99,23 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `1.44.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `2.46.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 }
 ```
 
@@ -122,9 +133,20 @@ It's also possible to configure these variables either in-line or from using var
 variable "client_certificate_path" {}
 variable "client_certificate_password" {}
 
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 
   subscription_id             = "00000000-0000-0000-0000-000000000000"
   client_id                   = "00000000-0000-0000-0000-000000000000"

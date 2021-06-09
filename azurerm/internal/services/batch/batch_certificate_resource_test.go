@@ -3,34 +3,29 @@ package batch_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type BatchCertificateResource struct {
 }
 
-func TestAccBatchCertificate_Pfx(t *testing.T) {
+func TestAccBatchCertificate_PfxWithPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.pfx(data),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.pfxWithPassword(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").HasValue(certificateID),
 				check.That(data.ResourceName).Key("format").HasValue("Pfx"),
 				check.That(data.ResourceName).Key("thumbprint").HasValue("42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
 				check.That(data.ResourceName).Key("thumbprint_algorithm").HasValue("sha1"),
@@ -44,26 +39,29 @@ func TestAccBatchCertificate_PfxWithoutPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.pfxWithoutPassword(data),
-			ExpectError: regexp.MustCompile("Password is required"),
+			Config: r.pfxWithoutPassword(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("format").HasValue("Pfx"),
+				check.That(data.ResourceName).Key("thumbprint").HasValue("42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
+				check.That(data.ResourceName).Key("thumbprint_algorithm").HasValue("sha1"),
+			),
 		},
+		data.ImportStep("certificate"),
 	})
 }
 
 func TestAccBatchCertificate_Cer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cer(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").HasValue(certificateID),
 				check.That(data.ResourceName).Key("format").HasValue("Cer"),
 				check.That(data.ResourceName).Key("thumbprint").HasValue("312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
 				check.That(data.ResourceName).Key("thumbprint_algorithm").HasValue("sha1"),
@@ -77,7 +75,7 @@ func TestAccBatchCertificate_CerWithPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.cerwithPassword(data),
 			ExpectError: regexp.MustCompile("Password must not be specified"),
@@ -85,7 +83,7 @@ func TestAccBatchCertificate_CerWithPassword(t *testing.T) {
 	})
 }
 
-func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +97,7 @@ func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(resp.CertificateProperties != nil), nil
 }
 
-func (BatchCertificateResource) pfx(data acceptance.TestData) string {
+func (BatchCertificateResource) pfxWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +118,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_password.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -150,7 +148,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_nopassword.pfx")
   format               = "Pfx"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"

@@ -6,82 +6,80 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domain"
 
-func resourceArmApiManagementCustomDomain() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementCustomDomain() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: apiManagementCustomDomainCreateUpdate,
 		Read:   apiManagementCustomDomainRead,
 		Update: apiManagementCustomDomainCreateUpdate,
 		Delete: apiManagementCustomDomainDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"api_management_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"management": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &schema.Resource{
+				Elem: &pluginsdk.Resource{
 					Schema: apiManagementResourceHostnameSchema(),
 				},
 			},
 			"portal": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &schema.Resource{
+				Elem: &pluginsdk.Resource{
 					Schema: apiManagementResourceHostnameSchema(),
 				},
 			},
 			"developer_portal": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &schema.Resource{
+				Elem: &pluginsdk.Resource{
 					Schema: apiManagementResourceHostnameSchema(),
 				},
 			},
 			"proxy": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &schema.Resource{
+				Elem: &pluginsdk.Resource{
 					Schema: apiManagementResourceHostnameProxySchema(),
 				},
 			},
 			"scm": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &schema.Resource{
+				Elem: &pluginsdk.Resource{
 					Schema: apiManagementResourceHostnameSchema(),
 				},
 			},
@@ -89,7 +87,7 @@ func resourceArmApiManagementCustomDomain() *schema.Resource {
 	}
 }
 
-func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +117,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating", "Unknown"},
 		Target:                    []string{"Succeeded", "Ready"},
 		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
@@ -127,9 +125,9 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 		ContinuousTargetOccurence: 6,
 	}
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
@@ -160,8 +158,9 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 	return apiManagementCustomDomainRead(d, meta)
 }
 
-func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +185,8 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("api_management_id", resp.ID)
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
-		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d)
+		apimHostNameSuffix := environment.APIManagementHostNameSuffix
+		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, apimHostNameSuffix)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
 				// lintignore:R001
@@ -200,7 +200,7 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,12 +225,12 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating", "Unknown"},
 		Target:                    []string{"Succeeded", "Ready"},
 		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
 		MinTimeout:                1 * time.Minute,
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		ContinuousTargetOccurence: 6,
 	}
 
@@ -255,7 +255,7 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandApiManagementCustomDomains(input *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
+func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanagement.HostnameConfiguration {
 	results := make([]apimanagement.HostnameConfiguration, 0)
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
@@ -304,7 +304,7 @@ func expandApiManagementCustomDomains(input *schema.ResourceData) *[]apimanageme
 	return &results
 }
 
-func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
+func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -318,6 +318,11 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 
 	for _, config := range *input {
 		output := make(map[string]interface{})
+
+		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
+		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
+			continue
+		}
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
@@ -361,7 +366,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		if configType != "" {
 			if valsRaw, ok := d.GetOk(configType); ok {
 				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 	}

@@ -38,7 +38,7 @@ func (id PrivateDnsZoneConfigId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Private Dns Zone Config", segmentsStr)
 }
 
-func (id PrivateDnsZoneConfigId) ID(_ string) string {
+func (id PrivateDnsZoneConfigId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateEndpoints/%s/privateDnsZoneGroups/%s/privateDnsZoneConfigs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.PrivateDnsZoneGroupName, id.Name)
 }

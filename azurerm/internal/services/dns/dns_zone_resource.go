@@ -7,40 +7,45 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDnsZone() *schema.Resource {
-	return &schema.Resource{
+func resourceDnsZone() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDnsZoneCreateUpdate,
 		Read:   resourceDnsZoneRead,
 		Update: resourceDnsZoneCreateUpdate,
 		Delete: resourceDnsZoneDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DnsZoneV0ToV1{},
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DnsZoneID(id)
 			return err
 		}),
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -48,79 +53,79 @@ func resourceDnsZone() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"number_of_record_sets": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"name_servers": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"soa_record": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"email": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.DnsZoneSOARecordEmail,
 						},
 
 						"host_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"expire_time": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      2419200,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"minimum_ttl": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      300,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"refresh_time": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3600,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"retry_time": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      300,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"serial_number": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      1,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"ttl": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3600,
 							ValidateFunc: validation.IntBetween(0, 2147483647),
@@ -129,7 +134,7 @@ func resourceDnsZone() *schema.Resource {
 						"tags": tags.Schema(),
 
 						"fqdn": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -141,14 +146,17 @@ func resourceDnsZone() *schema.Resource {
 	}
 }
 
-func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	resourceId := parse.NewDnsZoneID(subscriptionId, resGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -177,11 +185,6 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
-	}
-
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
 		rsParameters := dns.RecordSet{
@@ -201,16 +204,12 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS Zone %q (Resource Group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(resourceId.ID())
 
 	return resourceDnsZoneRead(d, meta)
 }
 
-func resourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	zonesClient := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -256,7 +255,7 @@ func resourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

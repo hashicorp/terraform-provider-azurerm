@@ -32,7 +32,7 @@ func (id ClusterId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Cluster", segmentsStr)
 }
 
-func (id ClusterId) ID(_ string) string {
+func (id ClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

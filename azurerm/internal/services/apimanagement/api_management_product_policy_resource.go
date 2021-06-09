@@ -6,41 +6,42 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductPolicy() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementProductPolicyCreateUpdate,
-		Read:   resourceArmApiManagementProductPolicyRead,
-		Update: resourceArmApiManagementProductPolicyCreateUpdate,
-		Delete: resourceArmApiManagementProductPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApiManagementProductPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementProductPolicyCreateUpdate,
+		Read:   resourceApiManagementProductPolicyRead,
+		Update: resourceApiManagementProductPolicyCreateUpdate,
+		Delete: resourceApiManagementProductPolicyDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"product_id": azure.SchemaApiManagementChildName(),
+			"product_id": schemaz.SchemaApiManagementChildName(),
 
 			"xml_content": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
@@ -48,7 +49,7 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 			},
 
 			"xml_link": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"xml_content"},
 			},
@@ -56,7 +57,7 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,21 +115,21 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductPolicyRead(d, meta)
+	return resourceApiManagementProductPolicyRead(d, meta)
 }
 
-func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
@@ -154,18 +155,18 @@ func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmApiManagementProductPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productID, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

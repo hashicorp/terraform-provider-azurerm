@@ -15,7 +15,7 @@ Manages an Azure Data Factory (Version 2).
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -41,6 +41,10 @@ The following arguments are supported:
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
 
+* `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
+
+* `customer_managed_key_id` -  (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -63,7 +67,9 @@ A `github_configuration` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Requiered if `UserAssigned` type is used.
 
 ---
 

@@ -6,37 +6,37 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySqlFirewallRule() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmMySqlFirewallRuleCreateUpdate,
-		Read:   resourceArmMySqlFirewallRuleRead,
-		Update: resourceArmMySqlFirewallRuleCreateUpdate,
-		Delete: resourceArmMySqlFirewallRuleDelete,
+func resourceMySqlFirewallRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceMySqlFirewallRuleCreateUpdate,
+		Read:   resourceMySqlFirewallRuleRead,
+		Update: resourceMySqlFirewallRuleCreateUpdate,
+		Delete: resourceMySqlFirewallRuleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -44,20 +44,20 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azValidate.IPv4Address,
 			},
 
 			"end_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azValidate.IPv4Address,
 			},
@@ -65,29 +65,27 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FirewallRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Firewall Rule creation.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
+	id := parse.NewFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mysql_firewall_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mysql_firewall_rule", id.ID())
 		}
 	}
 
@@ -98,76 +96,66 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("creating/updating %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting onf create/update future for MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting for create/update of %s: %v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("Error issuing get request for MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Firewall Rule %q (Gesource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmMySqlFirewallRuleRead(d, meta)
+	d.SetId(id.ID())
+	return resourceMySqlFirewallRuleRead(d, meta)
 }
 
-func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure MySQL Firewall Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("server_name", serverName)
+	d.Set("name", id.Name)
+	d.Set("server_name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	d.Set("start_ip_address", resp.StartIPAddress)
 	d.Set("end_ip_address", resp.EndIPAddress)
 
 	return nil
 }
 
-func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["firewallRules"]
-
-	future, err := client.Delete(ctx, resourceGroup, serverName, name)
+	id, err := parse.FirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	return nil
 }

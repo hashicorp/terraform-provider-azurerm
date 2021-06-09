@@ -6,41 +6,44 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDevSpaceController() *schema.Resource {
-	return &schema.Resource{
+func resourceDevSpaceController() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDevSpaceControllerCreate,
 		Read:   resourceDevSpaceControllerRead,
 		Update: resourceDevSpaceControllerUpdate,
 		Delete: resourceDevSpaceControllerDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ControllerID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		DeprecationMessage: `DevSpace Controllers are deprecated and will be retired on 31 October 2023 - at this time the Azure API does not allow new Controllers to be provisioned, but existing DevSpace Controllers can continue to be used.
+
+Since these are deprecated and can no longer be provisioned, version 3.0 of the Azure Provider will remove support for DevSpace Controllers.`,
+
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DevSpaceName(),
@@ -51,7 +54,7 @@ func resourceDevSpaceController() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -60,14 +63,14 @@ func resourceDevSpaceController() *schema.Resource {
 			},
 
 			"target_container_host_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"target_container_host_credentials_base64": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
@@ -77,19 +80,19 @@ func resourceDevSpaceController() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"data_plane_fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"host_suffix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +155,7 @@ func resourceDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDevSpaceControllerRead(d, meta)
 }
 
-func resourceDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +183,7 @@ func resourceDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceDevSpaceControllerRead(d, meta)
 }
 
-func resourceDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +223,7 @@ func resourceDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

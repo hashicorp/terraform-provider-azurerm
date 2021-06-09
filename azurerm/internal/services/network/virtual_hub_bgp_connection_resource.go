@@ -5,60 +5,59 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubBgpConnection() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVirtualHubBgpConnectionCreate,
-		Read:   resourceArmVirtualHubBgpConnectionRead,
-		Delete: resourceArmVirtualHubBgpConnectionDelete,
+func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVirtualHubBgpConnectionCreate,
+		Read:   resourceVirtualHubBgpConnectionRead,
+		Delete: resourceVirtualHubBgpConnectionDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BgpConnectionID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"peer_asn": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"peer_ip": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
@@ -67,7 +66,7 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubBgpConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,10 +122,10 @@ func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubBgpConnectionRead(d, meta)
+	return resourceVirtualHubBgpConnectionRead(d, meta)
 }
 
-func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubBgpConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +147,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.BgpConnectionProperties; props != nil {
 		d.Set("peer_asn", props.PeerAsn)
@@ -158,7 +157,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmVirtualHubBgpConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubBgpConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

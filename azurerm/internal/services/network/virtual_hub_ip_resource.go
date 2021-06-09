@@ -5,78 +5,77 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubIP() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVirtualHubIPCreateUpdate,
-		Read:   resourceArmVirtualHubIPRead,
-		Update: resourceArmVirtualHubIPCreateUpdate,
-		Delete: resourceArmVirtualHubIPDelete,
+func resourceVirtualHubIP() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVirtualHubIPCreateUpdate,
+		Read:   resourceVirtualHubIPRead,
+		Update: resourceVirtualHubIPCreateUpdate,
+		Delete: resourceVirtualHubIPDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualHubIpConfigurationID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"private_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"private_ip_allocation_method": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  network.Dynamic,
+				Default:  network.IPAllocationMethodDynamic,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Dynamic),
-					string(network.Static),
+					string(network.IPAllocationMethodDynamic),
+					string(network.IPAllocationMethodStatic),
 				}, false),
 			},
 
 			"public_ip_address_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: networkValidate.PublicIpAddressID,
 			},
@@ -84,7 +83,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,10 +154,10 @@ func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubIPRead(d, meta)
+	return resourceVirtualHubIPRead(d, meta)
 }
 
-func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +179,7 @@ func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.IpConfigurationName)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubIPConfigurationPropertiesFormat; props != nil {
 		d.Set("private_ip_address", props.PrivateIPAddress)
@@ -198,7 +197,7 @@ func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceArmVirtualHubIPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

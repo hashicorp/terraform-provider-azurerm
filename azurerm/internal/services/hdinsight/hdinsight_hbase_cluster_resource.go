@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,6 +30,7 @@ var hdInsightHBaseClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
+	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightHBaseClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
@@ -39,24 +41,23 @@ var hdInsightHBaseClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightHBaseCluster() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmHDInsightHBaseClusterCreate,
-		Read:   resourceArmHDInsightHBaseClusterRead,
-		Update: hdinsightClusterUpdate("HBase", resourceArmHDInsightHBaseClusterRead),
+func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceHDInsightHBaseClusterCreate,
+		Read:   resourceHDInsightHBaseClusterRead,
+		Update: hdinsightClusterUpdate("HBase", resourceHDInsightHBaseClusterRead),
 		Delete: hdinsightClusterDelete("HBase"),
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -70,13 +71,13 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 			"tls_min_version": SchemaHDInsightTls(),
 
 			"component_version": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"hbase": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
@@ -93,16 +94,16 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition, true),
 					},
 				},
 			},
@@ -110,12 +111,12 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -124,14 +125,16 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -183,7 +186,7 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
@@ -219,7 +222,7 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("failure reading ID for HDInsight HBase Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
@@ -229,23 +232,23 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightHBaseClusterRead(d, meta)
+	return resourceHDInsightHBaseClusterRead(d, meta)
 }
 
-func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {

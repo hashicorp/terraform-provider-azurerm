@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `spark_events_folder` - (Optional) The Spark events folder. Defaults to `/events`.
 
-* `spark_version` - (Optional) The Apache Spark version. Possible value is `2.4`. Defaults to `2.4`.
+* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.0`. Defaults to `2.4`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Spark Pool.
 

@@ -4,29 +4,28 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_log", "test")
+type MonitorScheduledQueryRulesLogDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_LogToMetricActionConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-				),
-			},
+func TestAccDataSourceMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_log", "test")
+	r := MonitorScheduledQueryRulesLogDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.LogToMetricActionConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMMonitorScheduledQueryRules_LogToMetricActionConfig(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data)
+func (r MonitorScheduledQueryRulesLogDataSource) LogToMetricActionConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -34,5 +33,5 @@ data "azurerm_monitor_scheduled_query_rules_log" "test" {
   name                = basename(azurerm_monitor_scheduled_query_rules_log.test.id)
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, template)
+`, MonitorScheduledQueryRulesLogResource{}.LogToMetricActionConfigBasic(data))
 }

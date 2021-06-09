@@ -5,47 +5,43 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVpnSite() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVpnSiteCreateUpdate,
-		Read:   resourceArmVpnSiteRead,
-		Update: resourceArmVpnSiteCreateUpdate,
-		Delete: resourceArmVpnSiteDelete,
+func resourceVpnSite() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVpnSiteCreateUpdate,
+		Read:   resourceVpnSiteRead,
+		Update: resourceVpnSiteCreateUpdate,
+		Delete: resourceVpnSiteDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VpnSiteID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VpnSiteName(),
@@ -56,77 +52,77 @@ func resourceArmVpnSite() *schema.Resource {
 			"location": location.Schema(),
 
 			"virtual_wan_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualWanID,
 			},
 
 			"address_cidrs": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsCIDR,
 				},
 			},
 
 			"device_vendor": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"device_model": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"link": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"provider_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"speed_in_mbps": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 							Default:      0,
 						},
 						"ip_address": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsIPAddress,
 						},
 						"fqdn": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"bgp": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"asn": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntAtLeast(1),
 									},
 									"peering_address": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsIPAddress,
 									},
@@ -134,7 +130,7 @@ func resourceArmVpnSite() *schema.Resource {
 							},
 						},
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -146,7 +142,7 @@ func resourceArmVpnSite() *schema.Resource {
 	}
 }
 
-func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnSiteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,9 +169,9 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		Location: &location,
 		VpnSiteProperties: &network.VpnSiteProperties{
 			VirtualWan:       &network.SubResource{ID: utils.String(d.Get("virtual_wan_id").(string))},
-			DeviceProperties: expandArmVpnSiteDeviceProperties(d),
-			AddressSpace:     expandArmVpnSiteAddressSpace(d.Get("address_cidrs").(*schema.Set).List()),
-			VpnSiteLinks:     expandArmVpnSiteLinks(d.Get("link").([]interface{})),
+			DeviceProperties: expandVpnSiteDeviceProperties(d),
+			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List()),
+			VpnSiteLinks:     expandVpnSiteLinks(d.Get("link").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -201,12 +197,12 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
-	return resourceArmVpnSiteRead(d, meta)
+	return resourceVpnSiteRead(d, meta)
 }
 
-func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -242,10 +238,10 @@ func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
 		if prop.VirtualWan != nil {
 			d.Set("virtual_wan_id", prop.VirtualWan.ID)
 		}
-		if err := d.Set("address_cidrs", flattenArmVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
+		if err := d.Set("address_cidrs", flattenVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
 			return fmt.Errorf("setting `address_cidrs`")
 		}
-		if err := d.Set("link", flattenArmVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
+		if err := d.Set("link", flattenVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
 			return fmt.Errorf("setting `link`")
 		}
 	}
@@ -253,7 +249,7 @@ func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVpnSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +272,7 @@ func resourceArmVpnSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandArmVpnSiteDeviceProperties(d *schema.ResourceData) *network.DeviceProperties {
+func expandVpnSiteDeviceProperties(d *pluginsdk.ResourceData) *network.DeviceProperties {
 	vendor, model := d.Get("device_vendor").(string), d.Get("device_model").(string)
 	if vendor == "" && model == "" {
 		return nil
@@ -292,7 +288,7 @@ func expandArmVpnSiteDeviceProperties(d *schema.ResourceData) *network.DevicePro
 	return output
 }
 
-func expandArmVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
+func expandVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
 	if len(input) == 0 {
 		return nil
 	}
@@ -307,14 +303,14 @@ func expandArmVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
 	}
 }
 
-func flattenArmVpnSiteAddressSpace(input *network.AddressSpace) []interface{} {
+func flattenVpnSiteAddressSpace(input *network.AddressSpace) []interface{} {
 	if input == nil {
 		return nil
 	}
 	return utils.FlattenStringSlice(input.AddressPrefixes)
 }
 
-func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
+func expandVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 	if len(input) == 0 {
 		return nil
 	}
@@ -344,7 +340,7 @@ func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 			link.VpnSiteLinkProperties.Fqdn = utils.String(v.(string))
 		}
 		if v, ok := e["bgp"]; ok {
-			link.VpnSiteLinkProperties.BgpProperties = expandArmVpnSiteVpnLinkBgpSettings(v.([]interface{}))
+			link.VpnSiteLinkProperties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
 		}
 
 		result = append(result, link)
@@ -353,7 +349,7 @@ func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 	return &result
 }
 
-func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
+func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -397,7 +393,7 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 				}
 			}
 
-			bgpProperty = flattenArmVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
+			bgpProperty = flattenVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
 		}
 
 		link := map[string]interface{}{
@@ -416,7 +412,7 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 	return output
 }
 
-func expandArmVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgpSettings {
+func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgpSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -429,7 +425,7 @@ func expandArmVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgp
 	}
 }
 
-func flattenArmVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []interface{} {
+func flattenVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []interface{} {
 	if input == nil {
 		return nil
 	}

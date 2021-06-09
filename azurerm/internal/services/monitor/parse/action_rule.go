@@ -32,7 +32,7 @@ func (id ActionRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Action Rule", segmentsStr)
 }
 
-func (id ActionRuleId) ID(_ string) string {
+func (id ActionRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AlertsManagement/actionRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

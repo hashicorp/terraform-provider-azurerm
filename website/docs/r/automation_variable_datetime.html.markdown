@@ -16,7 +16,7 @@ Manages a DateTime variable in Azure Automation
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "tfex-example-rg"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {

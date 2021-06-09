@@ -6,50 +6,57 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAdvancedThreatProtection() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmAdvancedThreatProtectionCreateUpdate,
-		Read:   resourceArmAdvancedThreatProtectionRead,
-		Update: resourceArmAdvancedThreatProtectionCreateUpdate,
-		Delete: resourceArmAdvancedThreatProtectionDelete,
+func resourceAdvancedThreatProtection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceAdvancedThreatProtectionCreateUpdate,
+		Read:   resourceAdvancedThreatProtectionRead,
+		Update: resourceAdvancedThreatProtectionCreateUpdate,
+		Delete: resourceAdvancedThreatProtectionDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AdvancedThreatProtectionID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AdvancedThreatProtectionV0ToV1{},
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"target_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 		},
 	}
 }
 
-func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -64,7 +71,7 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 		}
 
 		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
-			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
 		}
 	}
 
@@ -78,11 +85,11 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
 	}
 
-	d.SetId(id.ID(""))
-	return resourceArmAdvancedThreatProtectionRead(d, meta)
+	d.SetId(id.ID())
+	return resourceAdvancedThreatProtectionRead(d, meta)
 }
 
-func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,7 +118,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

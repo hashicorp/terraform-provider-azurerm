@@ -5,42 +5,42 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetRouteTableAssociation() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSubnetRouteTableAssociationCreate,
-		Read:   resourceArmSubnetRouteTableAssociationRead,
-		Delete: resourceArmSubnetRouteTableAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSubnetRouteTableAssociationCreate,
+		Read:   resourceSubnetRouteTableAssociationRead,
+		Delete: resourceSubnetRouteTableAssociationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"route_table_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -49,7 +49,7 @@ func resourceArmSubnetRouteTableAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -59,12 +59,12 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	subnetId := d.Get("subnet_id").(string)
 	routeTableId := d.Get("route_table_id").(string)
 
-	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
+	parsedSubnetId, err := parse.SubnetID(subnetId)
 	if err != nil {
 		return err
 	}
 
-	parsedRouteTableId, err := ParseRouteTableID(routeTableId)
+	parsedRouteTableId, err := parse.RouteTableID(routeTableId)
 	if err != nil {
 		return err
 	}
@@ -72,8 +72,8 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
 	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 
-	subnetName := parsedSubnetId.Path["subnets"]
-	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
+	subnetName := parsedSubnetId.Name
+	virtualNetworkName := parsedSubnetId.VirtualNetworkName
 	resourceGroup := parsedSubnetId.ResourceGroup
 
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
@@ -117,21 +117,21 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmSubnetRouteTableAssociationRead(d, meta)
+	return resourceSubnetRouteTableAssociationRead(d, meta)
 }
 
-func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -161,18 +161,18 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	// retrieve the subnet
 	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
@@ -196,7 +196,7 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := ParseRouteTableID(*props.RouteTable.ID)
+	parsedRouteTableId, err := parse.RouteTableID(*props.RouteTable.ID)
 	if err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ResourceProviderId{}
 
 func TestResourceProviderIDFormatter(t *testing.T) {
-	actual := NewResourceProviderID("12345678-1234-9876-4563-123456789012", "Instruments.Didgeridoo").ID("")
+	actual := NewResourceProviderID("12345678-1234-9876-4563-123456789012", "Instruments.Didgeridoo").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Instruments.Didgeridoo"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

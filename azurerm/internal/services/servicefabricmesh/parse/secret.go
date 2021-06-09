@@ -32,7 +32,7 @@ func (id SecretId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Secret", segmentsStr)
 }
 
-func (id SecretId) ID(_ string) string {
+func (id SecretId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabricMesh/secrets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

@@ -7,39 +7,40 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceCertificate() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmAppServiceCertificateCreateUpdate,
-		Read:   resourceArmAppServiceCertificateRead,
-		Update: resourceArmAppServiceCertificateCreateUpdate,
-		Delete: resourceArmAppServiceCertificateDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+func resourceAppServiceCertificate() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceAppServiceCertificateCreateUpdate,
+		Read:   resourceAppServiceCertificateRead,
+		Update: resourceAppServiceCertificateCreateUpdate,
+		Delete: resourceAppServiceCertificateDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CertificateID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -50,7 +51,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"pfx_blob": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
@@ -58,7 +59,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 			},
 
 			"password": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
@@ -66,54 +67,54 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 			},
 
 			"key_vault_secret_id": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  azure.ValidateKeyVaultChildId,
+				ValidateFunc:  keyVaultValidate.NestedItemId,
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
 			"hosting_environment_profile_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"friendly_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"subject_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"host_names": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"issuer": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"issue_date": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"expiration_date": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"thumbprint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -122,9 +123,10 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,14 +181,14 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if keyVaultSecretId != "" {
-		parsedSecretId, err := azure.ParseKeyVaultChildID(keyVaultSecretId)
+		parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
 		if err != nil {
 			return err
 		}
 
 		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
 
-		keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUrl)
+		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultBaseUrl)
 		if err != nil {
 			return fmt.Errorf("Error retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 		}
@@ -212,10 +214,10 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceCertificateRead(d, meta)
+	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +261,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

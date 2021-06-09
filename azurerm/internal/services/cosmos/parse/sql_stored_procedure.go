@@ -41,7 +41,7 @@ func (id SqlStoredProcedureId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Sql Stored Procedure", segmentsStr)
 }
 
-func (id SqlStoredProcedureId) ID(_ string) string {
+func (id SqlStoredProcedureId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s/storedProcedures/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 }

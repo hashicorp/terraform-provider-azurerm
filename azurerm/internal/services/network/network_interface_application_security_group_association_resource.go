@@ -6,50 +6,46 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate,
-		Read:   resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead,
-		Delete: resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
+		Read:   resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
+		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0ToV1,
-				Version: 0,
-			},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NetworkInterfaceApplicationSecurityGroupAssociationV0ToV1{},
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"application_security_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -58,7 +54,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Re
 	}
 }
 
-func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,10 +115,10 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d, meta)
+	return resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,7 +173,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 	return nil
 }
 
-func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

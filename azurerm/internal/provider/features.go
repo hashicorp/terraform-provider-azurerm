@@ -3,38 +3,53 @@ package provider
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
+func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
-	features := map[string]*schema.Schema{
+	features := map[string]*pluginsdk.Schema{
+		// lintignore:XS003
 		"key_vault": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"recover_soft_deleted_key_vaults": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"purge_soft_delete_on_destroy": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
+					},
+				},
+			},
+		},
+		"log_analytics_workspace": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"permanently_delete_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
 					},
 				},
 			},
 		},
 
 		"network": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"relaxed_locking": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
@@ -42,30 +57,35 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 		},
 
 		"template_deployment": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"delete_nested_items_during_deletion": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
 			},
 		},
 
+		// lintignore:XS003
 		"virtual_machine": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"delete_os_disk_on_deletion": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"graceful_shutdown": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"skip_shutdown_and_force_delete": {
 						Type:     schema.TypeBool,
 						Optional: true,
 					},
@@ -74,13 +94,17 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 		},
 
 		"virtual_machine_scale_set": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"force_delete": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 					"roll_instances_when_required": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
@@ -91,21 +115,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
-		return &schema.Schema{
-			Type:     schema.TypeList,
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &schema.Resource{
+			Elem: &pluginsdk.Resource{
 				Schema: features,
 			},
 		}
 	}
 
-	return &schema.Schema{
-		Type:     schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
 		MinItems: 1,
-		Elem: &schema.Resource{
+		Elem: &pluginsdk.Resource{
 			Schema: features,
 		},
 	}
@@ -113,26 +137,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 
 func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
-	features := features.UserFeatures{
-		// NOTE: ensure all nested objects are fully populated
-		KeyVault: features.KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy:    true,
-			RecoverSoftDeletedKeyVaults: true,
-		},
-		Network: features.NetworkFeatures{
-			RelaxedLocking: false,
-		},
-		TemplateDeployment: features.TemplateDeploymentFeatures{
-			DeleteNestedItemsDuringDeletion: true,
-		},
-		VirtualMachine: features.VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion: true,
-			GracefulShutdown:       false,
-		},
-		VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-			RollInstancesWhenRequired: true,
-		},
-	}
+	features := features.Default()
 
 	if len(input) == 0 || input[0] == nil {
 		return features
@@ -142,13 +147,23 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 
 	if raw, ok := val["key_vault"]; ok {
 		items := raw.([]interface{})
-		if len(items) > 0 {
+		if len(items) > 0 && items[0] != nil {
 			keyVaultRaw := items[0].(map[string]interface{})
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
 				features.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["log_analytics_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
+			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
+				features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
 			}
 		}
 	}
@@ -175,13 +190,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 
 	if raw, ok := val["virtual_machine"]; ok {
 		items := raw.([]interface{})
-		if len(items) > 0 {
+		if len(items) > 0 && items[0] != nil {
 			virtualMachinesRaw := items[0].(map[string]interface{})
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				features.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
 			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
 				features.VirtualMachine.GracefulShutdown = v.(bool)
+			}
+			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
+				features.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
 			}
 		}
 	}
@@ -192,6 +210,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
+			}
+			if v, ok := scaleSetRaw["force_delete"]; ok {
+				features.VirtualMachineScaleSet.ForceDelete = v.(bool)
 			}
 		}
 	}

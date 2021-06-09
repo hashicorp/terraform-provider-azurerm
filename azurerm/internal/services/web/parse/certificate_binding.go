@@ -19,7 +19,7 @@ func NewCertificateBindingId(hostnameBindingId HostnameBindingId, certificateId 
 	}
 }
 
-func (id CertificateBindingId) ID(_ string) string {
+func (id CertificateBindingId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/hostNameBindings/%s|/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificates/%s"
 	return fmt.Sprintf(fmtString, id.HostnameBindingId.SubscriptionId, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name, id.CertificateId.SubscriptionId, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 }

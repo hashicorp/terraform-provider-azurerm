@@ -35,7 +35,7 @@ func (id SharedImageId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Shared Image", segmentsStr)
 }
 
-func (id SharedImageId) ID(_ string) string {
+func (id SharedImageId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s/images/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName)
 }

@@ -6,8 +6,6 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 type BatchPoolDataSource struct {
@@ -17,10 +15,10 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
 	r := BatchPoolDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("microsoft-azure-batch"),
@@ -45,8 +43,6 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("2"),
-				check.That(data.ResourceName).Key("certificate.0.visibility.3294600504").HasValue("StartTask"),
-				check.That(data.ResourceName).Key("certificate.0.visibility.4077195354").HasValue("RemoteUser"),
 				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
@@ -91,7 +87,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_password.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"

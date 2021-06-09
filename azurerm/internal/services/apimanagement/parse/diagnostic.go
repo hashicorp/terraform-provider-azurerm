@@ -35,7 +35,7 @@ func (id DiagnosticId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Diagnostic", segmentsStr)
 }
 
-func (id DiagnosticId) ID(_ string) string {
+func (id DiagnosticId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/diagnostics/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
 }

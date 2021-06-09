@@ -8,38 +8,37 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmLogAnalyticsSavedSearchCreate,
-		Read:   resourceArmLogAnalyticsSavedSearchRead,
-		Delete: resourceArmLogAnalyticsSavedSearchDelete,
+func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceLogAnalyticsSavedSearchCreate,
+		Read:   resourceLogAnalyticsSavedSearchRead,
+		Delete: resourceLogAnalyticsSavedSearchDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsWorkspaceID,
@@ -48,7 +47,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 			},
 
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				// https://github.com/Azure/azure-rest-api-specs/issues/9330
@@ -56,42 +55,42 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 			},
 
 			"category": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"query": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"function_alias": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"function_parameters": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+=[a-zA-Z0-9!_-]+`),
-						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1",
+						regexp.MustCompile(`^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+=[a-zA-Z0-9!_-]+|^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+`),
+						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1 OR param-name1:type1 OR param-name1:string='string goes here'",
 					),
 				},
 			},
@@ -101,7 +100,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,12 +132,12 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 			DisplayName:   utils.String(d.Get("display_name").(string)),
 			Query:         utils.String(d.Get("query").(string)),
 			FunctionAlias: utils.String(d.Get("function_alias").(string)),
-			Tags:          expandArmSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
+			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
 		},
 	}
 
 	if v, ok := d.GetOk("function_parameters"); ok {
-		attrs := v.(*schema.Set).List()
+		attrs := v.(*pluginsdk.Set).List()
 		result := make([]string, 0)
 		for _, item := range attrs {
 			if item != nil {
@@ -163,10 +162,10 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogAnalyticsSavedSearchRead(d, meta)
+	return resourceLogAnalyticsSavedSearchRead(d, meta)
 }
 
-func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -176,7 +175,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 	if err != nil {
@@ -202,7 +201,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 		d.Set("function_parameters", functionParams)
 
 		// flatten tags because it's defined as object set in service
-		if err := d.Set("tags", flattenArmSavedSearchTag(props.Tags)); err != nil {
+		if err := d.Set("tags", flattenSavedSearchTag(props.Tags)); err != nil {
 			return fmt.Errorf("setting `tag`: %+v", err)
 		}
 	}
@@ -210,7 +209,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +226,7 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsights.Tag {
+func expandSavedSearchTag(input map[string]interface{}) *[]operationalinsights.Tag {
 	results := make([]operationalinsights.Tag, 0)
 	for key, value := range input {
 		result := operationalinsights.Tag{
@@ -239,7 +238,7 @@ func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsight
 	return &results
 }
 
-func flattenArmSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
+func flattenSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results

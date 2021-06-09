@@ -1,562 +1,481 @@
 package eventhub_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/namespaces"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+type EventHubNamespaceResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccEventHubNamespace_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_basicWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_basicUpdateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventhub_namespace"),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_basicWithIdentity(t *testing.T) {
+func TestAccEventHubNamespace_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basicWithIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_standardWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_standardUpdateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_networkrule_iprule_trusted_services(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkrule_iprule_trusted_services(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_networkrule_iprule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkrule_iprule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_networkrule_vnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkrule_vnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_networkruleVnetIpRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkruleVnetIpRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_rulesets.0.virtual_network_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("network_rulesets.0.ip_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_readDefaultKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_basicUpdateIdentity(t *testing.T) {
+func TestAccEventHubNamespace_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMEventHubNamespace_basicWithIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` in `azurerm_eventhub_namespace` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+			// So these two properties should be checked in the second run.
+			Config: r.withAliasConnectionString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withAliasConnectionString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "default_primary_connection_string_alias", regexp.MustCompile("Endpoint=.+")),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "default_secondary_connection_string_alias", regexp.MustCompile("Endpoint=.+")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_maximumThroughputUnits(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maximumThroughputUnits(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_zoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_dedicatedClusterID(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedClusterID(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_NonStandardCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nonStandardCasing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:             r.nonStandardCasing(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
+func TestAccEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMEventHubNamespace_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_namespace"),
-			},
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicWithTagsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.sauce").HasValue("Hot"),
+				check.That(data.ResourceName).Key("tags.terraform").HasValue("true"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
+func TestAccEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.capacity(data, 20),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capacity").HasValue("20"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_standardWithIdentity(t *testing.T) {
+func TestAccEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_standardWithIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.capacity(data, 20),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capacity").HasValue("20"),
+			),
+		},
+		{
+			Config: r.capacity(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_standardUpdateIdentity(t *testing.T) {
+func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMEventHubNamespace_standardWithIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
+		},
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_networkrule_iprule(t *testing.T) {
+func TestAccEventHubNamespace_SkuDowngradeFromAutoInflateWithMaxThroughput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_networkrule_iprule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maximumThroughputUnits(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_networkrule_vnet(t *testing.T) {
+func TestAccEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_networkrule_vnet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maximumThroughputUnits(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("maximum_throughput_units").HasValue("20"),
+			),
+		},
+		{
+			Config: r.maximumThroughputUnitsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("maximum_throughput_units").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_networkruleVnetIpRule(t *testing.T) {
+func TestAccEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_networkruleVnetIpRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_rulesets.0.virtual_network_rule.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_rulesets.0.ip_rule.#", "2"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoInfalteDisabledWithAutoInflateUnits(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
-					resource.TestMatchResourceAttr(data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` in `azurerm_eventhub_namespace` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
-				// So these two properties should be checked in the second run.
-				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(data.ResourceName, "default_primary_connection_string_alias", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(data.ResourceName, "default_secondary_connection_string_alias", regexp.MustCompile("Endpoint=.+")),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnits(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_zoneRedundant(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_zoneRedundant(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_dedicatedClusterID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_dedicatedClusterID(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespaceNonStandardCasing(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists("azurerm_eventhub_namespace.test"),
-				),
-			},
-			{
-				Config:             testAccAzureRMEventHubNamespaceNonStandardCasing(data),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMEventHubNamespace_basicWithTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_capacity(data, 20),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "20"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_capacity(data, 20),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "20"),
-				),
-			},
-			{
-				Config: testAccAzureRMEventHubNamespace_capacity(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
-				),
-			},
-			{
-				Config: testAccAzureRMEventHubNamespace_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnits(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "maximum_throughput_units", "20"),
-				),
-			},
-			{
-				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "maximum_throughput_units", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventhub_namespace" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
+func (EventHubNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := namespaces.NamespaceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		namespaceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Event Hub Namespace %q (resource group: %q) does not exist", namespaceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on eventHubNamespacesClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Eventhub.NamespacesClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
-func testAccAzureRMEventHubNamespace_basic(data acceptance.TestData) string {
+func (EventHubNamespaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -569,14 +488,14 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_basicWithIdentity(data acceptance.TestData) string {
+func (EventHubNamespaceResource) basicWithIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -593,19 +512,19 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_withAliasConnectionString(data acceptance.TestData) string {
+func (EventHubNamespaceResource) withAliasConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ehn-%[1]d"
+  name     = "acctestRG-ehn-%[1]d-1"
   location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-ehn-%[1]d"
+  name     = "acctestRG-ehn-%[1]d"
   location = "%[3]s"
 }
 
@@ -634,8 +553,8 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMEventHubNamespace_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventHubNamespace_basic(data)
+func (EventHubNamespaceResource) requiresImport(data acceptance.TestData) string {
+	template := EventHubNamespaceResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -648,14 +567,14 @@ resource "azurerm_eventhub_namespace" "import" {
 `, template)
 }
 
-func testAccAzureRMEventHubNamespace_standard(data acceptance.TestData) string {
+func (EventHubNamespaceResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -669,14 +588,14 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_standardWithIdentity(data acceptance.TestData) string {
+func (EventHubNamespaceResource) standardWithIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -694,14 +613,14 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_networkrule_iprule(data acceptance.TestData) string {
+func (EventHubNamespaceResource) networkrule_iprule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -722,7 +641,36 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_networkrule_vnet(data acceptance.TestData) string {
+func (EventHubNamespaceResource) networkrule_iprule_trusted_services(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = "2"
+
+  network_rulesets {
+    default_action                 = "Deny"
+    trusted_service_access_enabled = true
+    ip_rule {
+      ip_mask = "10.0.0.0/16"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) networkrule_vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -766,7 +714,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMEventHubNamespace_networkruleVnetIpRule(data acceptance.TestData) string {
+func (EventHubNamespaceResource) networkruleVnetIpRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -837,7 +785,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMEventHubNamespaceNonStandardCasing(data acceptance.TestData) string {
+func (EventHubNamespaceResource) nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -857,7 +805,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_maximumThroughputUnits(data acceptance.TestData) string {
+func (EventHubNamespaceResource) maximumThroughputUnits(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -880,7 +828,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_zoneRedundant(data acceptance.TestData) string {
+func (EventHubNamespaceResource) zoneRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -902,7 +850,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_dedicatedClusterID(data acceptance.TestData) string {
+func (EventHubNamespaceResource) dedicatedClusterID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -931,7 +879,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_basicWithTagsUpdate(data acceptance.TestData) string {
+func (EventHubNamespaceResource) basicWithTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -950,12 +898,14 @@ resource "azurerm_eventhub_namespace" "test" {
 
   tags = {
     environment = "Production"
+    sauce       = "Hot"
+    terraform   = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_capacity(data acceptance.TestData, capacity int) string {
+func (EventHubNamespaceResource) capacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -976,7 +926,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
 }
 
-func testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(data acceptance.TestData) string {
+func (EventHubNamespaceResource) maximumThroughputUnitsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -999,7 +949,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(data acceptance.TestData) string {
+func (EventHubNamespaceResource) autoInfalteDisabledWithAutoInflateUnits(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPublicIP() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmPublicIPRead,
+func dataSourcePublicIP() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourcePublicIPRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -33,43 +33,51 @@ func dataSourceArmPublicIP() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"allocation_method": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ip_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"domain_name_label": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"reverse_fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"ip_tags": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"zones": azure.SchemaZonesComputed(),
@@ -79,7 +87,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 	}
 }
 
-func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,6 +138,11 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("ip_address", props.IPAddress)
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+
+		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
+		if iptags != nil {
+			d.Set("ip_tags", iptags)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

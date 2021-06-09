@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = DomainTopicId{}
 
 func TestDomainTopicIDFormatter(t *testing.T) {
-	actual := NewDomainTopicID("12345678-1234-9876-4563-123456789012", "resGroup1", "domain1", "topic1").ID("")
+	actual := NewDomainTopicID("12345678-1234-9876-4563-123456789012", "resGroup1", "domain1", "topic1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.EventGrid/domains/domain1/topics/topic1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

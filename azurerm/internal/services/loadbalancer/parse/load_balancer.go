@@ -32,7 +32,7 @@ func (id LoadBalancerId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Load Balancer", segmentsStr)
 }
 
-func (id LoadBalancerId) ID(_ string) string {
+func (id LoadBalancerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

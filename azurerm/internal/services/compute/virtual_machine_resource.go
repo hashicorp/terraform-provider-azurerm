@@ -9,19 +9,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
@@ -31,7 +32,7 @@ import (
 var virtualMachineResourceName = "azurerm_virtual_machine"
 
 // TODO move into internal/tf/suppress/base64.go
-func userDataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return userDataStateFunc(old) == new
 }
 
@@ -49,26 +50,25 @@ func userDataStateFunc(v interface{}) string {
 // NOTE: the `azurerm_virtual_machine` resource has been superseded by the `azurerm_linux_virtual_machine` and
 // 		 `azurerm_windows_virtual_machine` resources - as such this resource is feature-frozen and new
 //		 functionality will be added to these new resources instead.
-func resourceArmVirtualMachine() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVirtualMachineCreateUpdate,
-		Read:   resourceArmVirtualMachineRead,
-		Update: resourceArmVirtualMachineCreateUpdate,
-		Delete: resourceArmVirtualMachineDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceVirtualMachine() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVirtualMachineCreateUpdate,
+		Read:   resourceVirtualMachineRead,
+		Update: resourceVirtualMachineCreateUpdate,
+		Delete: resourceVirtualMachineDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -80,23 +80,23 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"zones": azure.SchemaSingleZone(),
 
 			"plan": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"product": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -104,7 +104,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"availability_set_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -115,7 +115,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"proximity_placement_group_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 
@@ -127,14 +127,14 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -144,16 +144,16 @@ func resourceArmVirtualMachine() *schema.Resource {
 							}, false),
 						},
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"identity_ids": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
 							},
 						},
 					},
@@ -161,7 +161,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"license_type": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -172,63 +172,63 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"vm_size": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// lintignore:S018
 			"storage_image_reference": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 
 						"offer": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 
 						"sku": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageImageReferenceHash,
+				Set: resourceVirtualMachineStorageImageReferenceHash,
 			},
 
 			"storage_os_disk": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -239,12 +239,12 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"vhd_uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 							ConflictsWith: []string{
@@ -254,7 +254,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"managed_disk_id": {
-							Type:          schema.TypeString,
+							Type:          pluginsdk.TypeString,
 							Optional:      true,
 							ForceNew:      true,
 							Computed:      true,
@@ -262,7 +262,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"managed_disk_type": {
-							Type:          schema.TypeString,
+							Type:          pluginsdk.TypeString,
 							Optional:      true,
 							Computed:      true,
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
@@ -274,31 +274,31 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"image_uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"caching": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"create_option": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"disk_size_gb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateDiskSizeGB,
+							ValidateFunc: validate.DiskSizeGB,
 						},
 
 						"write_accelerator_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -307,36 +307,36 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"delete_os_disk_on_termination": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"storage_data_disk": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"vhd_uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"managed_disk_id": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"managed_disk_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -348,31 +348,31 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"create_option": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"caching": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"disk_size_gb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateDiskSizeGB,
+							ValidateFunc: validate.DiskSizeGB,
 						},
 
 						"lun": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"write_accelerator_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -381,24 +381,24 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"delete_data_disks_on_termination": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"boot_diagnostics": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"storage_uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -406,13 +406,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"additional_capabilities": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"ultra_ssd_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 							ForceNew: true,
 						},
@@ -422,30 +422,30 @@ func resourceArmVirtualMachine() *schema.Resource {
 
 			// lintignore:S018
 			"os_profile": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"computer_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Required: true,
 						},
 
 						"admin_username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"admin_password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
 
 						"custom_data": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							ForceNew:  true,
 							Optional:  true,
 							Computed:  true,
@@ -453,40 +453,40 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageOsProfileHash,
+				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
 			// lintignore:S018
 			"os_profile_windows_config": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"provision_vm_agent": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"enable_automatic_upgrades": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"timezone": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validate.VirtualMachineTimeZoneCaseInsensitive(),
 						},
 						"winrm": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"protocol": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"HTTP",
@@ -495,34 +495,34 @@ func resourceArmVirtualMachine() *schema.Resource {
 										DiffSuppressFunc: suppress.CaseDifference,
 									},
 									"certificate_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
 							},
 						},
 						"additional_unattend_config": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									// TODO: should we make `pass` and `component` Optional + Defaulted?
 									"pass": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"oobeSystem",
 										}, false),
 									},
 									"component": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"Microsoft-Windows-Shell-Setup",
 										}, false),
 									},
 									"setting_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"AutoLogon",
@@ -530,7 +530,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 										}, false),
 									},
 									"content": {
-										Type:      schema.TypeString,
+										Type:      pluginsdk.TypeString,
 										Required:  true,
 										Sensitive: true,
 									},
@@ -539,32 +539,32 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set:           resourceArmVirtualMachineStorageOsProfileWindowsConfigHash,
+				Set:           resourceVirtualMachineStorageOsProfileWindowsConfigHash,
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
 			// lintignore:S018
 			"os_profile_linux_config": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disable_password_authentication": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 						"ssh_keys": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"path": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"key_data": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -572,31 +572,31 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set:           resourceArmVirtualMachineStorageOsProfileLinuxConfigHash,
+				Set:           resourceVirtualMachineStorageOsProfileLinuxConfigHash,
 				ConflictsWith: []string{"os_profile_windows_config"},
 			},
 
 			"os_profile_secrets": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"source_vault_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"vault_certificates": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"certificate_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"certificate_store": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
@@ -607,16 +607,16 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"primary_network_interface_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
@@ -625,7 +625,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -781,10 +781,10 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		"host": ipAddress,
 	})
 
-	return resourceArmVirtualMachineRead(d, meta)
+	return resourceVirtualMachineRead(d, meta)
 }
 
-func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	vmclient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -816,7 +816,11 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `plan`: %#v", err)
 	}
 
-	if err := d.Set("identity", flattenAzureRmVirtualMachineIdentity(resp.Identity)); err != nil {
+	identity, err := flattenAzureRmVirtualMachineIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
@@ -837,12 +841,12 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if profile := props.StorageProfile; profile != nil {
-			if err := d.Set("storage_image_reference", schema.NewSet(resourceArmVirtualMachineStorageImageReferenceHash, flattenAzureRmVirtualMachineImageReference(profile.ImageReference))); err != nil {
+			if err := d.Set("storage_image_reference", pluginsdk.NewSet(resourceVirtualMachineStorageImageReferenceHash, flattenAzureRmVirtualMachineImageReference(profile.ImageReference))); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Image Reference error: %#v", err)
 			}
 
 			if osDisk := profile.OsDisk; osDisk != nil {
-				diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(d, osDisk.ManagedDisk, meta)
+				diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(d, osDisk.ManagedDisk, meta)
 				if err != nil {
 					return fmt.Errorf("Error flattening `storage_os_disk`: %#v", err)
 				}
@@ -854,7 +858,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			if dataDisks := profile.DataDisks; dataDisks != nil {
 				disksInfo := make([]*compute.Disk, len(*dataDisks))
 				for i, dataDisk := range *dataDisks {
-					diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(d, dataDisk.ManagedDisk, meta)
+					diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(d, dataDisk.ManagedDisk, meta)
 					if err != nil {
 						return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
 					}
@@ -867,15 +871,15 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if profile := props.OsProfile; profile != nil {
-			if err := d.Set("os_profile", schema.NewSet(resourceArmVirtualMachineStorageOsProfileHash, flattenAzureRmVirtualMachineOsProfile(profile))); err != nil {
+			if err := d.Set("os_profile", pluginsdk.NewSet(resourceVirtualMachineStorageOsProfileHash, flattenAzureRmVirtualMachineOsProfile(profile))); err != nil {
 				return fmt.Errorf("Error setting `os_profile`: %#v", err)
 			}
 
-			if err := d.Set("os_profile_linux_config", schema.NewSet(resourceArmVirtualMachineStorageOsProfileLinuxConfigHash, flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(profile.LinuxConfiguration))); err != nil {
+			if err := d.Set("os_profile_linux_config", pluginsdk.NewSet(resourceVirtualMachineStorageOsProfileLinuxConfigHash, flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(profile.LinuxConfiguration))); err != nil {
 				return fmt.Errorf("Error setting `os_profile_linux_config`: %+v", err)
 			}
 
-			if err := d.Set("os_profile_windows_config", schema.NewSet(resourceArmVirtualMachineStorageOsProfileWindowsConfigHash, flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(profile.WindowsConfiguration))); err != nil {
+			if err := d.Set("os_profile_windows_config", pluginsdk.NewSet(resourceVirtualMachineStorageOsProfileWindowsConfigHash, flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(profile.WindowsConfiguration))); err != nil {
 				return fmt.Errorf("Error setting `os_profile_windows_config`: %+v", err)
 			}
 
@@ -914,7 +918,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -934,7 +938,10 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	future, err := client.Delete(ctx, resGroup, name)
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
@@ -970,11 +977,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 			}
 
 			if osDisk.Vhd != nil {
-				if err = resourceArmVirtualMachineDeleteVhd(ctx, storageClient, osDisk.Vhd); err != nil {
+				if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, osDisk.Vhd); err != nil {
 					return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
 				}
 			} else if osDisk.ManagedDisk != nil {
-				if err = resourceArmVirtualMachineDeleteManagedDisk(d, osDisk.ManagedDisk, meta); err != nil {
+				if err = resourceVirtualMachineDeleteManagedDisk(d, osDisk.ManagedDisk, meta); err != nil {
 					return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
 				}
 			}
@@ -995,11 +1002,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 				}
 
 				if disk.Vhd != nil {
-					if err = resourceArmVirtualMachineDeleteVhd(ctx, storageClient, disk.Vhd); err != nil {
+					if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, disk.Vhd); err != nil {
 						return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
 					}
 				} else if disk.ManagedDisk != nil {
-					if err = resourceArmVirtualMachineDeleteManagedDisk(d, disk.ManagedDisk, meta); err != nil {
+					if err = resourceVirtualMachineDeleteManagedDisk(d, disk.ManagedDisk, meta); err != nil {
 						return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
 					}
 				}
@@ -1010,7 +1017,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, vhd *compute.VirtualHardDisk) error {
+func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, vhd *compute.VirtualHardDisk) error {
 	if vhd == nil {
 		return fmt.Errorf("`vhd` was nil`")
 	}
@@ -1051,7 +1058,7 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteManagedDisk(d *schema.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) error {
+func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) error {
 	if disk == nil {
 		return fmt.Errorf("`disk` was nil`")
 	}
@@ -1128,9 +1135,9 @@ func flattenAzureRmVirtualMachineImageReference(image *compute.ImageReference) [
 	return []interface{}{result}
 }
 
-func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdentity) []interface{} {
+func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	result := make(map[string]interface{})
@@ -1150,12 +1157,16 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 			}
 		*/
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 	result["identity_ids"] = identityIds
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func flattenAzureRmVirtualMachineDiagnosticsProfile(profile *compute.BootDiagnostics) []interface{} {
@@ -1405,7 +1416,7 @@ func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, d
 	}
 }
 
-func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) *compute.Plan {
+func expandAzureRmVirtualMachinePlan(d *pluginsdk.ResourceData) *compute.Plan {
 	planConfigs := d.Get("plan").([]interface{})
 	if len(planConfigs) == 0 {
 		return nil
@@ -1424,7 +1435,7 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) *compute.Plan {
 	}
 }
 
-func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.VirtualMachineIdentity {
+func expandAzureRmVirtualMachineIdentity(d *pluginsdk.ResourceData) *compute.VirtualMachineIdentity {
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
@@ -1446,8 +1457,8 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	return &vmIdentity
 }
 
-func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {
-	osProfiles := d.Get("os_profile").(*schema.Set).List()
+func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*compute.OSProfile, error) {
+	osProfiles := d.Get("os_profile").(*pluginsdk.Set).List()
 
 	osProfile := osProfiles[0].(map[string]interface{})
 
@@ -1497,7 +1508,7 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 	return profile, nil
 }
 
-func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]compute.VaultSecretGroup {
+func expandAzureRmVirtualMachineOsProfileSecrets(d *pluginsdk.ResourceData) *[]compute.VaultSecretGroup {
 	secretsConfig := d.Get("os_profile_secrets").([]interface{})
 	secrets := make([]compute.VaultSecretGroup, 0, len(secretsConfig))
 
@@ -1543,8 +1554,8 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 	return &secrets
 }
 
-func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) *compute.LinuxConfiguration {
-	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*schema.Set).List()
+func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *pluginsdk.ResourceData) *compute.LinuxConfiguration {
+	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*pluginsdk.Set).List()
 
 	linuxConfig := osProfilesLinuxConfig[0].(map[string]interface{})
 	disablePasswordAuth := linuxConfig["disable_password_authentication"].(bool)
@@ -1580,8 +1591,8 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) *co
 	return config
 }
 
-func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) *compute.WindowsConfiguration {
-	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*schema.Set).List()
+func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData) *compute.WindowsConfiguration {
+	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*pluginsdk.Set).List()
 
 	osProfileConfig := osProfilesWindowsConfig[0].(map[string]interface{})
 	config := &compute.WindowsConfiguration{}
@@ -1651,7 +1662,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) *
 	return config
 }
 
-func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.DataDisk, error) {
+func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]compute.DataDisk, error) {
 	disks := d.Get("storage_data_disk").([]interface{})
 	data_disks := make([]compute.DataDisk, 0, len(disks))
 	for _, disk_config := range disks {
@@ -1716,7 +1727,7 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 	return data_disks, nil
 }
 
-func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *compute.DiagnosticsProfile {
+func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *compute.DiagnosticsProfile {
 	bootDiagnostics := d.Get("boot_diagnostics").([]interface{})
 
 	diagnosticsProfile := &compute.DiagnosticsProfile{}
@@ -1736,7 +1747,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *comp
 	return nil
 }
 
-func expandAzureRmVirtualMachineAdditionalCapabilities(d *schema.ResourceData) *compute.AdditionalCapabilities {
+func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData) *compute.AdditionalCapabilities {
 	additionalCapabilities := d.Get("additional_capabilities").([]interface{})
 	if len(additionalCapabilities) == 0 {
 		return nil
@@ -1750,8 +1761,8 @@ func expandAzureRmVirtualMachineAdditionalCapabilities(d *schema.ResourceData) *
 	return capability
 }
 
-func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {
-	storageImageRefs := d.Get("storage_image_reference").(*schema.Set).List()
+func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*compute.ImageReference, error) {
+	storageImageRefs := d.Get("storage_image_reference").(*pluginsdk.Set).List()
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 	imageID := storageImageRef["id"].(string)
@@ -1781,7 +1792,7 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 	return &imageReference, nil
 }
 
-func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.NetworkProfile {
+func expandAzureRmVirtualMachineNetworkProfile(d *pluginsdk.ResourceData) compute.NetworkProfile {
 	nicIds := d.Get("network_interface_ids").([]interface{})
 	primaryNicId := d.Get("primary_network_interface_id").(string)
 	network_interfaces := make([]compute.NetworkInterfaceReference, 0, len(nicIds))
@@ -1808,7 +1819,7 @@ func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.N
 	return network_profile
 }
 
-func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk, error) {
+func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*compute.OSDisk, error) {
 	disks := d.Get("storage_os_disk").([]interface{})
 
 	config := disks[0].(map[string]interface{})
@@ -1880,7 +1891,7 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 	return osDisk, nil
 }
 
-func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
+func resourceVirtualMachineStorageOsProfileHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1888,10 +1899,10 @@ func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
+func resourceVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1906,20 +1917,20 @@ func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) i
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
+func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
 	}
 
-	return hashcode.String(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
+func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1937,10 +1948,10 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
+func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

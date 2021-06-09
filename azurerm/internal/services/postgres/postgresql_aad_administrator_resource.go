@@ -6,39 +6,39 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLAdministrator() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmPostgreSQLAdministratorCreateUpdate,
-		Read:   resourceArmPostgreSQLAdministratorRead,
-		Update: resourceArmPostgreSQLAdministratorCreateUpdate,
-		Delete: resourceArmPostgreSQLAdministratorDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+func resourcePostgreSQLAdministrator() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourcePostgreSQLAdministratorCreateUpdate,
+		Read:   resourcePostgreSQLAdministratorRead,
+		Update: resourcePostgreSQLAdministratorCreateUpdate,
+		Delete: resourcePostgreSQLAdministratorDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AzureActiveDirectoryAdministratorID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"server_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -46,18 +46,19 @@ func resourceArmPostgreSQLAdministrator() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"login": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.AdminUsernames,
 			},
 
 			"object_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -65,7 +66,7 @@ func resourceArmPostgreSQLAdministrator() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +118,7 @@ func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmPostgreSQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLAdministratorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +151,7 @@ func resourceArmPostgreSQLAdministratorRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmPostgreSQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLAdministratorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

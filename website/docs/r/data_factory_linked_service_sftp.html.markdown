@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between a SFTP Server and Azure Data Facto
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -42,7 +42,8 @@ resource "azurerm_data_factory_linked_service_sftp" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
 
@@ -69,6 +70,10 @@ The following supported arguments are specific to SFTP Linked Service:
 * `username` - (Required) The username used to log on to the SFTP server.
 
 * `password` - (Required) Password to logon to the SFTP Server for Basic Authentication.
+
+* `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
+
+* `skip_host_key_validation` - (Optional) Whether to validate host key fingerprint while connecting. If set to `false`, `host_key_fingerprint` must also be set.
 
 ## Attributes Reference
 

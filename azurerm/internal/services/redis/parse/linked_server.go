@@ -35,7 +35,7 @@ func (id LinkedServerId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Linked Server", segmentsStr)
 }
 
-func (id LinkedServerId) ID(_ string) string {
+func (id LinkedServerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cache/Redis/%s/linkedServers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.RediName, id.Name)
 }

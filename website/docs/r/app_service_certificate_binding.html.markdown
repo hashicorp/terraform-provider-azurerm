@@ -15,7 +15,7 @@ Manages an App Service Certificate Binding.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "webapp"
-  location = "australiaeast"
+  location = "West Europe"
 }
 
 resource "azurerm_app_service_plan" "example" {
@@ -107,8 +107,8 @@ In addition to the arguments listed above - the following attributes are exporte
 
 ## Import
 
-App Service Certificate Bindings can be imported using the `resource id`, e.g.
+App Service Certificate Bindings can be imported using the `hostname_binding_id` and the `app_service_certificate_id` , e.g.
 
 ```shell
-terraform import azurerm_app_service_certificate_binding.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/hostNameBindings/mywebsite.com
+terraform import azurerm_app_service_certificate_binding.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/hostNameBindings/mywebsite.com|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificates/mywebsite.com"
 ```

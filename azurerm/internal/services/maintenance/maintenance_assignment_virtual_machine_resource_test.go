@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMaintenanceAssignmentVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
 	r := MaintenanceAssignmentVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
 	r := MaintenanceAssignmentVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -48,7 +47,7 @@ func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 	})
 }
 
-func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, c
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", id.VirtualMachineIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value == nil || len(*resp.Value) == 0), nil
+	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineResource) basic(data acceptance.TestData) string {
@@ -134,7 +133,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_D15_v2"
+  size                = "Standard_G5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
 

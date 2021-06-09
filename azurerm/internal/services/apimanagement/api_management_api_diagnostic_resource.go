@@ -5,42 +5,42 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiDiagnostic() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementApiDiagnosticCreateUpdate,
-		Read:   resourceArmApiManagementApiDiagnosticRead,
-		Update: resourceArmApiManagementApiDiagnosticCreateUpdate,
-		Delete: resourceArmApiManagementApiDiagnosticDelete,
+func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementApiDiagnosticCreateUpdate,
+		Read:   resourceApiManagementApiDiagnosticRead,
+		Update: resourceApiManagementApiDiagnosticCreateUpdate,
+		Delete: resourceApiManagementApiDiagnosticDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApiDiagnosticID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"identifier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -51,24 +51,31 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"api_name": azure.SchemaApiManagementApiName(),
+			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"api_management_logger_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.LoggerID,
 			},
 
+			"sampling_percentage": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatBetween(0.0, 100.0),
+			},
+
 			"always_log_errors": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"verbosity": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -79,13 +86,13 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 			},
 
 			"log_client_ip": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"http_correlation_protocol": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -95,44 +102,45 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				}, false),
 			},
 
-			"frontend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"frontend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"frontend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"backend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"backend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 		},
 	}
 }
 
-func resourceArmApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Schema {
+	//lintignore:XS003
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"body_bytes": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 8192),
 				},
 				"headers_to_log": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
-					Set: schema.HashString,
+					Set: pluginsdk.HashString,
 				},
 			},
 		},
 	}
 }
 
-func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,34 +169,29 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 		},
 	}
 
+	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+		parameters.Sampling = &apimanagement.SamplingSettings{
+			SamplingType: apimanagement.Fixed,
+			Percentage:   utils.Float(samplingPercentage.(float64)),
+		}
+	} else {
+		parameters.Sampling = nil
+	}
+
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
 		parameters.AlwaysLog = apimanagement.AllErrors
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		switch verbosity.(string) {
-		case string(apimanagement.Verbose):
-			parameters.Verbosity = apimanagement.Verbose
-		case string(apimanagement.Information):
-			parameters.Verbosity = apimanagement.Information
-		case string(apimanagement.Error):
-			parameters.Verbosity = apimanagement.Error
-		}
+		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
-	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		switch httpCorrelationProtocol.(string) {
-		case string(apimanagement.HTTPCorrelationProtocolNone):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
-		case string(apimanagement.HTTPCorrelationProtocolLegacy):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
-		case string(apimanagement.HTTPCorrelationProtocolW3C):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
-		}
+		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -228,10 +231,10 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiDiagnosticRead(d, meta)
+	return resourceApiManagementApiDiagnosticRead(d, meta)
 }
 
-func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,6 +261,9 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	if props := resp.DiagnosticContractProperties; props != nil {
 		d.Set("api_management_logger_id", props.LoggerID)
+		if props.Sampling != nil && props.Sampling.Percentage != nil {
+			d.Set("sampling_percentage", props.Sampling.Percentage)
+		}
 		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
 		d.Set("verbosity", props.Verbosity)
 		d.Set("log_client_ip", props.LogClientIP)
@@ -281,7 +287,7 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +307,7 @@ func resourceArmApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta in
 }
 
 func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) *apimanagement.HTTPMessageDiagnostic {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -315,7 +321,7 @@ func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) 
 		result.Body.Bytes = utils.Int32(int32(bodyBytes.(int)))
 	}
 	if headersSetRaw, ok := v["headers_to_log"]; ok {
-		headersSet := headersSetRaw.(*schema.Set).List()
+		headersSet := headersSetRaw.(*pluginsdk.Set).List()
 		headers := []string{}
 		for _, header := range headersSet {
 			headers = append(headers, header.(string))

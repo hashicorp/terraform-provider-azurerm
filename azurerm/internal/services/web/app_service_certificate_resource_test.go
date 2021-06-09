@@ -5,25 +5,24 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AppServiceCertificateResource struct{}
 
-func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
+func TestAccAppServiceCertificate_Pfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.pfx(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("password").HasValue("terraform"),
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
@@ -32,14 +31,14 @@ func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
+func TestAccAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.pfxNoPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
 		},
@@ -47,14 +46,14 @@ func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
+func TestAccAppServiceCertificate_KeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVault(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
 		},
@@ -62,13 +61,13 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 	})
 }
 
-func (r AppServiceCertificateResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -125,6 +124,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 data "azurerm_client_config" "test" {}
 
 data "azuread_service_principal" "test" {
@@ -140,23 +141,43 @@ resource "azurerm_key_vault" "test" {
   name                = "acct%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  soft_delete_enabled = true
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.test.tenant_id
-    object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = data.azurerm_client_config.test.object_id
+
+    secret_permissions = [
+      "delete",
+      "get",
+      "purge",
+      "set",
+    ]
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "purge",
+      "import",
+    ]
   }
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.test.tenant_id
-    object_id               = data.azuread_service_principal.test.object_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = data.azuread_service_principal.test.object_id
+
+    secret_permissions = [
+      "get",
+    ]
+
+    certificate_permissions = [
+      "get",
+    ]
   }
 }
 

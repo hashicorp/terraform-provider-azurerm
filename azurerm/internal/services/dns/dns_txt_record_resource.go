@@ -7,38 +7,37 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDnsTxtRecord() *schema.Resource {
-	return &schema.Resource{
+func resourceDnsTxtRecord() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDnsTxtRecordCreateUpdate,
 		Read:   resourceDnsTxtRecordRead,
 		Update: resourceDnsTxtRecordCreateUpdate,
 		Delete: resourceDnsTxtRecordDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TxtRecordID(id)
 			return err
 		}),
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -46,17 +45,17 @@ func resourceDnsTxtRecord() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"record": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"value": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringLenBetween(1, 1024),
 						},
@@ -65,12 +64,12 @@ func resourceDnsTxtRecord() *schema.Resource {
 			},
 
 			"ttl": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -79,14 +78,17 @@ func resourceDnsTxtRecord() *schema.Resource {
 	}
 }
 
-func resourceDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	resourceId := parse.NewTxtRecordID(subscriptionId, resGroup, zoneName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
@@ -119,21 +121,12 @@ func resourceDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS TXT Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(resourceId.ID())
 
 	return resourceDnsTxtRecordRead(d, meta)
 }
 
-func resourceDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +157,7 @@ func resourceDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,8 +194,8 @@ func flattenAzureRmDnsTxtRecords(records *[]dns.TxtRecord) []map[string]interfac
 	return results
 }
 
-func expandAzureRmDnsTxtRecords(d *schema.ResourceData) *[]dns.TxtRecord {
-	recordStrings := d.Get("record").(*schema.Set).List()
+func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) *[]dns.TxtRecord {
+	recordStrings := d.Get("record").(*pluginsdk.Set).List()
 	records := make([]dns.TxtRecord, len(recordStrings))
 
 	segmentLen := 254

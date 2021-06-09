@@ -7,37 +7,36 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmResourceGroup() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmResourceGroupCreateUpdate,
-		Read:   resourceArmResourceGroupRead,
-		Update: resourceArmResourceGroupCreateUpdate,
-		Delete: resourceArmResourceGroupDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+func resourceResourceGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceResourceGroupCreateUpdate,
+		Read:   resourceResourceGroupRead,
+		Update: resourceResourceGroupCreateUpdate,
+		Delete: resourceResourceGroupDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourceGroupID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
@@ -47,7 +46,7 @@ func resourceArmResourceGroup() *schema.Resource {
 	}
 }
 
-func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.GroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -85,10 +84,10 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
-	return resourceArmResourceGroupRead(d, meta)
+	return resourceResourceGroupRead(d, meta)
 }
 
-func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +113,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +123,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup)
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil

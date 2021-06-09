@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = VpnConnectionId{}
 
 func TestVpnConnectionIDFormatter(t *testing.T) {
-	actual := NewVpnConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "vpnGateway1", "vpnConnection1").ID("")
+	actual := NewVpnConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "vpnGateway1", "vpnConnection1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1/vpnConnections/vpnConnection1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

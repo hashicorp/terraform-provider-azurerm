@@ -6,25 +6,24 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AppServiceCertificateBindingResource struct{}
 
-func TestAccAzureRMAppServiceCertificateBinding_basic(t *testing.T) {
+func TestAccAppServiceCertificateBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
 			),
@@ -33,14 +32,14 @@ func TestAccAzureRMAppServiceCertificateBinding_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
+func TestAccAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSniEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
 			),
@@ -49,14 +48,14 @@ func TestAccAzureRMAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateBinding_requiresImport(t *testing.T) {
+func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
 			),
@@ -65,20 +64,20 @@ func TestAccAzureRMAppServiceCertificateBinding_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CertificateBindingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	binding, err := client.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name)
+	binding, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(binding.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Hostname Binding %q (resource group %q) to check for Certificate Binding %q: %+v", id.HostnameBindingId.Name, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.Name, err)
 	}
-	certificate, err := client.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
+	certificate, err := clients.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(certificate.Response) {
 			return utils.Bool(false), nil

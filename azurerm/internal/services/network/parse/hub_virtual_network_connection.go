@@ -35,7 +35,7 @@ func (id HubVirtualNetworkConnectionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Hub Virtual Network Connection", segmentsStr)
 }
 
-func (id HubVirtualNetworkConnectionId) ID(_ string) string {
+func (id HubVirtualNetworkConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/hubVirtualNetworkConnections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
 }

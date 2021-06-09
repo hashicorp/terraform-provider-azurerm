@@ -32,7 +32,7 @@ func (id ServerId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Server", segmentsStr)
 }
 
-func (id ServerId) ID(_ string) string {
+func (id ServerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforMySQL/servers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

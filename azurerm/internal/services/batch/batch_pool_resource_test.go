@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccBatchPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -47,10 +46,10 @@ func TestAccBatchPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -74,10 +73,10 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fixedScale_complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
@@ -102,10 +101,10 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoScale_complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -127,10 +126,10 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fixedScale_complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -149,7 +148,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 		data.ImportStep("stop_pending_resize_operation"),
 		{
 			Config: r.autoScale_complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -171,10 +170,10 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.startTask_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -210,10 +209,10 @@ func TestAccBatchPool_certificates(t *testing.T) {
 	certificate0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
 	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.certificates(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -222,13 +221,10 @@ func TestAccBatchPool_certificates(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("1"),
-				check.That(data.ResourceName).Key("certificate.0.visibility.3294600504").HasValue("StartTask"),
 				check.That(data.ResourceName).Key("certificate.1.id").HasValue(certificate1ID),
 				check.That(data.ResourceName).Key("certificate.1.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.1.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.1.visibility.#").HasValue("2"),
-				check.That(data.ResourceName).Key("certificate.1.visibility.3294600504").HasValue("StartTask"),
-				check.That(data.ResourceName).Key("certificate.1.visibility.4077195354").HasValue("RemoteUser"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -239,7 +235,7 @@ func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validateResourceFileWithoutSource(data),
 			ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
@@ -251,10 +247,10 @@ func TestAccBatchPool_container(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.containerConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_image_names.#").HasValue("1"),
@@ -275,7 +271,7 @@ func TestAccBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validateResourceFileWithMultipleSources(data),
 			ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
@@ -287,7 +283,7 @@ func TestAccBatchPool_validateResourceFileBlobPrefixWithoutAutoStorageContainerU
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validateResourceFileBlobPrefixWithoutAutoStorageContainerName(data),
 			ExpectError: regexp.MustCompile("auto_storage_container_name or storage_container_url must be specified when using blob_prefix"),
@@ -299,7 +295,7 @@ func TestAccBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validateResourceFileHttpURLWithoutFilePath(data),
 			ExpectError: regexp.MustCompile("file_path must be specified when using http_url"),
@@ -311,10 +307,10 @@ func TestAccBatchPool_customImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customImageConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
@@ -335,10 +331,10 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.networkConfiguration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
@@ -363,17 +359,17 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fixedScale_complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
 		{
 			Config: r.fixedScale_completeUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -381,7 +377,7 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 	})
 }
 
-func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -974,7 +970,7 @@ resource "azurerm_batch_certificate" "testcer" {
 resource "azurerm_batch_certificate" "testpfx" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_password.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -1122,6 +1118,8 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
+  allow_blob_public_access = true
+
   tags = {
     environment = "Dev"
   }
@@ -1190,6 +1188,26 @@ resource "azurerm_image" "test" {
   }
 }
 
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
   resource_group_name  = azurerm_resource_group.test.name
@@ -1215,10 +1233,10 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    id = azurerm_image.test.id
+    id = azurerm_shared_image.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
@@ -1276,8 +1294,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    subnet_id  = azurerm_subnet.test.id
-    public_ips = [azurerm_public_ip.test.id]
+    public_address_provisioning_type = "UserManaged"
+    public_ips                       = [azurerm_public_ip.test.id]
+    subnet_id                        = azurerm_subnet.test.id
 
     endpoint_configuration {
       name                = "SSH"

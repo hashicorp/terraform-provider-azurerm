@@ -6,18 +6,17 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AppServiceManagedCertificateResource struct{}
 
-func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
+func TestAccAppServiceManagedCertificate_basicLinux(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
 		return
@@ -26,17 +25,17 @@ func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
 	r := AppServiceManagedCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinux(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMAppServiceManagedCertificate_requiresImport(t *testing.T) {
+func TestAccAppServiceManagedCertificate_requiresImport(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
 		return
@@ -45,10 +44,10 @@ func TestAccAzureRMAppServiceManagedCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
 	r := AppServiceManagedCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinux(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -56,7 +55,7 @@ func TestAccAzureRMAppServiceManagedCertificate_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceManagedCertificate_basicWindows(t *testing.T) {
+func TestAccAppServiceManagedCertificate_basicWindows(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
 		return
@@ -65,17 +64,17 @@ func TestAccAzureRMAppServiceManagedCertificate_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
 	r := AppServiceManagedCertificateResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWindows(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
 }
 
-func (t AppServiceManagedCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppServiceManagedCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedCertificateID(state.ID)
 	if err != nil {
 		return nil, err

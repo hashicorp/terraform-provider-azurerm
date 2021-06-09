@@ -35,7 +35,7 @@ func (id FirewallPolicyRuleCollectionGroupId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Firewall Policy Rule Collection Group", segmentsStr)
 }
 
-func (id FirewallPolicyRuleCollectionGroupId) ID(_ string) string {
+func (id FirewallPolicyRuleCollectionGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s/ruleCollectionGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 }

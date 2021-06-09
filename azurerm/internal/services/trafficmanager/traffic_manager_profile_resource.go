@@ -8,38 +8,38 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmTrafficManagerProfile() *schema.Resource {
-	return &schema.Resource{
+func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -48,7 +48,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"profile_status": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -59,7 +59,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"traffic_routing_method": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(trafficmanager.Geographic),
@@ -72,18 +72,18 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"dns_config": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"relative_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Required: true,
 						},
 						"ttl": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 2147483647),
 						},
@@ -92,32 +92,32 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"monitor_config": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"expected_status_code_ranges": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validateTrafficManagerProfileStatusCodeRange,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.StatusCodeRange,
 							},
 						},
 
 						"custom_header": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"value": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -125,7 +125,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						},
 
 						"protocol": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(trafficmanager.HTTP),
@@ -136,32 +136,32 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						},
 
 						"port": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 
 						"path": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"interval_in_seconds": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntInSlice([]int{10, 30}),
 							Default:      30,
 						},
 
 						"timeout_in_seconds": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(5, 10),
 							Default:      10,
 						},
 
 						"tolerated_number_of_failures": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 9),
 							Default:      3,
@@ -171,8 +171,19 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"max_return": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 8),
+			},
+
+			"traffic_view_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"tags": tags.Schema(),
@@ -180,7 +191,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -197,7 +208,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID(""))
+		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID())
 	}
 
 	// No existing profile - start from a new struct.
@@ -212,8 +223,21 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if maxReturn, ok := d.GetOk("max_return"); ok {
+		profile.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+	}
+
 	if status, ok := d.GetOk("profile_status"); ok {
 		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+	}
+
+	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+		profile.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+	}
+
+	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
+		profile.ProfileProperties.MaxReturn == nil {
+		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.ProfileProperties.MonitorConfig.IntervalInSeconds == int64(10) &&
@@ -225,11 +249,11 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("creating Traffic Manager Profile %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
-func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,9 +278,11 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
 		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
+		d.Set("max_return", profile.MaxReturn)
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
+		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {
@@ -266,7 +292,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,12 +317,24 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 		update.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	}
 
+	if d.HasChange("max_return") {
+		if maxReturn, ok := d.GetOk("max_return"); ok {
+			update.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		}
+	}
+
 	if d.HasChange("dns_config") {
 		update.ProfileProperties.DNSConfig = expandArmTrafficManagerDNSConfig(d)
 	}
 
 	if d.HasChange("monitor_config") {
 		update.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
+	}
+
+	if d.HasChange("traffic_view_enabled") {
+		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+			update.ProfileProperties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
@@ -306,7 +344,7 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
-func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -326,7 +364,7 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanager.MonitorConfig {
+func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *trafficmanager.MonitorConfig {
 	monitorSets := d.Get("monitor_config").([]interface{})
 	monitor := monitorSets[0].(map[string]interface{})
 
@@ -398,7 +436,7 @@ func flattenArmTrafficManagerCustomHeadersConfig(input *[]trafficmanager.Monitor
 	return result
 }
 
-func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DNSConfig {
+func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *trafficmanager.DNSConfig {
 	dnsSets := d.Get("dns_config").([]interface{})
 	dns := dnsSets[0].(map[string]interface{})
 
@@ -409,6 +447,13 @@ func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DN
 		RelativeName: &name,
 		TTL:          &ttl,
 	}
+}
+
+func expandArmTrafficManagerTrafficView(s bool) trafficmanager.TrafficViewEnrollmentStatus {
+	if s {
+		return trafficmanager.TrafficViewEnrollmentStatusEnabled
+	}
+	return trafficmanager.TrafficViewEnrollmentStatusDisabled
 }
 
 func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig) []interface{} {
@@ -448,32 +493,4 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 	}
 
 	return []interface{}{result}
-}
-
-func validateTrafficManagerProfileStatusCodeRange(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-
-	parts := strings.Split(v, "-")
-	if len(parts) != 2 {
-		errors = append(errors, fmt.Errorf("expected %s to contain a single '-', got %v", k, i))
-		return warnings, errors
-	}
-
-	_, err := strconv.Atoi(parts[0])
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the left of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	_, err = strconv.Atoi(parts[1])
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the right of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	return warnings, errors
 }

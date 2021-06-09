@@ -4,37 +4,37 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryProtectionContainerMapping() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmSiteRecoveryContainerMappingCreate,
-		Read:   resourceArmSiteRecoveryContainerMappingRead,
+func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSiteRecoveryContainerMappingCreate,
+		Read:   resourceSiteRecoveryContainerMappingRead,
 		Update: nil,
-		Delete: resourceArmSiteRecoveryServicesContainerMappingDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Delete: resourceSiteRecoveryServicesContainerMappingDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -42,32 +42,32 @@ func resourceArmSiteRecoveryProtectionContainerMapping() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"recovery_fabric_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"recovery_replication_policy_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"recovery_source_protection_container_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"recovery_target_protection_container_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
@@ -77,7 +77,7 @@ func resourceArmSiteRecoveryProtectionContainerMapping() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("recovery_fabric_name").(string)
@@ -99,7 +99,7 @@ func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container_mapping", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -123,12 +123,12 @@ func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error retrieving site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryContainerMappingRead(d, meta)
+	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }
 
-func resourceArmSiteRecoveryContainerMappingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func resourceArmSiteRecoveryContainerMappingRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

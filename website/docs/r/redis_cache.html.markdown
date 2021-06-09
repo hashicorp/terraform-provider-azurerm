@@ -61,11 +61,17 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
-* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
+* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
 
 * `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
 
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and private endpoint. `false` means only private endpoint access is allowed. Defaults to `true`.
+
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
+
+* `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
+
+~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
@@ -73,13 +79,27 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A list of a single item of the Availability Zone which the Redis Cache should be allocated in.
+* `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated.
 
 -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 ---
 
 A `redis_configuration` block supports the following:
+
+* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache.
+* `aof_storage_connection_string_0` - (Optional) First Storage Account connection string for AOF persistence.
+* `aof_storage_connection_string_1` - (Optional) Second Storage Account connection string for AOF persistence.
+
+Example usage:
+
+```hcl
+redis_configuration {
+  aof_backup_enabled              = true
+  aof_storage_connection_string_0 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.nc-cruks-storage-account.primary_blob_endpoint};AccountName=${azurerm_storage_account.mystorageaccount.name};AccountKey=${azurerm_storage_account.mystorageaccount.primary_access_key}"
+  aof_storage_connection_string_1 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.mystorageaccount.primary_blob_endpoint};AccountName=${azurerm_storage_account.mystorageaccount.name};AccountKey=${azurerm_storage_account.mystorageaccount.secondary_access_key}"
+}
+```
 
 * `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
 

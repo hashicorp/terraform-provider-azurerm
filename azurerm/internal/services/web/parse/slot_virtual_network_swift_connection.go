@@ -38,7 +38,7 @@ func (id SlotVirtualNetworkSwiftConnectionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Slot Virtual Network Swift Connection", segmentsStr)
 }
 
-func (id SlotVirtualNetworkSwiftConnectionId) ID(_ string) string {
+func (id SlotVirtualNetworkSwiftConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/config/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.ConfigName)
 }

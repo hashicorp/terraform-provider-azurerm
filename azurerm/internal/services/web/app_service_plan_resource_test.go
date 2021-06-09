@@ -5,25 +5,24 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AppServicePlanResource struct{}
 
-func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
+func TestAccAppServicePlan_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWindows(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("per_site_scaling").HasValue("false"),
 				check.That(data.ResourceName).Key("reserved").HasValue("false"),
@@ -33,20 +32,20 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
+func TestAccAppServicePlan_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinux(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicLinuxNew(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("per_site_scaling").HasValue("false"),
 				check.That(data.ResourceName).Key("reserved").HasValue("true"),
@@ -56,14 +55,14 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
+func TestAccAppServicePlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinux(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,14 +70,14 @@ func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
+func TestAccAppServicePlan_standardWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardWindows(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -86,14 +85,14 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
+func TestAccAppServicePlan_premiumWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumWindows(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -101,21 +100,21 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
+func TestAccAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumWindows(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 			),
 		},
 		{
 			Config: r.premiumWindowsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
 			),
@@ -124,14 +123,14 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
+func TestAccAppServicePlan_completeWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeWindows(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("per_site_scaling").HasValue("true"),
 				check.That(data.ResourceName).Key("reserved").HasValue("false"),
@@ -139,7 +138,7 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 		},
 		{
 			Config: r.completeWindowsNew(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("per_site_scaling").HasValue("true"),
 				check.That(data.ResourceName).Key("reserved").HasValue("false"),
@@ -149,14 +148,14 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
+func TestAccAppServicePlan_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.consumptionPlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Dynamic"),
 				check.That(data.ResourceName).Key("sku.0.size").HasValue("Y1"),
@@ -165,14 +164,14 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_linuxConsumptionPlan(t *testing.T) {
+func TestAccAppServicePlan_linuxConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.linuxConsumptionPlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -180,14 +179,14 @@ func TestAccAzureRMAppServicePlan_linuxConsumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
+func TestAccAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumConsumptionPlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("ElasticPremium"),
 				check.That(data.ResourceName).Key("sku.0.size").HasValue("EP1"),
@@ -197,14 +196,14 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWindowsContainer(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("xenon"),
 				check.That(data.ResourceName).Key("is_xenon").HasValue("true"),
@@ -216,18 +215,23 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	})
 }
 
-func (r AppServicePlanResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServicePlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppServicePlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	resp, err := clients.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
+	}
+
+	// The SDK defines 404 as an "ok" status code..
+	if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), nil
 	}
 
 	return utils.Bool(true), nil

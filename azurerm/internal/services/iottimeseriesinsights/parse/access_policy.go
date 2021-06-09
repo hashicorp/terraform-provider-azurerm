@@ -35,7 +35,7 @@ func (id AccessPolicyId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Access Policy", segmentsStr)
 }
 
-func (id AccessPolicyId) ID(_ string) string {
+func (id AccessPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/accessPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }

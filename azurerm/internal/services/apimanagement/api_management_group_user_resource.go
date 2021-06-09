@@ -5,43 +5,44 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementGroupUser() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementGroupUserCreate,
-		Read:   resourceArmApiManagementGroupUserRead,
-		Delete: resourceArmApiManagementGroupUserDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApiManagementGroupUser() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementGroupUserCreate,
+		Read:   resourceApiManagementGroupUserRead,
+		Delete: resourceApiManagementGroupUserDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
+		Schema: map[string]*pluginsdk.Schema{
+			"user_id": schemaz.SchemaApiManagementChildName(),
 
-		Schema: map[string]*schema.Schema{
-			"user_id": azure.SchemaApiManagementChildName(),
-
-			"group_name": azure.SchemaApiManagementChildName(),
+			"group_name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 		},
 	}
 }
 
-func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,22 +74,22 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementGroupUserRead(d, meta)
+	return resourceApiManagementGroupUserRead(d, meta)
 }
 
-func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.GroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	userId := id.UserName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 	if err != nil {
@@ -109,19 +110,19 @@ func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.GroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	userId := id.UserName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

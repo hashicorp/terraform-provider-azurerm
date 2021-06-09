@@ -2,27 +2,14 @@ package loadbalancer
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // TODO: refactor this
-
-func retrieveLoadBalancerById(ctx context.Context, client *network.LoadBalancersClient, loadBalancerId parse.LoadBalancerId) (*network.LoadBalancer, bool, error) {
-	resp, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, false, nil
-		}
-		return nil, false, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
-	}
-
-	return &resp, true, nil
-}
 
 func FindLoadBalancerBackEndAddressPoolByName(lb *network.LoadBalancer, name string) (*network.BackendAddressPool, int, bool) {
 	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.BackendAddressPools == nil {
@@ -123,15 +110,16 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 }
 
 func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalancerId, error)) *schema.ResourceImporter {
-	return &schema.ResourceImporter{
-		State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-			lbId, err := parser(d.Id())
-			if err != nil {
-				return nil, err
-			}
+	return pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+		_, err := parser(id)
+		return err
+	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		lbId, err := parser(d.Id())
+		if err != nil {
+			return nil, err
+		}
 
-			d.Set("loadbalancer_id", lbId.ID(""))
-			return []*schema.ResourceData{d}, nil
-		},
-	}
+		d.Set("loadbalancer_id", lbId.ID())
+		return []*pluginsdk.ResourceData{d}, nil
+	})
 }

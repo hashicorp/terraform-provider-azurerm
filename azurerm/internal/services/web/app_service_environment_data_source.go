@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAppServiceEnvironment() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmAppServiceEnvironmentRead,
+func dataSourceAppServiceEnvironment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceAppServiceEnvironmentRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
@@ -31,31 +31,49 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			"cluster_setting": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"value": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"front_end_scale_factor": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"internal_ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"service_ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"outbound_ip_addresses": {
-				Type: schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Type: pluginsdk.TypeList,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 				Computed: true,
 			},
 
 			"pricing_tier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -64,7 +82,7 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 	}
 }
 
-func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,6 +124,7 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
+		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
 
 	d.Set("internal_ip_address", vipInfo.InternalIPAddress)

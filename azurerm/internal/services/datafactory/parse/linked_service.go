@@ -35,7 +35,7 @@ func (id LinkedServiceId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Linked Service", segmentsStr)
 }
 
-func (id LinkedServiceId) ID(_ string) string {
+func (id LinkedServiceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataFactory/factories/%s/linkedservices/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }

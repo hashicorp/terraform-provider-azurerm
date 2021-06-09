@@ -32,7 +32,7 @@ func (id NamespaceId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Namespace", segmentsStr)
 }
 
-func (id NamespaceId) ID(_ string) string {
+func (id NamespaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

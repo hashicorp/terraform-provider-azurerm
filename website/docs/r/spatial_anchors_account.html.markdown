@@ -15,7 +15,7 @@ Manages an Azure Spatial Anchors Account.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_spatial_anchors_account" "example" {
@@ -42,6 +42,10 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Spatial Anchors Account.
+
+* `account_domain` - The domain of the Spatial Anchors Account.
+
+* `account_id` - The account ID of the Spatial Anchors Account.
 
 ## Timeouts
 

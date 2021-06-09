@@ -5,40 +5,39 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const azureNetworkDDoSProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 
-func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
-		Read:   resourceArmNetworkDDoSProtectionPlanRead,
-		Update: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
-		Delete: resourceArmNetworkDDoSProtectionPlanDelete,
+func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Read:   resourceNetworkDDoSProtectionPlanRead,
+		Update: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Delete: resourceNetworkDDoSProtectionPlanDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -48,10 +47,10 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_ids": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -60,7 +59,7 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,7 +85,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	vnetsToLock, err := expandArmNetworkDDoSProtectionPlanVnetNames(d)
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
@@ -122,10 +121,10 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*plan.ID)
 
-	return resourceArmNetworkDDoSProtectionPlanRead(d, meta)
+	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +154,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
-		vNetIDs := flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
+		vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
 		if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_ids`: %+v", err)
 		}
@@ -164,7 +163,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, plan.Tags)
 }
 
-func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +209,7 @@ func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta int
 	return err
 }
 
-func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]string, error) {
+func expandNetworkDDoSProtectionPlanVnetNames(d *pluginsdk.ResourceData) (*[]string, error) {
 	vnetIDs := d.Get("virtual_network_ids").([]interface{})
 	vnetNames := make([]string, 0)
 
@@ -230,7 +229,7 @@ func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]str
 	return &vnetNames, nil
 }
 
-func flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
+func flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
 	vnetIDs := make([]string, 0)
 	if input == nil {
 		return vnetIDs
@@ -246,7 +245,7 @@ func flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubRe
 	return vnetIDs
 }
 
-func extractVnetNames(d *schema.ResourceData) (*[]string, error) {
+func extractVnetNames(d *pluginsdk.ResourceData) (*[]string, error) {
 	vnetIDs := d.Get("virtual_network_ids").([]interface{})
 	vnetNames := make([]string, 0)
 

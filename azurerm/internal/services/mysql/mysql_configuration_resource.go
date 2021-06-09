@@ -6,34 +6,36 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySQLConfiguration() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmMySQLConfigurationCreate,
-		Read:   resourceArmMySQLConfigurationRead,
-		Delete: resourceArmMySQLConfigurationDelete,
+func resourceMySQLConfiguration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceMySQLConfigurationCreate,
+		Read:   resourceMySQLConfigurationRead,
+		Delete: resourceMySQLConfigurationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ConfigurationID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -41,14 +43,14 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"value": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -56,98 +58,83 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-	value := d.Get("value").(string)
-
 	properties := mysql.Configuration{
 		ConfigurationProperties: &mysql.ConfigurationProperties{
-			Value: utils.String(value),
+			Value: utils.String(d.Get("value").(string)),
 		},
 	}
 
 	// NOTE: this resource intentionally doesn't support Requires Import
 	//       since a fallback route is created by default
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	id := parse.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for create/update of MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting for creation of %s: %v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("Error issuing get request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Configuration %s (resource group %s, server name %s) ID", name, resourceGroup, serverName)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmMySQLConfigurationRead(d, meta)
+	d.SetId(id.ID())
+	return resourceMySQLConfigurationRead(d, meta)
 }
 
-func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MySQL Configuration %q was not found (resource group %q)", name, resourceGroup)
+			log.Printf("[WARN] %s was not found", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure MySQL Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("server_name", serverName)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("value", resp.ConfigurationProperties.Value)
+	d.Set("name", id.Name)
+	d.Set("server_name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	value := ""
+	if props := resp.ConfigurationProperties; props != nil && props.Value != nil {
+		value = *props.Value
+	}
+	d.Set("value", value)
 
 	return nil
 }
 
-func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
-
 	// "delete" = resetting this to the default value
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving MySQL Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	properties := mysql.Configuration{
@@ -157,7 +144,7 @@ func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
 		return err
 	}

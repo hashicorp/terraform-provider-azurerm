@@ -27,13 +27,13 @@ output "servicebus_subscription" {
 
 ## Argument Reference
 
-* `name` - Specifies the name of the ServiceBus Subscription.
+* `name` - (Required) Specifies the name of the ServiceBus Subscription.
 
-* `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
 
-* `namespace_name` - The name of the ServiceBus Namespace.
+* `namespace_name` - (Required) The name of the ServiceBus Namespace.
 
-* `topic_name` - The name of the ServiceBus Topic.
+* `topic_name` - (Required) The name of the ServiceBus Topic.
 
 ## Attributes Reference
 

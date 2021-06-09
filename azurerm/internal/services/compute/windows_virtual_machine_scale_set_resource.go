@@ -5,52 +5,50 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmWindowsVirtualMachineScaleSetCreate,
-		Read:   resourceArmWindowsVirtualMachineScaleSetRead,
-		Update: resourceArmWindowsVirtualMachineScaleSetUpdate,
-		Delete: resourceArmWindowsVirtualMachineScaleSetDelete,
+func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceWindowsVirtualMachineScaleSetCreate,
+		Read:   resourceWindowsVirtualMachineScaleSetRead,
+		Update: resourceWindowsVirtualMachineScaleSetUpdate,
+		Delete: resourceWindowsVirtualMachineScaleSetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
 		}, importVirtualMachineScaleSet(compute.Windows, "azurerm_windows_virtual_machine_scale_set")),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -59,14 +57,14 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			// Required
 			"admin_username": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"admin_password": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				Sensitive:        true,
@@ -79,13 +77,13 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"os_disk": VirtualMachineScaleSetOSDiskSchema(),
 
 			"instances": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"sku": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -102,14 +100,14 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name_prefix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 
 				// Computed since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: ValidateWindowsComputerNamePrefix,
+				ValidateFunc: computeValidate.WindowsComputerNamePrefix,
 			},
 
 			"custom_data": base64.OptionalSchema(false),
@@ -117,25 +115,25 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"data_disk": VirtualMachineScaleSetDataDiskSchema(),
 
 			"do_not_run_extensions_on_overprovisioned_machines": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"enable_automatic_updates": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"encryption_at_host_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -146,35 +144,47 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			"extension": VirtualMachineScaleSetExtensionsSchema(),
 
-			"health_probe_id": {
-				Type:         schema.TypeString,
+			"extensions_time_budget": {
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+			},
+
+			"health_probe_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"identity": VirtualMachineScaleSetIdentitySchema(),
 
 			"license_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"None",
 					"Windows_Client",
 					"Windows_Server",
 				}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					if old == "None" && new == "" || old == "" && new == "None" {
+						return true
+					}
+
+					return false
+				},
 			},
 
 			"max_bid_price": {
-				Type:         schema.TypeFloat,
+				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: computeValidate.SpotMaxPrice,
 			},
 
 			"overprovision": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -182,14 +192,14 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"plan": planSchema(),
 
 			"platform_fault_domain_count": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ForceNew: true,
 				Computed: true,
 			},
 
 			"priority": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(compute.Regular),
@@ -200,14 +210,14 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"provision_vm_agent": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
 			},
 
 			"proximity_placement_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -220,13 +230,13 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"secret": windowsSecretSchema(),
 
 			"single_placement_group": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"source_image_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -236,34 +246,34 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"timezone": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.VirtualMachineTimeZone(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
 			"upgrade_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(compute.Manual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.UpgradeModeAutomatic),
-					string(compute.UpgradeModeManual),
-					string(compute.UpgradeModeRolling),
+					string(compute.Automatic),
+					string(compute.Manual),
+					string(compute.Rolling),
 				}, false),
 			},
 
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone_balance": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 				Default:  false,
 			},
 
 			"scale_in_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(compute.Default),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -279,14 +289,14 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			// Computed
 			"unique_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -356,24 +366,20 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
+	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
-		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
-	}
-
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
+	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
-	winRmListenersRaw := d.Get("winrm_listener").(*schema.Set).List()
+	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	secretsRaw := d.Get("secret").([]interface{})
@@ -386,7 +392,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
 		computerNamePrefix = v.(string)
 	} else {
-		_, errs := ValidateWindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
+		_, errs := computeValidate.WindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}
@@ -430,21 +436,29 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		},
 	}
 
-	if features.VMSSExtensionsBeta() {
-		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
-			if err != nil {
-				return err
-			}
+	hasHealthExtension := false
+	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
+		if err != nil {
+			return err
 		}
 	}
 
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
-	if upgradeMode != compute.UpgradeModeAutomatic {
-		virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
-	} else if !enableAutomaticUpdates {
-		return fmt.Errorf("`enable_automatic_updates` must be set to `true` when `upgrade_mode` is set to `Automatic`")
+	if v, ok := d.GetOk("extensions_time_budget"); ok {
+		if virtualMachineProfile.ExtensionProfile == nil {
+			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+		}
+		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
 	}
+
+	// otherwise the service return the error:
+	// Rolling Upgrade mode is not supported for this Virtual Machine Scale Set because a health probe or health extension was not provided.
+	if upgradeMode == compute.Rolling && (healthProbeId == "" && !hasHealthExtension) {
+		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+	}
+
+	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+	virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if priority != compute.Spot {
@@ -563,10 +577,10 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmWindowsVirtualMachineScaleSetRead(d, meta)
+	return resourceWindowsVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -664,7 +678,7 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 			windowsConfig := compute.WindowsConfiguration{}
 
 			if d.HasChange("enable_automatic_updates") {
-				if upgradeMode == compute.UpgradeModeAutomatic {
+				if upgradeMode == compute.Automatic {
 					return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
 				}
 
@@ -729,7 +743,17 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 				return err
 			}
 
+			// Must include all storage profile properties when updating disk image.  See: https://github.com/terraform-providers/terraform-provider-azurerm/issues/8273
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
 			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &compute.VirtualMachineScaleSetUpdateOSDisk{
+				Caching:                 existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
+				WriteAcceleratorEnabled: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,
+				DiskSizeGB:              existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.DiskSizeGB,
+				Image:                   existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Image,
+				VhdContainers:           existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.VhdContainers,
+				ManagedDisk:             existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.ManagedDisk,
+			}
 		}
 	}
 
@@ -782,6 +806,17 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		}
 	}
 
+	if d.HasChange("license_type") {
+		license := d.Get("license_type").(string)
+		if license == "" {
+			// Only for create no specification is possible in the API. API does not allow empty string in update.
+			// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
+			// To allow updating in this case set value explicitly to 'None'.
+			license = "None"
+		}
+		updateProps.VirtualMachineProfile.LicenseType = &license
+	}
+
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
@@ -821,14 +856,15 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		update.Sku = sku
 	}
 
-	if features.VMSSExtensionsBeta() {
-		if d.HasChange("extension") {
-			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
-			if err != nil {
-				return err
-			}
-			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+	if d.HasChanges("extension", "extensions_time_budget") {
+		updateInstances = true
+
+		extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
+		if err != nil {
+			return err
 		}
+		updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -851,10 +887,10 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	return resourceArmWindowsVirtualMachineScaleSetRead(d, meta)
+	return resourceWindowsVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -892,7 +928,11 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 	d.Set("instances", instances)
 	d.Set("sku", skuName)
 
-	if err := d.Set("identity", FlattenVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
+	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
@@ -963,7 +1003,14 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 
 		d.Set("eviction_policy", string(profile.EvictionPolicy))
 		d.Set("license_type", profile.LicenseType)
-		d.Set("priority", string(profile.Priority))
+
+		// the service just return empty when this is not assigned when provisioned
+		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
+		priority := compute.Regular
+		if profile.Priority != "" {
+			priority = profile.Priority
+		}
+		d.Set("priority", priority)
 
 		if storageProfile := profile.StorageProfile; storageProfile != nil {
 			if err := d.Set("os_disk", FlattenVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
@@ -1007,7 +1054,7 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 				// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
 				// an Automatic Upgrade Mode configured) however it actually returns false from the API..
 				// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
-				if upgradeMode != compute.UpgradeModeAutomatic {
+				if upgradeMode != compute.Automatic {
 					d.Set("enable_automatic_updates", enableAutomaticUpdates)
 				}
 
@@ -1039,13 +1086,17 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 			}
 		}
 
-		if features.VMSSExtensionsBeta() {
-			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
-			if err != nil {
-				return fmt.Errorf("failed flattening `extension`: %+v", err)
-			}
-			d.Set("extension", extensionProfile)
+		extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+		if err != nil {
+			return fmt.Errorf("failed flattening `extension`: %+v", err)
 		}
+		d.Set("extension", extensionProfile)
+
+		extensionsTimeBudget := "PT1H30M"
+		if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {
+			extensionsTimeBudget = *profile.ExtensionProfile.ExtensionsTimeBudget
+		}
+		d.Set("extensions_time_budget", extensionsTimeBudget)
 
 		encryptionAtHostEnabled := false
 		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
@@ -1061,7 +1112,7 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1109,7 +1160,11 @@ func resourceArmWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta
 	}
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @ArcturusZhang (mimicking from windows_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
+	// which matches the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

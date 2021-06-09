@@ -4,27 +4,28 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKustoCluster() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmKustoClusterRead,
+func dataSourceKustoCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceKustoClusterRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -32,12 +33,12 @@ func dataSourceArmKustoCluster() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"data_ingestion_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -46,7 +47,7 @@ func dataSourceArmKustoCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

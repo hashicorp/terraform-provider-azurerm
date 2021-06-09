@@ -6,78 +6,77 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDigitalTwinsEndpointEventGrid() *schema.Resource {
-	return &schema.Resource{
+func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDigitalTwinsEndpointEventGridCreateUpdate,
 		Read:   resourceDigitalTwinsEndpointEventGridRead,
 		Update: resourceDigitalTwinsEndpointEventGridCreateUpdate,
 		Delete: resourceDigitalTwinsEndpointEventGridDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DigitalTwinsEndpointID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DigitalTwinsInstanceName,
 			},
 
 			"digital_twins_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DigitalTwinsInstanceID,
 			},
 
 			"eventgrid_topic_endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
 			"eventgrid_topic_primary_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"eventgrid_topic_secondary_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"dead_letter_storage_secret": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
-func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -89,7 +88,7 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	id := parse.NewDigitalTwinsEndpointID(subscriptionId, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name).ID("")
+	id := parse.NewDigitalTwinsEndpointID(subscriptionId, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name).ID()
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name)
@@ -131,7 +130,7 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData, m
 	return resourceDigitalTwinsEndpointEventGridRead(d, meta)
 }
 
-func resourceDigitalTwinsEndpointEventGridRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventGridRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -152,7 +151,7 @@ func resourceDigitalTwinsEndpointEventGridRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("retrieving Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 	d.Set("name", id.EndpointName)
-	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID(""))
+	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID())
 	if resp.Properties != nil {
 		if _, ok := resp.Properties.AsEventGrid(); !ok {
 			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Instance %q) is not type Event Grid", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName)
@@ -162,7 +161,7 @@ func resourceDigitalTwinsEndpointEventGridRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceDigitalTwinsEndpointEventGridDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventGridDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

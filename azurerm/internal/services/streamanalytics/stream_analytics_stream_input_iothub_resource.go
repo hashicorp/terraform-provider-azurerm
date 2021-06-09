@@ -6,45 +6,44 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
-	return &schema.Resource{
+func resourceStreamAnalyticsStreamInputIoTHub() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsStreamInputIoTHubCreateUpdate,
 		Read:   resourceStreamAnalyticsStreamInputIoTHubRead,
 		Update: resourceStreamAnalyticsStreamInputIoTHubCreateUpdate,
 		Delete: resourceStreamAnalyticsStreamInputIoTHubDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StreamInputID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"stream_analytics_job_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,25 +52,25 @@ func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"iothub_namespace": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"eventhub_consumer_group_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
@@ -79,17 +78,17 @@ func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 			},
 
 			"shared_access_policy_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }
 
-func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -107,7 +106,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID())
 		}
 	}
 
@@ -118,7 +117,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
@@ -146,7 +145,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 			return fmt.Errorf("creating %s: %+v", resourceId, err)
 		}
 
-		d.SetId(resourceId.ID(""))
+		d.SetId(resourceId.ID())
 	} else if _, err := client.Update(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", resourceId, err)
 	}
@@ -154,7 +153,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 	return resourceStreamAnalyticsStreamInputIoTHubRead(d, meta)
 }
 
-func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +194,7 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta i
 		d.Set("iothub_namespace", eventHub.IotHubNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
@@ -203,7 +202,7 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

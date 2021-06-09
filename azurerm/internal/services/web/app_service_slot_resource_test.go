@@ -7,26 +7,25 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AppServiceSlotResource struct{}
 
-func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
+func TestAccAppServiceSlot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,14 +33,14 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
+func TestAccAppServiceSlot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,14 +48,14 @@ func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
+func TestAccAppServiceSlot_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.slot32Bit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
 			),
@@ -65,14 +64,14 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
+func TestAccAppServiceSlot_alwaysOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.alwaysOn(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
@@ -81,14 +80,14 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
+func TestAccAppServiceSlot_appCommandLine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.appCommandLine(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.app_command_line").HasValue("/sbin/myservice -b 0.0.0.0"),
 			),
@@ -97,14 +96,14 @@ func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
+func TestAccAppServiceSlot_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.appSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
 			),
@@ -113,14 +112,14 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
+func TestAccAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.clientAffinityEnabled(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
 			),
@@ -128,21 +127,21 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
+func TestAccAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.clientAffinityEnabled(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: r.clientAffinityEnabled(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("false"),
 			),
@@ -150,46 +149,21 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
+func TestAccAppServiceSlot_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.connectionStrings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.connectionStringsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
-			),
-		},
-	})
-}
-
-func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-	r := AppServiceSlotResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.corsSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -197,15 +171,30 @@ func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
+func TestAccAppServiceSlot_corsSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.corsSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettingsAdditionalLoginParams(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.additional_login_params.test_key").HasValue("test_value"),
@@ -219,15 +208,15 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
+func TestAccAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettingsAdditionalAllowedExternalRedirectUrls(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.#").HasValue("1"),
@@ -242,15 +231,15 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectU
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
+func TestAccAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettingsRuntimeVersion(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.runtime_version").HasValue("1.0"),
@@ -264,15 +253,15 @@ func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) {
+func TestAccAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettingsTokenRefreshExtensionHours(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.token_refresh_extension_hours").HasValue("75"),
@@ -286,15 +275,15 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *test
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T) {
+func TestAccAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettingsUnauthenticatedClientAction(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.unauthenticated_client_action").HasValue("RedirectToLoginPage"),
@@ -308,15 +297,15 @@ func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *tes
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
+func TestAccAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettingsTokenStoreEnabled(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.token_store_enabled").HasValue("true"),
@@ -330,15 +319,15 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
+func TestAccAppServiceSlot_aadAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.aadAuthSettings(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
@@ -351,14 +340,14 @@ func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
+func TestAccAppServiceSlot_facebookAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.facebookAuthSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.facebook.0.app_id").HasValue("facebookappid"),
@@ -370,14 +359,14 @@ func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
+func TestAccAppServiceSlot_googleAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.googleAuthSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.google.0.client_id").HasValue("googleclientid"),
@@ -388,14 +377,14 @@ func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
+func TestAccAppServiceSlot_microsoftAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.microsoftAuthSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.client_id").HasValue("microsoftclientid"),
@@ -407,14 +396,14 @@ func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
+func TestAccAppServiceSlot_twitterAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.twitterAuthSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.twitter.0.consumer_key").HasValue("twitterconsumerkey"),
@@ -425,15 +414,15 @@ func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
+func TestAccAppServiceSlot_multiAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.aadAuthSettings(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
@@ -445,7 +434,7 @@ func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.aadMicrosoftAuthSettings(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
@@ -461,14 +450,14 @@ func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
+func TestAccAppServiceSlot_defaultDocuments(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.defaultDocuments(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.default_documents.0").HasValue("first.html"),
 				check.That(data.ResourceName).Key("site_config.0.default_documents.1").HasValue("second.jsp"),
@@ -478,14 +467,14 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
+func TestAccAppServiceSlot_enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enabled(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
@@ -493,21 +482,21 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
+func TestAccAppServiceSlot_enabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enabled(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
 		},
 		{
 			Config: r.enabled(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
@@ -515,14 +504,14 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
+func TestAccAppServiceSlot_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpsOnly(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_only").HasValue("true"),
 			),
@@ -530,21 +519,21 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
+func TestAccAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpsOnly(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_only").HasValue("true"),
 			),
 		},
 		{
 			Config: r.httpsOnly(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_only").HasValue("false"),
 			),
@@ -552,14 +541,14 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
+func TestAccAppServiceSlot_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.http2Enabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
 			),
@@ -567,14 +556,14 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
+func TestAccAppServiceSlot_oneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
@@ -582,14 +571,14 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
+func TestAccAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneVNetSubnetIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -597,15 +586,15 @@ func TestAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
+func TestAccAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// This configuration includes a single explicit ip_restriction
 			Config: r.oneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
@@ -613,7 +602,7 @@ func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 		{
 			// This configuration has no site_config blocks at all.
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
@@ -621,7 +610,7 @@ func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 		{
 			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.zeroedIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
@@ -629,14 +618,14 @@ func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
+func TestAccAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.manyIpRestrictions(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -644,14 +633,14 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_scmUseMainIPRestriction(t *testing.T) {
+func TestAccAppServiceSlot_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scmUseMainIPRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -659,14 +648,14 @@ func TestAccAzureRMAppServiceSlot_scmUseMainIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_scmOneIPRestriction(t *testing.T) {
+func TestAccAppServiceSlot_scmOneIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scmOneIPRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -674,14 +663,14 @@ func TestAccAzureRMAppServiceSlot_scmOneIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
+func TestAccAppServiceSlot_localMySql(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localMySql(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.local_mysql_enabled").HasValue("true"),
 			),
@@ -689,14 +678,14 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
+func TestAccAppServiceSlot_managedPipelineMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managedPipelineMode(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.managed_pipeline_mode").HasValue("Classic"),
 			),
@@ -704,14 +693,14 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
+func TestAccAppServiceSlot_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
@@ -719,7 +708,7 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 		},
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
@@ -729,14 +718,14 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
+func TestAccAppServiceSlot_remoteDebugging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.remoteDebugging(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.remote_debugging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2019"),
@@ -745,14 +734,14 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
+func TestAccAppServiceSlot_windowsDotNet2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsDotNet(data, "v2.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v2.0"),
 			),
@@ -760,37 +749,37 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
+func TestAccAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.enableManageServiceIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
+func TestAccAppServiceSlot_windowsDotNet4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsDotNet(data, "v4.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
 			),
@@ -798,39 +787,39 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
+func TestAccAppServiceSlot_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-				resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-				resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
+func TestAccAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsDotNet(data, "v2.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v2.0"),
 			),
 		},
 		{
 			Config: r.windowsDotNet(data, "v4.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
 			),
@@ -838,14 +827,14 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "1.7", "JETTY", "9.3"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JETTY"),
@@ -855,14 +844,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "1.8", "JETTY", "9.3"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JETTY"),
@@ -872,14 +861,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava11Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "11", "JETTY", "9.3"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("11"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JETTY"),
@@ -889,14 +878,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "1.7", "TOMCAT", "9.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
@@ -906,14 +895,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "1.8", "TOMCAT", "9.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
@@ -923,14 +912,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "11", "TOMCAT", "9.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("11"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
@@ -940,14 +929,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava7Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7.0_80"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
@@ -957,14 +946,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
+func TestAccAppServiceSlot_windowsJava8Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8.0_181"),
 				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
@@ -974,14 +963,14 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
+func TestAccAppServiceSlot_windowsPHP7(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsPHP(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.3"),
 			),
@@ -989,14 +978,14 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
+func TestAccAppServiceSlot_windowsPython(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsPython(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.python_version").HasValue("3.4"),
 			),
@@ -1004,14 +993,14 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
+func TestAccAppServiceSlot_webSockets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.webSockets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.websockets_enabled").HasValue("true"),
 			),
@@ -1019,14 +1008,14 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
+func TestAccAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableManageServiceIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
@@ -1036,21 +1025,21 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
+func TestAccAppServiceSlot_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.minTls(data, "1.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.0"),
 			),
 		},
 		{
 			Config: r.minTls(data, "1.1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.1"),
 			),
@@ -1059,14 +1048,14 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
+func TestAccAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.applicationBlobStorageLogs(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("logs.0.application_logs.0.file_system_level").HasValue("Warning"),
 				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.level").HasValue("Information"),
@@ -1078,14 +1067,31 @@ func TestAccAzureRMAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_httpFileSystemLogs(t *testing.T) {
+func TestAccAppServiceSlot_emptyApplicationLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyApplicationLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.file_system_level").HasValue("Off"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlot_httpFileSystemLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpFileSystemLogs(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.file_system.0.retention_in_days").HasValue("4"),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.file_system.0.retention_in_mb").HasValue("25"),
@@ -1095,14 +1101,14 @@ func TestAccAzureRMAppServiceSlot_httpFileSystemLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
+func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpBlobStorageLogs(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.0.sas_url").HasValue("https://example.com/"),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.0.retention_in_days").HasValue("3"),
@@ -1112,14 +1118,74 @@ func TestAccAzureRMAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
+func TestAccAppServiceSlot_emptyHttpBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyHttpBlobStorageLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.#").HasValue("0"),
+				check.That(data.ResourceName).Key("logs.0.http_logs.0.file_system.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.detailedErrorMessages(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.detailedErrorMessages(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.failedRequestTracing(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.failedRequestTracing(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlot_autoSwap(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoSwap(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.auto_swap_slot_name").HasValue("production"),
 			),
@@ -1128,18 +1194,23 @@ func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
 	})
 }
 
-func (r AppServiceSlotResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceSlotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceSlotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicesClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	resp, err := clients.Web.AppServicesClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Slot %q (App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+	}
+
+	// The SDK defines 404 as an "ok" status code..
+	if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), nil
 	}
 
 	return utils.Bool(true), nil
@@ -3443,6 +3514,50 @@ resource "azurerm_app_service_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (r AppServiceSlotResource) emptyApplicationLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    application_logs {
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (r AppServiceSlotResource) httpBlobStorageLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3489,6 +3604,136 @@ resource "azurerm_app_service_slot" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceSlotResource) emptyHttpBlobStorageLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    http_logs {
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceSlotResource) detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    detailed_error_messages_enabled = %t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
+}
+
+func (r AppServiceSlotResource) failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    failed_request_tracing_enabled = %t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, failedRequestEnabled)
 }
 
 func (r AppServiceSlotResource) autoSwap(data acceptance.TestData) string {

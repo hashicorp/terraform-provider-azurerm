@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -213,13 +214,6 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 			"features": schemaFeatures(supportLegacyTestSuite),
 
 			// Advanced feature flags
-			"skip_credentials_validation": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
-				Description: "This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
-			},
-
 			"skip_provider_registration": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -237,6 +231,15 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 		DataSourcesMap: dataSources,
 		ResourcesMap:   resources,
+	}
+
+	if !features.ThreePointOh() {
+		p.Schema["skip_credentials_validation"] = &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
+			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
+		}
 	}
 
 	p.ConfigureFunc = providerConfigure(p)
@@ -311,6 +314,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+
+			// this field is intentionally not exposed in the provider block, since it's only used for
+			// platform level tracing
+			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
 		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {
@@ -319,14 +326,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		client.StopContext = p.StopContext()
 
-		// replaces the context between tests
-		p.MetaReset = func() error {
-			client.StopContext = p.StopContext()
-			return nil
-		}
-
-		skipCredentialsValidation := d.Get("skip_credentials_validation").(bool)
-		if !skipCredentialsValidation {
+		if !skipProviderRegistration {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
 			ctx := client.StopContext
@@ -337,14 +337,11 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 					"error: %s", err)
 			}
 
-			if !skipProviderRegistration {
-				availableResourceProviders := providerList.Values()
-				requiredResourceProviders := resourceproviders.Required()
+			availableResourceProviders := providerList.Values()
+			requiredResourceProviders := resourceproviders.Required()
 
-				err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
-				if err != nil {
-					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
-				}
+			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
+				return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 			}
 		}
 

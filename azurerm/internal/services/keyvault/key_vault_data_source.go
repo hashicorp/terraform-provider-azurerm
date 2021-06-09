@@ -4,160 +4,166 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVault() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmKeyVaultRead,
+func dataSourceKeyVault() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceKeyVaultRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.KeyVaultName,
-			},
+		Schema: func() map[string]*pluginsdk.Schema {
+			dsSchema := map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validate.VaultName,
+				},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+				"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+				"location": azure.SchemaLocationForDataSource(),
 
-			"sku_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+				"sku_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
-			"vault_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+				"vault_uri": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
-			"tenant_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+				"tenant_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
-			"access_policy": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"object_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"application_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"certificate_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+				"access_policy": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"tenant_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
-						"key_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							"object_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
-						"secret_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							"application_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
-						"storage_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							"certificate_permissions": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"key_permissions": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"secret_permissions": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"storage_permissions": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
 							},
 						},
 					},
 				},
-			},
 
-			"enabled_for_deployment": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"enabled_for_deployment": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 
-			"enabled_for_disk_encryption": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"enabled_for_disk_encryption": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 
-			"enabled_for_template_deployment": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"enabled_for_template_deployment": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 
-			"network_acls": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"default_action": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"bypass": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"ip_rules": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
-						},
-						"virtual_network_subnet_ids": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      set.HashStringIgnoreCase,
+				"network_acls": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"default_action": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+							"bypass": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+							"ip_rules": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+								Set:      pluginsdk.HashString,
+							},
+							"virtual_network_subnet_ids": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+								Set:      set.HashStringIgnoreCase,
+							},
 						},
 					},
 				},
-			},
 
-			"purge_protection_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"purge_protection_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 
-			"soft_delete_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"tags": tags.SchemaDataSource(),
-		},
+				"tags": tags.SchemaDataSource(),
+			}
+			if !features.ThreePointOh() {
+				dsSchema["soft_delete_enabled"] = &pluginsdk.Schema{
+					Type:       pluginsdk.TypeBool,
+					Computed:   true,
+					Deprecated: `Azure has removed support for disabling Soft Delete as of 2020-12-15, as such this field will always return 'true' and will be removed in version 3.0 of the Azure Provider.`,
+				}
+			}
+			return dsSchema
+		}(),
 	}
 }
 
-func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,9 +192,13 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
-		d.Set("soft_delete_enabled", props.EnableSoftDelete)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
+
+		// TODO: remove in 3.0
+		if !features.ThreePointOh() {
+			d.Set("soft_delete_enabled", true)
+		}
 
 		if sku := props.Sku; sku != nil {
 			if err := d.Set("sku_name", string(sku.Name)); err != nil {
@@ -198,7 +208,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error making Read request on KeyVault %q: Unable to retrieve 'sku' value", *resp.Name)
 		}
 
-		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
@@ -231,7 +241,7 @@ func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []inte
 			ipRules = append(ipRules, *v.Value)
 		}
 	}
-	output["ip_rules"] = schema.NewSet(schema.HashString, ipRules)
+	output["ip_rules"] = pluginsdk.NewSet(pluginsdk.HashString, ipRules)
 
 	virtualNetworkRules := make([]interface{}, 0)
 	if input.VirtualNetworkRules != nil {
@@ -243,7 +253,7 @@ func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []inte
 			virtualNetworkRules = append(virtualNetworkRules, *v.ID)
 		}
 	}
-	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
+	output["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules)
 
 	return []interface{}{output}
 }

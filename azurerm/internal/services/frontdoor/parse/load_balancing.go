@@ -35,7 +35,7 @@ func (id LoadBalancingId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Load Balancing", segmentsStr)
 }
 
-func (id LoadBalancingId) ID(_ string) string {
+func (id LoadBalancingId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/loadBalancingSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.LoadBalancingSettingName)
 }

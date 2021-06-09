@@ -15,7 +15,7 @@ Manages a managed disk.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_managed_disk" "example" {
@@ -37,7 +37,7 @@ resource "azurerm_managed_disk" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_managed_disk" "source" {
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `storage_account_type` - (Required) The type of storage to use for the managed disk. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
--> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
+-> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
 * `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `disk_encryption_set_id` - (Optional) The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk.
 
--> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
+~> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
@@ -117,11 +117,22 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`.  Changing this forces a new resource to be created.
 
+* `tier` - (Optional) The disk performance tier to use. Possible values are documented [here](https://docs.microsoft.com/en-us/azure/virtual-machines/disks-change-performance). This feature is currently supported only for premium SSDs.
+
+~> **NOTE:** Changing this value is disruptive if the disk is attached to a Virtual Machine. The VM will be shut down and de-allocated as required by Azure to action the change. Terraform will attempt to start the machine again after the update if it was in a `running` state when the apply was started.
+
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
--> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+~> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+
+* `network_access_policy` - Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
+
+* `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
+
+~> **Note**: `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
 
 For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 

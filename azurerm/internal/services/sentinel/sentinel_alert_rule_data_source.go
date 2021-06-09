@@ -4,32 +4,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSentinelAlertRule() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmSentinelAlertRuleRead,
+func dataSourceSentinelAlertRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceSentinelAlertRuleRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
@@ -37,7 +38,7 @@ func dataSourceArmSentinelAlertRule() *schema.Resource {
 	}
 }
 
-func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -47,21 +48,18 @@ func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 
-	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
+	resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Sentinel Alert Rule %q (Resource Group %q / Workspace: %q) was not found", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName)
+			return fmt.Errorf("Sentinel Alert Rule %q was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Sentinel Alert Rule %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
+		return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 	}
 
-	id := alertRuleID(resp.Value)
-	if id == nil || *id == "" {
-		return fmt.Errorf("nil or empty ID of Sentinel Alert Rule %q (Resource Group %q / Workspace: %q)", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName)
-	}
-	d.SetId(*id)
+	d.SetId(id.ID())
 
 	return nil
 }

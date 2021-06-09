@@ -7,45 +7,45 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+	netAppValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppAccount() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmNetAppAccountCreateUpdate,
-		Read:   resourceArmNetAppAccountRead,
-		Update: resourceArmNetAppAccountCreateUpdate,
-		Delete: resourceArmNetAppAccountDelete,
+func resourceNetAppAccount() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceNetAppAccountCreateUpdate,
+		Read:   resourceNetAppAccountRead,
+		Update: resourceNetAppAccountCreateUpdate,
+		Delete: resourceNetAppAccountDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AccountID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: netAppValidate.AccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -53,21 +53,21 @@ func resourceArmNetAppAccount() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"active_directory": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"dns_servers": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.IPv4Address,
 							},
 						},
 						"domain": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile(`^[(\da-zA-Z-).]{1,255}$`),
@@ -75,7 +75,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 							),
 						},
 						"smb_server_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile(`^[\da-zA-Z]{1,10}$`),
@@ -83,18 +83,18 @@ func resourceArmNetAppAccount() *schema.Resource {
 							),
 						},
 						"username": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"password": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"organizational_unit": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -106,7 +106,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	accountParameters := netapp.Account{
 		Location: utils.String(location),
 		AccountProperties: &netapp.AccountProperties{
-			ActiveDirectories: expandArmNetAppActiveDirectories(activeDirectories),
+			ActiveDirectories: expandNetAppActiveDirectories(activeDirectories),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -154,10 +154,10 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppAccountRead(d, meta)
+	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +210,7 @@ func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandArmNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
+func expandNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
 	results := make([]netapp.ActiveDirectory, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})

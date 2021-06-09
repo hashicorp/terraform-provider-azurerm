@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -45,10 +44,10 @@ func TestAccSignalRService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -70,10 +69,10 @@ func TestAccSignalRService_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardWithCapacity(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -95,10 +94,10 @@ func TestAccSignalRService_standardWithCap2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardWithCapacity(data, 2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
@@ -120,10 +119,10 @@ func TestAccSignalRService_skuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -139,7 +138,7 @@ func TestAccSignalRService_skuUpdate(t *testing.T) {
 		},
 		{
 			Config: r.standardWithCapacity(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -155,7 +154,7 @@ func TestAccSignalRService_skuUpdate(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -176,10 +175,10 @@ func TestAccSignalRService_capacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardWithCapacity(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -195,7 +194,7 @@ func TestAccSignalRService_capacityUpdate(t *testing.T) {
 		},
 		{
 			Config: r.standardWithCapacity(data, 5),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("5"),
@@ -211,7 +210,7 @@ func TestAccSignalRService_capacityUpdate(t *testing.T) {
 		},
 		{
 			Config: r.standardWithCapacity(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -232,10 +231,10 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -251,7 +250,7 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 		},
 		{
 			Config: r.standardWithCapacity(data, 2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
@@ -267,7 +266,7 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
@@ -288,10 +287,10 @@ func TestAccSignalRService_serviceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withServiceMode(data, "Serverless"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
@@ -311,10 +310,10 @@ func TestAccSignalRService_cors(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withCors(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cors.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cors.0.allowed_origins.#").HasValue("2"),
@@ -332,7 +331,23 @@ func TestAccSignalRService_cors(t *testing.T) {
 	})
 }
 
-func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccSignalRService_upstreamSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUpstreamEndpoints(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upstream_endpoint.#").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -480,4 +495,71 @@ resource "azurerm_signalr_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
+}
+
+func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "Serverless"
+  }
+
+  features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["*"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["*"]
+    url_template     = "http://foo.com/{hub}/api/{category}/{event}"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["connections", "messages"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["hub1"]
+    url_template     = "http://foo.com"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["*"]
+    event_pattern    = ["connect", "disconnect"]
+    hub_pattern      = ["hub1", "hub2"]
+    url_template     = "http://foo3.com"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["connections"]
+    event_pattern    = ["disconnect"]
+    hub_pattern      = ["*"]
+    url_template     = "http://foo4.com"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -6,11 +6,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,13 +19,13 @@ func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "Geographic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "traffic_routing_method", "Geographic"),
-				resource.TestCheckResourceAttr(data.ResourceName, "fqdn", fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "traffic_routing_method", "Geographic"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "fqdn", fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -37,10 +36,10 @@ func TestAccAzureRMTrafficManagerProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,17 +51,17 @@ func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.completeUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -74,17 +73,17 @@ func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *test
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeWithEndpoint(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.completeUpdatedWithEndpoint(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,10 +95,10 @@ func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "Geographic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Geographic"),
 			),
@@ -112,10 +111,10 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "Geographic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Geographic"),
 				check.That(data.ResourceName).Key("fqdn").HasValue(fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
@@ -124,7 +123,7 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "Weighted"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Weighted"),
 				check.That(data.ResourceName).Key("fqdn").HasValue(fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
@@ -133,7 +132,7 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "Subnet"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Subnet"),
 				check.That(data.ResourceName).Key("fqdn").HasValue(fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
@@ -142,7 +141,7 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "Priority"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Priority"),
 				check.That(data.ResourceName).Key("fqdn").HasValue(fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
@@ -151,9 +150,18 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "Performance"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("Performance"),
+				check.That(data.ResourceName).Key("fqdn").HasValue(fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multiValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_routing_method").HasValue("MultiValue"),
 				check.That(data.ResourceName).Key("fqdn").HasValue(fmt.Sprintf("acctest-tmp-%d.trafficmanager.net", data.RandomInteger)),
 			),
 		},
@@ -165,10 +173,45 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *te
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.failoverError(data),
 			ExpectError: regexp.MustCompile("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`"),
+		},
+	})
+}
+
+func TestAccAzureRMTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	r := TrafficManagerProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.maxReturnError(data),
+			ExpectError: regexp.MustCompile("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`"),
+		},
+	})
+}
+
+func TestAccAzureRMTrafficManagerProfile_trafficView(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	r := TrafficManagerProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTrafficView(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withTrafficView(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("true"),
+			),
 		},
 	})
 }
@@ -177,17 +220,17 @@ func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTTL(data, "Geographic", 0),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withTTL(data, "Geographic", 2147483647),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -195,7 +238,7 @@ func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
 	})
 }
 
-func (r TrafficManagerProfileResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r TrafficManagerProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
@@ -245,6 +288,31 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 }
 `, template, data.RandomInteger, method, data.RandomInteger)
+}
+
+func (r TrafficManagerProfileResource) multiValue(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "MultiValue"
+  max_return             = 8
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r TrafficManagerProfileResource) requiresImport(data acceptance.TestData) string {
@@ -360,7 +428,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "acctestend-external%d"
   resource_group_name = azurerm_resource_group.test.name
   profile_name        = azurerm_traffic_manager_profile.test.name
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   type                = "externalEndpoints"
   weight              = 100
 }
@@ -481,6 +549,58 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r TrafficManagerProfileResource) maxReturnError(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "MultiValue"
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol                     = "https"
+    port                         = 443
+    path                         = "/"
+    interval_in_seconds          = 10
+    timeout_in_seconds           = 8
+    tolerated_number_of_failures = 3
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r TrafficManagerProfileResource) withTrafficView(data acceptance.TestData, enabled bool) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Geographic"
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+  traffic_view_enabled = %t
+}
+`, template, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (r TrafficManagerProfileResource) withTTL(data acceptance.TestData, method string, ttl int) string {

@@ -5,43 +5,44 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductGroup() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmApiManagementProductGroupCreate,
-		Read:   resourceArmApiManagementProductGroupRead,
-		Delete: resourceArmApiManagementProductGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceApiManagementProductGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceApiManagementProductGroupCreate,
+		Read:   resourceApiManagementProductGroupRead,
+		Delete: resourceApiManagementProductGroupDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
+		Schema: map[string]*pluginsdk.Schema{
+			"product_id": schemaz.SchemaApiManagementChildName(),
 
-		Schema: map[string]*schema.Schema{
-			"product_id": azure.SchemaApiManagementChildName(),
-
-			"group_name": azure.SchemaApiManagementChildName(),
+			"group_name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 		},
 	}
 }
 
-func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,25 +71,24 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("adding Product %q to Group %q (API Management Service %q / Resource Group %q): %+v", productId, groupName, serviceName, resourceGroup, err)
 	}
 
-	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductGroupRead(d, meta)
+	return resourceApiManagementProductGroupRead(d, meta)
 }
 
-func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	productId := id.ProductName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 	if err != nil {
@@ -109,19 +109,19 @@ func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	productId := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, groupName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

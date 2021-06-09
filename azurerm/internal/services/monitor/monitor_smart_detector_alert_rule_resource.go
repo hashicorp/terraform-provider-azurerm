@@ -5,11 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -17,34 +14,36 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmMonitorSmartDetectorAlertRuleCreateUpdate,
-		Read:   resourceArmMonitorSmartDetectorAlertRuleRead,
-		Update: resourceArmMonitorSmartDetectorAlertRuleCreateUpdate,
-		Delete: resourceArmMonitorSmartDetectorAlertRuleDelete,
+func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Read:   resourceMonitorSmartDetectorAlertRuleRead,
+		Update: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Delete: resourceMonitorSmartDetectorAlertRuleDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SmartDetectorAlertRuleID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,7 +52,7 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"detector_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"FailureAnomaliesDetector",
@@ -61,17 +60,17 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 			},
 
 			"scope_resource_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				Set: set.HashStringIgnoreCase,
 			},
 
 			"severity": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
@@ -84,34 +83,34 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 			},
 
 			"frequency": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: commonValidate.ISO8601Duration,
 			},
 
 			"action_group": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.ActionGroupID,
 							},
 							Set: set.HashStringIgnoreCase,
 						},
 
 						"email_subject": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"webhook_payload": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: structure.SuppressJsonDiff,
@@ -121,27 +120,29 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"throttling_duration": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: commonValidate.ISO8601Duration,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,9 +178,10 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 			Detector: &alertsmanagement.Detector{
 				ID: utils.String(d.Get("detector_type").(string)),
 			},
-			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*schema.Set).List()),
-			ActionGroups: expandArmMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
+			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List()),
+			ActionGroups: expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("throttling_duration"); ok {
@@ -202,10 +204,10 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmMonitorSmartDetectorAlertRuleRead(d, meta)
+	return resourceMonitorSmartDetectorAlertRuleRead(d, meta)
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,15 +246,15 @@ func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta i
 		}
 		d.Set("throttling_duration", throttlingDuration)
 
-		if err := d.Set("action_group", flattenArmMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
+		if err := d.Set("action_group", flattenMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
 			return fmt.Errorf("setting `action_group`: %+v", err)
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +270,7 @@ func resourceArmMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta
 	return nil
 }
 
-func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
+func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -276,11 +278,11 @@ func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *ale
 	return &alertsmanagement.ActionGroupsInformation{
 		CustomEmailSubject:   utils.String(v["email_subject"].(string)),
 		CustomWebhookPayload: utils.String(v["webhook_payload"].(string)),
-		GroupIds:             utils.ExpandStringSlice(v["ids"].(*schema.Set).List()),
+		GroupIds:             utils.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List()),
 	}
 }
 
-func flattenArmMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
+func flattenMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

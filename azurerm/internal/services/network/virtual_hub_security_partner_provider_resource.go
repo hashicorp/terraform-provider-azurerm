@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmVirtualHubSecurityPartnerProviderCreate,
-		Read:   resourceArmVirtualHubSecurityPartnerProviderRead,
-		Update: resourceArmVirtualHubSecurityPartnerProviderUpdate,
-		Delete: resourceArmVirtualHubSecurityPartnerProviderDelete,
+func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceVirtualHubSecurityPartnerProviderCreate,
+		Read:   resourceVirtualHubSecurityPartnerProviderRead,
+		Update: resourceVirtualHubSecurityPartnerProviderUpdate,
+		Delete: resourceVirtualHubSecurityPartnerProviderDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SecurityPartnerProviderID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -51,18 +50,18 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"security_provider_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.ZScaler),
-					string(network.IBoss),
-					string(network.Checkpoint),
+					string(network.SecurityProviderNameZScaler),
+					string(network.SecurityProviderNameIBoss),
+					string(network.SecurityProviderNameCheckpoint),
 				}, false),
 			},
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.VirtualHubID,
@@ -73,7 +72,7 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,10 +125,10 @@ func resourceArmVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubSecurityPartnerProviderRead(d, meta)
+	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +163,7 @@ func resourceArmVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, me
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,10 +183,10 @@ func resourceArmVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("updating Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmVirtualHubSecurityPartnerProviderRead(d, meta)
+	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

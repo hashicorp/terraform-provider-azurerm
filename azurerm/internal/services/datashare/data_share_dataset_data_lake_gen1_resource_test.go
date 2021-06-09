@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccDataShareDataSetDataLakeGen1_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
 	r := DataShareDataSetDataLakeGen1Resource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicFile(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 			),
@@ -38,10 +37,10 @@ func TestAccDataShareDataSetDataLakeGen1_basicFolder(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
 	r := DataShareDataSetDataLakeGen1Resource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicFolder(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 			),
@@ -54,10 +53,10 @@ func TestAccDataShareDataSetDataLakeGen1_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
 	r := DataShareDataSetDataLakeGen1Resource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicFile(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,7 +64,7 @@ func TestAccDataShareDataSetDataLakeGen1_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DataShareDataSetDataLakeGen1Resource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DataShareDataSetDataLakeGen1Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +96,7 @@ provider "azuread" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datashare-%[1]d"
+  name     = "acctestRG-datashare-%[1]d"
   location = "%[2]s"
 }
 
@@ -121,7 +120,7 @@ resource "azurerm_data_share" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "acctestdls%[3]d"
+  name                = "acctestdls%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   firewall_state      = "Disabled"
@@ -142,7 +141,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Owner"
   principal_id         = data.azuread_service_principal.test.object_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r DataShareDataSetDataLakeGen1Resource) basicFile(data acceptance.TestData) string {

@@ -1,167 +1,159 @@
 package sentinel_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSentinelAlertRuleScheduled_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+type SentinelAlertRuleScheduledResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleScheduled_complete(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleScheduled_update(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSentinelAlertRuleScheduled_requiresImport),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMSentinelAlertRuleScheduledExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccSentinelAlertRuleScheduled_withAlertRuleTemplateGuid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Sentinel Alert Rule Scheduled not found: %s", resourceName)
-		}
-
-		id, err := parse.SentinelAlertRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Sentinel Alert Rule Scheduled %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
-		}
-
-		return nil
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alertRuleTemplateGuid(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
-func testCheckAzureRMSentinelAlertRuleScheduledDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccSentinelAlertRuleScheduled_updateEventGroupingSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sentinel_alert_rule_scheduled" {
-			continue
-		}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventGroupingSetting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateEventGroupingSetting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-		id, err := parse.SentinelAlertRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
-			}
-		}
-
-		return nil
+func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.AlertRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q: %v", id, err)
+	}
+
+	rule, ok := resp.Value.(securityinsight.ScheduledAlertRule)
+	if !ok {
+		return nil, fmt.Errorf("the Alert Rule %q is not a Scheduled Alert Rule", id)
+	}
+
+	return utils.Bool(rule.ID != nil), nil
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleScheduled_template(data)
+func (r SentinelAlertRuleScheduledResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -171,40 +163,48 @@ AzureActivity |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleScheduled_template(data)
+func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
   display_name               = "Updated Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
   severity                   = "Low"
   enabled                    = false
-  query                      = <<QUERY
+  incident_configuration {
+    create_incident = true
+    grouping {
+      enabled                 = true
+      lookback_duration       = "P7D"
+      reopen_closed_incidents = true
+      entity_matching_method  = "Custom"
+      group_by                = ["Account", "Host"]
+    }
+  }
+  query                = <<QUERY
 AzureActivity |
   where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(3d), now(), 1d) by Caller
 QUERY
-  query_frequency            = "PT20M"
-  query_period               = "PT40M"
-  trigger_operator           = "Equal"
-  trigger_threshold          = 5
-  suppression_enabled        = true
-  suppression_duration       = "PT40M"
+  query_frequency      = "PT20M"
+  query_period         = "PT40M"
+  trigger_operator     = "Equal"
+  trigger_threshold    = 5
+  suppression_enabled  = true
+  suppression_duration = "PT40M"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleScheduled_basic(data)
+func (r SentinelAlertRuleScheduledResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -215,10 +215,78 @@ resource "azurerm_sentinel_alert_rule_scheduled" "import" {
   severity                   = azurerm_sentinel_alert_rule_scheduled.test.severity
   query                      = azurerm_sentinel_alert_rule_scheduled.test.query
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_template(data acceptance.TestData) string {
+func (r SentinelAlertRuleScheduledResource) alertRuleTemplateGuid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "Some Rule"
+  severity                   = "Low"
+  alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleScheduledResource) eventGroupingSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "Some Rule"
+  severity                   = "Low"
+  alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleScheduledResource) updateEventGroupingSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "Some Rule"
+  severity                   = "Low"
+  alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+  event_grouping {
+    aggregation_method = "AlertPerResult"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (SentinelAlertRuleScheduledResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,6 +302,19 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "SecurityInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/SecurityInsights"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

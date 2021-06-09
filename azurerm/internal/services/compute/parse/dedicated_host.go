@@ -35,7 +35,7 @@ func (id DedicatedHostId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Dedicated Host", segmentsStr)
 }
 
-func (id DedicatedHostId) ID(_ string) string {
+func (id DedicatedHostId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s/hosts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName, id.HostName)
 }

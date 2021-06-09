@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -15,6 +15,8 @@ type Client struct {
 	ExpressRouteCircuitsClient             *network.ExpressRouteCircuitsClient
 	ExpressRouteGatewaysClient             *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient             *network.ExpressRouteCircuitPeeringsClient
+	ExpressRoutePortsClient                *network.ExpressRoutePortsClient
+	FlowLogsClient                         *network.FlowLogsClient
 	HubRouteTableClient                    *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient      *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                       *network.InterfacesClient
@@ -84,6 +86,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
+
+	ExpressRoutePortsClient := network.NewExpressRoutePortsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRoutePortsClient.Client, o.ResourceManagerAuthorizer)
+
+	FlowLogsClient := network.NewFlowLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FlowLogsClient.Client, o.ResourceManagerAuthorizer)
 
 	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
@@ -215,6 +223,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:             &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:             &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:             &ExpressRoutePeeringsClient,
+		ExpressRoutePortsClient:                &ExpressRoutePortsClient,
+		FlowLogsClient:                         &FlowLogsClient,
 		HubRouteTableClient:                    &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:      &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                       &InterfacesClient,

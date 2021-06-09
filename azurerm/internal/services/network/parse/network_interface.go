@@ -32,7 +32,7 @@ func (id NetworkInterfaceId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Network Interface", segmentsStr)
 }
 
-func (id NetworkInterfaceId) ID(_ string) string {
+func (id NetworkInterfaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

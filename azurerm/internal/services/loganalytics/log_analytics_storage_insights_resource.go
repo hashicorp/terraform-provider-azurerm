@@ -1,13 +1,12 @@
 package loganalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,31 +14,40 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
-		Read:   resourceArmLogAnalyticsStorageInsightsRead,
-		Update: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
-		Delete: resourceArmLogAnalyticsStorageInsightsDelete,
+func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Read:   resourceLogAnalyticsStorageInsightsRead,
+		Update: resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Delete: resourceLogAnalyticsStorageInsightsDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: &schema.ResourceImporter{
-			State: logAnalyticsStorageInsightsImporter,
-		},
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LogAnalyticsStorageInsightsID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			if v, ok := d.GetOk("storage_account_key"); ok && v.(string) != "" {
+				d.Set("storage_account_key", v)
+			}
 
-		Schema: map[string]*schema.Schema{
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
+
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsStorageInsightsName,
@@ -48,20 +56,20 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsWorkspaceID,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"storage_account_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				Sensitive: true,
 				ValidateFunc: validation.All(
@@ -71,20 +79,20 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 			},
 
 			"blob_container_names": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.NoZeroValues,
 				},
 			},
 
 			"table_names": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.NoZeroValues,
 				},
 			},
@@ -94,7 +102,7 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -119,34 +127,34 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
 		}
 	}
 
 	parameters := operationalinsights.StorageInsight{
 		StorageInsightProperties: &operationalinsights.StorageInsightProperties{
-			StorageAccount: expandArmStorageInsightConfigStorageAccount(storageAccountId, storageAccountKey),
+			StorageAccount: expandStorageInsightConfigStorageAccount(storageAccountId, storageAccountKey),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, ok := d.GetOk("table_names"); ok {
-		parameters.StorageInsightProperties.Tables = utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List())
+		parameters.StorageInsightProperties.Tables = utils.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
 	}
 
 	if _, ok := d.GetOk("blob_container_names"); ok {
-		parameters.StorageInsightProperties.Containers = utils.ExpandStringSlice(d.Get("blob_container_names").(*schema.Set).List())
+		parameters.StorageInsightProperties.Containers = utils.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, id.WorkspaceName, name, parameters); err != nil {
 		return fmt.Errorf("creating/updating Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
 	}
 
-	d.SetId(id.ID(""))
-	return resourceArmLogAnalyticsStorageInsightsRead(d, meta)
+	d.SetId(id.ID())
+	return resourceLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +176,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 
 	d.Set("name", id.StorageInsightConfigName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(""))
+	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
@@ -183,7 +191,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +207,7 @@ func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func expandArmStorageInsightConfigStorageAccount(id string, key string) *operationalinsights.StorageAccount {
+func expandStorageInsightConfigStorageAccount(id string, key string) *operationalinsights.StorageAccount {
 	return &operationalinsights.StorageAccount{
 		ID:  utils.String(id),
 		Key: utils.String(key),

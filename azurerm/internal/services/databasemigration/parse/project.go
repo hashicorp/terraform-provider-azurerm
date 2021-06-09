@@ -35,7 +35,7 @@ func (id ProjectId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Project", segmentsStr)
 }
 
-func (id ProjectId) ID(_ string) string {
+func (id ProjectId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataMigration/services/%s/projects/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
 }

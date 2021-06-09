@@ -11,12 +11,15 @@ description: |-
 
 Manages a Function App.
 
+~> **Note:** To connect an Azure Function App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
+For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
+
 ## Example Usage (with App Service Plan)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-test-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -52,7 +55,7 @@ resource "azurerm_function_app" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -89,7 +92,7 @@ resource "azurerm_function_app" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -104,7 +107,7 @@ resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "FunctionApp"
+  kind                = "Linux"
   reserved            = true
 
   sku {
@@ -137,11 +140,15 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
 
+~> **NOTE:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
+
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
+
+* `client_cert_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 
@@ -155,7 +162,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
-~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "FunctionApp"` and `reserved = true`
+~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
@@ -201,6 +208,8 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
+* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11`.
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
@@ -211,7 +220,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_type` - (Optional) The type of Source Control used by the Function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (dafault), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
+* `scm_type` - (Optional) The type of Source Control used by the Function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (default), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
 ~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided. 
 
@@ -323,9 +332,11 @@ A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -333,21 +344,40 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+
 ---
 
 A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
 
-* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.  
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.
+
+* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+
+---
+
+A `headers` block supports the following:
+
+* `x_azure_fdid` - (Optional) A list of allowed Azure FrontDoor IDs in UUID notation with a maximum of 8.
+
+* `x_fd_health_probe` - (Optional) A list to allow the Azure FrontDoor health probe header. Only allowed value is "1".
+
+* `x_forwarded_for` - (Optional) A list of allowed 'X-Forwarded-For' IPs in CIDR notation with a maximum of 8
+
+* `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
+
 
 ---
 

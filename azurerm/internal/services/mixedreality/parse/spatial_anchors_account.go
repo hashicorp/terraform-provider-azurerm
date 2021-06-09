@@ -32,7 +32,7 @@ func (id SpatialAnchorsAccountId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Spatial Anchors Account", segmentsStr)
 }
 
-func (id SpatialAnchorsAccountId) ID(_ string) string {
+func (id SpatialAnchorsAccountId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.MixedReality/spatialAnchorsAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

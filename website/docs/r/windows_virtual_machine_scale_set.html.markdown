@@ -134,17 +134,17 @@ The following arguments are supported:
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
-!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
+* `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between `15` minutes and `120` minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `90` minutes (`PT1H30M`).
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. Changing this forces a new resource to be created. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
+* `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
+* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`.
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
 
@@ -216,9 +216,9 @@ A `additional_unattend_content` block supports the following:
 
 A `automatic_os_upgrade_policy` block supports the following:
 
-* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled? Changing this forces a new resource to be created.
+* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled?
 
-* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available? Changing this forces a new resource to be created.
+* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available?
 
 ---
 
@@ -232,7 +232,7 @@ A `automatic_instance_repair` block supports the following:
 
 A `boot_diagnostics` block supports the following:
 
-* `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
+* `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor. Passing a null value will utilize a Managed Storage Account to store Boot Diagnostics.
 
 ---
 
@@ -283,8 +283,6 @@ A `diff_disk_settings` block supports the following:
 ---
 
 An `extension` block supports the following:
-
-!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
 
 * `name` - (Required) The name for the Virtual Machine Scale Set Extension.
 
@@ -434,13 +432,13 @@ A `public_ip_address` block supports the following:
 
 A `rolling_upgrade_policy` block supports the following:
 
-* `max_batch_instance_percent` - (Required) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability. Changing this forces a new resource to be created.
+* `max_batch_instance_percent` - (Required) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability.
 
-* `max_unhealthy_instance_percent` - (Required) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch. Changing this forces a new resource to be created.
+* `max_unhealthy_instance_percent` - (Required) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch.
 
-* `max_unhealthy_upgraded_instance_percent` - (Required) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Changing this forces a new resource to be created.
+* `max_unhealthy_upgraded_instance_percent` - (Required) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts.
 
-* `pause_time_between_batches` - (Required) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format. Changing this forces a new resource to be created.
+* `pause_time_between_batches` - (Required) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format.
 
 ---
 

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = PrivateDnsZoneConfigId{}
 
 func TestPrivateDnsZoneConfigIDFormatter(t *testing.T) {
-	actual := NewPrivateDnsZoneConfigID("12345678-1234-9876-4563-123456789012", "resGroup1", "endpoint1", "privateDnsZoneGroup1", "privateDnsZoneConfig1").ID("")
+	actual := NewPrivateDnsZoneConfigID("12345678-1234-9876-4563-123456789012", "resGroup1", "endpoint1", "privateDnsZoneGroup1", "privateDnsZoneConfig1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateEndpoints/endpoint1/privateDnsZoneGroups/privateDnsZoneGroup1/privateDnsZoneConfigs/privateDnsZoneConfig1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

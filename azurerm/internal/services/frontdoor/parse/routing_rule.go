@@ -35,7 +35,7 @@ func (id RoutingRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Routing Rule", segmentsStr)
 }
 
-func (id RoutingRuleId) ID(_ string) string {
+func (id RoutingRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/routingRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
 }

@@ -10,14 +10,16 @@ description: |-
 
 Allows you to manage an Azure SQL Database
 
+~> **Note:** Deprecated! Please use [mssql_database](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_database) for all future Microsoft SQL Azure Database Server uses.
+
 ~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_sql_server" "example" {
@@ -61,6 +63,7 @@ resource "azurerm_sql_database" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -89,7 +92,7 @@ The following arguments are supported:
 
 * `requested_service_objective_id` - (Optional) A GUID/UUID corresponding to a configured Service Level Objective for the Azure SQL database which can be used to configure a performance level.
 .
-* `requested_service_objective_name` - (Optional) The service objective name for the database. Valid values depend on edition and location and may include `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`. You can list the available names with the cli: ```shell az sql db list-editions -l westus -o table ```. For further information please see [Azure CLI - az sql db](https://docs.microsoft.com/en-us/cli/azure/sql/db?view=azure-cli-latest#az-sql-db-list-editions).
+* `requested_service_objective_name` - (Optional) The service objective name for the database. Valid values depend on edition and location and may include `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`. You can list the available names with the cli: `shell az sql db list-editions -l westus -o table`. For further information please see [Azure CLI - az sql db](https://docs.microsoft.com/en-us/cli/azure/sql/db?view=azure-cli-latest#az-sql-db-list-editions).
 
 * `source_database_deletion_date` - (Optional) The deletion date time of the source database. Only applies to deleted databases where `create_mode` is `PointInTimeRestore`.
 
@@ -126,16 +129,16 @@ The following arguments are supported:
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
-* `use_server_default` - (Optional) Should the default server policy be used? Defaults to `Disabled`.
 
 ---
 
 A `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_eventhub). 
 
 ## Attributes Reference
 

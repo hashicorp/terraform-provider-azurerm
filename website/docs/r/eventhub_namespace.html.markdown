@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Valid options are `Basic` and `Standard`.
 
-* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Valid values range from `1` - `20`.
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `20`, but can be increased in blocks of 20 on a committed purchase basis.
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
@@ -72,6 +72,8 @@ A `identity` block supports the following:
 A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
 
 * `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 

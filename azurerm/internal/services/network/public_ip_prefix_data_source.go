@@ -4,25 +4,25 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPublicIpPrefix() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmPublicIpPrefixRead,
+func dataSourcePublicIpPrefix() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourcePublicIpPrefixRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
@@ -31,17 +31,17 @@ func dataSourceArmPublicIpPrefix() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"prefix_length": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"ip_prefix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -52,7 +52,7 @@ func dataSourceArmPublicIpPrefix() *schema.Resource {
 	}
 }
 
-func dataSourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

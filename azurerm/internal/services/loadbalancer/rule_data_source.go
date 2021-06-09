@@ -2,28 +2,29 @@ package loadbalancer
 
 import (
 	"fmt"
+	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmLoadBalancerRule() *schema.Resource {
-	return &schema.Resource{
+func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceArmLoadBalancerRuleRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleName,
 			},
@@ -31,87 +32,89 @@ func dataSourceArmLoadBalancerRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"loadbalancer_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.LoadBalancerID,
 			},
 
 			"frontend_ip_configuration_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"protocol": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"frontend_port": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"backend_port": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"backend_address_pool_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"probe_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"enable_floating_ip": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"enable_tcp_reset": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"disable_outbound_snat": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"load_distribution": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	loadBalancerID, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerID)
+	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
-	}
-	if !exists {
-		return fmt.Errorf("Load Balancer %q (Resource Group %q) was not found", loadBalancerID.Name, loadBalancerID.ResourceGroup)
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing from state", loadBalancerId.Name)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
 	}
 
 	lbRuleClient := meta.(*clients.Client).LoadBalancers.LoadBalancingRulesClient
@@ -121,10 +124,10 @@ func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{})
 	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, *loadBalancer.Name, resourceGroup)
+			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
 		}
 
-		return fmt.Errorf("retrieving Load Balancer %s: %s", name, err)
+		return fmt.Errorf("retrieving Load Balancer %s (resource group %q) for Rule %q: %s", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
 	}
 
 	d.SetId(*resp.ID)

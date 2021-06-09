@@ -35,7 +35,7 @@ func (id HostnameBindingId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Hostname Binding", segmentsStr)
 }
 
-func (id HostnameBindingId) ID(_ string) string {
+func (id HostnameBindingId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/hostNameBindings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.Name)
 }

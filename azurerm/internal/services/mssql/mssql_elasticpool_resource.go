@@ -1,47 +1,52 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlElasticPool() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmMsSqlElasticPoolCreateUpdate,
-		Read:   resourceArmMsSqlElasticPoolRead,
-		Update: resourceArmMsSqlElasticPoolCreateUpdate,
-		Delete: resourceArmMsSqlElasticPoolDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceMsSqlElasticPool() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceMsSqlElasticPoolCreateUpdate,
+		Read:   resourceMsSqlElasticPoolRead,
+		Update: resourceMsSqlElasticPoolCreateUpdate,
+		Delete: resourceMsSqlElasticPoolDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ElasticPoolID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
+				ValidateFunc: validate.ValidateMsSqlElasticPoolName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -49,20 +54,20 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServerName,
+				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"BasicPool",
@@ -77,13 +82,13 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"tier": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Basic",
@@ -96,7 +101,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						},
 
 						"family": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
@@ -109,19 +114,19 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"per_database_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
-							Type:         schema.TypeFloat,
+							Type:         pluginsdk.TypeFloat,
 							Required:     true,
 							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
 						"max_capacity": {
-							Type:         schema.TypeFloat,
+							Type:         pluginsdk.TypeFloat,
 							Required:     true,
 							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
@@ -130,7 +135,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:          schema.TypeInt,
+				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"max_size_gb"},
@@ -138,7 +143,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"max_size_gb": {
-				Type:          schema.TypeFloat,
+				Type:          pluginsdk.TypeFloat,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"max_size_bytes"},
@@ -146,12 +151,12 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"zone_redundant": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"license_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -163,17 +168,17 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			if err := azure.MSSQLElasticPoolValidateSKU(diff); err != nil {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
 				return err
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
-func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +203,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	sku := expandAzureRmMsSqlElasticPoolSku(d)
+	sku := expandMsSqlElasticPoolSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
@@ -208,7 +213,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			LicenseType:         sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
-			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+			PerDatabaseSettings: expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 	}
@@ -241,10 +246,10 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
-	return resourceArmMsSqlElasticPoolRead(d, meta)
+	return resourceMsSqlElasticPoolRead(d, meta)
 }
 
-func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +277,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("server_name", elasticPool.ServerName)
 
-	if err := d.Set("sku", flattenAzureRmMsSqlElasticPoolSku(resp.Sku)); err != nil {
+	if err := d.Set("sku", flattenMsSqlElasticPoolSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
@@ -288,7 +293,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("zone_redundant", properties.ZoneRedundant)
 		d.Set("license_type", string(properties.LicenseType))
 
-		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
+		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
 		}
 	}
@@ -296,7 +301,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,7 +322,7 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {
+func expandMsSqlElasticPoolPerDatabaseSettings(d *pluginsdk.ResourceData) *sql.ElasticPoolPerDatabaseSettings {
 	perDatabaseSettings := d.Get("per_database_settings").([]interface{})
 	perDatabaseSetting := perDatabaseSettings[0].(map[string]interface{})
 
@@ -330,7 +335,7 @@ func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *s
 	}
 }
 
-func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
+func expandMsSqlElasticPoolSku(d *pluginsdk.ResourceData) *sql.Sku {
 	skus := d.Get("sku").([]interface{})
 	sku := skus[0].(map[string]interface{})
 
@@ -347,7 +352,7 @@ func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	}
 }
 
-func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
+func flattenMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -373,7 +378,7 @@ func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
 	return []interface{}{values}
 }
 
-func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {
+func flattenMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {
 	perDatabaseSettings := map[string]interface{}{}
 
 	if minCapacity := resp.MinCapacity; minCapacity != nil {

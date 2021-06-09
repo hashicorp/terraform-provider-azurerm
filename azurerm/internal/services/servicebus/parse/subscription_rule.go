@@ -41,7 +41,7 @@ func (id SubscriptionRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Subscription Rule", segmentsStr)
 }
 
-func (id SubscriptionRuleId) ID(_ string) string {
+func (id SubscriptionRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/topics/%s/subscriptions/%s/rules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName, id.RuleName)
 }

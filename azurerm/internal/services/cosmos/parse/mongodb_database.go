@@ -35,7 +35,7 @@ func (id MongodbDatabaseId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Mongodb Database", segmentsStr)
 }
 
-func (id MongodbDatabaseId) ID(_ string) string {
+func (id MongodbDatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/mongodbDatabases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }

@@ -41,7 +41,7 @@ func (id SnapshotId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Snapshot", segmentsStr)
 }
 
-func (id SnapshotId) ID(_ string) string {
+func (id SnapshotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/capacityPools/%s/volumes/%s/snapshots/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name)
 }

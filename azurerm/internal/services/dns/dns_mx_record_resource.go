@@ -8,40 +8,38 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDnsMxRecord() *schema.Resource {
-	return &schema.Resource{
+func resourceDnsMxRecord() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDnsMxRecordCreateUpdate,
 		Read:   resourceDnsMxRecordRead,
 		Update: resourceDnsMxRecordCreateUpdate,
 		Delete: resourceDnsMxRecordDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MxRecordID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "@",
@@ -50,23 +48,23 @@ func resourceDnsMxRecord() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"record": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"preference": {
 							// TODO: this should become an Int
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"exchange": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -75,12 +73,12 @@ func resourceDnsMxRecord() *schema.Resource {
 			},
 
 			"ttl": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -89,14 +87,17 @@ func resourceDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	resourceId := parse.NewMxRecordID(subscriptionId, resGroup, zoneName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
@@ -127,21 +128,12 @@ func resourceDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS MX Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(resourceId.ID())
 
 	return resourceDnsMxRecordRead(d, meta)
 }
 
-func resourceDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +165,7 @@ func resourceDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,8 +206,8 @@ func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{
 // expand creates an array of dns.MxRecord, that is, the array needed
 // by azure-sdk-for-go to manipulate azure resources, hence Preference
 // is an int32
-func expandAzureRmDnsMxRecords(d *schema.ResourceData) *[]dns.MxRecord {
-	recordStrings := d.Get("record").(*schema.Set).List()
+func expandAzureRmDnsMxRecords(d *pluginsdk.ResourceData) *[]dns.MxRecord {
+	recordStrings := d.Get("record").(*pluginsdk.Set).List()
 	records := make([]dns.MxRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
@@ -242,5 +234,5 @@ func resourceDnsMxRecordHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return pluginsdk.HashString(buf.String())
 }

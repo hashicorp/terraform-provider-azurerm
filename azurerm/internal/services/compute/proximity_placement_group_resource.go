@@ -5,38 +5,37 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmProximityPlacementGroup() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmProximityPlacementGroupCreateUpdate,
-		Read:   resourceArmProximityPlacementGroupRead,
-		Update: resourceArmProximityPlacementGroupCreateUpdate,
-		Delete: resourceArmProximityPlacementGroupDelete,
+func resourceProximityPlacementGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceProximityPlacementGroupCreateUpdate,
+		Read:   resourceProximityPlacementGroupRead,
+		Update: resourceProximityPlacementGroupCreateUpdate,
+		Delete: resourceProximityPlacementGroupDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -51,7 +50,7 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 	}
 }
 
-func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -87,10 +86,10 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*resp.ID)
 
-	return resourceArmProximityPlacementGroupRead(d, meta)
+	return resourceProximityPlacementGroupRead(d, meta)
 }
 
-func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +119,7 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -35,7 +35,7 @@ func (id HealthProbeId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Health Probe", segmentsStr)
 }
 
-func (id HealthProbeId) ID(_ string) string {
+func (id HealthProbeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/healthProbeSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.HealthProbeSettingName)
 }

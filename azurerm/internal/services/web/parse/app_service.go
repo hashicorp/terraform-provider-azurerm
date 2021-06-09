@@ -32,7 +32,7 @@ func (id AppServiceId) String() string {
 	return fmt.Sprintf("%s: (%s)", "App Service", segmentsStr)
 }
 
-func (id AppServiceId) ID(_ string) string {
+func (id AppServiceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName)
 }

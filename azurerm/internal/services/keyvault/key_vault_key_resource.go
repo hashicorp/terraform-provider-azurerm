@@ -1,58 +1,58 @@
 package keyvault
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultKey() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmKeyVaultKeyCreate,
-		Read:   resourceArmKeyVaultKeyRead,
-		Update: resourceArmKeyVaultKeyUpdate,
-		Delete: resourceArmKeyVaultKeyDelete,
-		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+func resourceKeyVaultKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create:   resourceKeyVaultKeyCreate,
+		Read:     resourceKeyVaultKeyRead,
+		Update:   resourceKeyVaultKeyUpdate,
+		Delete:   resourceKeyVaultKeyDelete,
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildName,
+				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				// turns out Azure's *really* sensitive about the casing of these
@@ -68,17 +68,17 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"key_size": {
-				Type:          schema.TypeInt,
+				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"curve"},
 			},
 
 			"key_opts": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					// turns out Azure's *really* sensitive about the casing of these
 					// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 					ValidateFunc: validation.StringInSlice([]string{
@@ -93,15 +93,19 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"curve": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					return old == "SECP256K1" && new == string(keyvault.P256K)
+				},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.P256),
+					string(keyvault.P256K),
 					string(keyvault.P384),
 					string(keyvault.P521),
-					string(keyvault.SECP256K1),
+					"SECP256K1", // TODO: remove this in v3.0 as it was renamed to keyvault.P256K
 				}, false),
 				// TODO: the curve name should probably be mandatory for EC in the future,
 				// but handle the diff so that we don't break existing configurations and
@@ -110,40 +114,45 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"not_before_date": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"expiration_date": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			// Computed
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"versionless_id": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"n": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"e": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"x": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"y": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -152,25 +161,28 @@ func resourceArmKeyVaultKey() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
+		return err
 	}
 
-	existing, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
+	}
+
+	existing, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+			return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
 		}
 	}
 
@@ -219,22 +231,22 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	if resp, err := client.CreateKey(ctx, keyVaultBaseUri, name, parameters); err != nil {
+	if resp, err := client.CreateKey(ctx, *keyVaultBaseUri, name, parameters); err != nil {
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-			recoveredKey, err := client.RecoverDeletedKey(ctx, keyVaultBaseUri, name)
+			recoveredKey, err := client.RecoverDeletedKey(ctx, *keyVaultBaseUri, name)
 			if err != nil {
 				return err
 			}
 			log.Printf("[DEBUG] Recovering Key %q with ID: %q", name, *recoveredKey.Key.Kid)
 			if kid := recoveredKey.Key.Kid; kid != nil {
-				stateConf := &resource.StateChangeConf{
+				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
 					Refresh:                   keyVaultChildItemRefreshFunc(*kid),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
-					Timeout:                   d.Timeout(schema.TimeoutCreate),
+					Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
@@ -248,36 +260,42 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+	read, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		return err
 	}
 
 	d.SetId(*read.Key.Kid)
 
-	return resourceArmKeyVaultKeyRead(d, meta)
+	return resourceKeyVaultKeyRead(d, meta)
 }
 
-func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 
-	ok, err := azure.KeyVaultExists(ctx, vaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -314,31 +332,36 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	return resourceArmKeyVaultKeyRead(d, meta)
+	return resourceKeyVaultKeyRead(d, meta)
 }
 
-func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -396,30 +419,36 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 	// Computed
 	d.Set("version", id.Version)
+	d.Set("versionless_id", id.VersionlessID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -429,11 +458,48 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
-	return err
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeKey{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func expandKeyVaultKeyOptions(d *schema.ResourceData) *[]keyvault.JSONWebKeyOperation {
+var _ deleteAndPurgeNestedItem = deleteAndPurgeKey{}
+
+type deleteAndPurgeKey struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetKey(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedKey(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyOperation {
 	options := d.Get("key_opts").([]interface{})
 	results := make([]keyvault.JSONWebKeyOperation, 0, len(options))
 

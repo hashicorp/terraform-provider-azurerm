@@ -3,43 +3,46 @@ package network
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBastionHost() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmBastionHostCreateUpdate,
-		Read:   resourceArmBastionHostRead,
-		Update: resourceArmBastionHostCreateUpdate,
-		Delete: resourceArmBastionHostDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+func resourceBastionHost() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceBastionHostCreateUpdate,
+		Read:   resourceBastionHostRead,
+		Update: resourceBastionHostCreateUpdate,
+		Delete: resourceBastionHostDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.BastionHostID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMBastionHostName,
+				ValidateFunc: validate.BastionHostName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -47,25 +50,28 @@ func resourceArmBastionHost() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				ForceNew: true,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validateAzureRMBastionIPConfigName,
+							ForceNew:     true,
+							ValidateFunc: validate.BastionIPConfigName,
 						},
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"public_ip_address_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -73,7 +79,7 @@ func resourceArmBastionHost() *schema.Resource {
 			},
 
 			"dns_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -82,7 +88,7 @@ func resourceArmBastionHost() *schema.Resource {
 	}
 }
 
-func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +116,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	parameters := network.BastionHost{
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
-			IPConfigurations: expandArmBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -131,34 +137,31 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmBastionHostRead(d, meta)
+	return resourceBastionHostRead(d, meta)
 }
 
-func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BastionHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["bastionHosts"]
-	resourceGroup := id.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Bastion Host %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Bastion Host %q: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -168,7 +171,7 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("dns_name", props.DNSName)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
-			if err := d.Set("ip_configuration", flattenArmBastionHostIPConfiguration(ipConfigs)); err != nil {
+			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {
 				return fmt.Errorf("Error flattening `ip_configuration`: %+v", err)
 			}
 		}
@@ -177,68 +180,31 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BastionHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["bastionHosts"]
-	resourceGroup := id.ResourceGroup
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
 
 	return nil
 }
 
-func validateAzureRMBastionHostName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[A-Za-z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9_]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. %q: %q", k, value))
-	}
-
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 characters: %q", k, value))
-	}
-
-	if len(value) > 80 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 80 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
-}
-
-func validateAzureRMBastionIPConfigName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[A-Za-z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9_]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. %q: %q", k, value))
-	}
-
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 characters: %q", k, value))
-	}
-
-	if len(value) > 80 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 80 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
-}
-
-func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network.BastionHostIPConfiguration) {
+func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network.BastionHostIPConfiguration) {
 	if len(input) == 0 {
 		return nil
 	}
@@ -263,7 +229,7 @@ func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]netw
 	}
 }
 
-func flattenArmBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {
+func flattenBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {
 	result := make([]interface{}, 0)
 	if ipConfigs == nil {
 		return result

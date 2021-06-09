@@ -1,165 +1,156 @@
 package resource_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type SubscriptionTemplateDeploymentResource struct {
+}
 
 func TestAccSubscriptionTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSubscriptionTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: subscriptionTemplateDeployment_emptyConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// set some tags
-				Config: subscriptionTemplateDeployment_emptyWithTagsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// set some tags
+			Config: r.emptyWithTagsConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionTemplateDeployment_templateSpecVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.templateSpecVersionConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccSubscriptionTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSubscriptionTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: subscriptionTemplateDeployment_singleItemWithParameterConfig(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: subscriptionTemplateDeployment_singleItemWithParameterConfig(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleItemWithParameterConfig(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.singleItemWithParameterConfig(data, "second"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionTemplateDeployment_singleItemUpdateTemplateWithUnchangedParams(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleItemWithParameterConfigAndVariable(data, "templateVariableValue1", "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.singleItemWithParameterConfigAndVariable(data, "forceupdatetemplate", "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccSubscriptionTemplateDeployment_singleItemUpdatingTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSubscriptionTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: subscriptionTemplateDeployment_singleItemWithResourceGroupConfig(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: subscriptionTemplateDeployment_singleItemWithResourceGroupConfig(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleItemWithResourceGroupConfig(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.singleItemWithResourceGroupConfig(data, "second"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccSubscriptionTemplateDeployment_withOutputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSubscriptionTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: subscriptionTemplateDeployment_withOutputsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "output_content", "{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withOutputsConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckSubscriptionTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resp, err := client.GetAtSubscriptionScope(ctx, name)
-		if err != nil {
-			return fmt.Errorf("bad: Get on deploymentsClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("bad: Subscription Template Deployment %q does not exist", name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckSubscriptionTemplateDeploymentDestroyed(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_subscription_template_deployment" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.GetAtSubscriptionScope(ctx, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Subscription Template Deployment still exists:\n%#v", resp.Properties)
-		}
+func (t SubscriptionTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.SubscriptionTemplateDeploymentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Resource.DeploymentsClient.GetAtSubscriptionScope(ctx, id.DeploymentName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Subscription Template Deployment (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func subscriptionTemplateDeployment_emptyConfig(data acceptance.TestData) string {
+func (SubscriptionTemplateDeploymentResource) emptyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,7 +162,7 @@ resource "azurerm_subscription_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -182,7 +173,42 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func subscriptionTemplateDeployment_emptyWithTagsConfig(data acceptance.TestData) string {
+func (SubscriptionTemplateDeploymentResource) templateSpecVersionConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-for-sub"
+  resource_group_name = "standing-data-for-acctest"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctestsubdeploy-%d"
+  location = %q
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+
+  parameters_content = <<PARAM
+{
+  "rgName": {
+   "value": "acctest-rg-tspec-%d"
+  },
+  "rgLocation": {
+   "value": %q
+  },
+  "tags": {
+   "value": {}
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SubscriptionTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -197,7 +223,7 @@ resource "azurerm_subscription_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -208,7 +234,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func subscriptionTemplateDeployment_singleItemWithParameterConfig(data acceptance.TestData, value string) string {
+func (SubscriptionTemplateDeploymentResource) singleItemWithParameterConfigAndVariable(data acceptance.TestData, templateVar string, paramVal string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -220,7 +246,49 @@ resource "azurerm_subscription_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {
+    "forceChangeInTemplate": %q
+  },
+  "resources": []
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": %q
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, templateVar, paramVal)
+}
+
+func (SubscriptionTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctestsubdeploy-%d"
+  location = %q
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "someParam": {
@@ -248,7 +316,7 @@ PARAM
 `, data.RandomInteger, data.Locations.Primary, value)
 }
 
-func subscriptionTemplateDeployment_singleItemWithResourceGroupConfig(data acceptance.TestData, tagValue string) string {
+func (SubscriptionTemplateDeploymentResource) singleItemWithResourceGroupConfig(data acceptance.TestData, tagValue string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -260,7 +328,7 @@ resource "azurerm_subscription_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -282,7 +350,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, tagValue)
 }
 
-func subscriptionTemplateDeployment_withOutputsConfig(data acceptance.TestData) string {
+func (SubscriptionTemplateDeploymentResource) withOutputsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -294,7 +362,7 @@ resource "azurerm_subscription_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},

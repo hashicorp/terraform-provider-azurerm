@@ -5,23 +5,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmHDInsightSparkCluster() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceArmHDInsightClusterRead,
+func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceHDInsightClusterRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightDataSourceName(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -29,48 +29,48 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"cluster_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"component_versions": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"tier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"tls_min_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"gateway": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 						"username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -81,24 +81,29 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 			"tags": tags.SchemaDataSource(),
 
 			"edge_ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"https_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"kafka_rest_proxy_endpoint": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -150,6 +155,8 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+		kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
