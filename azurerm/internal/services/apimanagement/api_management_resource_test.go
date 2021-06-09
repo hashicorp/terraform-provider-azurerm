@@ -964,9 +964,9 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku_name = "Premium_1"
+  sku_name = "Premium_2"
 
-  zones = [1, 2]
+  zones = [1,2]
 
   tags = {
     "Acceptance" = "Test"

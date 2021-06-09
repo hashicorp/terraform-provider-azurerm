@@ -645,7 +645,6 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 			PublisherEmail:   utils.String(publisherEmail),
 			CustomProperties: customProperties,
 			Certificates:     certificates,
-			DisableGateway:   utils.Bool(d.Get("gateway_disabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
@@ -692,6 +691,13 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
 		}
 		properties.ServiceProperties.EnableClientCertificate = utils.Bool(d.Get("client_certificate_enabled").(bool))
+	}
+
+	if d.HasChange("gateway_disabled") {
+		if len(*properties.AdditionalLocations) == 0 {
+			return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
+		}
+		properties.ServiceProperties.DisableGateway = utils.Bool(d.Get("gateway_disabled").(bool))
 	}
 
 	if v, ok := d.GetOk("min_api_version"); ok {
