@@ -687,19 +687,17 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if v := d.Get("client_certificate_enabled").(bool); v {
-		if sku.Name != apimanagement.SkuTypeConsumption {
-			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
-		}
-		properties.ServiceProperties.EnableClientCertificate = utils.Bool(v)
+	enableClientCertificate := d.Get("client_certificate_enabled").(bool)
+	if enableClientCertificate && sku.Name != apimanagement.SkuTypeConsumption {
+		return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
 	}
+	properties.ServiceProperties.EnableClientCertificate = utils.Bool(enableClientCertificate)
 
-	if v := d.Get("gateway_disabled").(bool); v {
-		if len(*properties.AdditionalLocations) == 0 {
-			return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
-		}
-		properties.ServiceProperties.DisableGateway = utils.Bool(v)
+	gateWayDisabled := d.Get("gateway_disabled").(bool)
+	if gateWayDisabled && len(*properties.AdditionalLocations) == 0 {
+		return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
 	}
+	properties.ServiceProperties.DisableGateway = utils.Bool(gateWayDisabled)
 
 	if v, ok := d.GetOk("min_api_version"); ok {
 		properties.ServiceProperties.APIVersionConstraint = &apimanagement.APIVersionConstraint{
