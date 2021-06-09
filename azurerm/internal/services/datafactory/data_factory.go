@@ -218,7 +218,7 @@ func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceDat
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -234,7 +234,25 @@ func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVault
 	}
 }
 
-func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if v, ok := input["store"].(map[string]interface{}); ok {
+		if v != nil {
+			parameters["linked_service_name"] = v["referenceName"].(string)
+		}
+	}
+
+	parameters["secret_name"] = input["secretName"]
+
+	return []interface{}{parameters}
+}
+
+func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
 		return nil
 	}
