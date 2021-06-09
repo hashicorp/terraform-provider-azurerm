@@ -210,14 +210,14 @@ func resourceContainerRegistryScopeMapDelete(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.RegistryName, id.ScopeMapName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry scope map '%s': %+v", id.ScopeMapName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry scope map '%s': %+v", id.ScopeMapName, err)

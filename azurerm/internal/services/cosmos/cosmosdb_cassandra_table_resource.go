@@ -192,7 +192,7 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
 		throughputFuture, err := client.UpdateCassandraTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
+			if throughputFuture.FutureAPI != nil && response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("setting Throughput for %s: %+v - "+
 					"If the collection has not been created with an initial throughput, you cannot configure it later", *id, err)
 			}
@@ -278,7 +278,7 @@ func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.DeleteCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

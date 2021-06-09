@@ -263,7 +263,7 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	future, err := client.Delete(ctx, name, resourceGroup)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}

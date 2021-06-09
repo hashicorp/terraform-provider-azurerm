@@ -150,14 +150,14 @@ func resourceEventGridDomainTopicDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)

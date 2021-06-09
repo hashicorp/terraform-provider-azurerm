@@ -316,7 +316,7 @@ func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of Log Analytics Worspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 		}
 	}

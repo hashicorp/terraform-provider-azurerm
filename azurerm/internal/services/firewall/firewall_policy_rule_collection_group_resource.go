@@ -499,7 +499,7 @@ func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("deleting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deleting %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
 		}
 	}

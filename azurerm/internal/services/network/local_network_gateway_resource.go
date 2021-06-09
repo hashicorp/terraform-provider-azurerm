@@ -224,7 +224,7 @@ func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -232,7 +232,7 @@ func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

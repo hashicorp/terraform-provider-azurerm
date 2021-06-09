@@ -226,14 +226,14 @@ func resourceArmDateLakeAnalyticsAccountDelete(d *pluginsdk.ResourceData, meta i
 	name := id.Path["accounts"]
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing delete request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)

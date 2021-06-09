@@ -472,7 +472,7 @@ func resourceSynapseWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	// sometimes the waitForCompletion rest api will return 404
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for Synapse Workspace %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 		}
 	}

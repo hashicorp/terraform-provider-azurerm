@@ -187,14 +187,14 @@ func resourceEventGridSystemTopicDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting Event Grid System Topic %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting Event Grid System Topic %q: %+v", id.Name, err)

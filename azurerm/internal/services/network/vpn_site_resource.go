@@ -264,7 +264,7 @@ func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("deleting Vpn Site %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deleting Vpn Site %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}

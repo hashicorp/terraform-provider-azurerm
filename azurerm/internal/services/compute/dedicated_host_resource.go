@@ -278,7 +278,7 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 		}
 	}

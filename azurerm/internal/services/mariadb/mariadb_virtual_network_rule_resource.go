@@ -175,7 +175,7 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -183,7 +183,7 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deletion of MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 		}
 	}

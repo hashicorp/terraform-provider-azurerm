@@ -135,7 +135,7 @@ func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}

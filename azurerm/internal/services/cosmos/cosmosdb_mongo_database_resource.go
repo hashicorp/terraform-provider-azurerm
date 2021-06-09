@@ -171,7 +171,7 @@ func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
 		throughputFuture, err := client.UpdateMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
+			if throughputFuture.FutureAPI != nil && response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Database %q (Account: %q): %+v - "+
 					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
 			}
@@ -258,7 +258,7 @@ func resourceCosmosDbMongoDatabaseDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.DeleteMongoDBDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Cosmos Mongo Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}

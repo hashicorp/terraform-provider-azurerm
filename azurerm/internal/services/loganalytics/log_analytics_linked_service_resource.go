@@ -352,7 +352,7 @@ func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
 		}
 	}

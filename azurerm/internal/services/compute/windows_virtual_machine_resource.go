@@ -1250,11 +1250,11 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 
 			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
 			if err != nil {
-				if !response.WasNotFound(diskDeleteFuture.Response()) {
+				if diskDeleteFuture.FutureAPI == nil || !response.WasNotFound(diskDeleteFuture.Response()) {
 					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
-			if !response.WasNotFound(diskDeleteFuture.Response()) {
+			if diskDeleteFuture.FutureAPI == nil || !response.WasNotFound(diskDeleteFuture.Response()) {
 				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
 					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}

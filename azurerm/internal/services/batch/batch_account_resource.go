@@ -289,7 +289,7 @@ func resourceBatchAccountDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 		}
 	}

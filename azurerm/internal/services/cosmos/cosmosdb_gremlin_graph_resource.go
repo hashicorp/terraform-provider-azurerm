@@ -304,7 +304,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
 		throughputFuture, err := client.UpdateGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
+			if throughputFuture.FutureAPI != nil && response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
 					"If the graph has not been created with an initial throughput, you cannot configure it later.", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 			}
@@ -407,7 +407,7 @@ func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.DeleteGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Cosmos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.GraphName, err)
 		}
 	}

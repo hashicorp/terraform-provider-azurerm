@@ -370,7 +370,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(deleteFuture.Response()) {
+		if deleteFuture.FutureAPI != nil && response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 
@@ -379,7 +379,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(deleteFuture.Response()) {
+		if deleteFuture.FutureAPI != nil && response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 

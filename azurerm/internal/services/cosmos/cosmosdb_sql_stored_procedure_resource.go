@@ -214,7 +214,7 @@ func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.DeleteSQLStoredProcedure(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", id.StoredProcedureName, id.ContainerName, id.SqlDatabaseName, id.DatabaseAccountName, err)
 		}
 	}

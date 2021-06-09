@@ -345,14 +345,14 @@ func resourceEventGridEventSubscriptionDelete(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.Delete(ctx, id.Scope, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", id.Name, err)

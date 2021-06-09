@@ -536,7 +536,7 @@ func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -544,7 +544,7 @@ func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

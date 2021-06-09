@@ -171,7 +171,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
 		throughputFuture, err := client.UpdateGremlinDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
+			if throughputFuture.FutureAPI != nil && response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos Gremlin Database %q (Account: %q): %+v - "+
 					"If the collection has not been created with and initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
 			}
@@ -245,7 +245,7 @@ func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.DeleteGremlinDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}

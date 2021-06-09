@@ -438,7 +438,7 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 	forceDeleteAllChildren := utils.Bool(false)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, forceDeleteAllChildren)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -447,7 +447,7 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

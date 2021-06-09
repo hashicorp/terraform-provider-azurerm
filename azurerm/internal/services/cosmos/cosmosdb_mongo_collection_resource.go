@@ -272,7 +272,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
 		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
+			if throughputFuture.FutureAPI != nil && response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %q (Account: %q, Database: %q): %+v - "+
 					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 			}
@@ -384,7 +384,7 @@ func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.DeleteMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 		}
 	}

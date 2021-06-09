@@ -268,14 +268,14 @@ func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	etag := ""
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, etag)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", id.Name, id.ResourceGroup, err)

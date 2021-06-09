@@ -185,7 +185,7 @@ func resourceStorageSyncCloudEndpointDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of Storage Sync Cloud Endpoint %q (Storage Sync Group %q / Storage Sync %q / Resource Group %q): %+v", id.CloudEndpointName, id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
 		}
 	}

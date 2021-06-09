@@ -170,7 +170,7 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName)
 	if err != nil {
 		// deleted outside of Terraform
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -178,7 +178,7 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for the deletion of Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 		}
 	}

@@ -218,7 +218,7 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Notification Hub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}

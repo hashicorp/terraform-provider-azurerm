@@ -161,7 +161,7 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 
 	future, err := client.Delete(ctx, resourceGroup, circuitName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -169,7 +169,7 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

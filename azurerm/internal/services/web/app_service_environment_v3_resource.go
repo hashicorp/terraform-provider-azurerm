@@ -250,7 +250,7 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				// This future can return a 404 for the polling check if the ASE is successfully deleted but this raises an error in the SDK
-				if !response.WasNotFound(future.Response()) {
+				if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 					return fmt.Errorf("waiting for removal of %s: %+v", id, err)
 				}
 			}

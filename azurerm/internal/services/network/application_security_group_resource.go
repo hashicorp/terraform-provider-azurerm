@@ -144,13 +144,13 @@ func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error issuing delete request for Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deletion of Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}

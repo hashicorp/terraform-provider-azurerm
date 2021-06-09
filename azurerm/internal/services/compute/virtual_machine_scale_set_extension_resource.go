@@ -342,7 +342,7 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

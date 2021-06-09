@@ -138,7 +138,7 @@ func (NetworkSecurityRuleResource) Destroy(ctx context.Context, client *clients.
 
 	future, err := client.Network.SecurityRuleClient.Delete(ctx, resGroup, networkSGName, sgRuleName)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return nil, fmt.Errorf("deleting Network Security Rule %q: %+v", id, err)
 		}
 	}

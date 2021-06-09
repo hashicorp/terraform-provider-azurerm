@@ -184,7 +184,7 @@ func resourceMariaDbDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

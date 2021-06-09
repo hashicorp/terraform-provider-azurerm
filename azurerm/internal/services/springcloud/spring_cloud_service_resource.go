@@ -482,7 +482,7 @@ func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 		}
 	}

@@ -637,7 +637,7 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
 		}
 	}

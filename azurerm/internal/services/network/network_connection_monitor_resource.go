@@ -643,7 +643,7 @@ func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
+		if future.FutureAPI == nil || !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 		}
 	}

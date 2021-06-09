@@ -268,7 +268,7 @@ func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 
@@ -276,7 +276,7 @@ func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 

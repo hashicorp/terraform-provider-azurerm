@@ -125,7 +125,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
-		if response.WasNotFound(deleteFuture.Response()) {
+		if deleteFuture.FutureAPI != nil && response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 
@@ -134,7 +134,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(deleteFuture.Response()) {
+		if deleteFuture.FutureAPI != nil && response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 

@@ -215,7 +215,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 
 	// there is an API bug being tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13365
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("waiting on deleting for %s: %+v", id, err)

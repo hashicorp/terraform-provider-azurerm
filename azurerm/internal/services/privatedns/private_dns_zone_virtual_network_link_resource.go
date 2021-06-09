@@ -174,7 +174,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, m
 
 	etag := ""
 	if future, err := client.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, id.Name, etag); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("deleting Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", id.Name, id.PrivateDnsZoneName, id.ResourceGroup, err)

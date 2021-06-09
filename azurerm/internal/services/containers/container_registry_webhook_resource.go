@@ -276,14 +276,14 @@ func resourceContainerRegistryWebhookDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Delete(ctx, resourceGroup, registryName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry Webhook '%s': %+v", name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
+		if future.FutureAPI != nil && response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry Webhook '%s': %+v", name, err)
