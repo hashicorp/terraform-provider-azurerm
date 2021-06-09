@@ -123,7 +123,7 @@ func resourceDataFactoryLinkedServiceAzureSearchCreateUpdate(d *pluginsdk.Resour
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_search", id.ID())
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_search", id.ID())
 		}
 	}
 
