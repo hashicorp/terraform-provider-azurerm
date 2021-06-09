@@ -880,9 +880,11 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
 
+		var minApiVersion string
 		if props.APIVersionConstraint != nil && props.APIVersionConstraint.MinAPIVersion != nil {
-			d.Set("min_api_version", props.APIVersionConstraint.MinAPIVersion)
+			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
 		}
+		d.Set("min_api_version", minApiVersion)
 
 		if props.EnableClientCertificate != nil {
 			d.Set("client_certificate_enabled", props.EnableClientCertificate)

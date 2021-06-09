@@ -289,6 +289,21 @@ func TestAccApiManagement_consumption(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_clientCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.consumptionClientCertificateEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -312,21 +327,21 @@ func TestAccApiManagement_gatewayDiabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.consumptionMultipleLocations(data),
+			Config: r.multipleLocations(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consumptionGatewayDiabled(data),
+			Config: r.gatewayDiabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consumptionMultipleLocations(data),
+			Config: r.multipleLocations(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1502,31 +1517,6 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ApiManagementResource) consumptionMultipleLocations(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-  sku_name            = "Consumption_0"
-  additional_location {
-    location = "%s"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
-}
-
 func (ApiManagementResource) consumptionClientCertificateEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1573,7 +1563,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ApiManagementResource) consumptionGatewayDiabled(data acceptance.TestData) string {
+func (ApiManagementResource) multipleLocations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1590,7 +1580,32 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Consumption_0"
+  sku_name            = "Premium_1"
+  additional_location {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (ApiManagementResource) gatewayDiabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Premium_1"
   gateway_disabled    = true
   additional_location {
     location = "%s"
