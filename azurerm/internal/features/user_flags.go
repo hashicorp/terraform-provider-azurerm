@@ -1,6 +1,7 @@
 package features
 
 type UserFeatures struct {
+	ApiManagement          ApiManagementFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
@@ -35,4 +36,8 @@ type TemplateDeploymentFeatures struct {
 
 type LogAnalyticsWorkspaceFeatures struct {
 	PermanentlyDeleteOnDestroy bool
+}
+
+type ApiManagementFeatures struct {
+	PurgeSoftDeleteOnDestroy bool
 }

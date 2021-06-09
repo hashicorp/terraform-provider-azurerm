@@ -292,6 +292,35 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionPurgeSoftDeleteRecovery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionPurgeSoftDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).DoesNotExistInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionPurgeSoftDeleteRecovery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiManagementID(state.ID)
 	if err != nil {
@@ -1419,6 +1448,38 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ApiManagementResource) consumptionPurgeSoftDeleteRecovery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+}
+`, r.consumptionPurgeSoftDelete(data), data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionPurgeSoftDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    api_management {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ApiManagementResource) tenantAccess(data acceptance.TestData) string {
