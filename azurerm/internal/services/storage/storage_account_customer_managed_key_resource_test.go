@@ -99,7 +99,7 @@ func TestAccStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccountCustomerMangedKey_remoteKeyVault(t *testing.T) {
+func TestAccAzureRMStorageAccountCustomerManagedKey_remoteKeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
 	r := StorageAccountCustomerManagedKeyResource{}
 
