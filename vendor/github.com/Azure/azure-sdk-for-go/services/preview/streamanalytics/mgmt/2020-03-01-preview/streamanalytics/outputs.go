@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -34,8 +35,7 @@ func NewOutputsClientWithBaseURI(baseURI string, subscriptionID string) OutputsC
 // Parameters:
 // output - the definition of the output that will be used to create a new output or replace the existing one
 // under the streaming job.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // outputName - the name of the output.
 // ifMatch - the ETag of the output. Omit this value to always overwrite the current output. Specify the
@@ -53,6 +53,16 @@ func (client OutputsClient) CreateOrReplace(ctx context.Context, output Output, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.OutputsClient", "CreateOrReplace", err.Error())
+	}
+
 	req, err := client.CreateOrReplacePreparer(ctx, output, resourceGroupName, jobName, outputName, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "CreateOrReplace", nil, "Failure preparing request")
@@ -84,7 +94,7 @@ func (client OutputsClient) CreateOrReplacePreparer(ctx context.Context, output 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -127,8 +137,7 @@ func (client OutputsClient) CreateOrReplaceResponder(resp *http.Response) (resul
 
 // Delete deletes an output from the streaming job.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // outputName - the name of the output.
 func (client OutputsClient) Delete(ctx context.Context, resourceGroupName string, jobName string, outputName string) (result autorest.Response, err error) {
@@ -142,6 +151,16 @@ func (client OutputsClient) Delete(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.OutputsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, jobName, outputName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Delete", nil, "Failure preparing request")
@@ -173,7 +192,7 @@ func (client OutputsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,8 +224,7 @@ func (client OutputsClient) DeleteResponder(resp *http.Response) (result autores
 
 // Get gets details about the specified output.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // outputName - the name of the output.
 func (client OutputsClient) Get(ctx context.Context, resourceGroupName string, jobName string, outputName string) (result Output, err error) {
@@ -220,6 +238,16 @@ func (client OutputsClient) Get(ctx context.Context, resourceGroupName string, j
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.OutputsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, jobName, outputName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Get", nil, "Failure preparing request")
@@ -251,7 +279,7 @@ func (client OutputsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -284,8 +312,7 @@ func (client OutputsClient) GetResponder(resp *http.Response) (result Output, er
 
 // ListByStreamingJob lists all of the outputs under the specified streaming job.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // selectParameter - the $select OData query parameter. This is a comma-separated list of structural properties
 // to include in the response, or "*" to include all properties. By default, all properties are returned except
@@ -301,6 +328,16 @@ func (client OutputsClient) ListByStreamingJob(ctx context.Context, resourceGrou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.OutputsClient", "ListByStreamingJob", err.Error())
+	}
+
 	result.fn = client.listByStreamingJobNextResults
 	req, err := client.ListByStreamingJobPreparer(ctx, resourceGroupName, jobName, selectParameter)
 	if err != nil {
@@ -336,7 +373,7 @@ func (client OutputsClient) ListByStreamingJobPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -409,8 +446,7 @@ func (client OutputsClient) ListByStreamingJobComplete(ctx context.Context, reso
 
 // Test tests whether an output’s datasource is reachable and usable by the Azure Stream Analytics service.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // outputName - the name of the output.
 // output - if the output specified does not already exist, this parameter must contain the full output
@@ -428,6 +464,16 @@ func (client OutputsClient) Test(ctx context.Context, resourceGroupName string, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.OutputsClient", "Test", err.Error())
+	}
+
 	req, err := client.TestPreparer(ctx, resourceGroupName, jobName, outputName, output)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Test", nil, "Failure preparing request")
@@ -452,7 +498,7 @@ func (client OutputsClient) TestPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -504,8 +550,7 @@ func (client OutputsClient) TestResponder(resp *http.Response) (result ResourceT
 // existing output (ie. Those properties will be updated). Any properties that are set to null here will mean
 // that the corresponding property in the existing output will remain the same and not change as a result of
 // this PATCH operation.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // outputName - the name of the output.
 // ifMatch - the ETag of the output. Omit this value to always overwrite the current output. Specify the
@@ -521,6 +566,16 @@ func (client OutputsClient) Update(ctx context.Context, output Output, resourceG
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.OutputsClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, output, resourceGroupName, jobName, outputName, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Update", nil, "Failure preparing request")
@@ -552,7 +607,7 @@ func (client OutputsClient) UpdatePreparer(ctx context.Context, output Output, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -34,8 +35,7 @@ func NewFunctionsClientWithBaseURI(baseURI string, subscriptionID string) Functi
 // Parameters:
 // function - the definition of the function that will be used to create a new function or replace the existing
 // one under the streaming job.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // functionName - the name of the function.
 // ifMatch - the ETag of the function. Omit this value to always overwrite the current function. Specify the
@@ -53,6 +53,16 @@ func (client FunctionsClient) CreateOrReplace(ctx context.Context, function Func
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "CreateOrReplace", err.Error())
+	}
+
 	req, err := client.CreateOrReplacePreparer(ctx, function, resourceGroupName, jobName, functionName, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "CreateOrReplace", nil, "Failure preparing request")
@@ -84,7 +94,7 @@ func (client FunctionsClient) CreateOrReplacePreparer(ctx context.Context, funct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -127,8 +137,7 @@ func (client FunctionsClient) CreateOrReplaceResponder(resp *http.Response) (res
 
 // Delete deletes a function from the streaming job.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // functionName - the name of the function.
 func (client FunctionsClient) Delete(ctx context.Context, resourceGroupName string, jobName string, functionName string) (result autorest.Response, err error) {
@@ -142,6 +151,16 @@ func (client FunctionsClient) Delete(ctx context.Context, resourceGroupName stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, jobName, functionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Delete", nil, "Failure preparing request")
@@ -173,7 +192,7 @@ func (client FunctionsClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,8 +224,7 @@ func (client FunctionsClient) DeleteResponder(resp *http.Response) (result autor
 
 // Get gets details about the specified function.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // functionName - the name of the function.
 func (client FunctionsClient) Get(ctx context.Context, resourceGroupName string, jobName string, functionName string) (result Function, err error) {
@@ -220,6 +238,16 @@ func (client FunctionsClient) Get(ctx context.Context, resourceGroupName string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, jobName, functionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Get", nil, "Failure preparing request")
@@ -251,7 +279,7 @@ func (client FunctionsClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -284,8 +312,7 @@ func (client FunctionsClient) GetResponder(resp *http.Response) (result Function
 
 // ListByStreamingJob lists all of the functions under the specified streaming job.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // selectParameter - the $select OData query parameter. This is a comma-separated list of structural properties
 // to include in the response, or "*" to include all properties. By default, all properties are returned except
@@ -301,6 +328,16 @@ func (client FunctionsClient) ListByStreamingJob(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "ListByStreamingJob", err.Error())
+	}
+
 	result.fn = client.listByStreamingJobNextResults
 	req, err := client.ListByStreamingJobPreparer(ctx, resourceGroupName, jobName, selectParameter)
 	if err != nil {
@@ -336,7 +373,7 @@ func (client FunctionsClient) ListByStreamingJobPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -409,8 +446,7 @@ func (client FunctionsClient) ListByStreamingJobComplete(ctx context.Context, re
 
 // RetrieveDefaultDefinition retrieves the default definition of a function based on the parameters specified.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // functionName - the name of the function.
 // functionRetrieveDefaultDefinitionParameters - parameters used to specify the type of function to retrieve
@@ -426,6 +462,16 @@ func (client FunctionsClient) RetrieveDefaultDefinition(ctx context.Context, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "RetrieveDefaultDefinition", err.Error())
+	}
+
 	req, err := client.RetrieveDefaultDefinitionPreparer(ctx, resourceGroupName, jobName, functionName, functionRetrieveDefaultDefinitionParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "RetrieveDefaultDefinition", nil, "Failure preparing request")
@@ -457,7 +503,7 @@ func (client FunctionsClient) RetrieveDefaultDefinitionPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -496,8 +542,7 @@ func (client FunctionsClient) RetrieveDefaultDefinitionResponder(resp *http.Resp
 // Test tests if the information provided for a function is valid. This can range from testing the connection to the
 // underlying web service behind the function or making sure the function code provided is syntactically correct.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // functionName - the name of the function.
 // function - if the function specified does not already exist, this parameter must contain the full function
@@ -516,6 +561,16 @@ func (client FunctionsClient) Test(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "Test", err.Error())
+	}
+
 	req, err := client.TestPreparer(ctx, resourceGroupName, jobName, functionName, function)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Test", nil, "Failure preparing request")
@@ -540,7 +595,7 @@ func (client FunctionsClient) TestPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -592,8 +647,7 @@ func (client FunctionsClient) TestResponder(resp *http.Response) (result Resourc
 // the existing function (ie. Those properties will be updated). Any properties that are set to null here will
 // mean that the corresponding property in the existing function will remain the same and not change as a
 // result of this PATCH operation.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // functionName - the name of the function.
 // ifMatch - the ETag of the function. Omit this value to always overwrite the current function. Specify the
@@ -609,6 +663,16 @@ func (client FunctionsClient) Update(ctx context.Context, function Function, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.FunctionsClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, function, resourceGroupName, jobName, functionName, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Update", nil, "Failure preparing request")
@@ -640,7 +704,7 @@ func (client FunctionsClient) UpdatePreparer(ctx context.Context, function Funct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

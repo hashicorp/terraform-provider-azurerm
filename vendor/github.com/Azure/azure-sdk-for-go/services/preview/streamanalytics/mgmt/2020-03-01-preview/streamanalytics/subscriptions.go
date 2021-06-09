@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -45,6 +46,12 @@ func (client SubscriptionsClient) ListQuotas(ctx context.Context, location strin
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.SubscriptionsClient", "ListQuotas", err.Error())
+	}
+
 	req, err := client.ListQuotasPreparer(ctx, location)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.SubscriptionsClient", "ListQuotas", nil, "Failure preparing request")
@@ -74,7 +81,7 @@ func (client SubscriptionsClient) ListQuotasPreparer(ctx context.Context, locati
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
