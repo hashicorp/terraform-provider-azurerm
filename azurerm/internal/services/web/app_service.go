@@ -1608,7 +1608,9 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 		documents := make([]string, 0)
 		for _, document := range input {
-			documents = append(documents, document.(string))
+			if document != nil {
+				documents = append(documents, document.(string))
+			}
 		}
 
 		siteConfig.DefaultDocuments = &documents
