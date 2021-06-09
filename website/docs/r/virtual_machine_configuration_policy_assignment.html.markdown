@@ -45,12 +45,12 @@ resource "azurerm_network_interface" "example" {
 }
 
 resource "azurerm_windows_virtual_machine" "example" {
-  name                = "vm0"
+  name                = "examplevm"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  admin_password      = "Configuration2021*"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
