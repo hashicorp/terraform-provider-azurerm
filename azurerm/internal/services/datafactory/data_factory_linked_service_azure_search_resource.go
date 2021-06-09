@@ -243,9 +243,7 @@ func resourceDataFactoryLinkedServiceAzureSearchDelete(d *pluginsdk.ResourceData
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
-		//if !utils.ResponseWasNotFound(response) {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-		//}
 	}
 
 	return nil
