@@ -34,8 +34,8 @@ resource "azurerm_consumption_budget_subscription" "example" {
   time_grain = "Monthly"
 
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
-    end_date   = "2020-12-01T00:00:00Z"
+    start_date = "2022-06-01T00:00:00Z"
+    end_date   = "2022-07-01T00:00:00Z"
   }
 
   filter {
