@@ -319,8 +319,8 @@ resource "azurerm_key_vault_key" "remote" {
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
-	azurerm_key_vault_access_policy.client,
-	azurerm_key_vault_access_policy.storage,
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.storage,
   ]
 }
 
@@ -341,7 +341,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 }
 
