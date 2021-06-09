@@ -65,7 +65,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 			},
 
 			"user_identity": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: msiValidate.UserAssignedIdentityID,
 			},
