@@ -29,9 +29,10 @@ func resourceDataFactory() *pluginsdk.Resource {
 		Update: resourceDataFactoryCreateUpdate,
 		Delete: resourceDataFactoryDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.DataFactoryV0ToV1{},
+			1: migration.DataFactoryV1ToV2{},
 		}),
 
 		// TODO: replace this with an importer which validates the ID during import
