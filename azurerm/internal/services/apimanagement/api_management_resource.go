@@ -687,11 +687,13 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	enableClientCertificate := d.Get("client_certificate_enabled").(bool)
-	if enableClientCertificate && sku.Name != apimanagement.SkuTypeConsumption {
-		return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+	if d.HasChange("client_certificate_enabled") {
+		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
+		if enableClientCertificate && sku.Name != apimanagement.SkuTypeConsumption {
+			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+		}
+		properties.ServiceProperties.EnableClientCertificate = utils.Bool(enableClientCertificate)
 	}
-	properties.ServiceProperties.EnableClientCertificate = utils.Bool(enableClientCertificate)
 
 	gateWayDisabled := d.Get("gateway_disabled").(bool)
 	if gateWayDisabled && len(*properties.AdditionalLocations) == 0 {
