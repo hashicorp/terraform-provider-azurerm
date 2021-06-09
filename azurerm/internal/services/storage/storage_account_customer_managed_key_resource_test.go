@@ -248,6 +248,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 `, template)
 }
 
+// (@jackofallops) - This test spans 2 subscriptions to check that it's possible to use a CMK stored in a vault in a non-local subscription.
 func (r StorageAccountCustomerManagedKeyResource) remoteKeyVault(data acceptance.TestData) string {
 	clientData := data.Client()
 	return fmt.Sprintf(`
@@ -258,6 +259,7 @@ provider "azurerm" {
 provider "azurerm" {
   alias           = "alt"
   subscription_id = "%s"
+  tenant_id       = "%s"
   features {
     key_vault {
       purge_soft_delete_on_destroy = false
@@ -277,11 +279,12 @@ resource "azurerm_resource_group" "remotetest" {
 resource "azurerm_key_vault" "remotetest" {
   provider = azurerm.alt
 
-  name                = "acctestkv%s"
-  location            = azurerm_resource_group.remotetest.location
-  resource_group_name = azurerm_resource_group.remotetest.name
-  tenant_id           = "%s"
-  sku_name            = "standard"
+  name                     = "acctestkv%s"
+  location                 = azurerm_resource_group.remotetest.location
+  resource_group_name      = azurerm_resource_group.remotetest.name
+  tenant_id                = "%s"
+  sku_name                 = "standard"
+  purge_protection_enabled = true
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -306,10 +309,10 @@ resource "azurerm_key_vault_access_policy" "client" {
   secret_permissions = ["get"]
 }
 
-resource "azurerm_key_vault_key" "first" {
+resource "azurerm_key_vault_key" "remote" {
   provider = azurerm.alt
 
-  name         = "first"
+  name         = "remote"
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
@@ -347,11 +350,11 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 
   storage_account_id = azurerm_storage_account.test.id
   key_vault_id       = azurerm_key_vault.remotetest.id
-  key_name           = azurerm_key_vault_key.first.name
-  key_version        = azurerm_key_vault_key.first.version
+  key_name           = azurerm_key_vault_key.remote.name
+  key_version        = azurerm_key_vault_key.remote.version
 }
 
-`, clientData.SubscriptionIDAlt, data.RandomInteger, data.Locations.Primary, data.RandomString, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, clientData.SubscriptionIDAlt, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageAccountCustomerManagedKeyResource) template(data acceptance.TestData) string {
