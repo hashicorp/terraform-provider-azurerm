@@ -252,7 +252,7 @@ func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interf
 	return []interface{}{parameters}
 }
 
-func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
 		return nil
 	}

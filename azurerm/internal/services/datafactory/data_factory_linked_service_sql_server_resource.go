@@ -55,18 +55,16 @@ func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
 			"connection_string": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				AtLeastOneOf:     []string{"connection_string", "key_vault_connection_string"},
-				ConflictsWith:    []string{"key_vault_connection_string"},
+				ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"key_vault_connection_string": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				AtLeastOneOf:  []string{"connection_string", "key_vault_connection_string"},
-				ConflictsWith: []string{"connection_string"},
-				MaxItems:      1,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
+				MaxItems:     1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"linked_service_name": {
@@ -289,7 +287,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 		if password := properties.Password; password != nil {
 			if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+				if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
 					return fmt.Errorf("setting `key_vault_password`: %+v", err)
 				}
 			}

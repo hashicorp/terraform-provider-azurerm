@@ -253,7 +253,7 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(properties.Password)); err != nil {
+		if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(properties.Password)); err != nil {
 			return fmt.Errorf("setting `key_vault_password`: %+v", err)
 		}
 	}
