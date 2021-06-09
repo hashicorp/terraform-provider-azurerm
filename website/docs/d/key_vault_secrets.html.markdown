@@ -19,7 +19,7 @@ data "azurerm_key_vault_secrets" "example" {
 
 data "azurerm_key_vault_secret" "this" {
   for_each = data.azurerm_key_vault_secrets.these.all
-  name = each.key
+  name     = each.key
 }
 
 ```
