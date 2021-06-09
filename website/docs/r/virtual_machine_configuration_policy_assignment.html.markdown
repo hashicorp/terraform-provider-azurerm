@@ -54,16 +54,16 @@ resource "azurerm_windows_virtual_machine" "example" {
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
- 
+
   identity {
     type = "SystemAssigned"
   }
- 
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
- 
+
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -71,7 +71,7 @@ resource "azurerm_windows_virtual_machine" "example" {
     version   = "latest"
   }
 }
- 
+
 resource "azurerm_virtual_machine_extension" "example" {
   name                       = "AzurePolicyforWindows"
   virtual_machine_id         = azurerm_windows_virtual_machine.example.id
@@ -80,7 +80,7 @@ resource "azurerm_virtual_machine_extension" "example" {
   type_handler_version       = "1.0"
   auto_upgrade_minor_version = "true"
 }
- 
+
 resource "azurerm_virtual_machine_configuration_policy_assignment" "example" {
   name               = "AzureWindowsBaseline"
   location           = azurerm_windows_virtual_machine.example.location
@@ -89,23 +89,23 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "example" {
     name    = "AzureWindowsBaseline"
     version = "1.*"
     parameter {
-      name = "Minimum Password Length;ExpectedValue"
+      name  = "Minimum Password Length;ExpectedValue"
       value = "16"
     }
     parameter {
-      name = "Minimum Password Age;ExpectedValue"
+      name  = "Minimum Password Age;ExpectedValue"
       value = "0"
     }
     parameter {
-      name = "Maximum Password Age;ExpectedValue"
+      name  = "Maximum Password Age;ExpectedValue"
       value = "30,45"
     }
     parameter {
-      name = "Enforce Password History;ExpectedValue"
+      name  = "Enforce Password History;ExpectedValue"
       value = "10"
     }
     parameter {
-      name = "Password Must Meet Complexity Requirements;ExpectedValue"
+      name  = "Password Must Meet Complexity Requirements;ExpectedValue"
       value = "1"
     }
   }
