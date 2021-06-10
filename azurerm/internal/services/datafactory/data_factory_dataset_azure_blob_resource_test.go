@@ -31,6 +31,21 @@ func TestAccDataFactoryDatasetAzureBlob_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetAzureBlob_dynamicPathAndFileName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
+	r := DatasetAzureBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dynamicPathAndFileName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryDatasetAzureBlob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
 	r := DatasetAzureBlobResource{}
@@ -112,7 +127,6 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
 
   path     = "foo"
   filename = "bar.png"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -231,6 +245,44 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
     type        = "Byte"
     description = "description"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetAzureBlobResource) dynamicPathAndFileName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                = "acctestlssql%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+}
+
+resource "azurerm_data_factory_dataset_azure_blob" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  path                     = "@concat('run-', pipeline().RunId)"
+  filename                 = "@concat('run-', pipeline().RunId, '.txt')"
+  dynamic_filename_enabled = true
+  dynamic_path_enabled     = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
