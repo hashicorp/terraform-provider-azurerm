@@ -52,6 +52,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_linked_service_cosmosdb":               resourceDataFactoryLinkedServiceCosmosDb(),
 		"azurerm_data_factory_linked_service_data_lake_storage_gen2": resourceDataFactoryLinkedServiceDataLakeStorageGen2(),
 		"azurerm_data_factory_linked_service_key_vault":              resourceDataFactoryLinkedServiceKeyVault(),
+		"azurerm_data_factory_linked_service_kusto":                  resourceDataFactoryLinkedServiceKusto(),
 		"azurerm_data_factory_linked_service_mysql":                  resourceDataFactoryLinkedServiceMySQL(),
 		"azurerm_data_factory_linked_service_postgresql":             resourceDataFactoryLinkedServicePostgreSQL(),
 		"azurerm_data_factory_linked_service_sftp":                   resourceDataFactoryLinkedServiceSFTP(),
