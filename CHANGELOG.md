@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_storage_account` - support for user assigned identities [GH-11752]
 * `azurerm_storage_account_customer_managed_key` - support the use of keys from key vaults in remote subscription [GH-12142]
 * `azurerm_virtual_desktop_host_pool` - support for the `start_vm_on_connect` property [GH-12160]
+* `azurerm_vpn_server_configuration` - now supports multiple `auth` blocks [GH-12085]
 
 BUG FIXES:
 
