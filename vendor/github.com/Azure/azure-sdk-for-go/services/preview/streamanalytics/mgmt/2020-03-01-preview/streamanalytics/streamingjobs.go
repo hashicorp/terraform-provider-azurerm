@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -34,8 +35,7 @@ func NewStreamingJobsClientWithBaseURI(baseURI string, subscriptionID string) St
 // Parameters:
 // streamingJob - the definition of the streaming job that will be used to create a new streaming job or
 // replace the existing one.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // ifMatch - the ETag of the streaming job. Omit this value to always overwrite the current record set. Specify
 // the last-seen ETag value to prevent accidentally overwriting concurrent changes.
@@ -52,6 +52,16 @@ func (client StreamingJobsClient) CreateOrReplace(ctx context.Context, streaming
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "CreateOrReplace", err.Error())
+	}
+
 	req, err := client.CreateOrReplacePreparer(ctx, streamingJob, resourceGroupName, jobName, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "CreateOrReplace", nil, "Failure preparing request")
@@ -75,7 +85,7 @@ func (client StreamingJobsClient) CreateOrReplacePreparer(ctx context.Context, s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -127,8 +137,7 @@ func (client StreamingJobsClient) CreateOrReplaceResponder(resp *http.Response) 
 
 // Delete deletes a streaming job.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 func (client StreamingJobsClient) Delete(ctx context.Context, resourceGroupName string, jobName string) (result StreamingJobsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -141,6 +150,16 @@ func (client StreamingJobsClient) Delete(ctx context.Context, resourceGroupName 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, jobName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Delete", nil, "Failure preparing request")
@@ -164,7 +183,7 @@ func (client StreamingJobsClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,8 +224,7 @@ func (client StreamingJobsClient) DeleteResponder(resp *http.Response) (result a
 
 // Get gets details about the specified streaming job.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // expand - the $expand OData query parameter. This is a comma-separated list of additional streaming job
 // properties to include in the response, beyond the default set returned when this parameter is absent. The
@@ -223,6 +241,16 @@ func (client StreamingJobsClient) Get(ctx context.Context, resourceGroupName str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, jobName, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Get", nil, "Failure preparing request")
@@ -253,7 +281,7 @@ func (client StreamingJobsClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -304,6 +332,12 @@ func (client StreamingJobsClient) List(ctx context.Context, expand string) (resu
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "List", err.Error())
+	}
+
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, expand)
 	if err != nil {
@@ -337,7 +371,7 @@ func (client StreamingJobsClient) ListPreparer(ctx context.Context, expand strin
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -410,8 +444,7 @@ func (client StreamingJobsClient) ListComplete(ctx context.Context, expand strin
 
 // ListByResourceGroup lists all of the streaming jobs in the specified resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // expand - the $expand OData query parameter. This is a comma-separated list of additional streaming job
 // properties to include in the response, beyond the default set returned when this parameter is absent. The
 // default set is all streaming job properties other than 'inputs', 'transformation', 'outputs', and
@@ -427,6 +460,16 @@ func (client StreamingJobsClient) ListByResourceGroup(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "ListByResourceGroup", err.Error())
+	}
+
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, expand)
 	if err != nil {
@@ -461,7 +504,7 @@ func (client StreamingJobsClient) ListByResourceGroupPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -534,8 +577,7 @@ func (client StreamingJobsClient) ListByResourceGroupComplete(ctx context.Contex
 
 // Start starts a streaming job. Once a job is started it will start processing input events and produce output.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // startJobParameters - parameters applicable to a start streaming job operation.
 func (client StreamingJobsClient) Start(ctx context.Context, resourceGroupName string, jobName string, startJobParameters *StartStreamingJobParameters) (result StreamingJobsStartFuture, err error) {
@@ -549,6 +591,16 @@ func (client StreamingJobsClient) Start(ctx context.Context, resourceGroupName s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "Start", err.Error())
+	}
+
 	req, err := client.StartPreparer(ctx, resourceGroupName, jobName, startJobParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Start", nil, "Failure preparing request")
@@ -572,7 +624,7 @@ func (client StreamingJobsClient) StartPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -619,8 +671,7 @@ func (client StreamingJobsClient) StartResponder(resp *http.Response) (result au
 // Stop stops a running streaming job. This will cause a running streaming job to stop processing input events and
 // producing output.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 func (client StreamingJobsClient) Stop(ctx context.Context, resourceGroupName string, jobName string) (result StreamingJobsStopFuture, err error) {
 	if tracing.IsEnabled() {
@@ -633,6 +684,16 @@ func (client StreamingJobsClient) Stop(ctx context.Context, resourceGroupName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "Stop", err.Error())
+	}
+
 	req, err := client.StopPreparer(ctx, resourceGroupName, jobName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Stop", nil, "Failure preparing request")
@@ -656,7 +717,7 @@ func (client StreamingJobsClient) StopPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -702,8 +763,7 @@ func (client StreamingJobsClient) StopResponder(resp *http.Response) (result aut
 // properties in the existing streaming job (ie. Those properties will be updated). Any properties that are set
 // to null here will mean that the corresponding property in the existing input will remain the same and not
 // change as a result of this PATCH operation.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // ifMatch - the ETag of the streaming job. Omit this value to always overwrite the current record set. Specify
 // the last-seen ETag value to prevent accidentally overwriting concurrent changes.
@@ -718,6 +778,16 @@ func (client StreamingJobsClient) Update(ctx context.Context, streamingJob Strea
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, streamingJob, resourceGroupName, jobName, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Update", nil, "Failure preparing request")
@@ -748,7 +818,7 @@ func (client StreamingJobsClient) UpdatePreparer(ctx context.Context, streamingJ
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

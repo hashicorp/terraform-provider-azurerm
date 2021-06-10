@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -35,8 +36,7 @@ func NewTransformationsClientWithBaseURI(baseURI string, subscriptionID string) 
 // Parameters:
 // transformation - the definition of the transformation that will be used to create a new transformation or
 // replace the existing one under the streaming job.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // transformationName - the name of the transformation.
 // ifMatch - the ETag of the transformation. Omit this value to always overwrite the current transformation.
@@ -54,6 +54,16 @@ func (client TransformationsClient) CreateOrReplace(ctx context.Context, transfo
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.TransformationsClient", "CreateOrReplace", err.Error())
+	}
+
 	req, err := client.CreateOrReplacePreparer(ctx, transformation, resourceGroupName, jobName, transformationName, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.TransformationsClient", "CreateOrReplace", nil, "Failure preparing request")
@@ -85,7 +95,7 @@ func (client TransformationsClient) CreateOrReplacePreparer(ctx context.Context,
 		"transformationName": autorest.Encode("path", transformationName),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -128,8 +138,7 @@ func (client TransformationsClient) CreateOrReplaceResponder(resp *http.Response
 
 // Get gets details about the specified transformation.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // transformationName - the name of the transformation.
 func (client TransformationsClient) Get(ctx context.Context, resourceGroupName string, jobName string, transformationName string) (result Transformation, err error) {
@@ -143,6 +152,16 @@ func (client TransformationsClient) Get(ctx context.Context, resourceGroupName s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.TransformationsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, jobName, transformationName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.TransformationsClient", "Get", nil, "Failure preparing request")
@@ -174,7 +193,7 @@ func (client TransformationsClient) GetPreparer(ctx context.Context, resourceGro
 		"transformationName": autorest.Encode("path", transformationName),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -212,8 +231,7 @@ func (client TransformationsClient) GetResponder(resp *http.Response) (result Tr
 // properties in the existing transformation (ie. Those properties will be updated). Any properties that are
 // set to null here will mean that the corresponding property in the existing transformation will remain the
 // same and not change as a result of this PATCH operation.
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // jobName - the name of the streaming job.
 // transformationName - the name of the transformation.
 // ifMatch - the ETag of the transformation. Omit this value to always overwrite the current transformation.
@@ -229,6 +247,16 @@ func (client TransformationsClient) Update(ctx context.Context, transformation T
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.TransformationsClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, transformation, resourceGroupName, jobName, transformationName, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.TransformationsClient", "Update", nil, "Failure preparing request")
@@ -260,7 +288,7 @@ func (client TransformationsClient) UpdatePreparer(ctx context.Context, transfor
 		"transformationName": autorest.Encode("path", transformationName),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2017-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
