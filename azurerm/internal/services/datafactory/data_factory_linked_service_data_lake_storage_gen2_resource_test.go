@@ -166,11 +166,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
-  name                  = "acctestDataLake%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  data_factory_name     = azurerm_data_factory.test.name
-  url                   = azurerm_storage_account.test.primary_dfs_endpoint
-  storage_account_key   = azurerm_storage_account.test.primary_access_key
+  name                = "acctestDataLake%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  url                 = azurerm_storage_account.test.primary_dfs_endpoint
+  storage_account_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
