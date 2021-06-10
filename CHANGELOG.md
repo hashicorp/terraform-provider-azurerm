@@ -4,15 +4,17 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `virtualdesktop` to use API Version `2020-11-02-preview` [GH-12160]
 * `data.azurerm_synapse_workspace` - support for the `identity` attribute [GH-12098]
 * `azurerm_cosmosdb_gremlin_graph` - support for the `composite_index` and `partition_key_version` properties [GH-11693]
 * `azurerm_data_factory_dataset_azure_blob` - support for the `dynamic_filename_enabled` and `dynamic_path_enabled` properties [GH-12034]
 * `azurerm_data_factory_linked_service_azure_sql_database` - support for the `key_vault_connection_string` property [GH-12139]
+* `azurerm_data_factory_linked_service_sql_server` - add `key_vault_connection_string` argument [GH-12117]
 * `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` [GH-12049]
 * `azurerm_kubernetes_cluster` -support for BYO `kubelet_identity` [GH-12037]
 * `azurerm_storage_account` - support for user assigned identities [GH-11752]
 * `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
-* `azurerm_data_factory_linked_service_sql_server` - add `key_vault_connection_string` argument [GH-12117]
+* `azurerm_virtual_desktop_host_pool` - support for the `start_vm_on_connect` property [GH-12160]
 
 BUG FIXES:
 
