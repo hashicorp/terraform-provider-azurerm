@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_data_factory_linked_service_azure_search` [GH-12122]
 * **New Resource** `azurerm_data_factory_linked_service_kusto` [GH-12152]
 
 ENHANCEMENTS:
