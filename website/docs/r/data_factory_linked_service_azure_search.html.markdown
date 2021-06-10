@@ -70,6 +70,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Data Factory Linked Service.
 
+* `encrypted_credential` - The encrypted credential to connnect to Azure Search Service.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
