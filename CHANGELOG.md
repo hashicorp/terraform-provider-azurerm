@@ -4,6 +4,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `streamanalytics` to use API Version `2020-03-01-preview` [GH-12133]
 * dependencies: updating `virtualdesktop` to use API Version `2020-11-02-preview` [GH-12160]
 * `data.azurerm_synapse_workspace` - support for the `identity` attribute [GH-12098]
 * `azurerm_cosmosdb_gremlin_graph` - support for the `composite_index` and `partition_key_version` properties [GH-11693]
