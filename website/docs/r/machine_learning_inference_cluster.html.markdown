@@ -122,13 +122,15 @@ The following arguments are supported:
 
 * `machine_learning_workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning Inference Cluster to be created.
 
+---
+
 * `cluster_purpose` - (Optional) The purpose of the Inference Cluster. Options are `DevTest`, `DenseProd` and `FastProd`. If used for Development or Testing, use `DevTest` here. Default purpose is `FastProd`, which is recommended for production workloads. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ~> **NOTE:** When creating or attaching a cluster, if the cluster will be used for production (`cluster_purpose = "FastProd"`), then it must contain at least 12 virtual CPUs. The number of virtual CPUs can be calculated by multiplying the number of nodes in the cluster by the number of cores provided by the VM size selected. For example, if you use a VM size of "Standard_D3_v2", which has 4 virtual cores, then you should select 3 or greater as the number of nodes.
 
-* `description` - (Optional) The description of the Machine Learning compute.
+* `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Inference Cluster to be created.
 
-* `ssl` - (Optional) A `ssl` block as defined below.
+* `ssl` - (Optional) A `ssl` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
@@ -137,11 +139,15 @@ The following arguments are supported:
 
 A `ssl` block supports the following:
 
-* `cert` - (Optional) The certificate for the ssl configuration. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `cert` - (Optional) The certificate for the ssl configuration.Conflicts with `ssl.0.leaf_domain_label`,`ssl.0.overwrite_existing_domain`. Changing this forces a new Machine Learning Inference Cluster to be created.
 
-* `cname` - (Optional) The cname of the ssl configuration. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `cname` - (Optional) The cname of the ssl configuration.Conflicts with `ssl.0.leaf_domain_label`,`ssl.0.overwrite_existing_domain`. Changing this forces a new Machine Learning Inference Cluster to be created.
 
-* `key` - (Optional) The key content for the ssl configuration. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `key` - (Optional) The key content for the ssl configuration.Conflicts with `ssl.0.leaf_domain_label`,`ssl.0.overwrite_existing_domain`. Changing this forces a new Machine Learning Inference Cluster to be created.
+
+* `leaf_domain_label` - (Optional) The leaf domain label for the ssl configuration. Conflicts with `ssl.0.cert`,`ssl.0.key`,`ssl.0.cname`. Changing this forces a new Machine Learning Inference Cluster to be created.
+
+* `overwrite_existing_domain` - (Optional) Whether or not to overwrite existing leaf domain. Conflicts with `ssl.0.cert`,`ssl.0.key`,`ssl.0.cname` Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ## Attributes Reference
 

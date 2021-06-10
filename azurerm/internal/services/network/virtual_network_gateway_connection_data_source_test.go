@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -22,7 +22,7 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 			Config: r.sitetosite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
 			),
 		},
 	})
@@ -41,8 +41,8 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
 				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
-				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(network.Vnet2Vnet)),
-				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(network.Vnet2Vnet)),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
 			),
 		},
 	})
@@ -58,10 +58,10 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) 
 			Config: r.ipsecpolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
 				check.That(data.ResourceName).Key("routing_weight").HasValue("20"),
 				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DhGroupDHGroup14)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.AES256)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.IkeEncryptionAES256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(network.IkeIntegritySHA256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(network.IpsecEncryptionAES256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(network.IpsecIntegritySHA256)),
