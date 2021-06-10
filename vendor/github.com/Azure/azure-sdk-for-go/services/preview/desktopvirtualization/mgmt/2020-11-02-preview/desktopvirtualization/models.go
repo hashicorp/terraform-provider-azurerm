@@ -17,7 +17,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
 
 // Application schema for Application properties.
 type Application struct {
@@ -726,6 +726,12 @@ type ApplicationPatchProperties struct {
 	IconPath *string `json:"iconPath,omitempty"`
 	// IconIndex - Index of the icon.
 	IconIndex *int32 `json:"iconIndex,omitempty"`
+	// MsixPackageFamilyName - Specifies the package family name for MSIX applications
+	MsixPackageFamilyName *string `json:"msixPackageFamilyName,omitempty"`
+	// MsixPackageApplicationID - Specifies the package application Id for MSIX applications
+	MsixPackageApplicationID *string `json:"msixPackageApplicationId,omitempty"`
+	// ApplicationType - Resource Type of Application. Possible values include: 'InBuilt', 'MsixApplication'
+	ApplicationType RemoteApplicationType `json:"applicationType,omitempty"`
 }
 
 // ApplicationProperties schema for Application properties.
@@ -736,6 +742,12 @@ type ApplicationProperties struct {
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// FilePath - Specifies a path for the executable file for the application.
 	FilePath *string `json:"filePath,omitempty"`
+	// MsixPackageFamilyName - Specifies the package family name for MSIX applications
+	MsixPackageFamilyName *string `json:"msixPackageFamilyName,omitempty"`
+	// MsixPackageApplicationID - Specifies the package application Id for MSIX applications
+	MsixPackageApplicationID *string `json:"msixPackageApplicationId,omitempty"`
+	// ApplicationType - Resource Type of Application. Possible values include: 'InBuilt', 'MsixApplication'
+	ApplicationType RemoteApplicationType `json:"applicationType,omitempty"`
 	// CommandLineSetting - Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: 'DoNotAllow', 'Allow', 'Require'
 	CommandLineSetting CommandLineSetting `json:"commandLineSetting,omitempty"`
 	// CommandLineArguments - Command Line Arguments for Application.
@@ -763,6 +775,15 @@ func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ap.FilePath != nil {
 		objectMap["filePath"] = ap.FilePath
+	}
+	if ap.MsixPackageFamilyName != nil {
+		objectMap["msixPackageFamilyName"] = ap.MsixPackageFamilyName
+	}
+	if ap.MsixPackageApplicationID != nil {
+		objectMap["msixPackageApplicationId"] = ap.MsixPackageApplicationID
+	}
+	if ap.ApplicationType != "" {
+		objectMap["applicationType"] = ap.ApplicationType
 	}
 	if ap.CommandLineSetting != "" {
 		objectMap["commandLineSetting"] = ap.CommandLineSetting
@@ -794,8 +815,13 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// CloudError error response of an operation failure
+// CloudError ...
 type CloudError struct {
+	Error *CloudErrorProperties `json:"error,omitempty"`
+}
+
+// CloudErrorProperties ...
+type CloudErrorProperties struct {
 	// Code - Error code
 	Code *string `json:"code,omitempty"`
 	// Message - Error message indicating why the operation failed.
@@ -976,6 +1002,276 @@ func (dp DesktopProperties) MarshalJSON() ([]byte, error) {
 		objectMap["friendlyName"] = dp.FriendlyName
 	}
 	return json.Marshal(objectMap)
+}
+
+// ExpandMsixImage represents the definition of contents retrieved after expanding the MSIX Image.
+type ExpandMsixImage struct {
+	// ExpandMsixImageProperties - Detailed properties for ExpandMsixImage
+	*ExpandMsixImageProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExpandMsixImage.
+func (emi ExpandMsixImage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if emi.ExpandMsixImageProperties != nil {
+		objectMap["properties"] = emi.ExpandMsixImageProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ExpandMsixImage struct.
+func (emi *ExpandMsixImage) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var expandMsixImageProperties ExpandMsixImageProperties
+				err = json.Unmarshal(*v, &expandMsixImageProperties)
+				if err != nil {
+					return err
+				}
+				emi.ExpandMsixImageProperties = &expandMsixImageProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				emi.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				emi.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				emi.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ExpandMsixImageList list of MSIX package properties retrieved from MSIX Image expansion.
+type ExpandMsixImageList struct {
+	autorest.Response `json:"-"`
+	// Value - List of MSIX package properties from give MSIX Image.
+	Value *[]ExpandMsixImage `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExpandMsixImageList.
+func (emil ExpandMsixImageList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if emil.Value != nil {
+		objectMap["value"] = emil.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ExpandMsixImageListIterator provides access to a complete listing of ExpandMsixImage values.
+type ExpandMsixImageListIterator struct {
+	i    int
+	page ExpandMsixImageListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ExpandMsixImageListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpandMsixImageListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ExpandMsixImageListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ExpandMsixImageListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ExpandMsixImageListIterator) Response() ExpandMsixImageList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ExpandMsixImageListIterator) Value() ExpandMsixImage {
+	if !iter.page.NotDone() {
+		return ExpandMsixImage{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ExpandMsixImageListIterator type.
+func NewExpandMsixImageListIterator(page ExpandMsixImageListPage) ExpandMsixImageListIterator {
+	return ExpandMsixImageListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (emil ExpandMsixImageList) IsEmpty() bool {
+	return emil.Value == nil || len(*emil.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (emil ExpandMsixImageList) hasNextLink() bool {
+	return emil.NextLink != nil && len(*emil.NextLink) != 0
+}
+
+// expandMsixImageListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (emil ExpandMsixImageList) expandMsixImageListPreparer(ctx context.Context) (*http.Request, error) {
+	if !emil.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(emil.NextLink)))
+}
+
+// ExpandMsixImageListPage contains a page of ExpandMsixImage values.
+type ExpandMsixImageListPage struct {
+	fn   func(context.Context, ExpandMsixImageList) (ExpandMsixImageList, error)
+	emil ExpandMsixImageList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ExpandMsixImageListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpandMsixImageListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.emil)
+		if err != nil {
+			return err
+		}
+		page.emil = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ExpandMsixImageListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ExpandMsixImageListPage) NotDone() bool {
+	return !page.emil.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ExpandMsixImageListPage) Response() ExpandMsixImageList {
+	return page.emil
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ExpandMsixImageListPage) Values() []ExpandMsixImage {
+	if page.emil.IsEmpty() {
+		return nil
+	}
+	return *page.emil.Value
+}
+
+// Creates a new instance of the ExpandMsixImageListPage type.
+func NewExpandMsixImageListPage(cur ExpandMsixImageList, getNextPage func(context.Context, ExpandMsixImageList) (ExpandMsixImageList, error)) ExpandMsixImageListPage {
+	return ExpandMsixImageListPage{
+		fn:   getNextPage,
+		emil: cur,
+	}
+}
+
+// ExpandMsixImageProperties schema for Expand MSIX Image properties.
+type ExpandMsixImageProperties struct {
+	// PackageAlias - Alias of MSIX Package.
+	PackageAlias *string `json:"packageAlias,omitempty"`
+	// ImagePath - VHD/CIM image path on Network Share.
+	ImagePath *string `json:"imagePath,omitempty"`
+	// PackageName - Package Name from appxmanifest.xml.
+	PackageName *string `json:"packageName,omitempty"`
+	// PackageFamilyName - Package Family Name from appxmanifest.xml. Contains Package Name and Publisher name.
+	PackageFamilyName *string `json:"packageFamilyName,omitempty"`
+	// PackageFullName - Package Full Name from appxmanifest.xml.
+	PackageFullName *string `json:"packageFullName,omitempty"`
+	// DisplayName - User friendly Name to be displayed in the portal.
+	DisplayName *string `json:"displayName,omitempty"`
+	// PackageRelativePath - Relative Path to the package inside the image.
+	PackageRelativePath *string `json:"packageRelativePath,omitempty"`
+	// IsRegularRegistration - Specifies how to register Package in feed.
+	IsRegularRegistration *bool `json:"isRegularRegistration,omitempty"`
+	// IsActive - Make this version of the package the active one across the hostpool.
+	IsActive *bool `json:"isActive,omitempty"`
+	// PackageDependencies - List of package dependencies.
+	PackageDependencies *[]MsixPackageDependencies `json:"packageDependencies,omitempty"`
+	// Version - Package Version found in the appxmanifest.xml.
+	Version *string `json:"version,omitempty"`
+	// LastUpdated - Date Package was last updated, found in the appxmanifest.xml.
+	LastUpdated *date.Time `json:"lastUpdated,omitempty"`
+	// PackageApplications - List of package applications.
+	PackageApplications *[]MsixPackageApplications `json:"packageApplications,omitempty"`
 }
 
 // HostPool represents a HostPool definition.
@@ -1357,8 +1653,18 @@ type HostPoolPatchProperties struct {
 	VMTemplate *string `json:"vmTemplate,omitempty"`
 	// SsoContext - Path to keyvault containing ssoContext secret.
 	SsoContext *string `json:"ssoContext,omitempty"`
+	// SsoadfsAuthority - URL to customer ADFS server for signing WVD SSO certificates.
+	SsoadfsAuthority *string `json:"ssoadfsAuthority,omitempty"`
+	// SsoClientID - ClientId for the registered Relying Party used to issue WVD SSO certificates.
+	SsoClientID *string `json:"ssoClientId,omitempty"`
+	// SsoClientSecretKeyVaultPath - Path to Azure KeyVault storing the secret used for communication to ADFS.
+	SsoClientSecretKeyVaultPath *string `json:"ssoClientSecretKeyVaultPath,omitempty"`
+	// SsoSecretType - The type of single sign on Secret Type. Possible values include: 'SharedKey', 'Certificate', 'SharedKeyInKeyVault', 'CertificateInKeyVault'
+	SsoSecretType SSOSecretType `json:"ssoSecretType,omitempty"`
 	// PreferredAppGroupType - The type of preferred application group type, default to Desktop Application Group. Possible values include: 'PreferredAppGroupTypeNone', 'PreferredAppGroupTypeDesktop', 'PreferredAppGroupTypeRailApplications'
 	PreferredAppGroupType PreferredAppGroupType `json:"preferredAppGroupType,omitempty"`
+	// StartVMOnConnect - The flag to turn on/off StartVMOnConnect feature.
+	StartVMOnConnect *bool `json:"startVMOnConnect,omitempty"`
 }
 
 // HostPoolProperties properties of HostPool.
@@ -1389,8 +1695,18 @@ type HostPoolProperties struct {
 	ApplicationGroupReferences *[]string `json:"applicationGroupReferences,omitempty"`
 	// SsoContext - Path to keyvault containing ssoContext secret.
 	SsoContext *string `json:"ssoContext,omitempty"`
+	// SsoadfsAuthority - URL to customer ADFS server for signing WVD SSO certificates.
+	SsoadfsAuthority *string `json:"ssoadfsAuthority,omitempty"`
+	// SsoClientID - ClientId for the registered Relying Party used to issue WVD SSO certificates.
+	SsoClientID *string `json:"ssoClientId,omitempty"`
+	// SsoClientSecretKeyVaultPath - Path to Azure KeyVault storing the secret used for communication to ADFS.
+	SsoClientSecretKeyVaultPath *string `json:"ssoClientSecretKeyVaultPath,omitempty"`
+	// SsoSecretType - The type of single sign on Secret Type. Possible values include: 'SharedKey', 'Certificate', 'SharedKeyInKeyVault', 'CertificateInKeyVault'
+	SsoSecretType SSOSecretType `json:"ssoSecretType,omitempty"`
 	// PreferredAppGroupType - The type of preferred application group type, default to Desktop Application Group. Possible values include: 'PreferredAppGroupTypeNone', 'PreferredAppGroupTypeDesktop', 'PreferredAppGroupTypeRailApplications'
 	PreferredAppGroupType PreferredAppGroupType `json:"preferredAppGroupType,omitempty"`
+	// StartVMOnConnect - The flag to turn on/off StartVMOnConnect feature.
+	StartVMOnConnect *bool `json:"startVMOnConnect,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for HostPoolProperties.
@@ -1432,10 +1748,408 @@ func (hpp HostPoolProperties) MarshalJSON() ([]byte, error) {
 	if hpp.SsoContext != nil {
 		objectMap["ssoContext"] = hpp.SsoContext
 	}
+	if hpp.SsoadfsAuthority != nil {
+		objectMap["ssoadfsAuthority"] = hpp.SsoadfsAuthority
+	}
+	if hpp.SsoClientID != nil {
+		objectMap["ssoClientId"] = hpp.SsoClientID
+	}
+	if hpp.SsoClientSecretKeyVaultPath != nil {
+		objectMap["ssoClientSecretKeyVaultPath"] = hpp.SsoClientSecretKeyVaultPath
+	}
+	if hpp.SsoSecretType != "" {
+		objectMap["ssoSecretType"] = hpp.SsoSecretType
+	}
 	if hpp.PreferredAppGroupType != "" {
 		objectMap["preferredAppGroupType"] = hpp.PreferredAppGroupType
 	}
+	if hpp.StartVMOnConnect != nil {
+		objectMap["startVMOnConnect"] = hpp.StartVMOnConnect
+	}
 	return json.Marshal(objectMap)
+}
+
+// MSIXImageURI represents URI referring to MSIX Image
+type MSIXImageURI struct {
+	// URI - URI to Image
+	URI *string `json:"uri,omitempty"`
+}
+
+// MSIXPackage schema for MSIX Package properties.
+type MSIXPackage struct {
+	autorest.Response `json:"-"`
+	// MSIXPackageProperties - Detailed properties for MSIX Package
+	*MSIXPackageProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MSIXPackage.
+func (mp MSIXPackage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mp.MSIXPackageProperties != nil {
+		objectMap["properties"] = mp.MSIXPackageProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MSIXPackage struct.
+func (mp *MSIXPackage) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mSIXPackageProperties MSIXPackageProperties
+				err = json.Unmarshal(*v, &mSIXPackageProperties)
+				if err != nil {
+					return err
+				}
+				mp.MSIXPackageProperties = &mSIXPackageProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// MsixPackageApplications schema for MSIX Package Application properties.
+type MsixPackageApplications struct {
+	// AppID - Package Application Id, found in appxmanifest.xml.
+	AppID *string `json:"appId,omitempty"`
+	// Description - Description of Package Application.
+	Description *string `json:"description,omitempty"`
+	// AppUserModelID - Used to activate Package Application. Consists of Package Name and ApplicationID. Found in appxmanifest.xml.
+	AppUserModelID *string `json:"appUserModelID,omitempty"`
+	// FriendlyName - User friendly name.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	// IconImageName - User friendly name.
+	IconImageName *string `json:"iconImageName,omitempty"`
+	// RawIcon - the icon a 64 bit string as a byte array.
+	RawIcon *[]byte `json:"rawIcon,omitempty"`
+	// RawPng - the icon a 64 bit string as a byte array.
+	RawPng *[]byte `json:"rawPng,omitempty"`
+}
+
+// MsixPackageDependencies schema for MSIX Package Dependencies properties.
+type MsixPackageDependencies struct {
+	// DependencyName - Name of package dependency.
+	DependencyName *string `json:"dependencyName,omitempty"`
+	// Publisher - Name of dependency publisher.
+	Publisher *string `json:"publisher,omitempty"`
+	// MinVersion - Dependency version required.
+	MinVersion *string `json:"minVersion,omitempty"`
+}
+
+// MSIXPackageList list of MSIX Package definitions.
+type MSIXPackageList struct {
+	autorest.Response `json:"-"`
+	// Value - List of MSIX Package definitions.
+	Value *[]MSIXPackage `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MSIXPackageList.
+func (mpl MSIXPackageList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mpl.Value != nil {
+		objectMap["value"] = mpl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// MSIXPackageListIterator provides access to a complete listing of MSIXPackage values.
+type MSIXPackageListIterator struct {
+	i    int
+	page MSIXPackageListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *MSIXPackageListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/MSIXPackageListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *MSIXPackageListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter MSIXPackageListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter MSIXPackageListIterator) Response() MSIXPackageList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter MSIXPackageListIterator) Value() MSIXPackage {
+	if !iter.page.NotDone() {
+		return MSIXPackage{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the MSIXPackageListIterator type.
+func NewMSIXPackageListIterator(page MSIXPackageListPage) MSIXPackageListIterator {
+	return MSIXPackageListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (mpl MSIXPackageList) IsEmpty() bool {
+	return mpl.Value == nil || len(*mpl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (mpl MSIXPackageList) hasNextLink() bool {
+	return mpl.NextLink != nil && len(*mpl.NextLink) != 0
+}
+
+// mSIXPackageListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (mpl MSIXPackageList) mSIXPackageListPreparer(ctx context.Context) (*http.Request, error) {
+	if !mpl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(mpl.NextLink)))
+}
+
+// MSIXPackageListPage contains a page of MSIXPackage values.
+type MSIXPackageListPage struct {
+	fn  func(context.Context, MSIXPackageList) (MSIXPackageList, error)
+	mpl MSIXPackageList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *MSIXPackageListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/MSIXPackageListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.mpl)
+		if err != nil {
+			return err
+		}
+		page.mpl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *MSIXPackageListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page MSIXPackageListPage) NotDone() bool {
+	return !page.mpl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page MSIXPackageListPage) Response() MSIXPackageList {
+	return page.mpl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page MSIXPackageListPage) Values() []MSIXPackage {
+	if page.mpl.IsEmpty() {
+		return nil
+	}
+	return *page.mpl.Value
+}
+
+// Creates a new instance of the MSIXPackageListPage type.
+func NewMSIXPackageListPage(cur MSIXPackageList, getNextPage func(context.Context, MSIXPackageList) (MSIXPackageList, error)) MSIXPackageListPage {
+	return MSIXPackageListPage{
+		fn:  getNextPage,
+		mpl: cur,
+	}
+}
+
+// MSIXPackagePatch MSIX Package properties that can be patched.
+type MSIXPackagePatch struct {
+	// MSIXPackagePatchProperties - Detailed properties for MSIX Package
+	*MSIXPackagePatchProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MSIXPackagePatch.
+func (mpp MSIXPackagePatch) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mpp.MSIXPackagePatchProperties != nil {
+		objectMap["properties"] = mpp.MSIXPackagePatchProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MSIXPackagePatch struct.
+func (mpp *MSIXPackagePatch) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mSIXPackagePatchProperties MSIXPackagePatchProperties
+				err = json.Unmarshal(*v, &mSIXPackagePatchProperties)
+				if err != nil {
+					return err
+				}
+				mpp.MSIXPackagePatchProperties = &mSIXPackagePatchProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mpp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mpp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mpp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// MSIXPackagePatchProperties MSIX Package properties that can be patched.
+type MSIXPackagePatchProperties struct {
+	// IsActive - Set a version of the package to be active across hostpool.
+	IsActive *bool `json:"isActive,omitempty"`
+	// IsRegularRegistration - Set Registration mode. Regular or Delayed.
+	IsRegularRegistration *bool `json:"isRegularRegistration,omitempty"`
+	// DisplayName - Display name for MSIX Package.
+	DisplayName *string `json:"displayName,omitempty"`
+}
+
+// MSIXPackageProperties schema for MSIX Package properties.
+type MSIXPackageProperties struct {
+	// ImagePath - VHD/CIM image path on Network Share.
+	ImagePath *string `json:"imagePath,omitempty"`
+	// PackageName - Package Name from appxmanifest.xml.
+	PackageName *string `json:"packageName,omitempty"`
+	// PackageFamilyName - Package Family Name from appxmanifest.xml. Contains Package Name and Publisher name.
+	PackageFamilyName *string `json:"packageFamilyName,omitempty"`
+	// DisplayName - User friendly Name to be displayed in the portal.
+	DisplayName *string `json:"displayName,omitempty"`
+	// PackageRelativePath - Relative Path to the package inside the image.
+	PackageRelativePath *string `json:"packageRelativePath,omitempty"`
+	// IsRegularRegistration - Specifies how to register Package in feed.
+	IsRegularRegistration *bool `json:"isRegularRegistration,omitempty"`
+	// IsActive - Make this version of the package the active one across the hostpool.
+	IsActive *bool `json:"isActive,omitempty"`
+	// PackageDependencies - List of package dependencies.
+	PackageDependencies *[]MsixPackageDependencies `json:"packageDependencies,omitempty"`
+	// Version - Package Version found in the appxmanifest.xml.
+	Version *string `json:"version,omitempty"`
+	// LastUpdated - Date Package was last updated, found in the appxmanifest.xml.
+	LastUpdated *date.Time `json:"lastUpdated,omitempty"`
+	// PackageApplications - List of package applications.
+	PackageApplications *[]MsixPackageApplications `json:"packageApplications,omitempty"`
 }
 
 // ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not

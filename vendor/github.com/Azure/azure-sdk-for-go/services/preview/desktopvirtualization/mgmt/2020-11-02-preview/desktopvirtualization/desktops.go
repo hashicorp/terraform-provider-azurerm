@@ -55,7 +55,7 @@ func (client DesktopsClient) Get(ctx context.Context, resourceGroupName string, 
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: applicationGroupName,
-			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationGroupName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: desktopName,
 			Constraints: []validation.Constraint{{Target: "desktopName", Name: validation.MaxLength, Rule: 24, Chain: nil},
@@ -94,7 +94,7 @@ func (client DesktopsClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -148,7 +148,7 @@ func (client DesktopsClient) List(ctx context.Context, resourceGroupName string,
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: applicationGroupName,
-			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationGroupName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("desktopvirtualization.DesktopsClient", "List", err.Error())
 	}
@@ -183,7 +183,7 @@ func (client DesktopsClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -239,7 +239,7 @@ func (client DesktopsClient) Update(ctx context.Context, resourceGroupName strin
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: applicationGroupName,
-			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationGroupName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: desktopName,
 			Constraints: []validation.Constraint{{Target: "desktopName", Name: validation.MaxLength, Rule: 24, Chain: nil},
@@ -278,7 +278,7 @@ func (client DesktopsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
