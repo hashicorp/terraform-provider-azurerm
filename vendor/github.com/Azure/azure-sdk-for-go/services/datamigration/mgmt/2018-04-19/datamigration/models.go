@@ -555,6 +555,12 @@ type ConnectToSourceNonSQLTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConnectToSourceNonSQLTaskOutput.
+func (ctsnsto ConnectToSourceNonSQLTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ConnectToSourcePostgreSQLSyncTaskInput input for the task that validates connection to PostgreSQL and
 // source server requirements
 type ConnectToSourcePostgreSQLSyncTaskInput struct {
@@ -575,6 +581,12 @@ type ConnectToSourcePostgreSQLSyncTaskOutput struct {
 	SourceServerBrandVersion *string `json:"sourceServerBrandVersion,omitempty"`
 	// ValidationErrors - READ-ONLY; Validation errors associated with the task
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectToSourcePostgreSQLSyncTaskOutput.
+func (ctspssto ConnectToSourcePostgreSQLSyncTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ConnectToSourcePostgreSQLSyncTaskProperties properties for the task that validates connection to
@@ -1614,6 +1626,12 @@ type ConnectToTargetAzureDbForMySQLTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConnectToTargetAzureDbForMySQLTaskOutput.
+func (cttadfmsto ConnectToTargetAzureDbForMySQLTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ConnectToTargetAzureDbForMySQLTaskProperties properties for the task that validates connection to Azure
 // Database for MySQL and target server requirements
 type ConnectToTargetAzureDbForMySQLTaskProperties struct {
@@ -1854,6 +1872,12 @@ type ConnectToTargetAzureDbForPostgreSQLSyncTaskOutput struct {
 	TargetServerBrandVersion *string `json:"targetServerBrandVersion,omitempty"`
 	// ValidationErrors - READ-ONLY; Validation errors associated with the task
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectToTargetAzureDbForPostgreSQLSyncTaskOutput.
+func (cttadfpssto ConnectToTargetAzureDbForPostgreSQLSyncTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties properties for the task that validates connection
@@ -2338,6 +2362,12 @@ type ConnectToTargetSQLMISyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConnectToTargetSQLMISyncTaskOutput.
+func (cttsmsto ConnectToTargetSQLMISyncTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ConnectToTargetSQLMISyncTaskProperties properties for the task that validates connection to Azure SQL
 // Database Managed Instance
 type ConnectToTargetSQLMISyncTaskProperties struct {
@@ -2578,6 +2608,12 @@ type ConnectToTargetSQLMITaskOutput struct {
 	AgentJobs *[]string `json:"agentJobs,omitempty"`
 	// ValidationErrors - READ-ONLY; Validation errors
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectToTargetSQLMITaskOutput.
+func (cttsmto ConnectToTargetSQLMITaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ConnectToTargetSQLMITaskProperties properties for the task that validates connection to Azure SQL
@@ -3063,6 +3099,12 @@ type Database struct {
 	ServerID *string `json:"serverId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Database.
+func (d Database) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseBackupInfo information about backup files when existing backup mode is used.
 type DatabaseBackupInfo struct {
 	// DatabaseName - READ-ONLY; Database name.
@@ -3081,6 +3123,12 @@ type DatabaseBackupInfo struct {
 	FamilyCount *int32 `json:"familyCount,omitempty"`
 	// BackupFinishDate - READ-ONLY; Date and time when the backup operation finished.
 	BackupFinishDate *date.Time `json:"backupFinishDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DatabaseBackupInfo.
+func (dbi DatabaseBackupInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DatabaseFileInfo database file specific information
@@ -3166,12 +3214,24 @@ type DatabaseSummaryResult struct {
 	ResultPrefix *string `json:"resultPrefix,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseSummaryResult.
+func (dsr DatabaseSummaryResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseTable table properties
 type DatabaseTable struct {
 	// HasRows - READ-ONLY; Indicates whether table is empty or not
 	HasRows *bool `json:"hasRows,omitempty"`
 	// Name - READ-ONLY; Schema-qualified name of the table
 	Name *string `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DatabaseTable.
+func (dt DatabaseTable) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DataIntegrityValidationResult results for checksum based Data Integrity validation results
@@ -3208,6 +3268,12 @@ type DataItemMigrationSummaryResult struct {
 	ErrorPrefix *string `json:"errorPrefix,omitempty"`
 	// ResultPrefix - READ-ONLY; Wildcard string prefix to use for querying all sub-tem results of the item
 	ResultPrefix *string `json:"resultPrefix,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataItemMigrationSummaryResult.
+func (dimsr DataItemMigrationSummaryResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Error migration Task errors
@@ -8358,6 +8424,12 @@ type MigrateSyncCompleteCommandOutput struct {
 	Errors *[]ReportableException `json:"errors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MigrateSyncCompleteCommandOutput.
+func (mscco MigrateSyncCompleteCommandOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MigrateSyncCompleteCommandProperties properties for the command that completes sync migration for a
 // database.
 type MigrateSyncCompleteCommandProperties struct {
@@ -8414,6 +8486,12 @@ type MigrationEligibilityInfo struct {
 	ValidationMessages *[]string `json:"validationMessages,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MigrationEligibilityInfo.
+func (mei MigrationEligibilityInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MigrationReportResult migration validation report result, contains the url for downloading the generated
 // report.
 type MigrationReportResult struct {
@@ -8423,12 +8501,24 @@ type MigrationReportResult struct {
 	ReportURL *string `json:"reportUrl,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MigrationReportResult.
+func (mrr MigrationReportResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MigrationTableMetadata metadata for tables selected in migration project
 type MigrationTableMetadata struct {
 	// SourceTableName - READ-ONLY; Source table name
 	SourceTableName *string `json:"sourceTableName,omitempty"`
 	// TargetTableName - READ-ONLY; Target table name
 	TargetTableName *string `json:"targetTableName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MigrationTableMetadata.
+func (mtm MigrationTableMetadata) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MigrationValidationDatabaseSummaryResult migration Validation Database level summary result
@@ -8447,6 +8537,12 @@ type MigrationValidationDatabaseSummaryResult struct {
 	EndedOn *date.Time `json:"endedOn,omitempty"`
 	// Status - READ-ONLY; Current status of validation at the database level. Possible values include: 'ValidationStatusDefault', 'ValidationStatusNotStarted', 'ValidationStatusInitialized', 'ValidationStatusInProgress', 'ValidationStatusCompleted', 'ValidationStatusCompletedWithIssues', 'ValidationStatusFailed', 'ValidationStatusStopped'
 	Status ValidationStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MigrationValidationDatabaseSummaryResult.
+func (mvdsr MigrationValidationDatabaseSummaryResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MigrationValidationOptions types of validations to run after the migration
@@ -8605,6 +8701,12 @@ type NameAvailabilityResponse struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for NameAvailabilityResponse.
+func (nar NameAvailabilityResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // NonSQLDataMigrationTable defines metadata for table to be migrated
 type NonSQLDataMigrationTable struct {
 	// SourceName - Source table name
@@ -8627,6 +8729,12 @@ type NonSQLDataMigrationTableResult struct {
 	ElapsedTimeInMiliseconds *float64 `json:"elapsedTimeInMiliseconds,omitempty"`
 	// Errors - READ-ONLY; List of errors, if any, during migration
 	Errors *[]Error `json:"errors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NonSQLDataMigrationTableResult.
+func (nsdmtr NonSQLDataMigrationTableResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // NonSQLMigrationTaskInput base class for non sql migration task input
@@ -8677,6 +8785,12 @@ type ODataError struct {
 	Message *string `json:"message,omitempty"`
 	// Details - READ-ONLY; Inner errors that caused this error
 	Details *[]ODataError `json:"details,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ODataError.
+func (ode ODataError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OrphanedUserInfo information of orphaned users on the SQL server database.
@@ -9036,6 +9150,12 @@ type ProjectMetadata struct {
 	TargetUsingWinAuth *bool `json:"targetUsingWinAuth,omitempty"`
 	// SelectedMigrationTables - READ-ONLY; List of tables selected for migration
 	SelectedMigrationTables *[]MigrationTableMetadata `json:"selectedMigrationTables,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProjectMetadata.
+func (pm ProjectMetadata) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ProjectProperties project-specific properties
@@ -9583,6 +9703,12 @@ type QueryAnalysisValidationResult struct {
 	ValidationErrors *ValidationError `json:"validationErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for QueryAnalysisValidationResult.
+func (qavr QueryAnalysisValidationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // QueryExecutionResult describes query analysis results for execution in source and target
 type QueryExecutionResult struct {
 	// QueryText - READ-ONLY; Query text retrieved from the source server
@@ -9593,6 +9719,12 @@ type QueryExecutionResult struct {
 	SourceResult *ExecutionStatistics `json:"sourceResult,omitempty"`
 	// TargetResult - READ-ONLY; Query analysis result from the target
 	TargetResult *ExecutionStatistics `json:"targetResult,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QueryExecutionResult.
+func (qer QueryExecutionResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Quota describes a quota for or usage details about a resource
@@ -9811,6 +9943,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSku describes an available DMS SKU.
 type ResourceSku struct {
 	// ResourceType - READ-ONLY; The type of resource the SKU applies to.
@@ -9839,12 +9977,24 @@ type ResourceSku struct {
 	Restrictions *[]ResourceSkuRestrictions `json:"restrictions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSku.
+func (rs ResourceSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuCapabilities describes The SKU capabilities object.
 type ResourceSkuCapabilities struct {
 	// Name - READ-ONLY; An invariant to describe the feature.
 	Name *string `json:"name,omitempty"`
 	// Value - READ-ONLY; An invariant if the feature is measured by quantity.
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuCapabilities.
+func (rsc ResourceSkuCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuCapacity describes scaling information of a SKU.
@@ -9859,6 +10009,12 @@ type ResourceSkuCapacity struct {
 	ScaleType ResourceSkuCapacityScaleType `json:"scaleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuCapacity.
+func (rsc ResourceSkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuCosts describes metadata for retrieving price info.
 type ResourceSkuCosts struct {
 	// MeterID - READ-ONLY; Used for querying price from commerce.
@@ -9869,6 +10025,12 @@ type ResourceSkuCosts struct {
 	ExtendedUnit *string `json:"extendedUnit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuCosts.
+func (rsc ResourceSkuCosts) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuRestrictions describes scaling information of a SKU.
 type ResourceSkuRestrictions struct {
 	// Type - READ-ONLY; The type of restrictions. Possible values include: 'Location'
@@ -9877,6 +10039,12 @@ type ResourceSkuRestrictions struct {
 	Values *[]string `json:"values,omitempty"`
 	// ReasonCode - READ-ONLY; The reason code for restriction. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
 	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictions.
+func (rsr ResourceSkuRestrictions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkusResult the DMS List SKUs operation response.
@@ -10073,6 +10241,12 @@ type SchemaComparisonValidationResultType struct {
 	UpdateAction UpdateActionType `json:"updateAction,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SchemaComparisonValidationResultType.
+func (scvrt SchemaComparisonValidationResultType) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SelectedCertificateInput info for certificate to be exported for TDE enabled databases.
 type SelectedCertificateInput struct {
 	// CertificateName - Name of certificate to be exported.
@@ -10095,6 +10269,12 @@ type ServerProperties struct {
 	ServerOperatingSystemVersion *string `json:"serverOperatingSystemVersion,omitempty"`
 	// ServerDatabaseCount - READ-ONLY; Number of databases in the server
 	ServerDatabaseCount *int32 `json:"serverDatabaseCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerProperties.
+func (sp ServerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Service a Database Migration Service resource
@@ -11103,6 +11283,12 @@ type StartMigrationScenarioServerRoleResult struct {
 	ExceptionsAndWarnings *[]ReportableException `json:"exceptionsAndWarnings,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for StartMigrationScenarioServerRoleResult.
+func (smssrr StartMigrationScenarioServerRoleResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SyncMigrationDatabaseErrorEvent database migration errors for online migration
 type SyncMigrationDatabaseErrorEvent struct {
 	// TimestampString - READ-ONLY; String value of timestamp.
@@ -11111,6 +11297,12 @@ type SyncMigrationDatabaseErrorEvent struct {
 	EventTypeString *string `json:"eventTypeString,omitempty"`
 	// EventText - READ-ONLY; Event text.
 	EventText *string `json:"eventText,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncMigrationDatabaseErrorEvent.
+func (smdee SyncMigrationDatabaseErrorEvent) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TaskList oData page of tasks
@@ -11542,6 +11734,12 @@ type ValidateMigrationInputSQLServerSQLMISyncTaskOutput struct {
 	Name *string `json:"name,omitempty"`
 	// ValidationErrors - READ-ONLY; Errors associated with a selected database object
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ValidateMigrationInputSQLServerSQLMISyncTaskOutput.
+func (vmisssmsto ValidateMigrationInputSQLServerSQLMISyncTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ValidateMigrationInputSQLServerSQLMISyncTaskProperties properties for task that validates migration
@@ -12051,12 +12249,24 @@ type ValidateSyncMigrationInputSQLServerTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ValidateSyncMigrationInputSQLServerTaskOutput.
+func (vsmissto ValidateSyncMigrationInputSQLServerTaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ValidationError description about the errors happen while performing migration validation
 type ValidationError struct {
 	// Text - READ-ONLY; Error Text
 	Text *string `json:"text,omitempty"`
 	// Severity - READ-ONLY; Severity of the error. Possible values include: 'SeverityMessage', 'SeverityWarning', 'SeverityError'
 	Severity Severity `json:"severity,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ValidationError.
+func (ve ValidationError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // WaitStatistics wait statistics gathered during query batch execution
@@ -12067,4 +12277,10 @@ type WaitStatistics struct {
 	WaitTimeMs *float64 `json:"waitTimeMs,omitempty"`
 	// WaitCount - READ-ONLY; Total no. of waits
 	WaitCount *int64 `json:"waitCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WaitStatistics.
+func (ws WaitStatistics) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }

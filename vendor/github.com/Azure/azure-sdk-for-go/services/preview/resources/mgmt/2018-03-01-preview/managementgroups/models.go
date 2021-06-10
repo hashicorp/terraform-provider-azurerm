@@ -40,6 +40,12 @@ type CheckNameAvailabilityResult struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResult.
+func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ChildInfo the child information of a management group.
 type ChildInfo struct {
 	// Type - The fully qualified resource type which includes provider namespace (e.g. /providers/Microsoft.Management/managementGroups). Possible values include: 'Type1ProvidersMicrosoftManagementmanagementGroups', 'Type1Subscriptions'
@@ -70,6 +76,12 @@ type CreateManagementGroupChildInfo struct {
 	Roles *[]string `json:"roles,omitempty"`
 	// Children - READ-ONLY; The list of children.
 	Children *[]CreateManagementGroupChildInfo `json:"children,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CreateManagementGroupChildInfo.
+func (cmgci CreateManagementGroupChildInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CreateManagementGroupDetails the details of a management group used during creation.
@@ -1270,6 +1282,12 @@ type OperationDisplayProperties struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplayProperties.
+func (odp OperationDisplayProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult describes the result of the request to list Microsoft.Management operations.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
@@ -1277,6 +1295,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -1551,4 +1575,10 @@ type TenantBackfillStatusResult struct {
 	TenantID *string `json:"tenantId,omitempty"`
 	// Status - READ-ONLY; The status of the Tenant Backfill. Possible values include: 'NotStarted', 'NotStartedButGroupsExist', 'Started', 'Failed', 'Cancelled', 'Completed'
 	Status Status `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TenantBackfillStatusResult.
+func (tbsr TenantBackfillStatusResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }

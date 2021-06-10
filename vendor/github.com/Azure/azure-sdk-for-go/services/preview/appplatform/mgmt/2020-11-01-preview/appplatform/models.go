@@ -26,6 +26,12 @@ type ApplicationInsightsAgentVersions struct {
 	Java *string `json:"java,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsAgentVersions.
+func (aiav ApplicationInsightsAgentVersions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AppResource app resource payload
 type AppResource struct {
 	autorest.Response `json:"-"`
@@ -555,6 +561,12 @@ type AvailableRuntimeVersions struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; A list of all supported runtime versions.
 	Value *[]SupportedRuntimeVersion `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AvailableRuntimeVersions.
+func (arv AvailableRuntimeVersions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BindingResource binding resource payload
@@ -1818,6 +1830,12 @@ type DeploymentInstance struct {
 	StartTime *string `json:"startTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeploymentInstance.
+func (di DeploymentInstance) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeploymentResource deployment resource payload
 type DeploymentResource struct {
 	autorest.Response `json:"-"`
@@ -2614,6 +2632,12 @@ type NetworkProfileOutboundIPs struct {
 	PublicIPs *[]string `json:"publicIPs,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for NetworkProfileOutboundIPs.
+func (npP NetworkProfileOutboundIPs) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationDetail operation detail payload
 type OperationDetail struct {
 	// Name - Name of the operation
@@ -2679,6 +2703,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RegenerateTestKeyRequestPayload regenerate test key request payload
 type RegenerateTestKeyRequestPayload struct {
 	// KeyType - Type of the test key. Possible values include: 'Primary', 'Secondary'
@@ -2699,6 +2729,12 @@ type RequiredTraffic struct {
 	Direction TrafficDirection `json:"direction,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RequiredTraffic.
+func (rt RequiredTraffic) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Resource the core properties of ARM resources.
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
@@ -2707,6 +2743,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSku describes an available Azure Spring Cloud SKU.

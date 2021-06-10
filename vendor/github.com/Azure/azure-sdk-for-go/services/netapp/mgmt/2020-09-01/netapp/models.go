@@ -2454,6 +2454,12 @@ type SnapshotProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SnapshotProperties.
+func (sp SnapshotProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SnapshotsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type SnapshotsCreateFuture struct {
