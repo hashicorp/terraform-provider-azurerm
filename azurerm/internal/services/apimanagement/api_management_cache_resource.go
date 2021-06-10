@@ -106,11 +106,18 @@ func resourceApiManagementCacheCreate(d *pluginsdk.ResourceData, meta interface{
 	parameters := apimanagement.CacheContract{
 		CacheContractProperties: &apimanagement.CacheContractProperties{
 			ConnectionString: utils.String(d.Get("connection_string").(string)),
-			Description:      utils.String(d.Get("description").(string)),
-			ResourceID:       utils.String(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint + d.Get("redis_cache_id").(string)),
 			UseFromLocation:  utils.String(location.Normalize(d.Get("use_from_location").(string))),
 		},
 	}
+
+	if v, ok := d.GetOk("description"); ok && v.(string) != "" {
+		parameters.CacheContractProperties.Description = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
+		parameters.CacheContractProperties.ResourceID = utils.String(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint + v.(string))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, apimId.ResourceGroup, apimId.ServiceName, name, parameters, ""); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
@@ -140,10 +147,15 @@ func resourceApiManagementCacheRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	d.Set("name", id.Name)
-	d.Set("api_management_id", parse.NewApiManagementID(subscriptionId, id.ResourceGroup, id.ServiceName))
+	d.Set("api_management_id", parse.NewApiManagementID(subscriptionId, id.ResourceGroup, id.ServiceName).ID())
 	if props := resp.CacheContractProperties; props != nil {
 		d.Set("description", props.Description)
-		d.Set("redis_cache_id", strings.TrimPrefix(*props.ResourceID, meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint))
+
+		cacheId := ""
+		if props.ResourceID != nil {
+			cacheId = strings.TrimPrefix(*props.ResourceID, meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint)
+		}
+		d.Set("redis_cache_id", cacheId)
 		d.Set("use_from_location", props.UseFromLocation)
 	}
 	return nil
