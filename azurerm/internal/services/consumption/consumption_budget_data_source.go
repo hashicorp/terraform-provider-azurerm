@@ -33,9 +33,8 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 			"amount": {
-				Type:         pluginsdk.TypeFloat,
-				Computed:     true,
-				ValidateFunc: validation.FloatAtLeast(1.0),
+				Type:     pluginsdk.TypeFloat,
+				Computed: true,
 			},
 
 			"filter": {
@@ -45,18 +44,16 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
-							Type:         pluginsdk.TypeSet,
-							Computed:     true,
-							Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
-							Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
-							AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
+							Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
 						},
 						"tag": {
-							Type:         pluginsdk.TypeSet,
-							Computed:     true,
-							Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
-							Elem:         SchemaConsumptionBudgetFilterTagElement(),
-							AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
+							Elem:     SchemaConsumptionBudgetFilterTagElement(),
 						},
 						"not": {
 							Type:     pluginsdk.TypeList,
@@ -65,18 +62,16 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dimension": {
-										Type:         pluginsdk.TypeList,
-										MaxItems:     1,
-										Computed:     true,
-										ExactlyOneOf: []string{"filter.0.not.0.tag"},
-										Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
+										Type:     pluginsdk.TypeList,
+										MaxItems: 1,
+										Computed: true,
+										Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
 									},
 									"tag": {
-										Type:         pluginsdk.TypeList,
-										MaxItems:     1,
-										Computed:     true,
-										ExactlyOneOf: []string{"filter.0.not.0.dimension"},
-										Elem:         SchemaConsumptionBudgetFilterTagElement(),
+										Type:     pluginsdk.TypeList,
+										MaxItems: 1,
+										Computed: true,
+										Elem:     SchemaConsumptionBudgetFilterTagElement(),
 									},
 								},
 							},
@@ -99,15 +94,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 				Default:  string(consumption.TimeGrainTypeMonthly),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(consumption.TimeGrainTypeBillingAnnual),
-					string(consumption.TimeGrainTypeBillingMonth),
-					string(consumption.TimeGrainTypeBillingQuarter),
-					string(consumption.TimeGrainTypeAnnually),
-					string(consumption.TimeGrainTypeMonthly),
-					string(consumption.TimeGrainTypeQuarterly),
-				}, false),
 			},
 
 			"time_period": {
@@ -118,16 +104,13 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"start_date": {
-							Type:         pluginsdk.TypeString,
-							Computed:     true,
-							ValidateFunc: validate.ConsumptionBudgetTimePeriodStartDate,
-							ForceNew:     true,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"end_date": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsRFC3339Time,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
