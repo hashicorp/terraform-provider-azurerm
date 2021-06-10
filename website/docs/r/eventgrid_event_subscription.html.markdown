@@ -159,8 +159,11 @@ A `advanced_filter` supports the following nested blocks:
 * `number_in` - Compares a value of an event using multiple floating point numbers.
 * `number_not_in` - Compares a value of an event using multiple floating point numbers.
 * `string_begins_with` - Compares a value of an event using multiple string values.
+* `string_not_begins_with` - Compares a value of an event using multiple string values.
 * `string_ends_with` - Compares a value of an event using multiple string values.
+* `string_not_ends_with` - Compares a value of an event using multiple string values.
 * `string_contains` - Compares a value of an event using multiple string values.
+* `string_not_contains` - Compares a value of an event using multiple string values.
 * `string_in` - Compares a value of an event using multiple string values.
 * `string_not_in` - Compares a value of an event using multiple string values.
 
