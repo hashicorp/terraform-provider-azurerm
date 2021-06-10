@@ -55,7 +55,7 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: workspaceName,
-			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("desktopvirtualization.WorkspacesClient", "CreateOrUpdate", err.Error())
 	}
@@ -90,7 +90,7 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -146,7 +146,7 @@ func (client WorkspacesClient) Delete(ctx context.Context, resourceGroupName str
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: workspaceName,
-			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("desktopvirtualization.WorkspacesClient", "Delete", err.Error())
 	}
@@ -181,7 +181,7 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -234,7 +234,7 @@ func (client WorkspacesClient) Get(ctx context.Context, resourceGroupName string
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: workspaceName,
-			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("desktopvirtualization.WorkspacesClient", "Get", err.Error())
 	}
@@ -269,7 +269,7 @@ func (client WorkspacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -358,7 +358,7 @@ func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -477,7 +477,7 @@ func (client WorkspacesClient) ListBySubscriptionPreparer(ctx context.Context) (
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -569,7 +569,7 @@ func (client WorkspacesClient) Update(ctx context.Context, resourceGroupName str
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: workspaceName,
-			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("desktopvirtualization.WorkspacesClient", "Update", err.Error())
 	}
@@ -604,7 +604,7 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-12-10-preview"
+	const APIVersion = "2020-11-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
