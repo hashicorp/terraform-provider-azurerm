@@ -84,7 +84,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	storageAccount, err := storageClient.GetProperties(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 	if storageAccount.AccountProperties == nil {
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
@@ -94,7 +94,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	resourceID := storageAccountIDRaw
 
 	if d.IsNewResource() {
-		// whilst this looks superflurious given encryption is enabled by default, due to the way
+		// whilst this looks superfluous given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		if storageAccount.AccountProperties.Encryption != nil {
 			if storageAccount.AccountProperties.Encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
@@ -106,6 +106,11 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	keyVaultID, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
+	}
+
+	// If the Keyvault is in another subscription we need to update the client
+	if keyVaultID.SubscriptionId != vaultsClient.SubscriptionID {
+		vaultsClient = meta.(*clients.Client).KeyVault.KeyVaultClientForSubscription(keyVaultID.SubscriptionId)
 	}
 
 	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
@@ -129,7 +134,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
+		return fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q) (Subscription %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, keyVaultsClient.VaultsClient.SubscriptionID, err)
 	}
 
 	keyName := d.Get("key_name").(string)
