@@ -4,8 +4,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `azurerm_cosmosdb_gremlin_graph` - support for the `composite_index` and `partition_key_version` properties [GH-11693]
 * `data.azurerm_synapse_workspace` - support for the `identity` attribute [GH-12098]
+* `azurerm_cosmosdb_gremlin_graph` - support for the `composite_index` and `partition_key_version` properties [GH-11693]
+* `azurerm_data_factory_dataset_azure_blob` - support for the `dynamic_filename_enabled` and `dynamic_path_enabled` properties [GH-12034]
 * `azurerm_data_factory_linked_service_azure_sql_database` - support for the `key_vault_connection_string` property [GH-12139]
 * `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` [GH-12049]
 * `azurerm_kubernetes_cluster` -support for BYO `kubelet_identity` [GH-12037]
