@@ -54,7 +54,8 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 
 			"connection_string": {
 				Type:             pluginsdk.TypeString,
-				Required:         true,
+				Optional:         true,
+				ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
@@ -63,6 +64,28 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"key_vault_connection_string": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
+				MaxItems:     1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"key_vault_password": {
@@ -182,6 +205,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 		}
 	}
 
+	if v, ok := d.GetOk("key_vault_connection_string"); ok {
+		sqlDatabaseProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
+	}
+
 	if d.Get("use_managed_identity").(bool) {
 		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 	} else {
@@ -284,6 +311,16 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 			d.Set("use_managed_identity", false)
 		} else {
 			d.Set("use_managed_identity", true)
+		}
+	}
+
+	if sql.ConnectionString != nil {
+		if val, ok := sql.ConnectionString.(map[string]interface{}); ok {
+			if val["type"] != "SecureString" {
+				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
+					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
+				}
+			}
 		}
 	}
 
