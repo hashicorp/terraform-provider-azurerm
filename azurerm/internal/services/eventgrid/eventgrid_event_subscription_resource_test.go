@@ -183,8 +183,14 @@ func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("foo"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.0").HasValue("bar"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_begins_with.0.key").HasValue("subject"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_begins_with.0.values.0").HasValue("lorem"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_ends_with.0.key").HasValue("subject"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_ends_with.0.values.0").HasValue("ipsum"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.key").HasValue("data.contentType"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.0").HasValue("application"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_contains.0.key").HasValue("data.contentType"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_contains.0.values.0").HasValue("text"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.key").HasValue("data.blobType"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("Block"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
@@ -633,9 +639,21 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "subject"
       values = ["bar"]
     }
+	string_not_begins_with {
+      key    = "subject"
+      values = ["lorem"]
+    }
+    string_not_ends_with {
+      key    = "subject"
+      values = ["ipsum"]
+    }
     string_contains {
       key    = "data.contentType"
       values = ["application", "octet-stream"]
+    }
+	string_not_contains {
+      key    = "data.contentType"
+      values = ["text"]
     }
     string_in {
       key    = "data.blobType"
