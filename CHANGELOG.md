@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_dataset_delimited_text` - supports the `azure_blob_fs_location` property [GH-12041]
 * `azurerm_data_factory_linked_service_azure_sql_database` - support for the `key_vault_connection_string` property [GH-12139]
 * `azurerm_data_factory_linked_service_sql_server` - add `key_vault_connection_string` argument [GH-12117]
+* `azurerm_eventhub` - support for the `status` property [GH-12043]
 * `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` [GH-12049]
 * `azurerm_kubernetes_cluster` -support for BYO `kubelet_identity` [GH-12037]
 * `azurerm_storage_account` - support for user assigned identities [GH-11752]
