@@ -150,41 +150,7 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 						},
 					},
 				},
-				"composite_index": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"index": {
-								Type:     pluginsdk.TypeList,
-								MinItems: 1,
-								Required: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"path": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-										// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
-										// todo: change to SDK constants and remove translation code in 3.0
-										"order": {
-											Type:     pluginsdk.TypeString,
-											Required: true,
-											// Workaround for Azure/azure-rest-api-specs#11222
-											DiffSuppressFunc: suppress.CaseDifference,
-											ValidateFunc: validation.StringInSlice(
-												[]string{
-													"Ascending",
-													"Descending",
-												}, false),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				"composite_index": CosmosDbIndexingPolicyCompositeIndexSchema(),
 			},
 		},
 	}
@@ -218,6 +184,44 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"index": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Required: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
+							// todo: change to SDK constants and remove translation code in 3.0
+							"order": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								// Workaround for Azure/azure-rest-api-specs#11222
+								DiffSuppressFunc: suppress.CaseDifference,
+								ValidateFunc: validation.StringInSlice(
+									[]string{
+										"Ascending",
+										"Descending",
+									}, false),
+							},
+						},
+					},
 				},
 			},
 		},
