@@ -1,4 +1,4 @@
-// Package streamanalytics implements the Azure ARM Streamanalytics service API version 2016-03-01.
+// Package streamanalytics implements the Azure ARM Streamanalytics service API version .
 //
 // Stream Analytics Client
 package streamanalytics
