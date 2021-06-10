@@ -335,6 +335,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Optional: true,
+							Computed: true,
 							MinItems: 1,
 							MaxItems: 2,
 							Elem: &pluginsdk.Resource{
