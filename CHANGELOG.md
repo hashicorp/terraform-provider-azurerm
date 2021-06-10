@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_data_factory_linked_service_kusto` [GH-12152]
+
 ENHANCEMENTS:
 
 * dependencies: updating `streamanalytics` to use API Version `2020-03-01-preview` [GH-12133]
