@@ -14,7 +14,7 @@ Use this data source to access information about an existing Consumption Budget.
 
 ```hcl
 data "azurerm_consumption_budget" "example" {
-  name = "existing"
+  name            = "existing"
   subscription_id = "/subscriptions/00000000-0000-0000-0000-000000000000/"
 }
 
