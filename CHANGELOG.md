@@ -19,6 +19,7 @@ BUG FIXES:
 * Service: App Configuration - Fixed a bug in tags on resources all being set to the same value [GH-12062]
 * Service: Event Hubs - Fixed a bug in tags on resources all being set to the same value [GH-12062]
 * `azurerm_subscription` - fix ability to specify `DevTest` as `workload` [GH-12066]
+* `azurerm_sentinel_alert_rule_scheduled` - the query frequency duration can noe be up to 14 days [GH-12164]
 
 ## 2.62.1 (June 08, 2021)
 
