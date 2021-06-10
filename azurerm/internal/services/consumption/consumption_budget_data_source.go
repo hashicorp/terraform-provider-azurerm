@@ -38,7 +38,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 			"filter": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
@@ -60,13 +59,11 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"dimension": {
 										Type:     pluginsdk.TypeList,
-										MaxItems: 1,
 										Computed: true,
 										Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
 									},
 									"tag": {
 										Type:     pluginsdk.TypeList,
-										MaxItems: 1,
 										Computed: true,
 										Elem:     SchemaConsumptionBudgetFilterTagElement(),
 									},
@@ -80,8 +77,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 			"notification": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				MinItems: 1,
-				MaxItems: 5,
 				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()),
 				Elem:     SchemaConsumptionBudgetNotificationElement(),
 			},
