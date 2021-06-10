@@ -43,6 +43,10 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
+	if keyVaultId.SubscriptionId != c.VaultsClient.SubscriptionID {
+		c.VaultsClient = c.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
+	}
+
 	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
