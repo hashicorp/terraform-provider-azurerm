@@ -179,6 +179,10 @@ func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.0").HasValue("0"),
 				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.key").HasValue("data.contentLength"),
 				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.0").HasValue("5"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_in_range.0.key").HasValue("data.contentLength"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_in_range.0.values.0").HasValue("[0, 1]"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in_range.0.key").HasValue("data.contentLength"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in_range.0.values.0").HasValue("[5, 13]"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.key").HasValue("subject"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("foo"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
@@ -195,6 +199,8 @@ func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("Block"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
 				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.0").HasValue("Page"),
+				check.That(data.ResourceName).Key("advanced_filter.0.is_not_null.0.key").HasValue("subject"),
+				check.That(data.ResourceName).Key("advanced_filter.0.is_null_or_undefined.0.key").HasValue("subject"),
 			),
 		},
 		data.ImportStep(),
@@ -631,6 +637,14 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.contentLength"
       values = [5, 8, 13, 21, 34]
     }
+	number_in_range {
+      key    = "data.contentLength"
+      values = [[0, 1], [2, 3]]
+    }
+    number_not_in_range {
+      key    = "data.contentLength"
+      values = [[5, 13], [21, 34]]
+    }
     string_begins_with {
       key    = "subject"
       values = ["foo"]
@@ -662,6 +676,12 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     string_not_in {
       key    = "data.blobType"
       values = ["Page"]
+    }
+	is_not_null {
+      key    = "subject"
+    }
+	is_null_or_undefined {
+      key    = "subject"
     }
   }
 
