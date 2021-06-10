@@ -77,6 +77,7 @@ func resourceDataFactoryLinkedServiceKusto() *pluginsdk.Resource {
 			"service_principal_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				RequiredWith: []string{"service_principal_id"},
 			},
