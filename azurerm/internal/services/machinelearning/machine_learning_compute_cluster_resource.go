@@ -55,9 +55,9 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"vm_priority": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningservices.Dedicated), string(machinelearningservices.LowPriority)}, false),
 			},
 
