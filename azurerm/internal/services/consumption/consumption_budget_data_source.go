@@ -56,7 +56,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 						"not": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dimension": {
@@ -95,8 +94,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 			"time_period": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MinItems: 1,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"start_date": {
