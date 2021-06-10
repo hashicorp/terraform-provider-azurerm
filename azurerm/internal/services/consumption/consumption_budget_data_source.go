@@ -1,7 +1,6 @@
 package consumption
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/validate"
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -19,7 +18,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ConsumptionBudgetName(),
 			},
 			"resource_group_id": {
@@ -75,7 +73,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 									},
 								},
 							},
-							AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
 						},
 					},
 				},
@@ -93,7 +90,6 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 			"time_grain": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-				Default:  string(consumption.TimeGrainTypeMonthly),
 			},
 
 			"time_period": {
@@ -120,25 +116,25 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	resourceGroupId := d.Get("resource_group_id").(string)
-	subscriptionId := d.Get("subscription_id").(string)
+	resourceGroupID := d.Get("resource_group_id").(string)
+	subscriptionID := d.Get("subscription_id").(string)
 	name := d.Get("name").(string)
 
-	if resourceGroupId == "" {
-		err := resourceArmConsumptionBudgetRead(d, meta, subscriptionId, name)
+	if resourceGroupID == "" {
+		err := resourceArmConsumptionBudgetRead(d, meta, subscriptionID, name)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := resourceArmConsumptionBudgetRead(d, meta, resourceGroupId, name)
+		err := resourceArmConsumptionBudgetRead(d, meta, resourceGroupID, name)
 		if err != nil {
 			return err
 		}
 	}
 
 	// The scope of a Resource Group consumption budget is the Resource Group ID
-	d.Set("resource_group_id", resourceGroupId)
-	d.Set("subscription_id", subscriptionId)
+	d.Set("resource_group_id", resourceGroupID)
+	d.Set("subscription_id", subscriptionID)
 
 	return nil
 }

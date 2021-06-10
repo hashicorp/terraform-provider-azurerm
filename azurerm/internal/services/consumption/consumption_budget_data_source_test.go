@@ -10,7 +10,7 @@ import (
 type BudgetDataSource struct{}
 
 func TestAccDataSourceBudget_current(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_budget", "current")
+	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget", "current")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -29,6 +29,12 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_budget" "current" {}
+data "azurerm_client_config" "current" {
+}
+
+data "azurerm_consumption_budget" "current" {
+	name = "acctest-standing-data-empty"
+	subscription_id = data.azurerm_client_config.current.subscription_id
+}
 `
 }
