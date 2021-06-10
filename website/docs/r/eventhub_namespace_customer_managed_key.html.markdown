@@ -40,83 +40,48 @@ resource "azurerm_eventhub_namespace" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                       = "example-kv"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = true
+  name                     = "examplekv"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
+}
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = azurerm_eventhub_namespace.example.identity.0.tenant_id
+  object_id    = azurerm_eventhub_namespace.example.identity.0.principal_id
 
-    key_permissions = [
-      "Get",
-      "List",
-      "Update",
-      "Create",
-      "Import",
-      "Delete",
-      "Recover",
-      "Backup",
-      "Restore"
-    ]
+  key_permissions = ["get", "unwrapkey", "wrapkey"]
+}
 
-    secret_permissions = [
-      "Get",
-      "List",
-      "Set",
-      "Delete",
-      "Recover",
-      "Backup",
-      "Restore"
-    ]
+resource "azurerm_key_vault_access_policy" "example2" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    certificate_permissions = [
-      "Get",
-      "List",
-      "Update",
-      "Create",
-      "Import",
-      "Delete",
-      "Recover",
-      "Backup",
-      "Restore",
-      "ManageContacts",
-      "ManageIssuers",
-      "GetIssuers",
-      "ListIssuers",
-      "SetIssuers",
-      "DeleteIssuers"
-    ]
-  }
-
-  access_policy {
-    tenant_id = azurerm_eventhub_namespace.example.identity.0.tenant_id
-    object_id = azurerm_eventhub_namespace.example.identity.0.principal_id
-
-    key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey",
-    ]
-  }
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "list",
+    "purge",
+    "recover",
+  ]
 }
 
 resource "azurerm_key_vault_key" "example" {
-  name         = "example-key"
+  name         = "examplekvkey"
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
-  key_opts = [
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+  depends_on = [
+    azurerm_key_vault_access_policy.example,
+    azurerm_key_vault_access_policy.example2,
   ]
 }
 
