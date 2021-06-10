@@ -100,20 +100,19 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 ## Arguments Reference
 
 The following arguments are supported:
-
-* `identity` - (Required) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
-
-* `location` - (Required) The Azure Region where the Machine Learning Compute Cluster should exist. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `name` - (Required) The name which should be used for this Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `machine_learning_workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `name` - (Required) The name which should be used for this Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
-
-* `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `location` - (Required) The Azure Region where the Machine Learning Compute Cluster should exist. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `vm_priority` - (Required) The priority of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `identity` - (Required) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
 

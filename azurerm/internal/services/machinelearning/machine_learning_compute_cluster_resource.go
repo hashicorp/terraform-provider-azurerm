@@ -58,6 +58,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{string(machinelearningservices.Dedicated), string(machinelearningservices.LowPriority)}, false),
 			},
 
 			"identity": {
