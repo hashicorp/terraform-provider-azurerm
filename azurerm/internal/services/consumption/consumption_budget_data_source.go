@@ -1,21 +1,21 @@
 package consumption
 
 import (
-	"time"
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/validate"
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"time"
 )
 
 func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read:   resourceArmConsumptionBudgetDataSourceRead,
+		Read: resourceArmConsumptionBudgetDataSourceRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
-	    Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -37,7 +37,7 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 				Computed:     true,
 				ValidateFunc: validation.FloatAtLeast(1.0),
 			},
-	
+
 			"filter": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -85,7 +85,7 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 					},
 				},
 			},
-	
+
 			"notification": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -94,7 +94,7 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()),
 				Elem:     SchemaConsumptionBudgetNotificationElement(),
 			},
-	
+
 			"time_grain": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -109,7 +109,7 @@ func resourceArmConsumptionBudgetDataSource() *pluginsdk.Resource {
 					string(consumption.TimeGrainTypeQuarterly),
 				}, false),
 			},
-	
+
 			"time_period": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
