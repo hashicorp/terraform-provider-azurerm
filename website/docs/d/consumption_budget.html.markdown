@@ -16,17 +16,6 @@ Use this data source to access information about an existing Consumption Budget.
 data "azurerm_consumption_budget" "example" {
   name = "existing"
   subscription_id = "TODO"
-
-  time_period {
-    start_date = "TODO"    
-  }
-  amount = 1.23456
-
-  notification {
-    threshold = 42
-    operator = "TODO"    
-  }
-  resource_group_id = "TODO"
 }
 
 output "id" {
@@ -38,91 +27,91 @@ output "id" {
 
 The following arguments are supported:
 
-* `amount` - (Required) TODO.
-
 * `name` - (Required) The name of this Consumption Budget. Changing this forces a new Consumption Budget to be created.
 
-* `notification` - (Required) One or more `notification` blocks as defined below.
-
-* `resource_group_id` - (Required) The ID of the TODO. Changing this forces a new Consumption Budget to be created.
-
-* `subscription_id` - (Required) The ID of the TODO. Changing this forces a new Consumption Budget to be created.
-
-* `time_period` - (Required) A `time_period` block as defined below.
+* `subscription_id` - (Required) The ID of the TODO.
 
 ---
 
-* `filter` - (Optional) A `filter` block as defined below.
-
-* `time_grain` - (Optional) TODO. Changing this forces a new Consumption Budget to be created.
-
----
-
-A `dimension` block supports the following:
-
-* `name` - (Required) The name which should be used for this TODO.
-
-* `values` - (Required) Specifies a list of TODO.
-
-* `operator` - (Optional) TODO.
-
----
-
-A `filter` block supports the following:
-
-* `dimension` - (Optional) One or more `dimension` blocks as defined above.
-
-* `not` - (Optional) A `not` block as defined below.
-
-* `tag` - (Optional) One or more `tag` blocks as defined below.
-
----
-
-A `not` block supports the following:
-
-* `dimension` - (Optional) A `dimension` block as defined above.
-
-* `tag` - (Optional) A `tag` block as defined below.
-
----
-
-A `notification` block supports the following:
-
-* `operator` - (Required) TODO.
-
-* `threshold` - (Required) TODO.
-
-* `contact_emails` - (Optional) Specifies a list of TODO.
-
-* `contact_groups` - (Optional) Specifies a list of TODO.
-
-* `contact_roles` - (Optional) Specifies a list of TODO.
-
-* `enabled` - (Optional) Should the TODO be enabled?
-
----
-
-A `tag` block supports the following:
-
-* `name` - (Required) The name which should be used for this TODO.
-
-* `values` - (Required) Specifies a list of TODO.
-
-* `operator` - (Optional) TODO.
-
----
-
-A `time_period` block supports the following:
-
-* `start_date` - (Required) TODO. Changing this forces a new Consumption Budget to be created.
-
-* `end_date` - (Optional) TODO.
+* `resource_group_id` - (Optional) The ID of the TODO.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Consumption Budget.
+
+* `amount` - TODO.
+
+* `filter` - A `filter` block as defined below.
+
+* `notification` - A `notification` block as defined below.
+
+* `time_grain` - TODO.
+
+* `time_period` - A `time_period` block as defined below.
+
+---
+
+A `dimension` block exports the following:
+
+* `name` - The name of this TODO.
+
+* `operator` - TODO.
+
+* `values` - A `values` block as defined below.
+
+---
+
+A `filter` block exports the following:
+
+* `dimension` - A `dimension` block as defined above.
+
+* `not` - A `not` block as defined below.
+
+* `tag` - A `tag` block as defined below.
+
+---
+
+A `not` block exports the following:
+
+* `dimension` - A `dimension` block as defined above.
+
+* `tag` - A `tag` block as defined below.
+
+---
+
+A `notification` block exports the following:
+
+* `contact_emails` - A `contact_emails` block as defined above.
+
+* `contact_groups` - A `contact_groups` block as defined above.
+
+* `contact_roles` - A `contact_roles` block as defined above.
+
+* `enabled` - Is the TODO enabled?
+
+* `operator` - TODO.
+
+* `threshold` - TODO.
+
+---
+
+A `tag` block exports the following:
+
+* `name` - The name of this TODO.
+
+* `operator` - TODO.
+
+* `values` - A `values` block as defined below.
+
+---
+
+A `time_period` block exports the following:
+
+* `end_date` - TODO.
+
+* `start_date` - TODO.
 
 ## Timeouts
 
