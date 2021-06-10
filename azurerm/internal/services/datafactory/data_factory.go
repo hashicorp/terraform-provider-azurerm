@@ -279,6 +279,10 @@ func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.Bas
 		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
 	}
 
+	if _, ok := d.GetOk("azure_blob_fs_location"); ok {
+		return expandDataFactoryDatasetAzureBlobFSLocation(d)
+	}
+
 	return nil
 }
 
@@ -307,6 +311,27 @@ func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData)
 		FolderPath: path,
 		FileName:   filename,
 	}
+	return blobStorageLocation
+}
+
+func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	azureBlobFsLocations := d.Get("azure_blob_fs_location").([]interface{})
+	if len(azureBlobFsLocations) == 0 || azureBlobFsLocations[0] == nil {
+		return nil
+	}
+	props := azureBlobFsLocations[0].(map[string]interface{})
+
+	blobStorageLocation := datafactory.AzureBlobFSLocation{
+		FileSystem: props["file_system"].(string),
+		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
+	}
+	if path := props["path"].(string); len(path) > 0 {
+		blobStorageLocation.FolderPath = path
+	}
+	if filename := props["filename"].(string); len(filename) > 0 {
+		blobStorageLocation.FileName = filename
+	}
+
 	return blobStorageLocation
 }
 
@@ -346,4 +371,35 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 	}
 
 	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFSLocation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	fileSystem, path, fileName := "", "", ""
+	if input.FileSystem != nil {
+		if v, ok := input.FileSystem.(string); ok {
+			fileSystem = v
+		}
+	}
+	if input.FolderPath != nil {
+		if v, ok := input.FolderPath.(string); ok {
+			path = v
+		}
+	}
+	if input.FileName != nil {
+		if v, ok := input.FileName.(string); ok {
+			fileName = v
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"file_system": fileSystem,
+			"path":        path,
+			"filename":    fileName,
+		},
+	}
 }
