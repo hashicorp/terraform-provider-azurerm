@@ -91,6 +91,10 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
+		"azurerm-alt": func() (terraform.ResourceProvider, error) {
+			azurerm := provider.TestAzureProvider()
+			return azurerm, nil
+		},
 	}
 
 	resource.ParallelTest(t, testCase)
