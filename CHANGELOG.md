@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_machine_learning_compute_cluster` [GH-11675]
+
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block [GH-11625]
