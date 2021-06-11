@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block [GH-11625]
+* `azurerm_monitor_metric_alert` - support `StartsWith` dimension operator [GH-12181]
 
 BUG FIXES:
 
