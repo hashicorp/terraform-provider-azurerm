@@ -163,7 +163,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 
 	passwordSecureString := datafactory.SecureString{
 		Value: &password,
-		Type:  datafactory.TypeTypeSecureString,
+		Type:  datafactory.TypeSecureString,
 	}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
