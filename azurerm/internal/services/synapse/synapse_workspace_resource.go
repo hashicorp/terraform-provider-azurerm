@@ -86,10 +86,9 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"managed_virtual_network_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"data_exfiltration_protection_enabled"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"aad_admin": {
