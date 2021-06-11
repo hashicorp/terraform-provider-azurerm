@@ -151,6 +151,28 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 					},
 				},
 				"composite_index": CosmosDbIndexingPolicyCompositeIndexSchema(),
+
+				"spatial_index": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"types": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
