@@ -19,7 +19,7 @@ func TestAccDataSourceKeyVaultSecrets_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("all.#").HasValue("1"),
+				check.That(data.ResourceName).Key("names.#").HasValue("1"),
 			),
 		},
 	})

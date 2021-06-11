@@ -17,8 +17,8 @@ data "azurerm_key_vault_secrets" "example" {
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
-data "azurerm_key_vault_secret" "this" {
-  for_each = data.azurerm_key_vault_secrets.example.all
+data "azurerm_key_vault_secret" "example" {
+  for_each = data.azurerm_key_vault_secrets.example.names
   name     = each.key
 }
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `all` - List containing names of secrets that exist in this Key Vault.
+* `names` - List containing names of secrets that exist in this Key Vault.
 * `key_vault_id` - The Key Vault ID.
 
 ## Timeouts

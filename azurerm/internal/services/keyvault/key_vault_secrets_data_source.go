@@ -35,7 +35,7 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 				Default:  25,
 			},
 
-			"all": {
+			"names": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -71,7 +71,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.SetId(keyVaultId.ID())
 
-	var all []string
+	var names []string
 
 	if resp.Response().Value != nil {
 		for _, v := range *resp.Response().Value {
@@ -79,11 +79,11 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err != nil {
 				return err
 			}
-			all = append(all, *name)
+			names = append(names, *name)
 		}
 	}
 
-	d.Set("all", all)
+	d.Set("names", names)
 	d.Set("key_vault_id", keyVaultId.ID())
 
 	return nil
