@@ -1,12 +1,12 @@
 ---
 subcategory: "Portal"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_tenant_configuration"
+page_title: "Azure Resource Manager: azurerm_portal_tenant_configuration"
 description: |-
   Manages Portal Tenant Configuration.
 ---
 
-# azurerm_tenant_configuration
+# azurerm_portal_tenant_configuration
 
 Manages Portal Tenant Configuration.
 
@@ -15,7 +15,7 @@ Manages Portal Tenant Configuration.
 ## Example Usage
 
 ```hcl
-resource "azurerm_tenant_configuration" "example" {
+resource "azurerm_portal_tenant_configuration" "example" {
   enforce_private_markdown_storage = true
 }
 ```
@@ -48,5 +48,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Portal Tenant Configurations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_tenant_configuration.example /providers/Microsoft.Portal/tenantConfigurations/default
+terraform import azurerm_portal_tenant_configuration.example /providers/Microsoft.Portal/tenantConfigurations/default
 ```

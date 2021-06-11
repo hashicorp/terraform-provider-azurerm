@@ -58,7 +58,7 @@ func resourceTenantConfigurationCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_tenant_configuration", id.ID())
+			return tf.ImportAsExistsError("azurerm_portal_tenant_configuration", id.ID())
 		}
 	}
 

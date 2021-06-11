@@ -29,7 +29,7 @@ func TestAccPortalTenantConfiguration(t *testing.T) {
 }
 
 func testAccPortalTenantConfiguration_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_tenant_configuration", "test")
+	data := acceptance.BuildTestData(t, "azurerm_portal_tenant_configuration", "test")
 	r := PortalTenantConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
@@ -43,7 +43,7 @@ func testAccPortalTenantConfiguration_basic(t *testing.T) {
 }
 
 func testAccPortalTenantConfiguration_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_tenant_configuration", "test")
+	data := acceptance.BuildTestData(t, "azurerm_portal_tenant_configuration", "test")
 	r := PortalTenantConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
@@ -57,7 +57,7 @@ func testAccPortalTenantConfiguration_requiresImport(t *testing.T) {
 }
 
 func testAccPortalTenantConfiguration_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_tenant_configuration", "test")
+	data := acceptance.BuildTestData(t, "azurerm_portal_tenant_configuration", "test")
 	r := PortalTenantConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
@@ -97,7 +97,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_tenant_configuration" "test" {
+resource "azurerm_portal_tenant_configuration" "test" {
   enforce_private_markdown_storage = %t
 }
 `, enforcePrivateMarkdownStorage)
@@ -107,8 +107,8 @@ func (r PortalTenantConfigurationResource) requiresImport(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_tenant_configuration" "import" {
-  enforce_private_markdown_storage = azurerm_tenant_configuration.test.enforce_private_markdown_storage
+resource "azurerm_portal_tenant_configuration" "import" {
+  enforce_private_markdown_storage = azurerm_portal_tenant_configuration.test.enforce_private_markdown_storage
 }
 `, r.basic(true))
 }
