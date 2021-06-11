@@ -93,8 +93,8 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   subnet_resource_id            = azurerm_subnet.test.id
 
   scale_settings {
-    min_node_count                   = 0
-    max_node_count                   = 1
+    min_node_count                       = 0
+    max_node_count                       = 1
     scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
   }
 
@@ -118,8 +118,8 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
   machine_learning_workspace_id = azurerm_machine_learning_compute_cluster.test.machine_learning_workspace_id
 
   scale_settings {
-    min_node_count                   = 0
-    max_node_count                   = 1
+    min_node_count                       = 0
+    max_node_count                       = 1
     scale_down_nodes_after_idle_duration = "PT2M" # 120 seconds
   }
 
