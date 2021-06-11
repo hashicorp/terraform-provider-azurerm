@@ -1,37 +1,37 @@
-## 2.63.0 (Unreleased)
+## 2.63.0 (June 11, 2021)
 
 FEATURES:
 
-* **New Resource** `azurerm_data_factory_linked_service_azure_search` [GH-12122]
-* **New Resource** `azurerm_data_factory_linked_service_kusto` [GH-12152]
+* **New Resource** `azurerm_data_factory_linked_service_azure_search` ([#12122](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12122))
+* **New Resource** `azurerm_data_factory_linked_service_kusto` ([#12152](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12152))
 
 ENHANCEMENTS:
 
-* dependencies: updating `streamanalytics` to use API Version `2020-03-01-preview` [GH-12133]
-* dependencies: updating `virtualdesktop` to use API Version `2020-11-02-preview` [GH-12160]
-* `data.azurerm_synapse_workspace` - support for the `identity` attribute [GH-12098]
-* `azurerm_cosmosdb_gremlin_graph` - support for the `composite_index` and `partition_key_version` properties [GH-11693]
-* `azurerm_data_factory_dataset_azure_blob` - support for the `dynamic_filename_enabled` and `dynamic_path_enabled` properties [GH-12034]
-* `azurerm_data_factory_dataset_delimited_text` - supports the `azure_blob_fs_location` property [GH-12041]
-* `azurerm_data_factory_linked_service_azure_sql_database` - support for the `key_vault_connection_string` property [GH-12139]
-* `azurerm_data_factory_linked_service_sql_server` - add `key_vault_connection_string` argument [GH-12117]
-* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - supports for the `storage_account_key` property [GH-12136]
-* `azurerm_eventhub` - support for the `status` property [GH-12043]
-* `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` [GH-12049]
-* `azurerm_kubernetes_cluster` -support for BYO `kubelet_identity` [GH-12037]
-* `azurerm_kusto_cluster_customer_managed_key` - supports for the `user_identity` property [GH-12135]
-* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties [GH-11670]
-* `azurerm_storage_account` - support for user assigned identities [GH-11752]
-* `azurerm_storage_account_customer_managed_key` - support the use of keys from key vaults in remote subscription [GH-12142]
-* `azurerm_virtual_desktop_host_pool` - support for the `start_vm_on_connect` property [GH-12160]
-* `azurerm_vpn_server_configuration` - now supports multiple `auth` blocks [GH-12085]
+* dependencies: updating `streamanalytics` to use API Version `2020-03-01-preview` ([#12133](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12133))
+* dependencies: updating `virtualdesktop` to use API Version `2020-11-02-preview` ([#12160](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12160))
+* `data.azurerm_synapse_workspace` - support for the `identity` attribute ([#12098](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12098))
+* `azurerm_cosmosdb_gremlin_graph` - support for the `composite_index` and `partition_key_version` properties ([#11693](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11693))
+* `azurerm_data_factory_dataset_azure_blob` - support for the `dynamic_filename_enabled` and `dynamic_path_enabled` properties ([#12034](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12034))
+* `azurerm_data_factory_dataset_delimited_text` - supports the `azure_blob_fs_location` property ([#12041](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12041))
+* `azurerm_data_factory_linked_service_azure_sql_database` - support for the `key_vault_connection_string` property ([#12139](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12139))
+* `azurerm_data_factory_linked_service_sql_server` - add `key_vault_connection_string` argument ([#12117](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12117))
+* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - supports for the `storage_account_key` property ([#12136](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12136))
+* `azurerm_eventhub` - support for the `status` property ([#12043](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12043))
+* `azurerm_kubernetes_cluster` - support migration of `service_principal` to `identity` ([#12049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12049))
+* `azurerm_kubernetes_cluster` -support for BYO `kubelet_identity` ([#12037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12037))
+* `azurerm_kusto_cluster_customer_managed_key` - supports for the `user_identity` property ([#12135](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12135))
+* `azurerm_network_watcher_flow_log` - support for the `location` and `tags` properties ([#11670](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11670))
+* `azurerm_storage_account` - support for user assigned identities ([#11752](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11752))
+* `azurerm_storage_account_customer_managed_key` - support the use of keys from key vaults in remote subscription ([#12142](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12142))
+* `azurerm_virtual_desktop_host_pool` - support for the `start_vm_on_connect` property ([#12160](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12160))
+* `azurerm_vpn_server_configuration` - now supports multiple `auth` blocks ([#12085](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12085))
 
 BUG FIXES:
 
-* Service: App Configuration - Fixed a bug in tags on resources all being set to the same value [GH-12062]
-* Service: Event Hubs - Fixed a bug in tags on resources all being set to the same value [GH-12062]
-* `azurerm_subscription` - fix ability to specify `DevTest` as `workload` [GH-12066]
-* `azurerm_sentinel_alert_rule_scheduled` - the query frequency duration can noe be up to 14 days [GH-12164]
+* Service: App Configuration - Fixed a bug in tags on resources all being set to the same value ([#12062](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12062))
+* Service: Event Hubs - Fixed a bug in tags on resources all being set to the same value ([#12062](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12062))
+* `azurerm_subscription` - fix ability to specify `DevTest` as `workload` ([#12066](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12066))
+* `azurerm_sentinel_alert_rule_scheduled` - the query frequency duration can noe be up to 14 days ([#12164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12164))
 
 ## 2.62.1 (June 08, 2021)
 
@@ -51,7 +51,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating `network` to use API Version `2020-11-01` [GH-11627]
+* dependencies: updating `network` to use API Version `2020-11-01` ([#11627](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11627))
 * `azurerm_app_service_environment` - support for the `internal_ip_address`, `service_ip_address`, and `outbound_ip_addresses`properties ([#12026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12026))
 * `azurerm_api_management_api_subscription` - support for the `api_id` property ([#12025](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12025))
 * `azurerm_container_registry` - support for  versionless encryption keys for ACR ([#11856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11856))
