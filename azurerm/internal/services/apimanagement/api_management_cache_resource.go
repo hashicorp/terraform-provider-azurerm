@@ -20,9 +20,9 @@ import (
 
 func resourceApiManagementCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementCacheCreate,
+		Create: resourceApiManagementCacheCreateUpdate,
 		Read:   resourceApiManagementCacheRead,
-		Update: resourceApiManagementCacheUpdate,
+		Update: resourceApiManagementCacheCreateUpdate,
 		Delete: resourceApiManagementCacheDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -80,7 +80,7 @@ func resourceApiManagementCache() *pluginsdk.Resource {
 		},
 	}
 }
-func resourceApiManagementCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementCacheCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -93,14 +93,16 @@ func resourceApiManagementCacheCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	id := parse.NewCacheID(subscriptionId, apimId.ResourceGroup, apimId.ServiceName, name)
 
-	existing, err := client.Get(ctx, apimId.ResourceGroup, apimId.ServiceName, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %q: %+v", id, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, apimId.ResourceGroup, apimId.ServiceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %q: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_api_management_cache", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_cache", id.ID())
+		}
 	}
 
 	parameters := apimanagement.CacheContract{
@@ -118,8 +120,9 @@ func resourceApiManagementCacheCreate(d *pluginsdk.ResourceData, meta interface{
 		parameters.CacheContractProperties.ResourceID = utils.String(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint + v.(string))
 	}
 
+	// here we use "PUT" for updating, because `description` is not allowed to be emtpy string, Then we could not update to remove `description` by `PATCH`
 	if _, err := client.CreateOrUpdate(ctx, apimId.ResourceGroup, apimId.ServiceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("creating %q: %+v", id, err)
+		return fmt.Errorf("creating/ updating %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -159,41 +162,6 @@ func resourceApiManagementCacheRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("use_from_location", props.UseFromLocation)
 	}
 	return nil
-}
-
-func resourceApiManagementCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.CacheClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.CacheID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	parameters := apimanagement.CacheUpdateParameters{
-		CacheUpdateProperties: &apimanagement.CacheUpdateProperties{},
-	}
-	if d.HasChange("description") {
-		parameters.CacheUpdateProperties.Description = nil
-		if v := d.Get("description").(string); v != "" {
-			parameters.CacheUpdateProperties.Description = utils.String(v)
-		}
-	}
-	if d.HasChange("connection_string") {
-		parameters.CacheUpdateProperties.ConnectionString = utils.String(d.Get("connection_string").(string))
-	}
-	if d.HasChange("use_from_location") {
-		parameters.CacheUpdateProperties.UseFromLocation = utils.String(d.Get("use_from_location").(string))
-	}
-	if d.HasChange("redis_cache_id") {
-		parameters.CacheUpdateProperties.ResourceID = utils.String(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint + d.Get("redis_cache_id").(string))
-	}
-
-	if _, err := client.Update(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, "*"); err != nil {
-		return fmt.Errorf("updating %q: %+v", id, err)
-	}
-	return resourceApiManagementCacheRead(d, meta)
 }
 
 func resourceApiManagementCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
