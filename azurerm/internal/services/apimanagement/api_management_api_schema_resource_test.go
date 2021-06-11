@@ -74,7 +74,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = file("testdata/api_management_api_pluginsdk.xml")
+  value               = file("testdata/api_management_api_schema.xml")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -84,12 +84,12 @@ func (r ApiManagementApiSchemaResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_api_management_api_schema" "import" {
-  api_name            = azurerm_api_management_api_pluginsdk.test.api_name
-  api_management_name = azurerm_api_management_api_pluginsdk.test.api_management_name
-  resource_group_name = azurerm_api_management_api_pluginsdk.test.resource_group_name
-  schema_id           = azurerm_api_management_api_pluginsdk.test.schema_id
-  content_type        = azurerm_api_management_api_pluginsdk.test.content_type
-  value               = azurerm_api_management_api_pluginsdk.test.value
+  api_name            = azurerm_api_management_api_schema.test.api_name
+  api_management_name = azurerm_api_management_api_schema.test.api_management_name
+  resource_group_name = azurerm_api_management_api_schema.test.resource_group_name
+  schema_id           = azurerm_api_management_api_schema.test.schema_id
+  content_type        = azurerm_api_management_api_schema.test.content_type
+  value               = azurerm_api_management_api_schema.test.value
 }
 `, r.basic(data))
 }
