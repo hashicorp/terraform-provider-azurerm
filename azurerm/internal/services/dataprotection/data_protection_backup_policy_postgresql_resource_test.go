@@ -132,10 +132,8 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
   resource_group_name = azurerm_resource_group.test.name
   vault_name          = azurerm_data_protection_backup_vault.test.name
 
-  backup_rule {
-    repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  }
-  default_retention_duration = "P4M"
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+  default_retention_duration      = "P4M"
 }
 `, template, data.RandomInteger)
 }
@@ -149,10 +147,9 @@ resource "azurerm_data_protection_backup_policy_postgresql" "import" {
   name                = azurerm_data_protection_backup_policy_postgresql.test.name
   resource_group_name = azurerm_data_protection_backup_policy_postgresql.test.resource_group_name
   vault_name          = azurerm_data_protection_backup_policy_postgresql.test.vault_name
-  backup_rule {
-    repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  }
-  default_retention_duration = "P4M"
+
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+  default_retention_duration      = "P4M"
 }
 `, config)
 }
@@ -167,10 +164,8 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
   resource_group_name = azurerm_resource_group.test.name
   vault_name          = azurerm_data_protection_backup_vault.test.name
 
-  backup_rule {
-    repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  }
-  default_retention_duration = "P4M"
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+  default_retention_duration      = "P4M"
   retention_rule {
     name             = "weekly"
     duration         = "P6M"

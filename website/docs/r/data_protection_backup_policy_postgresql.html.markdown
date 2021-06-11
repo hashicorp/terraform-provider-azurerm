@@ -31,9 +31,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "example" {
   resource_group_name = azurerm_resource_group.rg.name
   vault_name          = azurerm_data_protection_backup_vault.example.name
 
-  backup_rule {
-    repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  }
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
   default_retention_duration = "P4M"
 
@@ -79,19 +77,13 @@ The following arguments are supported:
 
 * `vault_name` - (Required) The name of the Backup Vault where the Backup Policy PostgreSQL should exist. Changing this forces a new Backup Policy PostgreSQL to be created.
 
-* `backup_rule` - (Required) A `backup_rule` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
-
+* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new Backup Policy PostgreSQL to be created.
+  
 * `default_retention_duration` - (Required) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 ---
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
-
----
-
-A `backup_rule` block supports the following:
-
-* `repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 ---
 
