@@ -1,6 +1,7 @@
 package apimanagement
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -52,6 +54,12 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					if d.Get("content_type") == "application/vnd.ms-azure-apim.swagger.definitions+json" || d.Get("content_type") == "application/vnd.oai.openapi.components+json" {
+						return suppress.JsonDiff(k, old, new, d)
+					}
+					return old == new
+				},
 			},
 		},
 	}
@@ -140,10 +148,32 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
 		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
-			d.Set("value", documentProperties.Value)
-		}
-	}
+			/*
+				As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
 
+				- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
+				- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
+				- OpenApi Schema use application/vnd.oai.openapi.components+json
+				- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
+
+				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
+			*/
+			if *properties.ContentType == "application/vnd.ms-azure-apim.swagger.definitions+json" || *properties.ContentType == "application/vnd.oai.openapi.components+json" {
+				if documentProperties.Definitions != nil {
+					value, err := json.Marshal(documentProperties.Definitions)
+					if err != nil {
+						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, documentProperties.Definitions)
+					}
+					d.Set("value", string(value))
+				}
+			} else if *properties.ContentType == "application/vnd.ms-azure-apim.xsd+xml" || *properties.ContentType == "application/vnd.ms-azure-apim.wadl.grammars+xml" {
+				d.Set("value", documentProperties.Value)
+			} else {
+				return fmt.Errorf("[FATAL] Unkown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+			}
+		}
+
+	}
 	return nil
 }
 
