@@ -121,7 +121,7 @@ func resourceApiManagementCacheCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.CacheContractProperties.ResourceID = utils.String(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint + v.(string))
 	}
 
-	// here we use "PUT" for updating, because `description` is not allowed to be emtpy string, Then we could not update to remove `description` by `PATCH`
+	// here we use "PUT" for updating, because `description` is not allowed to be empty string, Then we could not update to remove `description` by `PATCH`
 	if _, err := client.CreateOrUpdate(ctx, apimId.ResourceGroup, apimId.ServiceName, name, parameters, ""); err != nil {
 		return fmt.Errorf("creating/ updating %q: %+v", id, err)
 	}
