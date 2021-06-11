@@ -175,7 +175,10 @@ func resourceApiManagementCacheUpdate(d *pluginsdk.ResourceData, meta interface{
 		CacheUpdateProperties: &apimanagement.CacheUpdateProperties{},
 	}
 	if d.HasChange("description") {
-		parameters.CacheUpdateProperties.Description = utils.String(d.Get("description").(string))
+		parameters.CacheUpdateProperties.Description = nil
+		if v := d.Get("description").(string); v != "" {
+			parameters.CacheUpdateProperties.Description = utils.String(v)
+		}
 	}
 	if d.HasChange("connection_string") {
 		parameters.CacheUpdateProperties.ConnectionString = utils.String(d.Get("connection_string").(string))
