@@ -105,7 +105,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 						},
-						"node_idle_time_before_scale_down": {
+						"scale_down_nodes_after_idle_duration": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -279,12 +279,12 @@ func expandScaleSettings(input []interface{}) *machinelearningservices.ScaleSett
 
 	max_node_count := int32(v["max_node_count"].(int))
 	min_node_count := int32(v["min_node_count"].(int))
-	node_idle_time_before_scale_down := v["node_idle_time_before_scale_down"].(string)
+	scale_down_nodes_after_idle_duration := v["scale_down_nodes_after_idle_duration"].(string)
 
 	return &machinelearningservices.ScaleSettings{
 		MaxNodeCount:                &max_node_count,
 		MinNodeCount:                &min_node_count,
-		NodeIdleTimeBeforeScaleDown: &node_idle_time_before_scale_down,
+		NodeIdleTimeBeforeScaleDown: &scale_down_nodes_after_idle_duration,
 	}
 }
 
@@ -295,9 +295,9 @@ func flattenScaleSettings(scaleSettings *machinelearningservices.ScaleSettings) 
 
 	return []interface{}{
 		map[string]interface{}{
-			"max_node_count":                   scaleSettings.MaxNodeCount,
-			"min_node_count":                   scaleSettings.MinNodeCount,
-			"node_idle_time_before_scale_down": scaleSettings.NodeIdleTimeBeforeScaleDown,
+			"max_node_count":                       scaleSettings.MaxNodeCount,
+			"min_node_count":                       scaleSettings.MinNodeCount,
+			"scale_down_nodes_after_idle_duration": scaleSettings.NodeIdleTimeBeforeScaleDown,
 		},
 	}
 }

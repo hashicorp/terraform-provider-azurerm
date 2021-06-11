@@ -31,7 +31,7 @@ func TestAccComputeCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").Exists(),
 				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.0.node_idle_time_before_scale_down").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -54,7 +54,7 @@ func TestAccComputeCluster_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").Exists(),
 				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").Exists(),
-				check.That(data.ResourceName).Key("scale_settings.0.node_idle_time_before_scale_down").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").Exists(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -95,7 +95,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   scale_settings {
     min_node_count                   = 0
     max_node_count                   = 1
-    node_idle_time_before_scale_down = "PT30S" # 30 seconds
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
   }
 
   identity {
@@ -120,7 +120,7 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
   scale_settings {
     min_node_count                   = 0
     max_node_count                   = 1
-    node_idle_time_before_scale_down = "PT2M" # 120 seconds
+    scale_down_nodes_after_idle_duration = "PT2M" # 120 seconds
   }
 
   identity {
