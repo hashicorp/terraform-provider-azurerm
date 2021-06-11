@@ -4,6 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block [GH-11625]
+
 BUG FIXES:
 
 ## 2.63.0 (June 11, 2021)
