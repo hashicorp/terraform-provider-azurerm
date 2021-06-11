@@ -2,6 +2,10 @@ package apimanagement
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -13,9 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"strings"
-	"time"
 )
 
 func resourceApiManagementCache() *pluginsdk.Resource {

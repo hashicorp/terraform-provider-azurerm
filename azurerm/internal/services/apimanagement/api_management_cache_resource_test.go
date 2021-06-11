@@ -3,13 +3,14 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 type ApimanagementCacheResource struct{}
