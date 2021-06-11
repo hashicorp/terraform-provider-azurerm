@@ -1,0 +1,6 @@
+dependencies:
+  - go.mod
+  - go.sum
+  - vendor/**/*
+documentation:
+  - website/**/*

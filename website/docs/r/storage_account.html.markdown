@@ -99,11 +99,11 @@ The following arguments are supported:
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_0` for new storage accounts.
 
--> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud and US Government Cloud.
+-> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
 * `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
 
--> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud and US Government Cloud.
+-> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
@@ -155,6 +155,8 @@ A `blob_properties` block supports the following:
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
+~> **Note:** Before setting `container_delete_retention_policy`, the feature `ContainerSoftDelete` needs to be enabled by [steps](https://docs.microsoft.com/en-us/azure/storage/blobs/soft-delete-container-overview?tabs=powershell#register-for-the-preview)
+
 ---
 
 A `cors_rule` block supports the following:
@@ -205,9 +207,13 @@ A `hour_metrics` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned,UserAssigned` (to enable both).
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+
+* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

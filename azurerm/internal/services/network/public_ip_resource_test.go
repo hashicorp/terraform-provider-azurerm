@@ -63,13 +63,52 @@ func TestAccPublicIpStatic_zones(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withZone(data),
+			Config: r.withZone(data, "1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"), // Deprecated - TODO remove in 3.0
+				check.That(data.ResourceName).Key("zones.0").HasValue("1"), // Deprecated - TODO remove in 3.0
+				check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_zonesNoZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withZone(data, "No-Zone"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated - TODO remove in 3.0
+				check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_zonesZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withZone(data, "Zone-Redundant"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated Note: Zero here due to legacy behaviour - TODO remove in 3.0
+				check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
 			),
 		},
 		data.ImportStep(),
@@ -421,7 +460,7 @@ resource "azurerm_public_ip" "import" {
 `, r.static_basic(data))
 }
 
-func (PublicIPResource) withZone(data acceptance.TestData) string {
+func (PublicIPResource) withZone(data acceptance.TestData, availabilityZone string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -438,9 +477,9 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  zones               = ["1"]
+  availability_zone   = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, availabilityZone)
 }
 
 func (PublicIPResource) basic_withDNSLabel(data acceptance.TestData, dnsNameLabel string) string {
@@ -771,9 +810,9 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
-  domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+  domain_name_label = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomStringOfLength(63))
 }
 
 func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {

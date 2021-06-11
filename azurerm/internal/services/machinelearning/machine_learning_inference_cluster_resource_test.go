@@ -45,13 +45,28 @@ func TestAccInferenceCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccInferenceCluster_complete(t *testing.T) {
+func TestAccInferenceCluster_completeCustomSSL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
 	r := InferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.completeCustomSSL(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssl"),
+	})
+}
+
+func TestAccInferenceCluster_completeMicrosoftSSL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
+	r := InferenceClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeMicrosoftSSL(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,7 +127,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) complete(data acceptance.TestData) string {
+func (r InferenceClusterResource) completeCustomSSL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +146,28 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   tags = {
     ENV = "Test"
   }
+}
+`, r.templateDevTest(data), data.RandomIntOfLength(8))
+}
 
+func (r InferenceClusterResource) completeMicrosoftSSL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_inference_cluster" "test" {
+  name                          = "AIC-%d"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "DevTest"
+  ssl {
+    leaf_domain_label         = "contoso"
+    overwrite_existing_domain = true
+  }
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
@@ -155,7 +191,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   tags = {
     ENV = "Production"
   }
-
 }
 `, r.templateFastProd(data), data.RandomIntOfLength(8))
 }

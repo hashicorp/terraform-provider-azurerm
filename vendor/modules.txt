@@ -65,8 +65,7 @@ github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/msi/mgmt/2018-11-30/msi
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
@@ -79,7 +78,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-pre
 github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice
 github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry
 github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders
-github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization
+github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid
 github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub
 github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules
@@ -101,6 +100,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-0
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
+github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-02-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse
@@ -124,7 +124,6 @@ github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
-github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
 github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
@@ -144,6 +143,7 @@ github.com/Azure/go-autorest/autorest/azure/cli
 ## explicit
 github.com/Azure/go-autorest/autorest/date
 # github.com/Azure/go-autorest/autorest/to v0.4.0
+## explicit
 github.com/Azure/go-autorest/autorest/to
 # github.com/Azure/go-autorest/autorest/validation v0.3.1
 ## explicit
@@ -151,6 +151,7 @@ github.com/Azure/go-autorest/autorest/validation
 # github.com/Azure/go-autorest/logger v0.2.1
 github.com/Azure/go-autorest/logger
 # github.com/Azure/go-autorest/tracing v0.6.0
+## explicit
 github.com/Azure/go-autorest/tracing
 # github.com/Masterminds/goutils v1.1.0
 github.com/Masterminds/goutils
@@ -263,7 +264,7 @@ github.com/google/uuid
 github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.16.2
+# github.com/hashicorp/go-azure-helpers v0.16.5
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/formatting

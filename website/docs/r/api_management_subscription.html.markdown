@@ -51,9 +51,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `product_id` - (Required) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
+* `product_id` - (Optional) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
+
+-> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `all_apis` scope is used for the subscription.
 
 * `user_id` - (Optional) The ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
+
+* `api_id` - (Optional) The ID of the API which should be assigned to this Subscription. Changing this forces a new resource to be created.
+
+-> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `all_apis` scope is used for the subscription.
+
+* `primary_key` - (Optional) The primary subscription key to use for the subscription.
+
+* `secondary_key` - (Optional) The secondary subscription key to use for the subscription.
 
 ---
 

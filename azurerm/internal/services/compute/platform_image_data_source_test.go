@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourcePlatformImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
 	r := PlatformImageDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("offer").HasValue("UbuntuServer"),
@@ -33,10 +32,10 @@ func TestAccDataSourcePlatformImage_withVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
 	r := PlatformImageDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.withVersion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("offer").HasValue("UbuntuServer"),
