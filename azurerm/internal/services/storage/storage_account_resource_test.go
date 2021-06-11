@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -993,7 +993,7 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.shareSoftDeleteWithShareFile(data, strings.ReplaceAll(sourceBlob.Name(), "\\", "\\\\")),
+			Config: r.shareSoftDeleteWithShareFile(data, filepath.ToSlash(sourceBlob.Name())),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1007,7 +1007,7 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.shareSoftDeleteWithShareFile(data, strings.ReplaceAll(sourceBlob.Name(), "\\", "\\\\")),
+			Config: r.shareSoftDeleteWithShareFile(data, filepath.ToSlash(sourceBlob.Name())),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
