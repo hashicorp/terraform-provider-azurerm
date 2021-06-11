@@ -2,154 +2,154 @@ package cdn
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/deliveryruleconditions"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func endpointDeliveryRule() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func endpointDeliveryRule() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.EndpointDeliveryRuleName(),
 				},
 
 				"order": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"cookies_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.Cookies(),
 				},
 
 				"http_version_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.HTTPVersion(),
 				},
 
 				"device_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleconditions.Device(),
 				},
 
 				"post_arg_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.PostArg(),
 				},
 
 				"query_string_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.QueryString(),
 				},
 
 				"remote_address_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.RemoteAddress(),
 				},
 
 				"request_body_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.RequestBody(),
 				},
 
 				"request_header_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.RequestHeader(),
 				},
 
 				"request_method_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleconditions.RequestMethod(),
 				},
 
 				"request_scheme_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleconditions.RequestScheme(),
 				},
 
 				"request_uri_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.RequestURI(),
 				},
 
 				"url_file_extension_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.URLFileExtension(),
 				},
 
 				"url_file_name_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.URLFileName(),
 				},
 
 				"url_path_condition": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.URLPath(),
 				},
 
 				"cache_expiration_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.CacheExpiration(),
 				},
 
 				"cache_key_query_string_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.CacheKeyQueryString(),
 				},
 
 				"modify_request_header_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleactions.ModifyRequestHeader(),
 				},
 
 				"modify_response_header_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleactions.ModifyResponseHeader(),
 				},
 
 				"url_redirect_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.URLRedirect(),
 				},
 
 				"url_rewrite_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.URLRewrite(),

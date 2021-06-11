@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type ServiceBusTopicResource struct {
@@ -22,10 +20,10 @@ func TestAccServiceBusTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +35,10 @@ func TestAccServiceBusTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,10 +53,10 @@ func TestAccServiceBusTopic_basicDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -70,22 +68,22 @@ func TestAccServiceBusTopic_basicDisableEnable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,16 +94,16 @@ func TestAccServiceBusTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
 				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
 			),
@@ -117,16 +115,16 @@ func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.enablePartitioningStandard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
 				// Ensure size is read back in its original value and not the x16 value returned by Azure
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
@@ -140,16 +138,16 @@ func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicPremium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.enablePartitioningPremium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("81920"),
 			),
@@ -162,16 +160,16 @@ func TestAccServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.enableDuplicateDetection(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
 			),
 		},
@@ -183,10 +181,10 @@ func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.isoTimeSpanAttributes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auto_delete_on_idle").HasValue("PT10M"),
 				check.That(data.ResourceName).Key("default_message_ttl").HasValue("PT30M"),
@@ -198,7 +196,7 @@ func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	})
 }
 
-func (t ServiceBusTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ServiceBusTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TopicID(state.ID)
 	if err != nil {
 		return nil, err

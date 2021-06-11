@@ -10,17 +10,17 @@ package hdinsight
 type AsyncOperationState string
 
 const (
-	// Failed ...
-	Failed AsyncOperationState = "Failed"
-	// InProgress ...
-	InProgress AsyncOperationState = "InProgress"
-	// Succeeded ...
-	Succeeded AsyncOperationState = "Succeeded"
+	// AsyncOperationStateFailed ...
+	AsyncOperationStateFailed AsyncOperationState = "Failed"
+	// AsyncOperationStateInProgress ...
+	AsyncOperationStateInProgress AsyncOperationState = "InProgress"
+	// AsyncOperationStateSucceeded ...
+	AsyncOperationStateSucceeded AsyncOperationState = "Succeeded"
 )
 
 // PossibleAsyncOperationStateValues returns an array of possible values for the AsyncOperationState const type.
 func PossibleAsyncOperationStateValues() []AsyncOperationState {
-	return []AsyncOperationState{Failed, InProgress, Succeeded}
+	return []AsyncOperationState{AsyncOperationStateFailed, AsyncOperationStateInProgress, AsyncOperationStateSucceeded}
 }
 
 // ClusterProvisioningState enumerates the values for cluster provisioning state.
@@ -48,151 +48,151 @@ func PossibleClusterProvisioningStateValues() []ClusterProvisioningState {
 type DaysOfWeek string
 
 const (
-	// Friday ...
-	Friday DaysOfWeek = "Friday"
-	// Monday ...
-	Monday DaysOfWeek = "Monday"
-	// Saturday ...
-	Saturday DaysOfWeek = "Saturday"
-	// Sunday ...
-	Sunday DaysOfWeek = "Sunday"
-	// Thursday ...
-	Thursday DaysOfWeek = "Thursday"
-	// Tuesday ...
-	Tuesday DaysOfWeek = "Tuesday"
-	// Wednesday ...
-	Wednesday DaysOfWeek = "Wednesday"
+	// DaysOfWeekFriday ...
+	DaysOfWeekFriday DaysOfWeek = "Friday"
+	// DaysOfWeekMonday ...
+	DaysOfWeekMonday DaysOfWeek = "Monday"
+	// DaysOfWeekSaturday ...
+	DaysOfWeekSaturday DaysOfWeek = "Saturday"
+	// DaysOfWeekSunday ...
+	DaysOfWeekSunday DaysOfWeek = "Sunday"
+	// DaysOfWeekThursday ...
+	DaysOfWeekThursday DaysOfWeek = "Thursday"
+	// DaysOfWeekTuesday ...
+	DaysOfWeekTuesday DaysOfWeek = "Tuesday"
+	// DaysOfWeekWednesday ...
+	DaysOfWeekWednesday DaysOfWeek = "Wednesday"
 )
 
 // PossibleDaysOfWeekValues returns an array of possible values for the DaysOfWeek const type.
 func PossibleDaysOfWeekValues() []DaysOfWeek {
-	return []DaysOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
+	return []DaysOfWeek{DaysOfWeekFriday, DaysOfWeekMonday, DaysOfWeekSaturday, DaysOfWeekSunday, DaysOfWeekThursday, DaysOfWeekTuesday, DaysOfWeekWednesday}
 }
 
 // DirectoryType enumerates the values for directory type.
 type DirectoryType string
 
 const (
-	// ActiveDirectory ...
-	ActiveDirectory DirectoryType = "ActiveDirectory"
+	// DirectoryTypeActiveDirectory ...
+	DirectoryTypeActiveDirectory DirectoryType = "ActiveDirectory"
 )
 
 // PossibleDirectoryTypeValues returns an array of possible values for the DirectoryType const type.
 func PossibleDirectoryTypeValues() []DirectoryType {
-	return []DirectoryType{ActiveDirectory}
+	return []DirectoryType{DirectoryTypeActiveDirectory}
 }
 
 // FilterMode enumerates the values for filter mode.
 type FilterMode string
 
 const (
-	// Default ...
-	Default FilterMode = "Default"
-	// Exclude ...
-	Exclude FilterMode = "Exclude"
-	// Include ...
-	Include FilterMode = "Include"
-	// Recommend ...
-	Recommend FilterMode = "Recommend"
+	// FilterModeDefault ...
+	FilterModeDefault FilterMode = "Default"
+	// FilterModeExclude ...
+	FilterModeExclude FilterMode = "Exclude"
+	// FilterModeInclude ...
+	FilterModeInclude FilterMode = "Include"
+	// FilterModeRecommend ...
+	FilterModeRecommend FilterMode = "Recommend"
 )
 
 // PossibleFilterModeValues returns an array of possible values for the FilterMode const type.
 func PossibleFilterModeValues() []FilterMode {
-	return []FilterMode{Default, Exclude, Include, Recommend}
+	return []FilterMode{FilterModeDefault, FilterModeExclude, FilterModeInclude, FilterModeRecommend}
 }
 
 // JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.
 type JSONWebKeyEncryptionAlgorithm string
 
 const (
-	// RSA15 ...
-	RSA15 JSONWebKeyEncryptionAlgorithm = "RSA1_5"
-	// RSAOAEP ...
-	RSAOAEP JSONWebKeyEncryptionAlgorithm = "RSA-OAEP"
-	// RSAOAEP256 ...
-	RSAOAEP256 JSONWebKeyEncryptionAlgorithm = "RSA-OAEP-256"
+	// JSONWebKeyEncryptionAlgorithmRSA15 ...
+	JSONWebKeyEncryptionAlgorithmRSA15 JSONWebKeyEncryptionAlgorithm = "RSA1_5"
+	// JSONWebKeyEncryptionAlgorithmRSAOAEP ...
+	JSONWebKeyEncryptionAlgorithmRSAOAEP JSONWebKeyEncryptionAlgorithm = "RSA-OAEP"
+	// JSONWebKeyEncryptionAlgorithmRSAOAEP256 ...
+	JSONWebKeyEncryptionAlgorithmRSAOAEP256 JSONWebKeyEncryptionAlgorithm = "RSA-OAEP-256"
 )
 
 // PossibleJSONWebKeyEncryptionAlgorithmValues returns an array of possible values for the JSONWebKeyEncryptionAlgorithm const type.
 func PossibleJSONWebKeyEncryptionAlgorithmValues() []JSONWebKeyEncryptionAlgorithm {
-	return []JSONWebKeyEncryptionAlgorithm{RSA15, RSAOAEP, RSAOAEP256}
+	return []JSONWebKeyEncryptionAlgorithm{JSONWebKeyEncryptionAlgorithmRSA15, JSONWebKeyEncryptionAlgorithmRSAOAEP, JSONWebKeyEncryptionAlgorithmRSAOAEP256}
 }
 
 // OSType enumerates the values for os type.
 type OSType string
 
 const (
-	// Linux ...
-	Linux OSType = "Linux"
-	// Windows ...
-	Windows OSType = "Windows"
+	// OSTypeLinux ...
+	OSTypeLinux OSType = "Linux"
+	// OSTypeWindows ...
+	OSTypeWindows OSType = "Windows"
 )
 
 // PossibleOSTypeValues returns an array of possible values for the OSType const type.
 func PossibleOSTypeValues() []OSType {
-	return []OSType{Linux, Windows}
+	return []OSType{OSTypeLinux, OSTypeWindows}
 }
 
 // PrivateLink enumerates the values for private link.
 type PrivateLink string
 
 const (
-	// Disabled ...
-	Disabled PrivateLink = "Disabled"
-	// Enabled ...
-	Enabled PrivateLink = "Enabled"
+	// PrivateLinkDisabled ...
+	PrivateLinkDisabled PrivateLink = "Disabled"
+	// PrivateLinkEnabled ...
+	PrivateLinkEnabled PrivateLink = "Enabled"
 )
 
 // PossiblePrivateLinkValues returns an array of possible values for the PrivateLink const type.
 func PossiblePrivateLinkValues() []PrivateLink {
-	return []PrivateLink{Disabled, Enabled}
+	return []PrivateLink{PrivateLinkDisabled, PrivateLinkEnabled}
 }
 
 // ResourceIdentityType enumerates the values for resource identity type.
 type ResourceIdentityType string
 
 const (
-	// None ...
-	None ResourceIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ResourceIdentityType = "SystemAssigned"
-	// SystemAssignedUserAssigned ...
-	SystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
-	// UserAssigned ...
-	UserAssigned ResourceIdentityType = "UserAssigned"
+	// ResourceIdentityTypeNone ...
+	ResourceIdentityTypeNone ResourceIdentityType = "None"
+	// ResourceIdentityTypeSystemAssigned ...
+	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
+	// ResourceIdentityTypeSystemAssignedUserAssigned ...
+	ResourceIdentityTypeSystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
+	// ResourceIdentityTypeUserAssigned ...
+	ResourceIdentityTypeUserAssigned ResourceIdentityType = "UserAssigned"
 )
 
 // PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
 func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
+	return []ResourceIdentityType{ResourceIdentityTypeNone, ResourceIdentityTypeSystemAssigned, ResourceIdentityTypeSystemAssignedUserAssigned, ResourceIdentityTypeUserAssigned}
 }
 
 // ResourceProviderConnection enumerates the values for resource provider connection.
 type ResourceProviderConnection string
 
 const (
-	// Inbound ...
-	Inbound ResourceProviderConnection = "Inbound"
-	// Outbound ...
-	Outbound ResourceProviderConnection = "Outbound"
+	// ResourceProviderConnectionInbound ...
+	ResourceProviderConnectionInbound ResourceProviderConnection = "Inbound"
+	// ResourceProviderConnectionOutbound ...
+	ResourceProviderConnectionOutbound ResourceProviderConnection = "Outbound"
 )
 
 // PossibleResourceProviderConnectionValues returns an array of possible values for the ResourceProviderConnection const type.
 func PossibleResourceProviderConnectionValues() []ResourceProviderConnection {
-	return []ResourceProviderConnection{Inbound, Outbound}
+	return []ResourceProviderConnection{ResourceProviderConnectionInbound, ResourceProviderConnectionOutbound}
 }
 
 // Tier enumerates the values for tier.
 type Tier string
 
 const (
-	// Premium ...
-	Premium Tier = "Premium"
-	// Standard ...
-	Standard Tier = "Standard"
+	// TierPremium ...
+	TierPremium Tier = "Premium"
+	// TierStandard ...
+	TierStandard Tier = "Standard"
 )
 
 // PossibleTierValues returns an array of possible values for the Tier const type.
 func PossibleTierValues() []Tier {
-	return []Tier{Premium, Standard}
+	return []Tier{TierPremium, TierStandard}
 }

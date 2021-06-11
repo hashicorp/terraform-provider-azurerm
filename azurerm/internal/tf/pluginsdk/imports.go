@@ -26,7 +26,7 @@ func DefaultImporter() *schema.ResourceImporter {
 // ImporterValidatingResourceId validates the ID provided at import time is valid
 // using the validateFunc.
 func ImporterValidatingResourceId(validateFunc IDValidationFunc) *schema.ResourceImporter {
-	var thenFunc = func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
+	thenFunc := func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 		return []*ResourceData{d}, nil
 	}
 	return ImporterValidatingResourceIdThen(validateFunc, thenFunc)

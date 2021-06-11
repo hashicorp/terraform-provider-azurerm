@@ -2,14 +2,14 @@ package frontdoor
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func schemaCustomHttpsConfiguration() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func schemaCustomHttpsConfiguration() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"certificate_source": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(frontdoor.CertificateSourceFrontDoor),
 			ValidateFunc: validation.StringInSlice([]string{
@@ -18,29 +18,29 @@ func schemaCustomHttpsConfiguration() map[string]*schema.Schema {
 			}, false),
 		},
 		"minimum_tls_version": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"provisioning_state": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"provisioning_substate": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		// NOTE: None of these attributes are valid if
 		//       certificate_source is set to FrontDoor
 		"azure_key_vault_certificate_secret_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 		"azure_key_vault_certificate_secret_version": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 		"azure_key_vault_certificate_vault_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 	}

@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
@@ -20,56 +20,54 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
-func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageDataLakeGen2FileSystemCreate,
 		Read:   resourceStorageDataLakeGen2FileSystemRead,
 		Update: resourceStorageDataLakeGen2FileSystemUpdate,
 		Delete: resourceStorageDataLakeGen2FileSystemDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				storageClients := meta.(*clients.Client).Storage
-				ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
-				defer cancel()
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := filesystems.ParseResourceID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			storageClients := meta.(*clients.Client).Storage
+			id, err := filesystems.ParseResourceID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
+			}
 
-				id, err := filesystems.ParseResourceID(d.Id())
-				if err != nil {
-					return []*schema.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
-				}
+			// we then need to look up the Storage Account ID
+			account, err := storageClients.FindAccount(ctx, id.AccountName)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
+			}
+			if account == nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+			}
 
-				// we then need to look up the Storage Account ID
-				account, err := storageClients.FindAccount(ctx, id.AccountName)
-				if err != nil {
-					return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
-				}
-				if account == nil {
-					return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
-				}
+			d.Set("storage_account_id", account.ID)
 
-				d.Set("storage_account_id", account.ID)
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
-				return []*schema.ResourceData{d}, nil
-			},
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateStorageDataLakeGen2FileSystemName,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountID,
@@ -78,29 +76,29 @@ func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 			"properties": MetaDataSchema(),
 
 			"ace": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"scope": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 							Default:      "access",
 						},
 						"type": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"user", "group", "mask", "other"}, false),
 						},
 						"id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 						"permissions": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ADLSAccessControlPermissions,
 						},
@@ -111,7 +109,7 @@ func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 	}
 }
 
-func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	pathClient := meta.(*clients.Client).Storage.ADLSGen2PathsClient
@@ -123,7 +121,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 		return err
 	}
 
-	aceRaw := d.Get("ace").(*schema.Set).List()
+	aceRaw := d.Get("ace").(*pluginsdk.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
@@ -189,7 +187,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
-func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	pathClient := meta.(*clients.Client).Storage.ADLSGen2PathsClient
@@ -206,7 +204,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return err
 	}
 
-	aceRaw := d.Get("ace").(*schema.Set).List()
+	aceRaw := d.Get("ace").(*pluginsdk.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
@@ -257,7 +255,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
-func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	pathClient := meta.(*clients.Client).Storage.ADLSGen2PathsClient
@@ -324,7 +322,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceStorageDataLakeGen2FileSystemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

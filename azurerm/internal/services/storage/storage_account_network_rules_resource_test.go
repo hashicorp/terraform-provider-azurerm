@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +18,10 @@ func TestAccStorageAccountNetworkRules_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_storage_account.test").ExistsInAzure(r),
 			),
 		},
@@ -34,31 +33,82 @@ func TestAccStorageAccountNetworkRules_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_storage_account.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_storage_account.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_storage_account.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disablePrivateLinkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateLinkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disablePrivateLinkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccountNetworkRules_SynapseAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disablePrivateLinkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.synapseAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_storage_account.test").ExistsInAzure(r),
 			),
 		},
@@ -70,10 +120,10 @@ func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_storage_account.test").ExistsInAzure(r),
 			),
 		},
@@ -81,7 +131,7 @@ func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	})
 }
 
-func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	storageAccountName := state.Attributes["storage_account_name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
@@ -235,4 +285,118 @@ resource "azurerm_storage_account_network_rules" "test" {
   virtual_network_subnet_ids = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) disablePrivateLinkAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+  default_action             = "Deny"
+  bypass                     = ["None"]
+  ip_rules                   = []
+  virtual_network_subnet_ids = []
+}
+`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) privateLinkAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+  default_action             = "Deny"
+  ip_rules                   = ["127.0.0.1"]
+  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  private_link_access {
+    endpoint_resource_id = azurerm_private_endpoint.blob.id
+  }
+  private_link_access {
+    endpoint_resource_id = azurerm_private_endpoint.table.id
+  }
+}
+`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) synapseAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "synapse" {
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "BlobStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%[3]d"
+  storage_account_id = azurerm_storage_account.synapse.id
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%[3]d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+}
+
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+  default_action = "Deny"
+  ip_rules       = ["127.0.0.1"]
+  private_link_access {
+    endpoint_resource_id = azurerm_synapse_workspace.test.id
+  }
+}
+`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString, data.RandomInteger)
 }

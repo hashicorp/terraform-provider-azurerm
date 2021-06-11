@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -18,10 +17,10 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_standardSSD(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_os_disk.0.managed_disk_type").HasValue("StandardSSD_LRS"),
 			),
@@ -33,10 +32,10 @@ func TestAccVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_standardSSD(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_explicit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,10 +64,10 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_implicit(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_implicit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,10 +78,10 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_attach(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_attach(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -93,10 +92,10 @@ func TestAccVirtualMachine_withDataDisk_managedDisk_explicit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withDataDisk_managedDisk_explicit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -107,10 +106,10 @@ func TestAccVirtualMachine_withDataDisk_managedDisk_implicit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withDataDisk_managedDisk_implicit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -124,11 +123,11 @@ func TestAccVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 	var osDiskId string
 	var dataDiskId string
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Destroy: false,
 			Config:  r.withDataDisk_managedDisk_implicit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.findManagedDiskID("storage_os_disk.0.name", &osDiskId)),
 				data.CheckWithClient(r.findManagedDiskID("storage_data_disk.0.name", &dataDiskId)),
@@ -136,7 +135,7 @@ func TestAccVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 		},
 		{
 			Config: r.basicLinuxMachineDeleteVM_managedDisk(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.managedDiskExists(osDiskId, true)),
 				data.CheckWithClient(r.managedDiskExists(dataDiskId, true)),
 			),
@@ -151,11 +150,11 @@ func TestAccVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 	var osDiskId string
 	var dataDiskId string
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Destroy: false,
 			Config:  r.basicLinuxMachine_managedDisk_DestroyDisksBefore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.findManagedDiskID("storage_os_disk.0.name", &osDiskId)),
 				data.CheckWithClient(r.findManagedDiskID("storage_data_disk.0.name", &dataDiskId)),
@@ -163,7 +162,7 @@ func TestAccVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 		},
 		{
 			Config: r.basicLinuxMachine_managedDisk_DestroyDisksAfter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.managedDiskExists(osDiskId, false)),
 				data.CheckWithClient(r.managedDiskExists(dataDiskId, false)),
 			),
@@ -175,7 +174,7 @@ func TestAccVirtualMachine_osDiskTypeConflict(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.osDiskTypeConflict(data),
 			ExpectError: regexp.MustCompile("conflicts with storage_os_disk.0.managed_disk_type"),
@@ -187,7 +186,7 @@ func TestAccVirtualMachine_dataDiskTypeConflict(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.dataDiskTypeConflict(data),
 			ExpectError: regexp.MustCompile("Conflict between `vhd_uri`"),
@@ -199,7 +198,7 @@ func TestAccVirtualMachine_bug33(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.bug33(data),
 		},
@@ -210,17 +209,17 @@ func TestAccVirtualMachine_attachSecondDataDiskWithAttachOption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_data_disk.0.create_option").HasValue("Empty"),
 			),
 		},
 		{
 			Config: r.basicLinuxMachine_managedDisk_attach(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_data_disk.0.create_option").HasValue("Empty"),
 				check.That(data.ResourceName).Key("storage_data_disk.1.create_option").HasValue("Attach"),
@@ -233,7 +232,7 @@ func TestAccVirtualMachine_linuxNoConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.linuxNoConfig(data),
 			ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
@@ -245,7 +244,7 @@ func TestAccVirtualMachine_windowsNoConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.windowsNoConfig(data),
 			ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
@@ -261,10 +260,10 @@ func TestAccVirtualMachine_multipleNICs(t *testing.T) {
 	firstNicName := fmt.Sprintf("%s/acctni1-%d", prefix, data.RandomInteger)
 	secondNicName := fmt.Sprintf("%s/acctni2-%d", prefix, data.RandomInteger)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleNICs(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("network_interface_ids.0").HasValue(firstNicName),
 				check.That(data.ResourceName).Key("network_interface_ids.1").HasValue(secondNicName),
 			),
@@ -276,14 +275,14 @@ func TestAccVirtualMachine_managedServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withManagedServiceIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				resource.TestMatchOutput("principal_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				acceptance.TestMatchOutput("principal_id", validate.UUIDRegExp),
 			),
 		},
 	})
@@ -293,10 +292,10 @@ func TestAccVirtualMachine_enableAnWithVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.anWithVM(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -307,17 +306,17 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_changeOsWriteAccelerato
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_withOsWriteAcceleratorEnabled(data, "true"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_os_disk.0.write_accelerator_enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: r.basicLinuxMachine_managedDisk_withOsWriteAcceleratorEnabled(data, "false"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_os_disk.0.write_accelerator_enabled").HasValue("false"),
 			),
@@ -329,10 +328,10 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEna
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(data, "true"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_data_disk.0.write_accelerator_enabled").HasValue("true"),
 			),
@@ -344,17 +343,17 @@ func TestAccVirtualMachine_basicLinuxMachine_managedDisk_changeWriteAcceleratorE
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(data, "false"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_data_disk.0.write_accelerator_enabled").HasValue("false"),
 			),
 		},
 		{
 			Config: r.basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(data, "true"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_data_disk.0.write_accelerator_enabled").HasValue("true"),
 			),
@@ -366,10 +365,10 @@ func TestAccVirtualMachine_winRMCerts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.winRMCerts(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -380,10 +379,10 @@ func TestAccVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.hasDiskInfoWhenStopped(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_os_disk.0.managed_disk_type").HasValue("Standard_LRS"),
 				check.That(data.ResourceName).Key("storage_data_disk.0.disk_size_gb").HasValue("64"),
@@ -391,7 +390,7 @@ func TestAccVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 		},
 		{
 			Config: r.hasDiskInfoWhenStopped(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.deallocate),
 				check.That(data.ResourceName).Key("storage_os_disk.0.managed_disk_type").HasValue("Standard_LRS"),
 				check.That(data.ResourceName).Key("storage_data_disk.0.disk_size_gb").HasValue("64"),
@@ -404,7 +403,7 @@ func TestAccVirtualMachine_importBasic_withZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine_managedDisk_implicit_withZone(data),
 		},
@@ -422,10 +421,10 @@ func TestAccVirtualMachine_ultraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ultraSSD(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

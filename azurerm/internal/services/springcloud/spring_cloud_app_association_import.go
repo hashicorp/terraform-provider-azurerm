@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 const (
@@ -18,7 +16,7 @@ const (
 )
 
 func importSpringCloudAppAssociation(resourceType string) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
 		id, err := parse.SpringCloudAppAssociationID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err

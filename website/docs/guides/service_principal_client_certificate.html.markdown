@@ -73,7 +73,7 @@ To associate the public portion of the Client Certificate (the `*.crt` file) wit
 
 The Public Key associated with the generated Certificate can be uploaded by selecting **Upload Certificate**, selecting the file which should be uploaded (in the example above, that'd be `service-principal.crt`) - and then hit **Add**.
 
-### Allowing the Service Principal to manage the Subscription
+### Allowing the Service Principal to manage the Subscription
 
 Now that we've created the Application within Azure Active Directory and assigned the certificate we're using for authentication, we can now grant the Application permissions to manage the Subscription via its linked Service Principal. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), select the Subscription you wish to use, then click **Access Control (IAM)** and finally **Add** > **Add role assignment**.
 

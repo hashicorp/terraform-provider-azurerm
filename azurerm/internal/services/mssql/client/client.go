@@ -3,7 +3,6 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

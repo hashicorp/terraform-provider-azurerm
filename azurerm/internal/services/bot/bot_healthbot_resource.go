@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHealthbotService() *schema.Resource {
-	return &schema.Resource{
+func resourceHealthbotService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHealthbotServiceCreate,
 		Read:   resourceHealthbotServiceRead,
 		Update: resourceHealthbotServiceUpdate,
 		Delete: resourceHealthbotServiceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BotHealthbotID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.HealthbotName,
@@ -52,7 +51,7 @@ func resourceHealthbotService() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(healthbot.F0),
@@ -61,7 +60,7 @@ func resourceHealthbotService() *schema.Resource {
 			},
 
 			"bot_management_portal_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -70,7 +69,7 @@ func resourceHealthbotService() *schema.Resource {
 	}
 }
 
-func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -115,7 +114,7 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 	return resourceHealthbotServiceRead(d, meta)
 }
 
-func resourceHealthbotServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,12 +143,12 @@ func resourceHealthbotServiceRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.Properties; props != nil {
-		d.Set("bot_management_portal_link", props.BotManagementPortalLink)
+		d.Set("bot_management_portal_url", props.BotManagementPortalLink)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceHealthbotServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +175,7 @@ func resourceHealthbotServiceUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceHealthbotServiceRead(d, meta)
 }
 
-func resourceHealthbotServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

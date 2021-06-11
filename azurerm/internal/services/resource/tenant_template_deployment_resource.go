@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func tenantTemplateDeploymentResource() *schema.Resource {
-	return &schema.Resource{
+func tenantTemplateDeploymentResource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: tenantTemplateDeploymentResourceCreate,
 		Read:   tenantTemplateDeploymentResourceRead,
 		Update: tenantTemplateDeploymentResourceUpdate,
@@ -31,19 +30,19 @@ func tenantTemplateDeploymentResource() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(180 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(180 * time.Minute),
-			Delete: schema.DefaultTimeout(180 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
 		},
 
 		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
 
 		//lintignore:S033
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.TemplateDeploymentName,
@@ -52,7 +51,7 @@ func tenantTemplateDeploymentResource() *schema.Resource {
 			"location": location.Schema(),
 
 			"template_content": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ExactlyOneOf: []string{
@@ -63,7 +62,7 @@ func tenantTemplateDeploymentResource() *schema.Resource {
 			},
 
 			"template_spec_version_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ExactlyOneOf: []string{
 					"template_content",
@@ -74,13 +73,13 @@ func tenantTemplateDeploymentResource() *schema.Resource {
 
 			// Optional
 			"debug_level": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(templateDeploymentDebugLevels, false),
 			},
 
 			"parameters_content": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
 				StateFunc: utils.NormalizeJson,
@@ -90,7 +89,7 @@ func tenantTemplateDeploymentResource() *schema.Resource {
 
 			// Computed
 			"output_content": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
@@ -99,7 +98,7 @@ func tenantTemplateDeploymentResource() *schema.Resource {
 	}
 }
 
-func tenantTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +119,7 @@ func tenantTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interfa
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -168,7 +167,7 @@ func tenantTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interfa
 	return tenantTemplateDeploymentResourceRead(d, meta)
 }
 
-func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +191,7 @@ func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interfa
 		Location: template.Location,
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: template.Properties.DebugSetting,
-			Mode:         resources.Incremental,
+			Mode:         resources.DeploymentModeIncremental,
 		},
 		Tags: template.Tags,
 	}
@@ -256,7 +255,7 @@ func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interfa
 	return tenantTemplateDeploymentResourceRead(d, meta)
 }
 
-func tenantTemplateDeploymentResourceRead(d *schema.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,7 +318,7 @@ func tenantTemplateDeploymentResourceRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func tenantTemplateDeploymentResourceDelete(d *schema.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

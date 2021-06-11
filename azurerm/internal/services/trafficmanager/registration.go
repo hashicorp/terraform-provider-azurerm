@@ -1,7 +1,7 @@
 package trafficmanager
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,16 +19,16 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_traffic_manager_geographical_location": dataSourceArmTrafficManagerGeographicalLocation(),
 		"azurerm_traffic_manager_profile":               dataSourceArmTrafficManagerProfile(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_traffic_manager_endpoint": resourceArmTrafficManagerEndpoint(),
 		"azurerm_traffic_manager_profile":  resourceArmTrafficManagerProfile(),
 	}

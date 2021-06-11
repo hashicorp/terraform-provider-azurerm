@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccSynapseWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
 			),
@@ -36,10 +35,10 @@ func TestAccSynapseWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccSynapseWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_resource_group_name").HasValue(fmt.Sprintf("acctest-ManagedSynapse-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("sql_identity_control_enabled").HasValue("true"),
@@ -68,24 +67,24 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sql_administrator_login_password"),
 		{
 			Config: r.withUpdateFields(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sql_administrator_login_password"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,10 +95,10 @@ func TestAccSynapseWorkspace_azdo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azdo(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
 				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
@@ -115,10 +114,10 @@ func TestAccSynapseWorkspace_github(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.github(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("github_repo.0.account_name").HasValue("myuser"),
 				check.That(data.ResourceName).Key("github_repo.0.git_url").HasValue("https://github.mydomain.com"),
@@ -134,10 +133,10 @@ func TestAccSynapseWorkspace_customerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customerManagedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("customer_managed_key_versionless_id").Exists(),
 			),
@@ -146,7 +145,7 @@ func TestAccSynapseWorkspace_customerManagedKey(t *testing.T) {
 	})
 }
 
-func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
 		return nil, err

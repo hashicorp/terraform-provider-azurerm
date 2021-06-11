@@ -2,22 +2,22 @@ package devtestlabs
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaDevTestVirtualMachineInboundNatRule() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
+func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// since these aren't returned from the API
 		ForceNew: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(dtl.TCP),
@@ -26,14 +26,14 @@ func schemaDevTestVirtualMachineInboundNatRule() *schema.Schema {
 				},
 
 				"backend_port": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.PortNumber,
 				},
 
 				"frontend_port": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 			},
@@ -41,7 +41,7 @@ func schemaDevTestVirtualMachineInboundNatRule() *schema.Schema {
 	}
 }
 
-func expandDevTestLabVirtualMachineNatRules(input *schema.Set) []dtl.InboundNatRule {
+func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []dtl.InboundNatRule {
 	rules := make([]dtl.InboundNatRule, 0)
 	if input == nil {
 		return rules
@@ -83,30 +83,30 @@ func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, os
 	}
 }
 
-func schemaDevTestVirtualMachineGalleryImageReference() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaDevTestVirtualMachineGalleryImageReference() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"offer": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
 				"publisher": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
 				"sku": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
 				"version": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},

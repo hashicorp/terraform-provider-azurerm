@@ -1,19 +1,19 @@
 package client
 
 import (
-	appconf "github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/sdk/configurationstores"
 )
 
 type Client struct {
-	AppConfigurationsClient *appconf.ConfigurationStoresClient
+	ConfigurationStoresClient *configurationstores.ConfigurationStoresClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	AppConfigurationsClient := appconf.NewConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AppConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	configurationStores := configurationstores.NewConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&configurationStores.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AppConfigurationsClient: &AppConfigurationsClient,
+		ConfigurationStoresClient: &configurationStores,
 	}
 }

@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,10 +25,10 @@ func TestAccSqlVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	r := SqlVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("false"),
 			),
@@ -37,7 +36,7 @@ func TestAccSqlVirtualNetworkRule_basic(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withUpdates(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("true"),
 			),
@@ -50,10 +49,10 @@ func TestAccSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	r := SqlVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("false"),
 			),
@@ -75,17 +74,17 @@ func TestAccSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnetSwitchPre(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").MatchesRegex(preConfigRegex),
 			),
 		},
 		{
 			Config: r.subnetSwitchPost(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").MatchesRegex(postConfigRegex),
 			),
@@ -100,7 +99,7 @@ func TestAccSqlVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	r := SqlVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -117,10 +116,10 @@ func TestAccSqlVirtualNetworkRule_ignoreEndpointValid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	r := SqlVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ignoreEndpointValid(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -136,7 +135,7 @@ func TestAccSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	r := SqlVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.ignoreEndpointInvalid(data),
 			ExpectError: regexp.MustCompile("Code=\"VirtualNetworkRuleBadRequest\""),
@@ -155,10 +154,10 @@ func TestAccSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
 	r := SqlVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleSubnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(resourceName2).ExistsInAzure(r),
 				check.That(resourceName3).ExistsInAzure(r),
@@ -167,7 +166,7 @@ func TestAccSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	})
 }
 
-func (r SqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -182,7 +181,7 @@ func (r SqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clien
 	return utils.Bool(true), nil
 }
 
-func (r SqlVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
