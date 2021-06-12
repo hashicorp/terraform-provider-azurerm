@@ -117,7 +117,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${count.index}"
   location = "%s"
   lifecycle {
-	  ignore_changes = [tags]
+    ignore_changes = [tags]
   }
 }
 
