@@ -128,7 +128,7 @@ func resourceArmConsumptionBudgetDataSourceRead(d *pluginsdk.ResourceData, meta 
 	if err != nil {
 		return err
 	}
-	
+
 	// The scope of a Resource Group consumption budget is the Resource Group ID
 	d.Set("resource_group_id", d.Get("resource_group_id").(string))
 	d.Set("subscription_id", d.Get("subscription_id").(string))
