@@ -37,8 +37,8 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 data "azurerm_consumption_budget" "current" {
-	name = "acctestconsumptionbudgetresourcegroup"
-	subscription_id = data.azurerm_subscription.current.subscription_id
+  name            = "acctestconsumptionbudgetresourcegroup"
+  subscription_id = data.azurerm_subscription.current.subscription_id
 }
 `
 }
@@ -55,7 +55,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
   lifecycle {
-	  ignore_changes = [tags]
+    ignore_changes = [tags]
   }
 }
 
