@@ -270,6 +270,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 
 	if dataLakeStorageGen2.ServicePrincipalID != nil {
 		d.Set("service_principal_id", dataLakeStorageGen2.ServicePrincipalID)
+		d.Set("use_managed_identity", false)
 	}
 
 	if dataLakeStorageGen2.URL != nil {
