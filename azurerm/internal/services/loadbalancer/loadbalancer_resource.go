@@ -73,6 +73,21 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"availability_zone": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							//Default:  "Zone-Redundant",
+							Computed: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"No-Zone",
+								"1",
+								"2",
+								"3",
+								"Zone-Redundant",
+							}, false),
+						},
+
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -156,7 +171,19 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Set: pluginsdk.HashString,
 						},
 
-						"zones": azure.SchemaSingleZone(),
+						// TODO - 3.0 make Computed only
+						"zones": {
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ForceNew:   true,
+							Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
+							MaxItems:   1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 
 						"id": {
 							Type:     pluginsdk.TypeString,
@@ -358,7 +385,25 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		}
 
 		name := data["name"].(string)
-		zones := azure.ExpandZones(data["zones"].([]interface{}))
+		zones := &[]string{"1", "2"}
+		// TODO - Remove in 3.0
+		if deprecatedZonesRaw, ok := data["zones"]; ok {
+			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
+			if deprecatedZones != nil {
+				zones = deprecatedZones
+			}
+		}
+
+		if availabilityZones, ok := data["availability_zone"]; ok {
+			switch availabilityZones.(string) {
+			case "1", "2", "3":
+				zones = &[]string{availabilityZones.(string)}
+			case "Zone-Redundant":
+				zones = &[]string{"1", "2"}
+			case "No-Zone":
+				zones = &[]string{}
+			}
+		}
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name:                                    &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
@@ -388,11 +433,20 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 			ipConfig["id"] = *config.ID
 		}
 
-		zones := make([]string, 0)
-		if zs := config.Zones; zs != nil {
-			zones = *zs
+		availabilityZones := "No-Zone"
+		zonesDeprecated := make([]string, 0)
+		if config.Zones != nil {
+			if len(*config.Zones) > 1 {
+				availabilityZones = "Zone-Redundant"
+			}
+			if len(*config.Zones) == 1 {
+				zones := *config.Zones
+				availabilityZones = zones[0]
+				zonesDeprecated = zones
+			}
 		}
-		ipConfig["zones"] = zones
+		ipConfig["availability_zone"] = availabilityZones
+		ipConfig["zones"] = zonesDeprecated
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
