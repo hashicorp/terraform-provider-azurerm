@@ -2,8 +2,7 @@ package helper
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +24,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
@@ -33,7 +32,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
@@ -41,7 +40,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
