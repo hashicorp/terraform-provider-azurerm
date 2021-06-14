@@ -109,7 +109,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 			if utils.ResponseWasNotFound(resp.Response) {
 				return pluginsdk.RetryableError(fmt.Errorf("Expected schema %q (API Management Service %q / API %q / Resource Group %q) to be created but was in non existent state, retrying", schemaID, serviceName, apiName, resourceGroup))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("Error geting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("Error getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err))
 		}
 		if resp.ID == nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("Cannot read ID for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err))
@@ -118,7 +118,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("Error geting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("Error getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 	return resourceApiManagementApiSchemaRead(d, meta)
 }
@@ -166,7 +166,9 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 
 				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
 			*/
-			if *properties.ContentType == "application/vnd.ms-azure-apim.swagger.definitions+json" || *properties.ContentType == "application/vnd.oai.openapi.components+json" {
+			switch *properties.ContentType {
+			case "application/vnd.ms-azure-apim.swagger.definitions+json":
+			case "application/vnd.oai.openapi.components+json":
 				if documentProperties.Definitions != nil {
 					value, err := json.Marshal(documentProperties.Definitions)
 					if err != nil {
@@ -174,13 +176,13 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 					}
 					d.Set("value", string(value))
 				}
-			} else if *properties.ContentType == "application/vnd.ms-azure-apim.xsd+xml" || *properties.ContentType == "application/vnd.ms-azure-apim.wadl.grammars+xml" {
+			case "application/vnd.ms-azure-apim.xsd+xml":
+			case "application/vnd.ms-azure-apim.wadl.grammars+xml":
 				d.Set("value", documentProperties.Value)
-			} else {
-				return fmt.Errorf("[FATAL] Unkown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+			default:
+				return fmt.Errorf("[FATAL] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
 			}
 		}
-
 	}
 	return nil
 }
