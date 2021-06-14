@@ -195,7 +195,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 	// Default to Zone-Redundant - Legacy behaviour TODO - Switch to `No-Zone` in 3.0 to match service?
-	zones := &[]string{"1", "2", "3"}
+	zones := &[]string{"1", "2"}
 	zonesSet := false
 	// TODO - Remove in 3.0
 	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
@@ -212,7 +212,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		case "1", "2", "3":
 			zones = &[]string{availabilityZones.(string)}
 		case "Zone-Redundant":
-			zones = &[]string{"1", "2", "3"}
+			zones = &[]string{"1", "2"}
 		case "No-Zone":
 			zones = &[]string{}
 		}

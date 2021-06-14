@@ -106,7 +106,7 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_policy" "test" {
   api_management_id = azurerm_api_management.test.id
-  xml_link          = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/azurerm/internal/services/apimanagement/tests/testdata/api_management_policy_test.xml"
+  xml_link          = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/azurerm/internal/services/apimanagement/testdata/api_management_policy_test.xml"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

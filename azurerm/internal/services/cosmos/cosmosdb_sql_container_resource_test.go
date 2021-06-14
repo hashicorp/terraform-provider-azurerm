@@ -172,6 +172,21 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		{
+
+			Config: r.indexing_policy_update_spatialIndex(data, "/includedPath02/*", "/excludedPath02/?"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -444,6 +459,66 @@ resource "azurerm_cosmosdb_sql_container" "test" {
         path  = "/path4"
         order = "Descending"
       }
+    }
+  }
+}
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
+}
+
+func (CosmosSqlContainerResource) indexing_policy_update_spatialIndex(data acceptance.TestData, includedPath, excludedPath string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
+
+  indexing_policy {
+    indexing_mode = "Consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    included_path {
+      path = "%s"
+    }
+
+    excluded_path {
+      path = "%s"
+    }
+
+    composite_index {
+      index {
+        path  = "/path1"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path2"
+        order = "Descending"
+      }
+    }
+
+    composite_index {
+      index {
+        path  = "/path3"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path4"
+        order = "Descending"
+      }
+    }
+
+    spatial_index {
+      path = "/path/*"
+    }
+
+    spatial_index {
+      path = "/test/to/all/?"
     }
   }
 }

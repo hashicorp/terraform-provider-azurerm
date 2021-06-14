@@ -265,19 +265,33 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"user_assigned_identity_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},
 				},
@@ -908,6 +922,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
+	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 
 	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
@@ -919,6 +934,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String("msi"),
 		}
+	}
+	if len(kubernetesClusterIdentityRaw) > 0 {
+		parameters.ManagedClusterProperties.IdentityProfile = expandKubernetesClusterIdentityProfile(kubernetesClusterIdentityRaw)
 	}
 
 	servicePrincipalSet := false
@@ -1542,6 +1560,25 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 			},
 		},
 	}
+}
+
+func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue {
+	identityProfile := make(map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue)
+	if len(input) == 0 || input[0] == nil {
+		return identityProfile
+	}
+
+	values := input[0].(map[string]interface{})
+
+	if containerservice.ResourceIdentityType(values["user_assigned_identity_id"].(string)) != "" {
+		identityProfile["kubeletidentity"] = &containerservice.ManagedClusterPropertiesIdentityProfileValue{
+			ResourceID: utils.String(values["user_assigned_identity_id"].(string)),
+			ClientID:   utils.String(values["client_id"].(string)),
+			ObjectID:   utils.String(values["object_id"].(string)),
+		}
+	}
+
+	return identityProfile
 }
 
 func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
