@@ -153,12 +153,6 @@ github.com/Azure/go-autorest/logger
 # github.com/Azure/go-autorest/tracing v0.6.0
 ## explicit
 github.com/Azure/go-autorest/tracing
-# github.com/Masterminds/goutils v1.1.0
-github.com/Masterminds/goutils
-# github.com/Masterminds/semver v1.5.0
-github.com/Masterminds/semver
-# github.com/Masterminds/sprig v2.22.0+incompatible
-github.com/Masterminds/sprig
 # github.com/agext/levenshtein v1.2.2
 github.com/agext/levenshtein
 # github.com/apparentlymart/go-cidr v1.0.1
@@ -167,8 +161,6 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/textseg
 # github.com/apparentlymart/go-textseg/v13 v13.0.0
 github.com/apparentlymart/go-textseg/v13/textseg
-# github.com/armon/go-radix v1.0.0
-github.com/armon/go-radix
 # github.com/aws/aws-sdk-go v1.25.3
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
@@ -209,8 +201,6 @@ github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 github.com/bgentry/go-netrc/netrc
-# github.com/bgentry/speakeasy v0.1.0
-github.com/bgentry/speakeasy
 # github.com/btubbs/datetime v0.1.0
 ## explicit
 github.com/btubbs/datetime
@@ -293,33 +283,12 @@ github.com/hashicorp/go-uuid
 # github.com/hashicorp/go-version v1.3.0
 ## explicit
 github.com/hashicorp/go-version
-# github.com/hashicorp/hcl v1.0.0
-## explicit
-github.com/hashicorp/hcl
-github.com/hashicorp/hcl/hcl/ast
-github.com/hashicorp/hcl/hcl/parser
-github.com/hashicorp/hcl/hcl/scanner
-github.com/hashicorp/hcl/hcl/strconv
-github.com/hashicorp/hcl/hcl/token
-github.com/hashicorp/hcl/json/parser
-github.com/hashicorp/hcl/json/scanner
-github.com/hashicorp/hcl/json/token
 # github.com/hashicorp/hcl/v2 v2.3.0
 github.com/hashicorp/hcl/v2
 github.com/hashicorp/hcl/v2/ext/customdecode
-github.com/hashicorp/hcl/v2/ext/dynblock
-github.com/hashicorp/hcl/v2/ext/typeexpr
-github.com/hashicorp/hcl/v2/gohcl
-github.com/hashicorp/hcl/v2/hcldec
-github.com/hashicorp/hcl/v2/hcled
-github.com/hashicorp/hcl/v2/hclparse
 github.com/hashicorp/hcl/v2/hclsyntax
-github.com/hashicorp/hcl/v2/hclwrite
-github.com/hashicorp/hcl/v2/json
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform-config-inspect v0.0.0-20191115094559-17f92b0546e8
-github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-exec v0.13.3
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
@@ -336,50 +305,6 @@ github.com/hashicorp/terraform-plugin-go/tftypes
 # github.com/hashicorp/terraform-plugin-sdk v1.6.0
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
-github.com/hashicorp/terraform-plugin-sdk/helper/hashcode
-github.com/hashicorp/terraform-plugin-sdk/helper/logging
-github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv
-github.com/hashicorp/terraform-plugin-sdk/helper/resource
-github.com/hashicorp/terraform-plugin-sdk/helper/schema
-github.com/hashicorp/terraform-plugin-sdk/helper/structure
-github.com/hashicorp/terraform-plugin-sdk/helper/validation
-github.com/hashicorp/terraform-plugin-sdk/httpclient
-github.com/hashicorp/terraform-plugin-sdk/internal/addrs
-github.com/hashicorp/terraform-plugin-sdk/internal/command/format
-github.com/hashicorp/terraform-plugin-sdk/internal/configs
-github.com/hashicorp/terraform-plugin-sdk/internal/configs/configload
-github.com/hashicorp/terraform-plugin-sdk/internal/configs/configschema
-github.com/hashicorp/terraform-plugin-sdk/internal/configs/hcl2shim
-github.com/hashicorp/terraform-plugin-sdk/internal/dag
-github.com/hashicorp/terraform-plugin-sdk/internal/earlyconfig
-github.com/hashicorp/terraform-plugin-sdk/internal/flatmap
-github.com/hashicorp/terraform-plugin-sdk/internal/helper/config
-github.com/hashicorp/terraform-plugin-sdk/internal/helper/didyoumean
-github.com/hashicorp/terraform-plugin-sdk/internal/helper/plugin
-github.com/hashicorp/terraform-plugin-sdk/internal/httpclient
-github.com/hashicorp/terraform-plugin-sdk/internal/initwd
-github.com/hashicorp/terraform-plugin-sdk/internal/lang
-github.com/hashicorp/terraform-plugin-sdk/internal/lang/blocktoattr
-github.com/hashicorp/terraform-plugin-sdk/internal/lang/funcs
-github.com/hashicorp/terraform-plugin-sdk/internal/modsdir
-github.com/hashicorp/terraform-plugin-sdk/internal/moduledeps
-github.com/hashicorp/terraform-plugin-sdk/internal/plans
-github.com/hashicorp/terraform-plugin-sdk/internal/plans/objchange
-github.com/hashicorp/terraform-plugin-sdk/internal/plugin/convert
-github.com/hashicorp/terraform-plugin-sdk/internal/plugin/discovery
-github.com/hashicorp/terraform-plugin-sdk/internal/providers
-github.com/hashicorp/terraform-plugin-sdk/internal/provisioners
-github.com/hashicorp/terraform-plugin-sdk/internal/registry
-github.com/hashicorp/terraform-plugin-sdk/internal/registry/regsrc
-github.com/hashicorp/terraform-plugin-sdk/internal/registry/response
-github.com/hashicorp/terraform-plugin-sdk/internal/states
-github.com/hashicorp/terraform-plugin-sdk/internal/states/statefile
-github.com/hashicorp/terraform-plugin-sdk/internal/tfdiags
-github.com/hashicorp/terraform-plugin-sdk/internal/tfplugin5
-github.com/hashicorp/terraform-plugin-sdk/internal/version
-github.com/hashicorp/terraform-plugin-sdk/meta
-github.com/hashicorp/terraform-plugin-sdk/plugin
-github.com/hashicorp/terraform-plugin-sdk/terraform
 # github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
@@ -401,16 +326,8 @@ github.com/hashicorp/terraform-plugin-sdk/v2/internal/tfdiags
 github.com/hashicorp/terraform-plugin-sdk/v2/meta
 github.com/hashicorp/terraform-plugin-sdk/v2/plugin
 github.com/hashicorp/terraform-plugin-sdk/v2/terraform
-# github.com/hashicorp/terraform-svchost v0.0.0-20191011084731-65d371908596
-github.com/hashicorp/terraform-svchost
-github.com/hashicorp/terraform-svchost/auth
-github.com/hashicorp/terraform-svchost/disco
 # github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d
 github.com/hashicorp/yamux
-# github.com/huandu/xstrings v1.3.2
-github.com/huandu/xstrings
-# github.com/imdario/mergo v0.3.12
-github.com/imdario/mergo
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
 # github.com/jstemmer/go-junit-report v0.9.1
@@ -427,10 +344,6 @@ github.com/klauspost/compress/zstd/internal/xxhash
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.10
 github.com/mattn/go-isatty
-# github.com/mitchellh/cli v1.1.2
-github.com/mitchellh/cli
-# github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
-github.com/mitchellh/colorstring
 # github.com/mitchellh/copystructure v1.0.0
 github.com/mitchellh/copystructure
 # github.com/mitchellh/go-homedir v1.1.0
@@ -445,11 +358,6 @@ github.com/mitchellh/mapstructure
 github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
-# github.com/posener/complete v1.2.1
-github.com/posener/complete
-github.com/posener/complete/cmd
-github.com/posener/complete/cmd/install
-github.com/posener/complete/match
 # github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 ## explicit
 github.com/rickb777/date/period
@@ -461,19 +369,6 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.2.0
 ## explicit
 github.com/shopspring/decimal
-# github.com/spf13/afero v1.2.2
-github.com/spf13/afero
-github.com/spf13/afero/mem
-# github.com/terraform-providers/terraform-provider-azuread v0.9.0
-## explicit
-github.com/terraform-providers/terraform-provider-azuread/azuread
-github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar
-github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph
-github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/p
-github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices
-github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
-github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
-github.com/terraform-providers/terraform-provider-azuread/version
 # github.com/tombuildsstuff/giovanni v0.15.1
 ## explicit
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
@@ -499,13 +394,6 @@ github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
-# github.com/vmihailenco/msgpack/v4 v4.3.12
-github.com/vmihailenco/msgpack/v4
-github.com/vmihailenco/msgpack/v4/codes
-# github.com/vmihailenco/tagparser v0.1.1
-github.com/vmihailenco/tagparser
-github.com/vmihailenco/tagparser/internal
-github.com/vmihailenco/tagparser/internal/parser
 # github.com/zclconf/go-cty v1.8.2
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
@@ -513,10 +401,7 @@ github.com/zclconf/go-cty/cty/function
 github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
-github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/set
-# github.com/zclconf/go-cty-yaml v1.0.1
-github.com/zclconf/go-cty-yaml
 # go.opencensus.io v0.22.4
 go.opencensus.io
 go.opencensus.io/internal
@@ -536,7 +421,6 @@ go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
 # golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 ## explicit
-golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
@@ -550,11 +434,9 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
 golang.org/x/crypto/poly1305
-golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 # golang.org/x/lint v0.0.0-20200302205851-738671d3881b
@@ -682,7 +564,6 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-google.golang.org/grpc/test/bufconn
 # google.golang.org/protobuf v1.25.0
 google.golang.org/protobuf/cmd/protoc-gen-go/internal_gengo
 google.golang.org/protobuf/compiler/protogen
