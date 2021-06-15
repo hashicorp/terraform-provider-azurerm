@@ -5,7 +5,7 @@ import (
 	"time"
 
 	iso8601 "github.com/btubbs/datetime"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/rickb777/date/period"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )

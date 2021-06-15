@@ -291,7 +291,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								// Hardcode to using `Dnat` instead of the one defined in Swagger (i.e. network.DNAT) because of: https://github.com/Azure/azure-rest-api-specs/issues/9986
-								// Setting `StateFunc: state.IgnoreCase` will cause other issues, as tracked by: https://github.com/hashicorp/terraform-plugin-sdk/issues/485
+								// Setting `StateFunc: state.IgnoreCase` will cause other issues, as tracked by: https://github.com/hashicorp/terraform-plugin-sdk/v2/issues/485
 								// Another solution is to customize the hash function for the containing block, but as there are a couple of properties here, especially
 								// has property whose type is another nested block (Set), so the implementation is nontrivial and error-prone.
 								"Dnat",
