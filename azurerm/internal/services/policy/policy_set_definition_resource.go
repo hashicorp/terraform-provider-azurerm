@@ -12,7 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
@@ -102,7 +101,7 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"policy_definitions": { // TODO -- remove in the next major version
@@ -143,7 +142,7 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 							Optional:         true,
 							Computed:         true, // TODO -- remove Computed after the deprecation
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
 
 						"reference_id": {
@@ -287,7 +286,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
-		metaData, err := structure.ExpandJsonFromString(metaDataString)
+		metaData, err := pluginsdk.ExpandJsonFromString(metaDataString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
@@ -406,7 +405,7 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 	if d.HasChange("metadata") {
 		metaDataString := d.Get("metadata").(string)
 		if metaDataString != "" {
-			metaData, err := structure.ExpandJsonFromString(metaDataString)
+			metaData, err := pluginsdk.ExpandJsonFromString(metaDataString)
 			if err != nil {
 				return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 			}
@@ -504,7 +503,7 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 
 		if metadata := props.Metadata; metadata != nil {
 			metadataVal := metadata.(map[string]interface{})
-			metadataStr, err := structure.FlattenJsonToString(metadataVal)
+			metadataStr, err := pluginsdk.FlattenJsonToString(metadataVal)
 			if err != nil {
 				return fmt.Errorf("flattening JSON for `metadata`: %+v", err)
 			}
