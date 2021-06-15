@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v55.2.0` of `github.com/Azure/azure-sdk-for-go` [GH-12153]
 * dependencies: updating `synapse` to use API Version `2021-03-01` [GH-12183]
+* `azurerm_api_management` - support for the `client_certificate_enabled`, `gateway_disabled`, `min_api_version`, and `zones` propeties [GH-12125]
 * `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block [GH-11625]
 * `azurerm_monitor_metric_alert` - support the `StartsWith` dimension operator [GH-12181]
 * `azurerm_synapse_workspace` - support for the `data_exfiltration_protection_enabled` property [GH-12183]
