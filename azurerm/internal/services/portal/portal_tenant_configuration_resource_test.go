@@ -78,7 +78,7 @@ func testAccPortalTenantConfiguration_update(t *testing.T) {
 }
 
 func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.TenantConfigurationID(state.ID)
+	id, err := parse.PortalTenantConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_portal_tenant_configuration" "test" {
-  enforce_private_markdown_storage = %t
+  private_markdown_storage_enforced = %t
 }
 `, enforcePrivateMarkdownStorage)
 }
@@ -108,7 +108,7 @@ func (r PortalTenantConfigurationResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_portal_tenant_configuration" "import" {
-  enforce_private_markdown_storage = azurerm_portal_tenant_configuration.test.enforce_private_markdown_storage
+  private_markdown_storage_enforced = azurerm_portal_tenant_configuration.test.private_markdown_storage_enforced
 }
 `, r.basic(true))
 }

@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceTenantConfiguration() *schema.Resource {
+func resourcePortalTenantConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceTenantConfigurationCreateUpdate,
-		Read:   resourceTenantConfigurationRead,
-		Update: resourceTenantConfigurationCreateUpdate,
-		Delete: resourceTenantConfigurationDelete,
+		Create: resourcePortalTenantConfigurationCreateUpdate,
+		Read:   resourcePortalTenantConfigurationRead,
+		Update: resourcePortalTenantConfigurationCreateUpdate,
+		Delete: resourcePortalTenantConfigurationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -29,12 +29,12 @@ func resourceTenantConfiguration() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.TenantConfigurationID(id)
+			_, err := parse.PortalTenantConfigurationID(id)
 			return err
 		}),
 
 		Schema: map[string]*schema.Schema{
-			"enforce_private_markdown_storage": {
+			"private_markdown_storage_enforced": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
@@ -42,12 +42,12 @@ func resourceTenantConfiguration() *schema.Resource {
 	}
 }
 
-func resourceTenantConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewTenantConfigurationID("default")
+	id := parse.NewPortalTenantConfigurationID("default")
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx)
@@ -62,27 +62,27 @@ func resourceTenantConfigurationCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	tenantConfiguration := portal.Configuration{
+	parameters := portal.Configuration{
 		ConfigurationProperties: &portal.ConfigurationProperties{
-			EnforcePrivateMarkdownStorage: utils.Bool(d.Get("enforce_private_markdown_storage").(bool)),
+			EnforcePrivateMarkdownStorage: utils.Bool(d.Get("private_markdown_storage_enforced").(bool)),
 		},
 	}
 
-	if _, err := client.Create(ctx, tenantConfiguration); err != nil {
+	if _, err := client.Create(ctx, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	return resourceTenantConfigurationRead(d, meta)
+	return resourcePortalTenantConfigurationRead(d, meta)
 }
 
-func resourceTenantConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TenantConfigurationID(d.Id())
+	id, err := parse.PortalTenantConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -97,18 +97,18 @@ func resourceTenantConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("enforce_private_markdown_storage", props.EnforcePrivateMarkdownStorage)
+		d.Set("private_markdown_storage_enforced", props.EnforcePrivateMarkdownStorage)
 	}
 
 	return nil
 }
 
-func resourceTenantConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TenantConfigurationID(d.Id())
+	id, err := parse.PortalTenantConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}

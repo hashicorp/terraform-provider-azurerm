@@ -16,7 +16,7 @@ Manages Portal Tenant Configuration.
 
 ```hcl
 resource "azurerm_portal_tenant_configuration" "example" {
-  enforce_private_markdown_storage = true
+  private_markdown_storage_enforced = true
 }
 ```
 
@@ -24,9 +24,9 @@ resource "azurerm_portal_tenant_configuration" "example" {
 
 The following arguments are supported:
 
-* `enforce_private_markdown_storage` - (Required) Is Markdown tile which used to display custom and static content enabled?
+* `private_markdown_storage_enforced` - (Required) Is the private tile markdown storage which used to display custom dynamic and static content enabled?
 
-~> **Note:** When `enforce_private_markdown_storage` is set to `true` Markdown tile will require external storage configuration (URI). The inline content configuration will be prohibited.
+~> **Note:** When `private_markdown_storage_enforced` is set to `true` Markdown tile will require external storage configuration (URI). The inline content configuration will be prohibited.
 
 ## Attributes Reference
 

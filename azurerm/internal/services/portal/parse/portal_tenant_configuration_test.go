@@ -6,21 +6,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = TenantConfigurationId{}
+var _ resourceid.Formatter = PortalTenantConfigurationId{}
 
-func TestTenantConfigurationIDFormatter(t *testing.T) {
-	actual := NewTenantConfigurationID("default").ID()
+func TestPortalTenantConfigurationIDFormatter(t *testing.T) {
+	actual := NewPortalTenantConfigurationID("default").ID()
 	expected := "/providers/Microsoft.Portal/tenantConfigurations/default"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestTenantConfigurationID(t *testing.T) {
+func TestPortalTenantConfigurationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *TenantConfigurationId
+		Expected *PortalTenantConfigurationId
 	}{
 
 		{
@@ -44,7 +44,7 @@ func TestTenantConfigurationID(t *testing.T) {
 		{
 			// valid
 			Input: "/providers/Microsoft.Portal/tenantConfigurations/default",
-			Expected: &TenantConfigurationId{
+			Expected: &PortalTenantConfigurationId{
 				Name: "default",
 			},
 		},
@@ -59,7 +59,7 @@ func TestTenantConfigurationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := TenantConfigurationID(v.Input)
+		actual, err := PortalTenantConfigurationID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

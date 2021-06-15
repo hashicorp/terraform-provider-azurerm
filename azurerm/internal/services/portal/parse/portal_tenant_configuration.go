@@ -7,37 +7,37 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type TenantConfigurationId struct {
+type PortalTenantConfigurationId struct {
 	Name string
 }
 
-func NewTenantConfigurationID(name string) TenantConfigurationId {
-	return TenantConfigurationId{
+func NewPortalTenantConfigurationID(name string) PortalTenantConfigurationId {
+	return PortalTenantConfigurationId{
 		Name: name,
 	}
 }
 
-func (id TenantConfigurationId) String() string {
+func (id PortalTenantConfigurationId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Tenant Configuration", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Portal Tenant Configuration", segmentsStr)
 }
 
-func (id TenantConfigurationId) ID() string {
+func (id PortalTenantConfigurationId) ID() string {
 	fmtString := "/providers/Microsoft.Portal/tenantConfigurations/%s"
 	return fmt.Sprintf(fmtString, id.Name)
 }
 
-// TenantConfigurationID parses a TenantConfiguration ID into an TenantConfigurationId struct
-func TenantConfigurationID(input string) (*TenantConfigurationId, error) {
+// PortalTenantConfigurationID parses a PortalTenantConfiguration ID into an PortalTenantConfigurationId struct
+func PortalTenantConfigurationID(input string) (*PortalTenantConfigurationId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := TenantConfigurationId{}
+	resourceId := PortalTenantConfigurationId{}
 
 	if resourceId.Name, err = id.PopSegment("tenantConfigurations"); err != nil {
 		return nil, err
