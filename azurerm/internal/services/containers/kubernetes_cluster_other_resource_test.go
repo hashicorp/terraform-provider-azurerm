@@ -859,7 +859,7 @@ resource "azurerm_kubernetes_cluster" "test" {
         fs_aio_max_nr                      = 65536
         fs_file_max                        = 100000
         fs_inotify_max_user_watches        = 1000000
-        fs_nr_open                         = 1000000
+        fs_nr_open                         = 1048576
         kernel_threads_max                 = 200000
         net_core_netdev_max_backlog        = 1800
         net_core_optmem_max                = 30000
