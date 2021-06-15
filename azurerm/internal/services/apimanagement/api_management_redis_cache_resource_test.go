@@ -13,11 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type ApimanagementCacheResource struct{}
+type ApimanagementRedisCacheResource struct{}
 
-func TestAccApiManagementCache_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_cache", "test")
-	r := ApimanagementCacheResource{}
+func TestAccApiManagementRedisCache_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_redis_cache", "test")
+	r := ApimanagementRedisCacheResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccApiManagementCache_basic(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementCache_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_cache", "test")
-	r := ApimanagementCacheResource{}
+func TestAccApiManagementRedisCache_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_redis_cache", "test")
+	r := ApimanagementRedisCacheResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccApiManagementCache_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementCache_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_cache", "test")
-	r := ApimanagementCacheResource{}
+func TestAccApiManagementRedisCache_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_redis_cache", "test")
+	r := ApimanagementRedisCacheResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccApiManagementCache_complete(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementCache_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_cache", "test")
-	r := ApimanagementCacheResource{}
+func TestAccApiManagementRedisCache_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_redis_cache", "test")
+	r := ApimanagementRedisCacheResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -92,12 +92,12 @@ func TestAccApiManagementCache_update(t *testing.T) {
 	})
 }
 
-func (r ApimanagementCacheResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CacheID(state.ID)
+func (r ApimanagementRedisCacheResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.RedisCacheID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.ApiManagement.CacheClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.ApiManagement.CacheClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.CacheName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -107,7 +107,7 @@ func (r ApimanagementCacheResource) Exists(ctx context.Context, client *clients.
 	return utils.Bool(true), nil
 }
 
-func (r ApimanagementCacheResource) template(data acceptance.TestData) string {
+func (r ApimanagementRedisCacheResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -157,58 +157,58 @@ resource "azurerm_redis_cache" "test2" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApimanagementCacheResource) basic(data acceptance.TestData) string {
+func (r ApimanagementRedisCacheResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_cache" "test" {
-  name              = "acctest-Cache-%d"
+resource "azurerm_api_management_redis_cache" "test" {
+  name              = "acctest-Redis-Cache-%d"
   api_management_id = azurerm_api_management.test.id
   connection_string = azurerm_redis_cache.test.primary_connection_string
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApimanagementCacheResource) requiresImport(data acceptance.TestData) string {
+func (r ApimanagementRedisCacheResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_cache" "import" {
-  name              = azurerm_api_management_cache.test.name
+resource "azurerm_api_management_redis_cache" "import" {
+  name              = azurerm_api_management_redis_cache.test.name
   api_management_id = azurerm_api_management.test.id
   connection_string = azurerm_redis_cache.test.primary_connection_string
 }
 `, r.basic(data))
 }
 
-func (r ApimanagementCacheResource) complete(data acceptance.TestData) string {
+func (r ApimanagementRedisCacheResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_cache" "test" {
+resource "azurerm_api_management_redis_cache" "test" {
   name              = "acctest-Cache-%d"
   api_management_id = azurerm_api_management.test.id
   connection_string = azurerm_redis_cache.test.primary_connection_string
   description       = "Redis cache instances"
   redis_cache_id    = azurerm_redis_cache.test.id
-  use_from_location = "%s"
+  cache_location    = "%s"
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
-func (r ApimanagementCacheResource) update(data acceptance.TestData) string {
+func (r ApimanagementRedisCacheResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_cache" "test" {
+resource "azurerm_api_management_redis_cache" "test" {
   name              = "acctest-Cache-%d"
   api_management_id = azurerm_api_management.test.id
   connection_string = azurerm_redis_cache.test2.primary_connection_string
   description       = "Redis cache Update"
   redis_cache_id    = azurerm_redis_cache.test2.id
-  use_from_location = "%s"
+  cache_location    = "%s"
 }
 `, template, data.RandomInteger, data.Locations.Ternary)
 }

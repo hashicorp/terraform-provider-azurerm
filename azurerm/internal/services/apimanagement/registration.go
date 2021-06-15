@@ -43,7 +43,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_api_version_set":             resourceApiManagementApiVersionSet(),
 		"azurerm_api_management_authorization_server":        resourceApiManagementAuthorizationServer(),
 		"azurerm_api_management_backend":                     resourceApiManagementBackend(),
-		"azurerm_api_management_cache":                       resourceApiManagementCache(),
 		"azurerm_api_management_certificate":                 resourceApiManagementCertificate(),
 		"azurerm_api_management_custom_domain":               resourceApiManagementCustomDomain(),
 		"azurerm_api_management_diagnostic":                  resourceApiManagementDiagnostic(),
@@ -65,6 +64,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_product_group":               resourceApiManagementProductGroup(),
 		"azurerm_api_management_product_policy":              resourceApiManagementProductPolicy(),
 		"azurerm_api_management_property":                    resourceApiManagementProperty(),
+		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
 		"azurerm_api_management_user":                        resourceApiManagementUser(),
 	}

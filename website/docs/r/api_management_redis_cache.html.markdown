@@ -1,14 +1,14 @@
 ---
 subcategory: "API Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_management_cache"
+page_title: "Azure Resource Manager: azurerm_api_management_redis_cache"
 description: |-
-  Manages a API Management Cache.
+  Manages a API Management Redis Cache.
 ---
 
-# azurerm_api_management_cache
+# azurerm_api_management_redis_cache
 
-Manages a API Management Cache.
+Manages a API Management Redis Cache.
 
 ## Example Usage
 
@@ -41,13 +41,13 @@ resource "azurerm_redis_cache" "example" {
   }
 }
 
-resource "azurerm_api_management_cache" "example" {
-  name              = "example-Apim-Cache"
+resource "azurerm_api_management_redis_cache" "example" {
+  name              = "example-Redis-Cache"
   api_management_id = azurerm_api_management.example.id
   connection_string = azurerm_redis_cache.example.primary_connection_string
   description       = "Redis cache instances"
   redis_cache_id    = azurerm_redis_cache.example.id
-  use_from_location = "East Us"
+  cache_location    = "East Us"
 }
 ```
 
@@ -55,39 +55,39 @@ resource "azurerm_api_management_cache" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this API Management Cache. Changing this forces a new API Management Cache to be created.
+* `name` - (Required) The name which should be used for this API Management Redis Cache. Changing this forces a new API Management Redis Cache to be created.
 
-* `api_management_id` - (Required) The resource ID of the Api Management Service from which to create this external cache. Changing this forces a new API Management Cache to be created.
+* `api_management_id` - (Required) The resource ID of the Api Management Service from which to create this external cache. Changing this forces a new API Management Redis Cache to be created.
 
 * `connection_string` - (Required) The connection string to the Cache for Redis.
 
 ---
 
-* `description` - (Optional) The description of the API Management Cache.
+* `description` - (Optional) The description of the API Management Redis Cache.
 
 * `redis_cache_id` - (Optional) The resource ID of the Cache for Redis.
 
-* `use_from_location` - (Optional) The location where to use cache from. Possible values are `default` and valid Azure regions. Defaults to `default`.
+* `cache_location` - (Optional) The location where to use cache from. Possible values are `default` and valid Azure regions. Defaults to `default`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the API Management Cache.
+* `id` - The ID of the API Management Redis Cache.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the API Management Cache.
-* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Cache.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Cache.
-* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Cache.
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Redis Cache.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Redis Cache.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Redis Cache.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Redis Cache.
 
 ## Import
 
-API Management Caches can be imported using the `resource id`, e.g.
+API Management Redis Caches can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_cache.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/caches/cache1
+terraform import azurerm_api_management_redis_cache.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/caches/cache1
 ```

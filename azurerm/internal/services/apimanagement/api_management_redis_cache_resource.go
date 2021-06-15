@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementCache() *pluginsdk.Resource {
+func resourceApiManagementRedisCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementCacheCreateUpdate,
-		Read:   resourceApiManagementCacheRead,
-		Update: resourceApiManagementCacheCreateUpdate,
-		Delete: resourceApiManagementCacheDelete,
+		Create: resourceApiManagementRedisCacheCreateUpdate,
+		Read:   resourceApiManagementRedisCacheRead,
+		Update: resourceApiManagementRedisCacheCreateUpdate,
+		Delete: resourceApiManagementRedisCacheDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -34,15 +34,16 @@ func resourceApiManagementCache() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CacheID(id)
+			_, err := parse.RedisCacheID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ApiManagementChildName,
 			},
 
 			"api_management_id": {
@@ -71,17 +72,17 @@ func resourceApiManagementCache() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"use_from_location": {
+			"cache_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          "default",
-				ValidateFunc:     validate.CacheUseFromLocation,
+				ValidateFunc:     validate.RedisCacheLocation,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 		},
 	}
 }
-func resourceApiManagementCacheCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -92,7 +93,7 @@ func resourceApiManagementCacheCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-	id := parse.NewCacheID(subscriptionId, apimId.ResourceGroup, apimId.ServiceName, name)
+	id := parse.NewRedisCacheID(subscriptionId, apimId.ResourceGroup, apimId.ServiceName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, apimId.ResourceGroup, apimId.ServiceName, name)
@@ -102,14 +103,14 @@ func resourceApiManagementCacheCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_api_management_cache", id.ID())
+			return tf.ImportAsExistsError("azurerm_api_management_redis_cache", id.ID())
 		}
 	}
 
 	parameters := apimanagement.CacheContract{
 		CacheContractProperties: &apimanagement.CacheContractProperties{
 			ConnectionString: utils.String(d.Get("connection_string").(string)),
-			UseFromLocation:  utils.String(location.Normalize(d.Get("use_from_location").(string))),
+			UseFromLocation:  utils.String(location.Normalize(d.Get("cache_location").(string))),
 		},
 	}
 
@@ -127,21 +128,21 @@ func resourceApiManagementCacheCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
-	return resourceApiManagementCacheRead(d, meta)
+	return resourceApiManagementRedisCacheRead(d, meta)
 }
 
-func resourceApiManagementCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CacheID(d.Id())
+	id, err := parse.RedisCacheID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.CacheName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] apimanagement %q does not exist - removing from state", d.Id())
@@ -150,7 +151,7 @@ func resourceApiManagementCacheRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.CacheName)
 	d.Set("api_management_id", parse.NewApiManagementID(subscriptionId, id.ResourceGroup, id.ServiceName).ID())
 	if props := resp.CacheContractProperties; props != nil {
 		d.Set("description", props.Description)
@@ -160,22 +161,22 @@ func resourceApiManagementCacheRead(d *pluginsdk.ResourceData, meta interface{})
 			cacheId = strings.TrimPrefix(*props.ResourceID, meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint)
 		}
 		d.Set("redis_cache_id", cacheId)
-		d.Set("use_from_location", props.UseFromLocation)
+		d.Set("cache_location", props.UseFromLocation)
 	}
 	return nil
 }
 
-func resourceApiManagementCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CacheID(d.Id())
+	id, err := parse.RedisCacheID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "*"); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.CacheName, "*"); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 	return nil
