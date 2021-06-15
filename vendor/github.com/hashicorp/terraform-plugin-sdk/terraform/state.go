@@ -112,10 +112,6 @@ type State struct {
 	Modules []*ModuleState `json:"modules"`
 
 	mu sync.Mutex
-
-	// IsBinaryDrivenTest is a special flag that assists with a binary driver
-	// heuristic, it should not be set externally
-	IsBinaryDrivenTest bool
 }
 
 func (s *State) Lock()   { s.mu.Lock() }
@@ -1114,7 +1110,7 @@ func (m *ModuleState) View(id string) *ModuleState {
 	}
 
 	r := m.deepcopy()
-	for k := range r.Resources {
+	for k, _ := range r.Resources {
 		if id == k || strings.HasPrefix(k, id+".") {
 			continue
 		}
@@ -1201,7 +1197,7 @@ func (m *ModuleState) String() string {
 	}
 
 	names := make([]string, 0, len(m.Resources))
-	for name := range m.Resources {
+	for name, _ := range m.Resources {
 		names = append(names, name)
 	}
 
@@ -1238,7 +1234,7 @@ func (m *ModuleState) String() string {
 			attributes = rs.Primary.Attributes
 		}
 		attrKeys := make([]string, 0, len(attributes))
-		for ak := range attributes {
+		for ak, _ := range attributes {
 			if ak == "id" {
 				continue
 			}
@@ -1273,7 +1269,7 @@ func (m *ModuleState) String() string {
 		buf.WriteString("\nOutputs:\n\n")
 
 		ks := make([]string, 0, len(m.Outputs))
-		for k := range m.Outputs {
+		for k, _ := range m.Outputs {
 			ks = append(ks, k)
 		}
 
@@ -1288,7 +1284,7 @@ func (m *ModuleState) String() string {
 				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
 			case map[string]interface{}:
 				var mapKeys []string
-				for key := range vTyped {
+				for key, _ := range vTyped {
 					mapKeys = append(mapKeys, key)
 				}
 				sort.Strings(mapKeys)
@@ -1824,7 +1820,7 @@ func (s *InstanceState) String() string {
 
 	attributes := s.Attributes
 	attrKeys := make([]string, 0, len(attributes))
-	for ak := range attributes {
+	for ak, _ := range attributes {
 		if ak == "id" {
 			continue
 		}

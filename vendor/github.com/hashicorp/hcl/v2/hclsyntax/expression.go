@@ -27,32 +27,6 @@ type Expression interface {
 // Assert that Expression implements hcl.Expression
 var assertExprImplExpr hcl.Expression = Expression(nil)
 
-// ParenthesesExpr represents an expression written in grouping
-// parentheses.
-//
-// The parser takes care of the precedence effect of the parentheses, so the
-// only purpose of this separate expression node is to capture the source range
-// of the parentheses themselves, rather than the source range of the
-// expression within. All of the other expression operations just pass through
-// to the underlying expression.
-type ParenthesesExpr struct {
-	Expression
-	SrcRange hcl.Range
-}
-
-var _ hcl.Expression = (*ParenthesesExpr)(nil)
-
-func (e *ParenthesesExpr) Range() hcl.Range {
-	return e.SrcRange
-}
-
-func (e *ParenthesesExpr) walkChildNodes(w internalWalkFunc) {
-	// We override the walkChildNodes from the embedded Expression to
-	// ensure that both the parentheses _and_ the content are visible
-	// in a walk.
-	w(e.Expression)
-}
-
 // LiteralValueExpr is an expression that just always returns a given value.
 type LiteralValueExpr struct {
 	Val      cty.Value
@@ -286,20 +260,6 @@ func (e *FunctionCallExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 		}
 
 		switch {
-		case expandVal.Type().Equals(cty.DynamicPseudoType):
-			if expandVal.IsNull() {
-				diags = append(diags, &hcl.Diagnostic{
-					Severity:    hcl.DiagError,
-					Summary:     "Invalid expanding argument value",
-					Detail:      "The expanding argument (indicated by ...) must not be null.",
-					Subject:     expandExpr.Range().Ptr(),
-					Context:     e.Range().Ptr(),
-					Expression:  expandExpr,
-					EvalContext: ctx,
-				})
-				return cty.DynamicVal, diags
-			}
-			return cty.DynamicVal, diags
 		case expandVal.Type().IsTupleType() || expandVal.Type().IsListType() || expandVal.Type().IsSetType():
 			if expandVal.IsNull() {
 				diags = append(diags, &hcl.Diagnostic{
@@ -317,17 +277,13 @@ func (e *FunctionCallExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 				return cty.DynamicVal, diags
 			}
 
-			// When expanding arguments from a collection, we must first unmark
-			// the collection itself, and apply any marks directly to the
-			// elements. This ensures that marks propagate correctly.
-			expandVal, marks := expandVal.Unmark()
 			newArgs := make([]Expression, 0, (len(args)-1)+expandVal.LengthInt())
 			newArgs = append(newArgs, args[:len(args)-1]...)
 			it := expandVal.ElementIterator()
 			for it.Next() {
 				_, val := it.Element()
 				newArgs = append(newArgs, &LiteralValueExpr{
-					Val:      val.WithMarks(marks),
+					Val:      val,
 					SrcRange: expandExpr.Range(),
 				})
 			}
@@ -450,39 +406,22 @@ func (e *FunctionCallExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 			} else {
 				param = varParam
 			}
+			argExpr := e.Args[i]
 
-			// this can happen if an argument is (incorrectly) null.
-			if i > len(e.Args)-1 {
-				diags = append(diags, &hcl.Diagnostic{
-					Severity: hcl.DiagError,
-					Summary:  "Invalid function argument",
-					Detail: fmt.Sprintf(
-						"Invalid value for %q parameter: %s.",
-						param.Name, err,
-					),
-					Subject:     args[len(params)].StartRange().Ptr(),
-					Context:     e.Range().Ptr(),
-					Expression:  e,
-					EvalContext: ctx,
-				})
-			} else {
-				argExpr := e.Args[i]
-
-				// TODO: we should also unpick a PathError here and show the
-				// path to the deep value where the error was detected.
-				diags = append(diags, &hcl.Diagnostic{
-					Severity: hcl.DiagError,
-					Summary:  "Invalid function argument",
-					Detail: fmt.Sprintf(
-						"Invalid value for %q parameter: %s.",
-						param.Name, err,
-					),
-					Subject:     argExpr.StartRange().Ptr(),
-					Context:     e.Range().Ptr(),
-					Expression:  argExpr,
-					EvalContext: ctx,
-				})
-			}
+			// TODO: we should also unpick a PathError here and show the
+			// path to the deep value where the error was detected.
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  "Invalid function argument",
+				Detail: fmt.Sprintf(
+					"Invalid value for %q parameter: %s.",
+					param.Name, err,
+				),
+				Subject:     argExpr.StartRange().Ptr(),
+				Context:     e.Range().Ptr(),
+				Expression:  argExpr,
+				EvalContext: ctx,
+			})
 
 		default:
 			diags = append(diags, &hcl.Diagnostic{
@@ -628,8 +567,6 @@ func (e *ConditionalExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostic
 		return cty.UnknownVal(resultType), diags
 	}
 
-	// Unmark result before testing for truthiness
-	condResult, _ = condResult.UnmarkDeep()
 	if condResult.True() {
 		diags = append(diags, trueDiags...)
 		if convs[0] != nil {
@@ -788,7 +725,6 @@ func (e *ObjectConsExpr) walkChildNodes(w internalWalkFunc) {
 func (e *ObjectConsExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 	var vals map[string]cty.Value
 	var diags hcl.Diagnostics
-	var marks []cty.ValueMarks
 
 	// This will get set to true if we fail to produce any of our keys,
 	// either because they are actually unknown or if the evaluation produces
@@ -826,9 +762,6 @@ func (e *ObjectConsExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics
 			continue
 		}
 
-		key, keyMarks := key.Unmark()
-		marks = append(marks, keyMarks)
-
 		var err error
 		key, err = convert.Convert(key, cty.String)
 		if err != nil {
@@ -858,7 +791,7 @@ func (e *ObjectConsExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics
 		return cty.DynamicVal, diags
 	}
 
-	return cty.ObjectVal(vals).WithMarks(marks...), diags
+	return cty.ObjectVal(vals), diags
 }
 
 func (e *ObjectConsExpr) Range() hcl.Range {
@@ -988,7 +921,6 @@ type ForExpr struct {
 
 func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 	var diags hcl.Diagnostics
-	var marks []cty.ValueMarks
 
 	collVal, collDiags := e.CollExpr.Value(ctx)
 	diags = append(diags, collDiags...)
@@ -1008,10 +940,6 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 	if collVal.Type() == cty.DynamicPseudoType {
 		return cty.DynamicVal, diags
 	}
-	// Unmark collection before checking for iterability, because marked
-	// values cannot be iterated
-	collVal, collMarks := collVal.Unmark()
-	marks = append(marks, collMarks)
 	if !collVal.CanIterateElements() {
 		diags = append(diags, &hcl.Diagnostic{
 			Severity: hcl.DiagError,
@@ -1136,11 +1064,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 					continue
 				}
 
-				// Extract and merge marks from the include expression into the
-				// main set of marks
-				includeUnmarked, includeMarks := include.Unmark()
-				marks = append(marks, includeMarks)
-				if includeUnmarked.False() {
+				if include.False() {
 					// Skip this element
 					continue
 				}
@@ -1185,9 +1109,6 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 				continue
 			}
 
-			key, keyMarks := key.Unmark()
-			marks = append(marks, keyMarks)
-
 			val, valDiags := e.ValExpr.Value(childCtx)
 			diags = append(diags, valDiags...)
 
@@ -1226,7 +1147,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 			}
 		}
 
-		return cty.ObjectVal(vals).WithMarks(marks...), diags
+		return cty.ObjectVal(vals), diags
 
 	} else {
 		// Producing a tuple
@@ -1287,11 +1208,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 					continue
 				}
 
-				// Extract and merge marks from the include expression into the
-				// main set of marks
-				includeUnmarked, includeMarks := include.Unmark()
-				marks = append(marks, includeMarks)
-				if includeUnmarked.False() {
+				if include.False() {
 					// Skip this element
 					continue
 				}
@@ -1306,7 +1223,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 			return cty.DynamicVal, diags
 		}
 
-		return cty.TupleVal(vals).WithMarks(marks...), diags
+		return cty.TupleVal(vals), diags
 	}
 }
 
@@ -1369,6 +1286,12 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 	}
 
 	sourceTy := sourceVal.Type()
+	if sourceTy == cty.DynamicPseudoType {
+		// If we don't even know the _type_ of our source value yet then
+		// we'll need to defer all processing, since we can't decide our
+		// result type either.
+		return cty.DynamicVal, diags
+	}
 
 	// A "special power" of splat expressions is that they can be applied
 	// both to tuples/lists and to other values, and in the latter case
@@ -1389,13 +1312,6 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 			Expression:  e.Source,
 			EvalContext: ctx,
 		})
-		return cty.DynamicVal, diags
-	}
-
-	if sourceTy == cty.DynamicPseudoType {
-		// If we don't even know the _type_ of our source value yet then
-		// we'll need to defer all processing, since we can't decide our
-		// result type either.
 		return cty.DynamicVal, diags
 	}
 
@@ -1443,9 +1359,6 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		return cty.UnknownVal(ty), diags
 	}
 
-	// Unmark the collection, and save the marks to apply to the returned
-	// collection result
-	sourceVal, marks := sourceVal.Unmark()
 	vals := make([]cty.Value, 0, sourceVal.LengthInt())
 	it := sourceVal.ElementIterator()
 	if ctx == nil {
@@ -1480,9 +1393,9 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 			diags = append(diags, tyDiags...)
 			return cty.ListValEmpty(ty.ElementType()), diags
 		}
-		return cty.ListVal(vals).WithMarks(marks), diags
+		return cty.ListVal(vals), diags
 	default:
-		return cty.TupleVal(vals).WithMarks(marks), diags
+		return cty.TupleVal(vals), diags
 	}
 }
 

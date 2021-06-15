@@ -256,11 +256,7 @@ func (s *GRPCProviderServer) UpgradeResourceState(_ context.Context, req *proto.
 		}
 	// if there's a JSON state, we need to decode it.
 	case len(req.RawState.Json) > 0:
-		if res.UseJSONNumber {
-			err = unmarshalJSON(req.RawState.Json, &jsonMap)
-		} else {
-			err = json.Unmarshal(req.RawState.Json, &jsonMap)
-		}
+		err = json.Unmarshal(req.RawState.Json, &jsonMap)
 		if err != nil {
 			resp.Diagnostics = convert.AppendProtoDiag(resp.Diagnostics, err)
 			return resp, nil
@@ -384,13 +380,7 @@ func (s *GRPCProviderServer) upgradeFlatmapState(version int, m map[string]strin
 		return nil, 0, err
 	}
 
-	var jsonMap map[string]interface{}
-	if res.UseJSONNumber {
-		jsonMap, err = schema.StateValueToJSONMapJSONNumber(newConfigVal, schemaType)
-	} else {
-		jsonMap, err = schema.StateValueToJSONMap(newConfigVal, schemaType)
-	}
-
+	jsonMap, err := schema.StateValueToJSONMap(newConfigVal, schemaType)
 	return jsonMap, upgradedVersion, err
 }
 

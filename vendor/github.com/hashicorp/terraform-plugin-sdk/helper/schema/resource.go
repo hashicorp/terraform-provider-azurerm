@@ -172,21 +172,6 @@ type Resource struct {
 	// actions (Create, Read, Update, Delete, Default) to the Resource struct, and
 	// accessing them in the matching methods.
 	Timeouts *ResourceTimeout
-
-	// Description is used as the description for docs, the language server and
-	// other user facing usage. It can be plain-text or markdown depending on the
-	// global DescriptionKind setting.
-	Description string
-
-	// UseJSONNumber should be set when state upgraders will expect
-	// json.Numbers instead of float64s for numbers. This is added as a
-	// toggle for backwards compatibility for type assertions, but should
-	// be used in all new resources to avoid bugs with sufficiently large
-	// user input.
-	//
-	// See github.com/hashicorp/terraform-plugin-sdk/issues/655 for more
-	// details.
-	UseJSONNumber bool
 }
 
 // ShimInstanceStateFromValue converts a cty.Value to a
@@ -704,7 +689,7 @@ func (r *Resource) InternalValidate(topSchemaMap schemaMap, writable bool) error
 	// Data source
 	if r.isTopLevel() && !writable {
 		tsm = schemaMap(r.Schema)
-		for k := range tsm {
+		for k, _ := range tsm {
 			if isReservedDataSourceFieldName(k) {
 				return fmt.Errorf("%s is a reserved field name", k)
 			}
@@ -780,8 +765,6 @@ func (r *Resource) TestResourceData() *ResourceData {
 // SchemasForFlatmapPath tries its best to find a sequence of schemas that
 // the given dot-delimited attribute path traverses through in the schema
 // of the receiving Resource.
-//
-// Deprecated: This function will be removed in version 2 without replacement.
 func (r *Resource) SchemasForFlatmapPath(path string) []*Schema {
 	return SchemasForFlatmapPath(path, r.Schema)
 }

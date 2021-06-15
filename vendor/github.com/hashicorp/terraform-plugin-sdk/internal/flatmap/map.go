@@ -25,7 +25,7 @@ func (m Map) Contains(key string) bool {
 
 // Delete deletes a key out of the map with the given prefix.
 func (m Map) Delete(prefix string) {
-	for k := range m {
+	for k, _ := range m {
 		match := k == prefix
 		if !match {
 			if !strings.HasPrefix(k, prefix) {
@@ -44,7 +44,7 @@ func (m Map) Delete(prefix string) {
 // Keys returns all of the top-level keys in this map
 func (m Map) Keys() []string {
 	ks := make(map[string]struct{})
-	for k := range m {
+	for k, _ := range m {
 		idx := strings.Index(k, ".")
 		if idx == -1 {
 			idx = len(k)
@@ -54,7 +54,7 @@ func (m Map) Keys() []string {
 	}
 
 	result := make([]string, 0, len(ks))
-	for k := range ks {
+	for k, _ := range ks {
 		result = append(result, k)
 	}
 

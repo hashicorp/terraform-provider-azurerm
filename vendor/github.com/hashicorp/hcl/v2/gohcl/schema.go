@@ -113,7 +113,6 @@ type fieldTags struct {
 	Blocks     map[string]int
 	Labels     []labelField
 	Remain     *int
-	Body       *int
 	Optional   map[string]bool
 }
 
@@ -163,12 +162,6 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 			}
 			idx := i // copy, because this loop will continue assigning to i
 			ret.Remain = &idx
-		case "body":
-			if ret.Body != nil {
-				panic("only one 'body' tag is permitted")
-			}
-			idx := i // copy, because this loop will continue assigning to i
-			ret.Body = &idx
 		case "optional":
 			ret.Attributes[name] = i
 			ret.Optional[name] = true
