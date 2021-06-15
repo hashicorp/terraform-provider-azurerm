@@ -187,7 +187,7 @@ func (r ApimanagementRedisCacheResource) complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_api_management_redis_cache" "test" {
-  name              = "acctest-Cache-%d"
+  name              = "acctest-Redis-Cache-%d"
   api_management_id = azurerm_api_management.test.id
   connection_string = azurerm_redis_cache.test.primary_connection_string
   description       = "Redis cache instances"
@@ -203,7 +203,7 @@ func (r ApimanagementRedisCacheResource) update(data acceptance.TestData) string
 %s
 
 resource "azurerm_api_management_redis_cache" "test" {
-  name              = "acctest-Cache-%d"
+  name              = "acctest-Redis-Cache-%d"
   api_management_id = azurerm_api_management.test.id
   connection_string = azurerm_redis_cache.test2.primary_connection_string
   description       = "Redis cache Update"
