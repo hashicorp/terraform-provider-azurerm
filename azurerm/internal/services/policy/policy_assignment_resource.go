@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -110,7 +109,7 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"enforcement_mode": {
@@ -216,7 +215,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
-		metaData, err := structure.ExpandJsonFromString(metaDataString)
+		metaData, err := pluginsdk.ExpandJsonFromString(metaDataString)
 		if err != nil {
 			return fmt.Errorf("unable to parse metadata: %s", err)
 		}
