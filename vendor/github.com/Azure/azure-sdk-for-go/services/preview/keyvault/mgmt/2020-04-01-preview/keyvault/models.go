@@ -45,6 +45,12 @@ type CheckNameAvailabilityResult struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResult.
+func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CloudError an error response from Key Vault resource provider
 type CloudError struct {
 	Error *CloudErrorBody `json:"error,omitempty"`
@@ -269,6 +275,12 @@ type Error struct {
 	InnerError *Error `json:"innererror,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Error.
+func (e Error) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // IPRule a rule governing the accessibility of a vault from a specific ip address or ip range.
 type IPRule struct {
 	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
@@ -326,6 +338,12 @@ func (mh ManagedHsm) MarshalJSON() ([]byte, error) {
 type ManagedHsmError struct {
 	// Error - READ-ONLY; The server error.
 	Error *Error `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedHsmError.
+func (mhe ManagedHsmError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedHsmListResult list of managed HSM Pools
@@ -985,6 +1003,12 @@ type Permissions struct {
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; Full identifier of the private endpoint resource.
 	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnection private endpoint connection resource.

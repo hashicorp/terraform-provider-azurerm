@@ -383,6 +383,12 @@ type PrivateEndpoint struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnection private Endpoint Connection Response Properties.
 type PrivateEndpointConnection struct {
 	// ProvisioningState - READ-ONLY; Gets or sets provisioning state of the private endpoint connection. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateDeleting', 'ProvisioningStateFailed', 'ProvisioningStatePending'
@@ -501,6 +507,12 @@ type PrivateLinkResourceProperties struct {
 	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
 	// RequiredZoneNames - READ-ONLY; The private link resource Private link DNS zone name.
 	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateLinkResources class which represent the stamps associated with the vault.
@@ -670,6 +682,12 @@ type PrivateLinkServiceConnectionState struct {
 	Description *string `json:"description,omitempty"`
 	// ActionsRequired - READ-ONLY; Gets or sets actions required.
 	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkServiceConnectionState.
+func (plscs PrivateLinkServiceConnectionState) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RawCertificateData raw certificate data.
@@ -1097,6 +1115,12 @@ type UpgradeDetails struct {
 	UpgradedResourceID *string `json:"upgradedResourceId,omitempty"`
 	// PreviousResourceID - READ-ONLY; Resource ID of the vault before the upgrade.
 	PreviousResourceID *string `json:"previousResourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UpgradeDetails.
+func (ud UpgradeDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Vault resource information, as returned by the resource provider.

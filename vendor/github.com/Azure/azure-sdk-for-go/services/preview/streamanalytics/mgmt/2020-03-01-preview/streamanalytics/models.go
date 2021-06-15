@@ -1831,6 +1831,12 @@ type ClusterJobListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ClusterJobListResult.
+func (cjlr ClusterJobListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ClusterJobListResultIterator provides access to a complete listing of ClusterJob values.
 type ClusterJobListResultIterator struct {
 	i    int
@@ -1988,6 +1994,12 @@ type ClusterListResult struct {
 	Value *[]Cluster `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to fetch the next set of clusters.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterListResult.
+func (clr ClusterListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ClusterListResultIterator provides access to a complete listing of Cluster values.
@@ -2698,11 +2710,23 @@ type DiagnosticCondition struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DiagnosticCondition.
+func (dc DiagnosticCondition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Diagnostics describes conditions applicable to the Input, Output, or the job overall, that warrant
 // customer attention.
 type Diagnostics struct {
 	// Conditions - READ-ONLY; A collection of zero or more conditions applicable to the resource, or to the job overall, that warrant customer attention.
 	Conditions *[]DiagnosticCondition `json:"conditions,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Diagnostics.
+func (d Diagnostics) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DocumentDbOutputDataSource describes a DocumentDB output data source.
@@ -2879,6 +2903,12 @@ type ErrorResponse struct {
 	Code *string `json:"code,omitempty"`
 	// Message - READ-ONLY; Describes the error in detail.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EventHubDataSourceProperties the common properties that are associated with Event Hub data sources.
@@ -3597,6 +3627,12 @@ type FunctionListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FunctionListResult.
+func (flr FunctionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // FunctionListResultIterator provides access to a complete listing of Function values.
 type FunctionListResultIterator struct {
 	i    int
@@ -4122,6 +4158,12 @@ type InputListResult struct {
 	Value *[]Input `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InputListResult.
+func (ilr InputListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // InputListResultIterator provides access to a complete listing of Input values.
@@ -4894,6 +4936,12 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay contains the localized display information for this particular operation / action.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; The localized friendly form of the resource provider name.
@@ -4906,6 +4954,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (o OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult result of the request to list Stream Analytics operations. It contains a list of
 // operations and a URL link to get the next set of results.
 type OperationListResult struct {
@@ -4914,6 +4968,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -5334,6 +5394,12 @@ type OutputListResult struct {
 	Value *[]Output `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OutputListResult.
+func (olr OutputListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OutputListResultIterator provides access to a complete listing of Output values.
@@ -5857,6 +5923,12 @@ type PrivateEndpointListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpointListResult.
+func (pelr PrivateEndpointListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointListResultIterator provides access to a complete listing of PrivateEndpoint values.
 type PrivateEndpointListResultIterator struct {
 	i    int
@@ -6072,6 +6144,12 @@ type PrivateLinkConnectionState struct {
 	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkConnectionState.
+func (plcs PrivateLinkConnectionState) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkServiceConnection a grouping of information about the connection to the remote resource.
 type PrivateLinkServiceConnection struct {
 	// PrivateLinkServiceConnectionProperties - Bag of properties defining a privatelinkServiceConnection.
@@ -6132,6 +6210,12 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BasicReferenceInputDataSource describes an input data source that contains reference data.
@@ -6359,6 +6443,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceTestStatus describes the status of the test operation along with error information, if
 // applicable.
 type ResourceTestStatus struct {
@@ -6367,6 +6457,12 @@ type ResourceTestStatus struct {
 	Status *string `json:"status,omitempty"`
 	// Error - READ-ONLY; Describes the error that occurred.
 	Error *ErrorResponse `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceTestStatus.
+func (rts ResourceTestStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ScalarFunctionProperties the properties that are associated with a scalar function.
@@ -7058,6 +7154,12 @@ type StreamingJobListResult struct {
 	Value *[]StreamingJob `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StreamingJobListResult.
+func (sjlr StreamingJobListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // StreamingJobListResultIterator provides access to a complete listing of StreamingJob values.
@@ -7815,12 +7917,24 @@ type SubscriptionQuotaProperties struct {
 	CurrentCount *int32 `json:"currentCount,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubscriptionQuotaProperties.
+func (sq SubscriptionQuotaProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SubscriptionQuotasListResult result of the GetQuotas operation. It contains a list of quotas for the
 // subscription in a particular region.
 type SubscriptionQuotasListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of quotas for the subscription in a particular region.
 	Value *[]SubscriptionQuota `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubscriptionQuotasListResult.
+func (sqlr SubscriptionQuotasListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrackedResource the resource model definition for a ARM tracked top level resource
