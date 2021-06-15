@@ -36,29 +36,29 @@ resource "azurerm_data_protection_backup_policy_postgresql" "example" {
   default_retention_duration = "P4M"
 
   retention_rule {
-    name             = "weekly"
-    duration         = "P6M"
-    tagging_priority = 20
-    tagging_criteria {
+    name     = "weekly"
+    duration = "P6M"
+    priority = 20
+    criteria {
       absolute_criteria = "FirstOfWeek"
     }
   }
 
   retention_rule {
-    name             = "thursday"
-    duration         = "P1W"
-    tagging_priority = 25
-    tagging_criteria {
+    name     = "thursday"
+    duration = "P1W"
+    priority = 25
+    criteria {
       days_of_week           = ["Thursday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
     }
   }
 
   retention_rule {
-    name             = "monthly"
-    duration         = "P1D"
-    tagging_priority = 15
-    tagging_criteria {
+    name     = "monthly"
+    duration = "P1D"
+    priority = 15
+    criteria {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
@@ -93,13 +93,13 @@ A `retention_rule` block supports the following:
 
 * `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
 
-* `tagging_criteria` - (Required) A `tagging_criteria` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
+* `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
-* `tagging_priority` - (Required) Retention Tag priority. Changing this forces a new Backup Policy Postgre Sql to be created.
+* `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new Backup Policy Postgre Sql to be created.
 
 ---
 
-A `tagging_criteria` block supports the following:
+A `criteria` block supports the following:
 
 * `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy PostgreSQL to be created.
 

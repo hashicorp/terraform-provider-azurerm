@@ -167,29 +167,29 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
   retention_rule {
-    name             = "weekly"
-    duration         = "P6M"
-    tagging_priority = 20
-    tagging_criteria {
+    name     = "weekly"
+    duration = "P6M"
+    priority = 20
+    criteria {
       absolute_criteria = "FirstOfWeek"
     }
   }
 
   retention_rule {
-    name             = "thursday"
-    duration         = "P1W"
-    tagging_priority = 25
-    tagging_criteria {
+    name     = "thursday"
+    duration = "P1W"
+    priority = 25
+    criteria {
       days_of_week           = ["Thursday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
     }
   }
 
   retention_rule {
-    name             = "monthly"
-    duration         = "P1D"
-    tagging_priority = 30
-    tagging_criteria {
+    name     = "monthly"
+    duration = "P1D"
+    priority = 30
+    criteria {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]

@@ -91,7 +91,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
 							ForceNew: true,
 						},
 
-						"tagging_criteria": {
+						"criteria": {
 							Type:     schema.TypeList,
 							Required: true,
 							ForceNew: true,
@@ -164,7 +164,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
 							},
 						},
 
-						"tagging_priority": {
+						"priority": {
 							Type:     schema.TypeInt,
 							Required: true,
 							ForceNew: true,
@@ -364,9 +364,9 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) *[]da
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, dataprotection.TaggingCriteria{
-			Criteria:        expandBackupPolicyPostgreSQLCriteriaArray(v["tagging_criteria"].([]interface{})),
+			Criteria:        expandBackupPolicyPostgreSQLCriteriaArray(v["criteria"].([]interface{})),
 			IsDefault:       utils.Bool(false),
-			TaggingPriority: utils.Int64(int64(v["tagging_priority"].(int))),
+			TaggingPriority: utils.Int64(int64(v["priority"].(int))),
 			TagInfo: &dataprotection.RetentionTag{
 				ID:      utils.String(v["name"].(string) + "_"),
 				TagName: utils.String(v["name"].(string)),
@@ -503,10 +503,10 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]dataprotection.Bas
 				}
 			}
 			results = append(results, map[string]interface{}{
-				"name":             name,
-				"tagging_priority": taggingPriority,
-				"tagging_criteria": taggingCriteria,
-				"duration":         duration,
+				"name":     name,
+				"priority": taggingPriority,
+				"criteria": taggingCriteria,
+				"duration": duration,
 			})
 		}
 	}
