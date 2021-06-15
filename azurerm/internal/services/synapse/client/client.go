@@ -26,7 +26,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
 
-	// the service team hopes to rename it to sparkPool, mso rename the sdk here
+	// the service team hopes to rename it to sparkPool, so rename the sdk here
 	sparkPoolClient := synapse.NewBigDataPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sparkPoolClient.Client, o.ResourceManagerAuthorizer)
 
