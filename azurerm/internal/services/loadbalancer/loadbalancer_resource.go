@@ -156,7 +156,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Set: pluginsdk.HashString,
 						},
 
-						"zones": azure.SchemaSingleZone(),
+						"zones": azure.SchemaMultipleZones(),
 
 						"id": {
 							Type:     pluginsdk.TypeString,
