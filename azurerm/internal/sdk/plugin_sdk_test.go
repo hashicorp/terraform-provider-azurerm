@@ -62,8 +62,8 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -262,8 +262,8 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -317,12 +317,14 @@ resource "validator_decoder_unspecified" "test" {}
 `,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches("validator_decoder_specified.test", map[string]interface{}{
+						"%":       "4",
 						"id":      "some-id",
 						"enabled": "true",
 						"hello":   "value-from-config",
 						"number":  "21",
 					}),
 					testCheckResourceStateMatches("validator_decoder_unspecified.test", map[string]interface{}{
+						"%":       "4",
 						"id":      "some-id",
 						"enabled": "false",
 						"hello":   "value-from-create",
@@ -346,8 +348,8 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -452,8 +454,8 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -645,8 +647,8 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -817,6 +819,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 				Config: `resource "validator_encoder" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches("validator_encoder.test", map[string]interface{}{
+						"%":                    "17",
 						"id":                   "some-id",
 						"hello":                "world",
 						"random_number":        "42",
@@ -835,6 +838,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 						"list_of_floats.0":     "-1.234567894321",
 						"list_of_floats.1":     "2.3456789",
 						"nested_object.#":      "1",
+						"nested_object.0.%":    "1",
 						"nested_object.0.key":  "value",
 						"map_of_strings.%":     "1",
 						"map_of_strings.bingo": "bango",
@@ -861,8 +865,8 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 	resourceName := "validator_computed.test"
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -876,6 +880,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 				Config: `resource "validator_computed" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches(resourceName, map[string]interface{}{
+						"%":                   "9",
 						"id":                  "does-not-matter",
 						"hello":               "world",
 						"random_number":       "42",
@@ -894,6 +899,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 						"list_of_floats.0":    "-1.234567894321",
 						"list_of_floats.1":    "2.3456789",
 						"nested_object.#":     "1",
+						"nested_object.0.%":   "1",
 						"nested_object.0.key": "value",
 						// Sets can't really be computed, so this isn't that big a deal
 					}),
