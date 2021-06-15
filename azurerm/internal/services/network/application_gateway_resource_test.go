@@ -9,13 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,10 +25,10 @@ func TestAccApplicationGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_Small"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard"),
@@ -45,10 +44,10 @@ func TestAccApplicationGateway_autoscaleConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscaleConfiguration(data, 0, 10),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
@@ -59,7 +58,7 @@ func TestAccApplicationGateway_autoscaleConfiguration(t *testing.T) {
 		},
 		{
 			Config: r.autoscaleConfiguration(data, 4, 12),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
@@ -76,10 +75,10 @@ func TestAccApplicationGateway_autoscaleConfigurationNoMaxCapacity(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscaleConfigurationNoMaxCapacity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
@@ -95,10 +94,10 @@ func TestAccApplicationGateway_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zones(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
@@ -115,10 +114,10 @@ func TestAccApplicationGateway_overridePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.overridePath(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backend_http_settings.0.path").HasValue("/path1/"),
 			),
@@ -131,10 +130,10 @@ func TestAccApplicationGateway_http2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.http2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_http2").HasValue("true"),
 			),
@@ -147,10 +146,10 @@ func TestAccApplicationGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -165,10 +164,10 @@ func TestAccApplicationGateway_authCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authCertificate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("authentication_certificate.0.name").Exists(),
 			),
@@ -180,7 +179,7 @@ func TestAccApplicationGateway_authCertificate(t *testing.T) {
 		),
 		{
 			Config: r.authCertificateUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("authentication_certificate.0.name").Exists(),
 			),
@@ -197,10 +196,10 @@ func TestAccApplicationGateway_customFirewallPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customFirewallPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("firewall_policy_id").Exists(),
 			),
@@ -213,12 +212,27 @@ func TestAccApplicationGateway_customHttpListenerFirewallPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customHttpListenerFirewallPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("http_listener.0.firewall_policy_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationGateway_customPathRuleFirewallPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customPathRuleFirewallPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -232,10 +246,10 @@ func TestAccApplicationGateway_trustedRootCertificate_keyvault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.trustedRootCertificate_keyvault(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("trusted_root_certificate.0.name").Exists(),
 			),
@@ -248,10 +262,10 @@ func TestAccApplicationGateway_trustedRootCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.trustedRootCertificate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("trusted_root_certificate.0.name").Exists(),
 			),
@@ -262,7 +276,7 @@ func TestAccApplicationGateway_trustedRootCertificate(t *testing.T) {
 		),
 		{
 			Config: r.trustedRootCertificateUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("trusted_root_certificate.0.name").Exists(),
 			),
@@ -278,10 +292,10 @@ func TestAccApplicationGateway_pathBasedRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.pathBasedRouting(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -293,10 +307,10 @@ func TestAccApplicationGateway_routingRedirect_httpListener(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.routingRedirect_httpListener(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -308,7 +322,7 @@ func TestAccApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.routingRedirect_httpListenerError(data),
 			ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
@@ -320,10 +334,10 @@ func TestAccApplicationGateway_routingRedirect_pathBased(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.routingRedirect_pathBased(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -335,10 +349,10 @@ func TestAccApplicationGateway_customErrorConfigurations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customErrorConfigurations(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -350,10 +364,10 @@ func TestAccApplicationGateway_rewriteRuleSets_backend(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.rewriteRuleSets_backend(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
 			),
@@ -366,10 +380,26 @@ func TestAccApplicationGateway_rewriteRuleSets_redirect(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.rewriteRuleSets_redirect(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationGateway_rewriteRuleSets_rewriteUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rewriteRuleSets_rewriteUrl(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
 			),
@@ -382,10 +412,10 @@ func TestAccApplicationGateway_probes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.probes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -397,10 +427,10 @@ func TestAccApplicationGateway_probesEmptyMatch(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.probesEmptyMatch(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -412,10 +442,10 @@ func TestAccApplicationGateway_probesPickHostNameFromBackendHTTPSettings(t *test
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.probesPickHostNameFromBackendHTTPSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("probe.0.pick_host_name_from_backend_http_settings").HasValue("true"),
 			),
@@ -428,10 +458,10 @@ func TestAccApplicationGateway_probesWithPort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.probesWithPort(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("probe.0.port").HasValue("8082"),
 			),
@@ -445,10 +475,10 @@ func TestAccApplicationGateway_backendHttpSettingsHostName(t *testing.T) {
 	r := ApplicationGatewayResource{}
 	hostName := "example.com"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backendHttpSettingsHostName(data, hostName, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backend_http_settings.0.host_name").HasValue(hostName),
 			),
@@ -461,10 +491,10 @@ func TestAccApplicationGateway_withHttpListenerHostNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withHttpListenerHostNames(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -477,7 +507,7 @@ func TestAccApplicationGateway_backendHttpSettingsHostNameAndPick(t *testing.T) 
 	r := ApplicationGatewayResource{}
 	hostName := "example.com"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.backendHttpSettingsHostName(data, hostName, true),
 			ExpectError: regexp.MustCompile("Only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
@@ -489,10 +519,10 @@ func TestAccApplicationGateway_settingsPickHostNameFromBackendAddress(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.settingsPickHostNameFromBackendAddress(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backend_http_settings.0.pick_host_name_from_backend_address").HasValue("true"),
 			),
@@ -505,10 +535,10 @@ func TestAccApplicationGateway_sslCertificate_keyvault_versionless(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslCertificate_keyvault_versionless(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_certificate.0.key_vault_secret_id").Exists(),
 			),
@@ -521,10 +551,10 @@ func TestAccApplicationGateway_sslCertificate_keyvault_versioned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslCertificate_keyvault_versioned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_certificate.0.key_vault_secret_id").Exists(),
 			),
@@ -537,10 +567,10 @@ func TestAccApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslCertificateEmptyPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -556,10 +586,10 @@ func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.manualSslCertificateChangeIgnoreChangesConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_certificate.0.name").HasValue("acctestcertificate1"),
 				data.CheckWithClient(r.changeCert("acctestcertificate2")),
@@ -567,7 +597,7 @@ func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testin
 		},
 		{
 			Config: r.manualSslCertificateChangeIgnoreChangesUpdatedConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_certificate.0.name").HasValue("acctestcertificate2"),
 			),
@@ -579,10 +609,10 @@ func TestAccApplicationGateway_sslCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslCertificate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -593,7 +623,7 @@ func TestAccApplicationGateway_sslCertificate(t *testing.T) {
 		),
 		{
 			Config: r.sslCertificateUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -609,10 +639,10 @@ func TestAccApplicationGateway_webApplicationFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.webApplicationFirewall(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("WAF_Medium"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("WAF"),
@@ -633,10 +663,10 @@ func TestAccApplicationGateway_connectionDraining(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.connectionDraining(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backend_http_settings.0.connection_draining.0.enabled").HasValue("true"),
 			),
@@ -644,14 +674,14 @@ func TestAccApplicationGateway_connectionDraining(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_Small"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("waf_configuration.#").HasValue("0"),
-				resource.TestCheckNoResourceAttr(data.ResourceName, "backend_http_settings.0.connection_draining.0.enabled"),
-				resource.TestCheckNoResourceAttr(data.ResourceName, "backend_http_settings.0.connection_draining.0.drain_timeout_sec"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "backend_http_settings.0.connection_draining.0.enabled"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "backend_http_settings.0.connection_draining.0.drain_timeout_sec"),
 			),
 		},
 		data.ImportStep(),
@@ -662,10 +692,10 @@ func TestAccApplicationGateway_webApplicationFirewall_disabledRuleGroups(t *test
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.webApplicationFirewall_disabledRuleGroups(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("WAF_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("WAF_v2"),
@@ -689,7 +719,7 @@ func TestAccApplicationGateway_webApplicationFirewall_disabledRuleGroups(t *test
 		},
 		{
 			Config: r.webApplicationFirewall_disabledRuleGroups_enabled_some_rules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("WAF_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("WAF_v2"),
@@ -715,10 +745,10 @@ func TestAccApplicationGateway_webApplicationFirewall_exclusions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.webApplicationFirewall_exclusions_many(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("WAF_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("WAF_v2"),
@@ -749,7 +779,7 @@ func TestAccApplicationGateway_webApplicationFirewall_exclusions(t *testing.T) {
 		},
 		{
 			Config: r.webApplicationFirewall_exclusions_one(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("WAF_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("WAF_v2"),
@@ -773,10 +803,10 @@ func TestAccApplicationGateway_sslPolicy_policyType_predefined(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslPolicy_policyType_predefined(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_policy.0.policy_type").HasValue("Predefined"),
 				check.That(data.ResourceName).Key("ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20170401S"),
@@ -789,10 +819,10 @@ func TestAccApplicationGateway_sslPolicy_policyType_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslPolicy_policyType_custom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_policy.0.policy_type").HasValue("Custom"),
 				check.That(data.ResourceName).Key("ssl_policy.0.min_protocol_version").HasValue("TLSv1_1"),
@@ -808,10 +838,10 @@ func TestAccApplicationGateway_sslPolicy_disabledProtocols(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslPolicy_disabledProtocols(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_policy.0.disabled_protocols.0").HasValue("TLSv1_0"),
 				check.That(data.ResourceName).Key("ssl_policy.0.disabled_protocols.1").HasValue("TLSv1_1"),
@@ -824,10 +854,10 @@ func TestAccApplicationGateway_cookieAffinity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cookieAffinity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backend_http_settings.0.affinity_cookie_name").HasValue("testCookieName"),
 			),
@@ -835,7 +865,7 @@ func TestAccApplicationGateway_cookieAffinity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cookieAffinityUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backend_http_settings.0.affinity_cookie_name").HasValue(""),
 			),
@@ -848,17 +878,17 @@ func TestAccApplicationGateway_gatewayIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.gatewayIPUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -870,10 +900,10 @@ func TestAccApplicationGateway_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.UserDefinedIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
@@ -886,10 +916,10 @@ func TestAccApplicationGateway_V2SKUCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.v2SKUCapacity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
@@ -904,10 +934,10 @@ func TestAccApplicationGateway_IncludePathWithTargetURL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.includePathWithTargetURL(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -919,10 +949,10 @@ func TestAccApplicationGateway_backendAddressPoolEmptyIpList(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backendAddressPoolEmptyIpList(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -930,7 +960,7 @@ func TestAccApplicationGateway_backendAddressPoolEmptyIpList(t *testing.T) {
 	})
 }
 
-func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationGatewayID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1671,7 +1701,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${data.azurerm_client_config.test.object_id}"
     secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
@@ -2080,6 +2110,141 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) customPathRuleFirewallPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
+  url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+}
+
+resource "azurerm_public_ip" "teststd" {
+  name                = "acctest-PubIpStd-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_web_application_firewall_policy" "testfwp" {
+  name                = "acctest-fwp-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+}
+
+resource "azurerm_web_application_firewall_policy" "testfwp_path_rule" {
+  name                = "acctest-fwp-path-rule-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  firewall_policy_id = azurerm_web_application_firewall_policy.testfwp.id
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 443
+    protocol              = "Https"
+    request_timeout       = 1
+
+    pick_host_name_from_backend_address = true
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name               = local.request_routing_rule_name
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = local.url_path_map_name
+    http_listener_name = local.listener_name
+  }
+
+  url_path_map {
+    name                               = local.url_path_map_name
+    default_backend_address_pool_name  = local.backend_address_pool_name
+    default_backend_http_settings_name = local.http_setting_name
+
+    path_rule {
+      name                       = local.path_rule_name
+      backend_address_pool_name  = local.backend_address_pool_name
+      backend_http_settings_name = local.http_setting_name
+      firewall_policy_id         = azurerm_web_application_firewall_policy.testfwp_path_rule.id
+      paths = [
+        "/test",
+      ]
+    }
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3304,7 +3469,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
@@ -3454,7 +3619,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
@@ -3795,7 +3960,7 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		gatewayName := state.Attributes["name"]
 		resourceGroup := state.Attributes["resource_group_name"]
 
@@ -5146,6 +5311,128 @@ resource "azurerm_application_gateway" "test" {
       request_header_configuration {
         header_name  = "X-custom"
         header_value = "customvalue"
+      }
+    }
+  }
+
+  redirect_configuration {
+    name                 = local.redirect_configuration_name
+    redirect_type        = "Temporary"
+    target_listener_name = local.target_listener_name
+    include_path         = true
+    include_query_string = false
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) rewriteRuleSets_rewriteUrl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2            = "${azurerm_virtual_network.test.name}-feport2"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  target_listener_name           = "${azurerm_virtual_network.test.name}-trgthttplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
+  rewrite_rule_set_name          = "${azurerm_virtual_network.test.name}-rwset"
+  rewrite_rule_name              = "${azurerm_virtual_network.test.name}-rwrule"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_port {
+    name = local.frontend_port_name2
+    port = 8888
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = local.target_listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name2
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                        = local.request_routing_rule_name
+    rule_type                   = "Basic"
+    http_listener_name          = local.listener_name
+    redirect_configuration_name = local.redirect_configuration_name
+    rewrite_rule_set_name       = local.rewrite_rule_set_name
+  }
+
+  rewrite_rule_set {
+    name = local.rewrite_rule_set_name
+
+    rewrite_rule {
+      name          = local.rewrite_rule_name
+      rule_sequence = 1
+
+      condition {
+        variable = "var_uri_path"
+        pattern  = ".*article/(.*)/(.*)"
+      }
+
+      url {
+        path         = "/article.aspx"
+        query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
       }
     }
   }

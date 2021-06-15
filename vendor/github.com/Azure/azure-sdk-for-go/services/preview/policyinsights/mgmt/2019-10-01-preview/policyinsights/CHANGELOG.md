@@ -1,5 +1,20 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/policyinsights/resource-manager/readme.md tag: `package-2019-10`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. ErrorDefinition.MarshalJSON() ([]byte, error)
+1. PolicyDetails.MarshalJSON() ([]byte, error)
+1. PolicyMetadataCollection.MarshalJSON() ([]byte, error)
+1. PolicyMetadataProperties.MarshalJSON() ([]byte, error)
+1. PolicyMetadataSlimProperties.MarshalJSON() ([]byte, error)
+1. PolicyTrackedResource.MarshalJSON() ([]byte, error)
+1. PolicyTrackedResourcesQueryResults.MarshalJSON() ([]byte, error)
+1. QueryFailureError.MarshalJSON() ([]byte, error)
+1. RemediationDeployment.MarshalJSON() ([]byte, error)
+1. RemediationDeploymentSummary.MarshalJSON() ([]byte, error)
+1. RemediationDeploymentsListResult.MarshalJSON() ([]byte, error)
+1. RemediationListResult.MarshalJSON() ([]byte, error)
+1. TrackedResourceModificationDetails.MarshalJSON() ([]byte, error)
+1. TypedErrorInfo.MarshalJSON() ([]byte, error)

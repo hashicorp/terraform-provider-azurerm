@@ -1,5 +1,14 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/datalake-store/data-plane/readme.md tag: `package-2016-11`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. AdlsError.MarshalJSON() ([]byte, error)
+1. ContentSummary.MarshalJSON() ([]byte, error)
+1. ContentSummaryResult.MarshalJSON() ([]byte, error)
+1. FileOperationResult.MarshalJSON() ([]byte, error)
+1. FileStatusProperties.MarshalJSON() ([]byte, error)
+1. FileStatusResult.MarshalJSON() ([]byte, error)
+1. FileStatuses.MarshalJSON() ([]byte, error)
+1. FileStatusesResult.MarshalJSON() ([]byte, error)

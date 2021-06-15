@@ -4,28 +4,28 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func URLRewrite() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func URLRewrite() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"source_pattern": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteSourcePattern(),
 			},
 
 			"destination": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteDestination(),
 			},
 
 			"preserve_unmatched_path": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
 	r := ApiManagementApiDataSourceResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("display_name").HasValue("api1"),
 				check.That(data.ResourceName).Key("path").HasValue("api1"),
 				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
@@ -37,10 +36,10 @@ func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
 	r := ApiManagementApiDataSourceResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("display_name").HasValue("Butter Parser"),
 				check.That(data.ResourceName).Key("path").HasValue("butter-parser"),
 				check.That(data.ResourceName).Key("protocols.#").HasValue("2"),

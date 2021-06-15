@@ -6,14 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,7 +32,7 @@ func TestValidateBatchAccountName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := batch.ValidateAzureRMBatchAccountName(test.input, "name")
+		_, es := validate.AccountName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
@@ -50,10 +48,10 @@ func TestAccBatchAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 			),
@@ -65,10 +63,10 @@ func TestAccBatchAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -83,10 +81,10 @@ func TestAccBatchAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -95,7 +93,7 @@ func TestAccBatchAccount_complete(t *testing.T) {
 		},
 		{
 			Config: r.completeUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
@@ -111,10 +109,10 @@ func TestAccBatchAccount_userSubscription(t *testing.T) {
 	r := BatchAccountResource{}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userSubscription(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("UserSubscription"),
 			),
@@ -122,7 +120,7 @@ func TestAccBatchAccount_userSubscription(t *testing.T) {
 	})
 }
 
-func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -272,7 +270,8 @@ resource "azurerm_key_vault" "test" {
       "get",
       "list",
       "set",
-      "delete"
+      "delete",
+      "recover"
     ]
 
   }

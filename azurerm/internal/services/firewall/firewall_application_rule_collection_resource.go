@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -15,38 +13,39 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	firewallValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceFirewallApplicationRuleCollection() *schema.Resource {
-	return &schema.Resource{
+func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceFirewallApplicationRuleCollectionCreateUpdate,
 		Read:   resourceFirewallApplicationRuleCollectionRead,
 		Update: resourceFirewallApplicationRuleCollectionCreateUpdate,
 		Delete: resourceFirewallApplicationRuleCollectionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: firewallValidate.FirewallName,
 			},
 
 			"azure_firewall_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: firewallValidate.FirewallName,
@@ -55,13 +54,13 @@ func resourceFirewallApplicationRuleCollection() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"priority": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(100, 65000),
 			},
 
 			"action": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallRCActionTypeAllow),
@@ -70,52 +69,52 @@ func resourceFirewallApplicationRuleCollection() *schema.Resource {
 			},
 
 			"rule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"source_addresses": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"source_ip_groups": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"fqdn_tags": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"target_fqdns": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"protocol": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.AzureFirewallApplicationRuleProtocolTypeHTTP),
@@ -124,7 +123,7 @@ func resourceFirewallApplicationRuleCollection() *schema.Resource {
 										}, false),
 									},
 									"port": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										ValidateFunc: validate.PortNumber,
 									},
@@ -138,7 +137,7 @@ func resourceFirewallApplicationRuleCollection() *schema.Resource {
 	}
 }
 
-func resourceFirewallApplicationRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -249,7 +248,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *schema.ResourceDat
 	return resourceFirewallApplicationRuleCollectionRead(d, meta)
 }
 
-func resourceFirewallApplicationRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,7 +321,7 @@ func resourceFirewallApplicationRuleCollectionRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -389,10 +388,10 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirew
 
 		ruleName := rule["name"].(string)
 		ruleDescription := rule["description"].(string)
-		ruleSourceAddresses := rule["source_addresses"].(*schema.Set).List()
-		ruleSourceIpGroups := rule["source_ip_groups"].(*schema.Set).List()
-		ruleFqdnTags := rule["fqdn_tags"].(*schema.Set).List()
-		ruleTargetFqdns := rule["target_fqdns"].(*schema.Set).List()
+		ruleSourceAddresses := rule["source_addresses"].(*pluginsdk.Set).List()
+		ruleSourceIpGroups := rule["source_ip_groups"].(*pluginsdk.Set).List()
+		ruleFqdnTags := rule["fqdn_tags"].(*pluginsdk.Set).List()
+		ruleTargetFqdns := rule["target_fqdns"].(*pluginsdk.Set).List()
 
 		output := network.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),

@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccCosmosDbCassandraKeyspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_keyspace", "test")
 	r := CosmosDbCassandraKeyspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccCosmosDbCassandraKeyspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_keyspace", "test")
 	r := CosmosDbCassandraKeyspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.throughput(data, 700),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("throughput").HasValue("700"),
 			),
@@ -53,10 +52,10 @@ func TestAccCosmosDbCassandraKeyspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_keyspace", "test")
 	r := CosmosDbCassandraKeyspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.throughput(data, 700),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("throughput").HasValue("700"),
 			),
@@ -64,7 +63,7 @@ func TestAccCosmosDbCassandraKeyspace_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.throughput(data, 1700),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("throughput").HasValue("1700"),
 			),
@@ -77,10 +76,10 @@ func TestAccCosmosDbCassandraKeyspace_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_keyspace", "test")
 	r := CosmosDbCassandraKeyspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscale(data, 4000),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
 			),
@@ -88,7 +87,7 @@ func TestAccCosmosDbCassandraKeyspace_autoscale(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.autoscale(data, 5000),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("5000"),
 			),
@@ -96,7 +95,7 @@ func TestAccCosmosDbCassandraKeyspace_autoscale(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.autoscale(data, 4000),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
 			),
@@ -105,7 +104,7 @@ func TestAccCosmosDbCassandraKeyspace_autoscale(t *testing.T) {
 	})
 }
 
-func (t CosmosDbCassandraKeyspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t CosmosDbCassandraKeyspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CassandraKeyspaceID(state.ID)
 	if err != nil {
 		return nil, err

@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAzureRMPolicySetDefinition_builtInDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.builtInDeprecated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.builtIn(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.builtIn(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +65,10 @@ func TestAccAzureRMPolicySetDefinition_customDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customDeprecated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -81,10 +80,10 @@ func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.custom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,10 +95,10 @@ func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customNoParameter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -111,17 +110,17 @@ func TestAccAzureRMPolicySetDefinition_customUpdateDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.custom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.customUpdateDisplayName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -133,17 +132,17 @@ func TestAccAzureRMPolicySetDefinition_customUpdateParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.custom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.customUpdateParameters(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -154,17 +153,17 @@ func TestAccAzureRMPolicySetDefinition_customUpdateAddNewReference(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.custom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.customUpdateAddNewReference(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -176,10 +175,10 @@ func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customWithPolicyReferenceID(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -191,24 +190,24 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customWithDefinitionGroups(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.customWithDefinitionGroupsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.customWithDefinitionGroups(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -220,10 +219,10 @@ func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managementGroupDeprecated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -235,10 +234,10 @@ func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managementGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -250,10 +249,10 @@ func TestAccAzureRMPolicySetDefinition_metadataDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.metadataDeprecated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -265,10 +264,10 @@ func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.metadata(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -967,7 +966,7 @@ POLICY_RULE
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PolicySetDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PolicySetDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PolicySetDefinitionID(state.ID)
 	if err != nil {
 		return nil, err

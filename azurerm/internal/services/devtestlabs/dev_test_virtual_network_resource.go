@@ -7,44 +7,43 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevTestVirtualNetwork() *schema.Resource {
-	return &schema.Resource{
+func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmDevTestVirtualNetworkCreate,
 		Read:   resourceArmDevTestVirtualNetworkRead,
 		Update: resourceArmDevTestVirtualNetworkUpdate,
 		Delete: resourceArmDevTestVirtualNetworkDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: ValidateDevTestVirtualNetworkName(),
 			},
 
 			"lab_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DevTestLabName(),
@@ -55,32 +54,32 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"subnet": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				// whilst the API accepts multiple, in practice only one is usable
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"use_in_virtual_machine_creation": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(dtl.Allow),
 							ValidateFunc: validate.DevTestVirtualNetworkUsagePermissionType(),
 						},
 
 						"use_public_ip_address": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(dtl.Allow),
 							ValidateFunc: validate.DevTestVirtualNetworkUsagePermissionType(),
@@ -92,14 +91,14 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"unique_identifier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +160,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 	return resourceArmDevTestVirtualNetworkUpdate(d, meta)
 }
 
-func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +203,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, read.Tags)
 }
 
-func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +252,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 	return resourceArmDevTestVirtualNetworkRead(d, meta)
 }
 
-func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -289,7 +288,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interfa
 	return err
 }
 
-func ValidateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
+func ValidateDevTestVirtualNetworkName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -14,6 +14,9 @@ type Client struct {
 	StreamingLocatorsClient  *media.StreamingLocatorsClient
 	ContentKeyPoliciesClient *media.ContentKeyPoliciesClient
 	StreamingPoliciesClient  *media.StreamingPoliciesClient
+	LiveEventsClient         *media.LiveEventsClient
+	LiveOutputsClient        *media.LiveOutputsClient
+	AssetFiltersClient       *media.AssetFiltersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,6 +44,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	StreamingPoliciesClient := media.NewStreamingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&StreamingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	LiveEventsClient := media.NewLiveEventsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LiveEventsClient.Client, o.ResourceManagerAuthorizer)
+
+	LiveOutputsClient := media.NewLiveOutputsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LiveOutputsClient.Client, o.ResourceManagerAuthorizer)
+
+	AssetFiltersClient := media.NewAssetFiltersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AssetFiltersClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ServicesClient:           &ServicesClient,
 		AssetsClient:             &AssetsClient,
@@ -50,5 +62,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		StreamingLocatorsClient:  &StreamingLocatorsClient,
 		ContentKeyPoliciesClient: &ContentKeyPoliciesClient,
 		StreamingPoliciesClient:  &StreamingPoliciesClient,
+		LiveEventsClient:         &LiveEventsClient,
+		LiveOutputsClient:        &LiveOutputsClient,
+		AssetFiltersClient:       &AssetFiltersClient,
 	}
 }

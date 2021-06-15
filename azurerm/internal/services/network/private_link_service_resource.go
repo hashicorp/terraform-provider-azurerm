@@ -6,44 +6,43 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePrivateLinkService() *schema.Resource {
-	return &schema.Resource{
+func resourcePrivateLinkService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePrivateLinkServiceCreateUpdate,
 		Read:   resourcePrivateLinkServiceRead,
 		Update: resourcePrivateLinkServiceCreateUpdate,
 		Delete: resourcePrivateLinkServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: networkValidate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -51,67 +50,67 @@ func resourcePrivateLinkService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_approval_subscription_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"enable_proxy_protocol": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"visibility_subscription_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			// Required by the API you can't create the resource without at least
 			// one ip configuration once primary is set it is set forever unless
 			// you destroy the resource and recreate it.
 			"nat_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 8,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.IPv4Address,
 						},
 						// Only IPv4 is supported by the API, but I am exposing this
 						// as they will support IPv6 in a future release.
 						"private_ip_address_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPv4),
+								string(network.IPVersionIPv4),
 							}, false),
-							Default: string(network.IPv4),
+							Default: string(network.IPVersionIPv4),
 						},
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"primary": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 							ForceNew: true,
 						},
@@ -121,34 +120,34 @@ func resourcePrivateLinkService() *schema.Resource {
 
 			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"alias": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := ValidatePrivateLinkNatIpConfiguration(d); err != nil {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if err := validatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
-func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,11 +168,11 @@ func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set).List()
+	autoApproval := d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()
 	enableProxyProtocol := d.Get("enable_proxy_protocol").(bool)
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
-	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*schema.Set).List()
-	visibility := d.Get("visibility_subscription_ids").(*schema.Set).List()
+	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List()
+	visibility := d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.PrivateLinkService{
@@ -203,7 +202,7 @@ func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interfa
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
 	// currently being tracked with issue #6466: https://github.com/Azure/azure-sdk-for-go/issues/6466
 	log.Printf("[DEBUG] Waiting for Private Link Service to %q (Resource Group %q) to finish applying", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Pending", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    privateLinkServiceWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
@@ -211,9 +210,9 @@ func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -234,7 +233,7 @@ func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourcePrivateLinkServiceRead(d, meta)
 }
 
-func resourcePrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +291,7 @@ func resourcePrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcePrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -349,9 +348,9 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.Pri
 		}
 
 		if privateIpAddress != "" {
-			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.Static
+			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethodStatic
 		} else {
-			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.Dynamic
+			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethodDynamic
 		}
 
 		results = append(results, result)
@@ -423,8 +422,8 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServic
 	return results
 }
 
-func flattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
-	results := &schema.Set{F: schema.HashString}
+func flattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *pluginsdk.Set {
+	results := &pluginsdk.Set{F: pluginsdk.HashString}
 	if input == nil {
 		return results
 	}
@@ -438,7 +437,7 @@ func flattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendI
 	return results
 }
 
-func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *network.PrivateLinkServicesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *network.PrivateLinkServicesClient, resourceGroupName string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name, "")
 		if err != nil {
@@ -457,4 +456,33 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 
 		return res, "Pending", nil
 	}
+}
+func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
+
+	for i, item := range ipConfigurations {
+		v := item.(map[string]interface{})
+		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
+		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
+		isPrimary := v["primary"].(bool)
+		in := v["name"].(string)
+
+		if d.HasChange(p) {
+			o, n := d.GetChange(p)
+			if o != "" && n == "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+			}
+		}
+
+		if isPrimary && d.HasChange(s) {
+			o, _ := d.GetChange(s)
+			if o != "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+			}
+		}
+	}
+
+	return nil
 }

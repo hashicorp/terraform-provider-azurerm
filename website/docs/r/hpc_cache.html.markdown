@@ -10,9 +10,9 @@ description: |-
 
 Manages a HPC Cache.
 
-~> **Note**: During the first several months of the GA release, a request must be made to the Azure HPC Cache team to add your subscription to the access list before it can be used to create a cache instance. Fill out [this form](https://aka.ms/onboard-hpc-cache) to request access.
+~> **Note:** During the first several months of the GA release, a request must be made to the Azure HPC Cache team to add your subscription to the access list before it can be used to create a cache instance. Fill out [this form](https://aka.ms/onboard-hpc-cache) to request access.
 
-~> **NOTE:**: By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
+~> **Note:** By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
 
 ## Example Usage
 
@@ -66,7 +66,107 @@ The following arguments are supported:
 
 * `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to 1500.
 
-* `root_squash_enabled` - (Optional) Whether root squash property is enabled for this HPC Cache.
+* `default_access_policy` - (Optional) A `default_access_policy` block as defined below.
+
+* `ntp_server` - (Optional) The NTP server IP Address or FQDN for the HPC Cache. Defaults to `time.windows.com`.
+
+* `dns` - (Optional) A `dns` block as defined below.
+
+* `directory_active_directory` - (Optional) A `directory_active_directory` block as defined below.
+ 
+* `directory_flat_file` - (Optional) A `directory_flat_file` block as defined below.
+ 
+* `directory_ldap` - (Optional) A `directory_ldap` block as defined below.
+
+~> **Note:** Only one of `directory_active_directory`, `directory_flat_file` and `directory_ldap` can be set.
+ 
+* `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
+
+---
+
+An `access_rule` block contains the following:
+
+* `scope` - (Required) The scope of this rule. The `scope` and (potentially) the `filter` determine which clients match the rule. Possible values are: `default`, `network`, `host`.
+
+~> **Note:** Each `access_rule` should set a unique `scope`.
+
+* `access` - (Required) The access level for this rule. Possible values are: `rw`, `ro`, `no`.
+
+* `filter` - (Optional) The filter applied to the `scope` for this rule. The filter's format depends on its scope: `default` scope matches all clients and has no filter value; `network` scope takes a CIDR format; `host` takes an IP address or fully qualified domain name. If a client does not match any filter rule and there is no default rule, access is denied.
+
+* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/en-us/azure/hpc-cache/access-policies#suid) is allowed? Defaults to `false`.
+
+* `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? Defaults to `false`.
+
+* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/en-us/azure/hpc-cache/access-policies#root-squash)? Defaults to `false`.
+
+* `anonymous_uid` - (Optional) The anonymous UID used when `root_squash_enabled` is `true`.
+ 
+* `anonymous_gid` - (Optional) The anonymous GID used when `root_squash_enabled` is `true`.
+
+---
+
+A `bind` block contains the following:
+
+* `dn` - (Required) The Bind Distinguished Name (DN) identity to be used in the secure LDAP connection.
+ 
+* `password` - (Required) The Bind password to be used in the secure LDAP connection.
+
+---
+
+A `default_access_policy` block contains the following:
+
+* `access_rule` - (Required) One to three `access_rule` blocks as defined above.
+
+---
+
+A `directory_active_directory` block contains the following:
+
+* `dns_primary_ip` - (Required) The primary DNS IP address used to resolve the Active Directory domain controller's FQDN.
+
+* `domain_name` - (Required) The fully qualified domain name of the Active Directory domain controller.
+ 
+* `cache_netbios_name` - (Required) The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server.
+
+* `domain_netbios_name` - (Required) The Active Directory domain's NetBIOS name.
+
+* `username` - (Required) The username of the Active Directory domain administrator.
+ 
+* `password` - (Required) The password of the Active Directory domain administrator.
+
+* `dns_secondary_ip` - (Optional) The secondary DNS IP address used to resolve the Active Directory domain controller's FQDN.
+
+---
+
+A `directory_flat_file` block contains the following:
+
+* `group_file_uri` - (Required) The URI of the file containing group information (`/etc/group` file format in Unix-like OS).
+
+* `password_file_uri` - (Required) The URI of the file containing user information (`/etc/passwd` file format in Unix-like OS).
+
+---
+
+A `directory_ldap` block contains the following:
+
+* `server` - (Required) The FQDN or IP address of the LDAP server.
+
+* `base_dn` - (Required) The base distinguished name (DN) for the LDAP domain.
+
+* `encrypted` - (Optional) Whether the LDAP connection should be encrypted? Defaults to `false`.
+
+* `certificate_validation_uri` - (Optional) The URI of the CA certificate to validate the LDAP secure connection.
+
+* `download_certificate_automatically` - (Optional) Whether the certificate should be automatically downloaded. This can be set to `true` only when `certificate_validation_uri` is provided. Defaults to `false`.
+
+* `bind` - (Optional) A `bind` block as defined above.
+
+---
+
+A `dns` block contains the following:
+
+* `servers` - (Required) A list of DNS servers for the HPC Cache. At most three IP(s) are allowed to set.
+
+* `search_domain` - (Optional) The DNS search domain for the HPC Cache.
 
 ## Attributes Reference
 

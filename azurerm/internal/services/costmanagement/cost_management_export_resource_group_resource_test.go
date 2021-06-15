@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 	r := CostManagementExportResourceGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,24 +36,24 @@ func TestAccCostManagementExportResourceGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 	r := CostManagementExportResourceGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -62,7 +61,7 @@ func TestAccCostManagementExportResourceGroup_update(t *testing.T) {
 	})
 }
 
-func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CostManagementExportResourceGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,8 +76,8 @@ func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, c
 }
 
 func (CostManagementExportResourceGroupResource) basic(data acceptance.TestData) string {
-	start := time.Now().AddDate(0, 1, 0).Format("2006-02")
-	end := time.Now().AddDate(0, 2, 0).Format("2006-02")
+	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -103,8 +102,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
   name                    = "accrg%d"
   resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
-  recurrence_period_start = "%s-18T00:00:00Z"
-  recurrence_period_end   = "%s-18T00:00:00Z"
+  recurrence_period_start = "%sT00:00:00Z"
+  recurrence_period_end   = "%sT00:00:00Z"
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id
@@ -121,8 +120,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
 }
 
 func (CostManagementExportResourceGroupResource) update(data acceptance.TestData) string {
-	start := time.Now().AddDate(0, 3, 0).Format("2006-02")
-	end := time.Now().AddDate(0, 4, 0).Format("2006-02")
+	start := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
+	end := time.Now().AddDate(0, 4, 0).Format("2006-01-02")
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -147,8 +146,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
   name                    = "accrg%d"
   resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
-  recurrence_period_start = "%s-18T00:00:00Z"
-  recurrence_period_end   = "%s-18T00:00:00Z"
+  recurrence_period_start = "%sT00:00:00Z"
+  recurrence_period_end   = "%sT00:00:00Z"
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id

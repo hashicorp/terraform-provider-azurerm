@@ -6,42 +6,41 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementPolicyCreateUpdate,
 		Read:   resourceApiManagementPolicyRead,
 		Update: resourceApiManagementPolicyCreateUpdate,
 		Delete: resourceApiManagementPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"api_management_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"xml_content": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
@@ -50,7 +49,7 @@ func resourceApiManagementPolicy() *schema.Resource {
 			},
 
 			"xml_link": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"xml_content"},
 				ExactlyOneOf:  []string{"xml_link", "xml_content"},
@@ -59,7 +58,7 @@ func resourceApiManagementPolicy() *schema.Resource {
 	}
 }
 
-func resourceApiManagementPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -74,7 +73,7 @@ func resourceApiManagementPolicyCreateUpdate(d *schema.ResourceData, meta interf
 
 	/*
 		Other resources would have a check for d.IsNewResource() at this location, and would error out using `tf.ImportAsExistsError` if the resource already existed.
-		However, this is a sub-resource, and the API always returns a policy when queried, either a default policy or one configured by the user or by this resource.
+		However, this is a sub-resource, and the API always returns a policy when queried, either a default policy or one configured by the user or by this pluginsdk.
 		Instead of the usual check, the resource documentation clearly states that any existing policy will be overwritten if the resource is used.
 	*/
 
@@ -122,7 +121,7 @@ func resourceApiManagementPolicyCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceApiManagementPolicyRead(d, meta)
 }
 
-func resourceApiManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceClient := meta.(*clients.Client).ApiManagement.ServiceClient
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -173,7 +172,7 @@ func resourceApiManagementPolicyRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceApiManagementPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,5 +1,15 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3a3a9452f965a227ce43e6b545035b99dd175f23//specification/redis/resource-manager/readme.md tag: `package-2020-06`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. AccessKeys.MarshalJSON() ([]byte, error)
+1. ErrorAdditionalInfo.MarshalJSON() ([]byte, error)
+1. ErrorDetail.MarshalJSON() ([]byte, error)
+1. ForceRebootResponse.MarshalJSON() ([]byte, error)
+1. InstanceDetails.MarshalJSON() ([]byte, error)
+1. LinkedServer.MarshalJSON() ([]byte, error)
+1. PrivateEndpoint.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)

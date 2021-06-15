@@ -3,8 +3,8 @@ package common
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,7 +26,7 @@ func ConvertThroughputFromResourceData(throughput interface{}) *int32 {
 	return utils.Int32(int32(throughput.(int)))
 }
 
-func ExpandCosmosDBThroughputSettingsUpdateParameters(d *schema.ResourceData) *documentdb.ThroughputSettingsUpdateParameters {
+func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData) *documentdb.ThroughputSettingsUpdateParameters {
 	throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
 		ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
 			Resource: &documentdb.ThroughputSettingsResource{},
@@ -46,14 +46,14 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *schema.ResourceData) *d
 	return &throughputParameters
 }
 
-func SetResourceDataThroughputFromResponse(throughputResponse documentdb.ThroughputSettingsGetResults, d *schema.ResourceData) {
+func SetResourceDataThroughputFromResponse(throughputResponse documentdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
 	d.Set("throughput", GetThroughputFromResult(throughputResponse))
 
 	autoscaleSettings := FlattenCosmosDbAutoscaleSettings(throughputResponse)
 	d.Set("autoscale_settings", autoscaleSettings)
 }
 
-func CheckForChangeFromAutoscaleAndManualThroughput(d *schema.ResourceData) error {
+func CheckForChangeFromAutoscaleAndManualThroughput(d *pluginsdk.ResourceData) error {
 	if d.HasChange("throughput") && d.HasChange("autoscale_settings") {
 		return fmt.Errorf("switching between autoscale and manually provisioned throughput via Terraform is not supported at this time")
 	}
@@ -61,6 +61,6 @@ func CheckForChangeFromAutoscaleAndManualThroughput(d *schema.ResourceData) erro
 	return nil
 }
 
-func HasThroughputChange(d *schema.ResourceData) bool {
+func HasThroughputChange(d *pluginsdk.ResourceData) bool {
 	return d.HasChanges("throughput", "autoscale_settings")
 }

@@ -17,7 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
@@ -27,6 +29,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
@@ -101,6 +104,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventhub.Registration{},
 		loadbalancer.Registration{},
 		resource.Registration{},
+		web.Registration{},
 	}
 }
 
@@ -122,8 +126,10 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		bot.Registration{},
 		cdn.Registration{},
 		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
 		containers.Registration{},
+		consumption.Registration{},
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		customproviders.Registration{},
@@ -132,6 +138,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		datalake.Registration{},
 		databasemigration.Registration{},
 		databoxedge.Registration{},
+		dataprotection.Registration{},
 		datashare.Registration{},
 		desktopvirtualization.Registration{},
 		devspace.Registration{},

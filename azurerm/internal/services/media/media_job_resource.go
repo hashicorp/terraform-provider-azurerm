@@ -6,41 +6,40 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMediaJob() *schema.Resource {
-	return &schema.Resource{
+func resourceMediaJob() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMediaJobCreate,
 		Read:   resourceMediaJobRead,
 		Update: resourceMediaJobUpdate,
 		Delete: resourceMediaJobDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.JobID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -52,7 +51,7 @@ func resourceMediaJob() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"media_services_account_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -62,7 +61,7 @@ func resourceMediaJob() *schema.Resource {
 			},
 
 			"transform_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -72,14 +71,14 @@ func resourceMediaJob() *schema.Resource {
 			},
 
 			"input_asset": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringMatch(
@@ -88,7 +87,7 @@ func resourceMediaJob() *schema.Resource {
 							),
 						},
 						"label": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -98,14 +97,14 @@ func resourceMediaJob() *schema.Resource {
 			},
 
 			"output_asset": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringMatch(
@@ -114,7 +113,7 @@ func resourceMediaJob() *schema.Resource {
 							),
 						},
 						"label": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -124,7 +123,7 @@ func resourceMediaJob() *schema.Resource {
 			},
 
 			"priority": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(media.PriorityNormal),
@@ -136,7 +135,7 @@ func resourceMediaJob() *schema.Resource {
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -144,7 +143,7 @@ func resourceMediaJob() *schema.Resource {
 	}
 }
 
-func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.JobsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -195,7 +194,7 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceMediaJobRead(d, meta)
 }
 
-func resourceMediaJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,7 +242,7 @@ func resourceMediaJobRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceMediaJobUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.JobsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +283,7 @@ func resourceMediaJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceMediaJobRead(d, meta)
 }
 
-func resourceMediaJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.JobsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

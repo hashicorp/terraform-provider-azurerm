@@ -10,26 +10,24 @@ description: |-
 
 Manages an Azure File Share Backup Policy within a Recovery Services vault.
 
--> **NOTE:** Azure Backup for Azure File Shares is currently in public preview. During the preview, the service is subject to additional limitations and unsupported backup scenarios. [Read More](https://docs.microsoft.com/en-us/azure/backup/backup-azure-files#limitations-for-azure-file-share-backup-during-preview)
-
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "tfex-recovery_vault"
   location = "West Europe"
 }
 
-resource "azurerm_recovery_services_vault" "vault" {
+resource "azurerm_recovery_services_vault" "example" {
   name                = "tfex-recovery-vault"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_backup_policy_file_share" "policy" {
   name                = "tfex-recovery-vault-policy"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   recovery_vault_name = azurerm_recovery_services_vault.vault.name
 
   timezone = "UTC"
@@ -41,6 +39,24 @@ resource "azurerm_backup_policy_file_share" "policy" {
 
   retention_daily {
     count = 10
+  }
+
+  retention_weekly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+  }
+
+  retention_yearly {
+    count    = 7
+    weekdays = ["Sunday"]
+    weeks    = ["Last"]
+    months   = ["January"]
   }
 }
 ```
@@ -59,9 +75,15 @@ The following arguments are supported:
 
 * `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
 
+-> **NOTE:** The maximum number of snapshots that Azure Files can retain is 200. If your combined snapshot count exceeds 200 based on your retention policies, it will result in an error. See [this](https://docs.microsoft.com/en-us/azure/backup/backup-azure-files-faq#what-is-the-maximum-retention-i-can-configure-for-backups) article for more information. 
+
 * `retention_daily` - (Required) Configures the policy daily retention as documented in the `retention_daily` block below.
 
--> **NOTE:** During the public preview, only daily retentions are supported. This argument is made available in this format for consistency with VM backup policies and to allow for potential future support of additional retention policies
+* `retention_weekly` - (Optional) Configures the policy weekly retention as documented in the `retention_weekly` block below.
+
+* `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
+
+* `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
 
 ---
 
@@ -69,15 +91,45 @@ The `backup` block supports:
 
 * `frequency` - (Required) Sets the backup frequency. Currently, only `Daily` is supported
 
--> **NOTE:** During the public preview, only daily backups are supported. This argument is made available for consistency with VM backup policies and to allow for potential future support of weekly backups
+-> **NOTE:** This argument is made available for consistency with VM backup policies and to allow for potential future support of weekly backups
 
-* `times` - (Required) The time of day to perform the backup in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
+* `time` - (Required) The time of day to perform the backup in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
 
 ---
 
 The `retention_daily` block supports:
 
-* `count` - (Required) The number of daily backups to keep. Must be between `1` and `180` (inclusive)
+* `count` - (Required) The number of daily backups to keep. Must be between `1` and `200` (inclusive)
+
+---
+
+The `retention_weekly` block supports:
+
+* `count` - (Required) The number of daily backups to keep. Must be between `1` and `200` (inclusive)
+
+* `weekdays` - (Required) The weekday backups to retain. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+---
+
+The `retention_monthly` block supports:
+
+* `count` - (Required) The number of monthly backups to keep. Must be between `1` and `120`
+
+* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+---
+
+The `retention_yearly` block supports:
+
+* `count` - (Required) The number of yearly backups to keep. Must be between `1` and `10`
+
+* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `February`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
 
 ## Attributes Reference
 

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccKustoEventGridDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccKustoEventGridDataConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,25 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoEventGridDataConnection_mappingRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
+	r := KustoEventGridDataConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mappingRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,24 +80,24 @@ func TestAccKustoEventGridDataConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -91,7 +105,7 @@ func TestAccKustoEventGridDataConnection_update(t *testing.T) {
 	})
 }
 
-func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -168,6 +182,31 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r KustoEventGridDataConnectionResource) mappingRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_eventgrid_data_connection" "test" {
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+
+  blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
+  skip_first_record       = true
+
+  mapping_rule_name = "Json_Mapping"
+  data_format       = "MULTIJSON"
+
+  depends_on = [azurerm_eventgrid_event_subscription.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (KustoEventGridDataConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -175,7 +214,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SecurityCenter-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

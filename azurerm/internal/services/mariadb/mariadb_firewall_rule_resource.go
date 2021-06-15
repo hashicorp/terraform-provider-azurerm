@@ -6,36 +6,35 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDBFirewallRule() *schema.Resource {
-	return &schema.Resource{
+func resourceArmMariaDBFirewallRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmMariaDBFirewallRuleCreateUpdate,
 		Read:   resourceArmMariaDBFirewallRuleRead,
 		Update: resourceArmMariaDBFirewallRuleCreateUpdate,
 		Delete: resourceArmMariaDBFirewallRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FirewallRuleName,
@@ -44,20 +43,20 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azValidate.IPv4Address,
 			},
 
 			"end_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azValidate.IPv4Address,
 			},
@@ -65,7 +64,7 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMariaDBFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +119,7 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 	return resourceArmMariaDBFirewallRuleRead(d, meta)
 }
 
-func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMariaDBFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +150,7 @@ func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmMariaDBFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMariaDBFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -7,41 +7,40 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceServiceBusSubscriptionRule() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceBusSubscriptionRuleCreateUpdate,
 		Read:   resourceServiceBusSubscriptionRuleRead,
 		Update: resourceServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceServiceBusSubscriptionRuleDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionRuleID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 50),
@@ -50,28 +49,28 @@ func resourceServiceBusSubscriptionRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"namespace_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NamespaceName,
 			},
 
 			"topic_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.TopicName(),
 			},
 
 			"subscription_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SubscriptionName(),
 			},
 
 			"filter_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicebus.FilterTypeSQLFilter),
@@ -81,60 +80,96 @@ func resourceServiceBusSubscriptionRule() *schema.Resource {
 			},
 
 			"action": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"sql_filter": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.SqlFilter,
 			},
 
 			"correlation_filter": {
-				Type:          schema.TypeList,
+				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"sql_filter"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"correlation_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"message_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"to": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"reply_to": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"label": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"session_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"reply_to_session_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"content_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"properties": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
 						},
 					},
@@ -144,7 +179,7 @@ func resourceServiceBusSubscriptionRule() *schema.Resource {
 	}
 }
 
-func resourceServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -208,7 +243,7 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
-func resourceServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,7 +287,7 @@ func resourceServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +307,7 @@ func resourceServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*servicebus.CorrelationFilter, error) {
+func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*servicebus.CorrelationFilter, error) {
 	configs := d.Get("correlation_filter").([]interface{})
 	if len(configs) == 0 {
 		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")

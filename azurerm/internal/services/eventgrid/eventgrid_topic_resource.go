@@ -6,42 +6,41 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceEventGridTopic() *schema.Resource {
-	return &schema.Resource{
+func resourceEventGridTopic() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventGridTopicCreateUpdate,
 		Read:   resourceEventGridTopicRead,
 		Update: resourceEventGridTopicCreateUpdate,
 		Delete: resourceEventGridTopicDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TopicID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
@@ -58,7 +57,7 @@ func resourceEventGridTopic() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"input_schema": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(eventgrid.InputSchemaEventGridSchema),
 				ForceNew: true,
@@ -69,40 +68,41 @@ func resourceEventGridTopic() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"topic": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"event_time": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"event_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"subject": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"data_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
@@ -110,25 +110,26 @@ func resourceEventGridTopic() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"event_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"subject": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"data_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
@@ -141,18 +142,18 @@ func resourceEventGridTopic() *schema.Resource {
 			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"primary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -162,7 +163,7 @@ func resourceEventGridTopic() *schema.Resource {
 	}
 }
 
-func resourceEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +224,7 @@ func resourceEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourceEventGridTopicRead(d, meta)
 }
 
-func resourceEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +297,7 @@ func resourceEventGridTopicRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,7 +325,7 @@ func resourceEventGridTopicDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandAzureRmEventgridTopicInputMapping(d *schema.ResourceData) *eventgrid.JSONInputSchemaMapping {
+func expandAzureRmEventgridTopicInputMapping(d *pluginsdk.ResourceData) *eventgrid.JSONInputSchemaMapping {
 	imf, imfok := d.GetOk("input_mapping_fields")
 
 	imdv, imdvok := d.GetOk("input_mapping_default_values")

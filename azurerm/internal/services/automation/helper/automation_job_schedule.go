@@ -3,54 +3,44 @@ package helper
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func JobScheduleSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeSet,
+func JobScheduleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeSet,
 		Optional:   true,
 		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"schedule_name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.ScheduleName(),
 				},
 
 				"parameters": {
-					Type:     schema.TypeMap,
+					Type:     pluginsdk.TypeMap,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
-					ValidateFunc: func(v interface{}, _ string) (warnings []string, errors []error) {
-						m := v.(map[string]interface{})
-						for k := range m {
-							if k != strings.ToLower(k) {
-								errors = append(errors, fmt.Errorf("Due to a bug in the implementation of Runbooks in Azure, the parameter names need to be specified in lowercase only. See: \"https://github.com/Azure/azure-sdk-for-go/issues/4780\" for more information."))
-							}
-						}
-
-						return warnings, errors
-					},
+					ValidateFunc: validate.ParameterNames,
 				},
 
 				"run_on": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
 				"job_schedule_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -101,8 +91,8 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[
 	return &res, nil
 }
 
-func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]automation.JobScheduleProperties) *schema.Set {
-	res := &schema.Set{
+func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]automation.JobScheduleProperties) *pluginsdk.Set {
+	res := &pluginsdk.Set{
 		F: resourceAutomationJobScheduleHash,
 	}
 	for jsId, js := range jsMap {
@@ -142,5 +132,5 @@ func resourceAutomationJobScheduleHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%s-%s-%s", scheduleName, utils.FlattenMapStringPtrString(m.Parameters), runOn, *m.JobScheduleID))
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }

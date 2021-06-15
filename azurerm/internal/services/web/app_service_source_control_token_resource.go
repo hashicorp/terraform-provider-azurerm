@@ -6,25 +6,24 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var appServiceSourceControlTokenResourceName = "azurerm_app_service_source_control_token"
 
-func resourceAppServiceSourceControlToken() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceSourceControlTokenCreateUpdate,
 		Read:   resourceAppServiceSourceControlTokenRead,
 		Update: resourceAppServiceSourceControlTokenCreateUpdate,
 		Delete: resourceAppServiceSourceControlTokenDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := validate.SourceControlTokenName()(id, "id")
 			if len(err) > 0 {
 				return fmt.Errorf("%s", err)
@@ -33,29 +32,29 @@ func resourceAppServiceSourceControlToken() *schema.Resource {
 			return nil
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"type": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SourceControlTokenName(),
 			},
 
 			"token": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"token_secret": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -64,7 +63,7 @@ func resourceAppServiceSourceControlToken() *schema.Resource {
 	}
 }
 
-func resourceAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.BaseClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,7 +101,7 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, me
 	return resourceAppServiceSourceControlTokenRead(d, meta)
 }
 
-func resourceAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSourceControlTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.BaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,7 +127,7 @@ func resourceAppServiceSourceControlTokenRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.BaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

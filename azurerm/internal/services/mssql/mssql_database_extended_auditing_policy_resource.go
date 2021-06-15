@@ -6,73 +6,71 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
 		Read:   resourceMsSqlDatabaseExtendedAuditingPolicyRead,
 		Update: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
 		Delete: resourceMsSqlDatabaseExtendedAuditingPolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseExtendedAuditingPolicyID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"database_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DatabaseID,
 			},
 
 			"storage_endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
 			"storage_account_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_access_key_is_secondary": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"retention_in_days": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntBetween(0, 3285),
 			},
 
 			"log_monitoring_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -80,7 +78,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 	}
 }
 
-func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +136,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.ResourceD
 	return resourceMsSqlDatabaseExtendedAuditingPolicyRead(d, meta)
 }
 
-func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	dbClient := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -175,7 +173,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

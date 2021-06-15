@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -9,8 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,34 +17,35 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSqlDatabase() *schema.Resource {
-	return &schema.Resource{
+func resourceSqlDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSqlDatabaseCreateUpdate,
 		Read:   resourceSqlDatabaseRead,
 		Update: resourceSqlDatabaseCreateUpdate,
 		Delete: resourceSqlDatabaseDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateMsSqlDatabaseName,
@@ -56,14 +56,14 @@ func resourceSqlDatabase() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"create_mode": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          string(sql.Default),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -80,22 +80,22 @@ func resourceSqlDatabase() *schema.Resource {
 			},
 
 			"import": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"storage_uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"storage_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							Sensitive: true,
 						},
 						"storage_key_type": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -104,16 +104,16 @@ func resourceSqlDatabase() *schema.Resource {
 							}, true),
 						},
 						"administrator_login": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"administrator_login_password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							Sensitive: true,
 						},
 						"authentication_type": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -122,7 +122,7 @@ func resourceSqlDatabase() *schema.Resource {
 							}, true),
 						},
 						"operation_mode": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Default:          "Import",
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -135,20 +135,20 @@ func resourceSqlDatabase() *schema.Resource {
 			},
 
 			"source_database_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"restore_point_in_time": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"edition": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -171,7 +171,7 @@ func resourceSqlDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				Computed:         true,
@@ -179,26 +179,26 @@ func resourceSqlDatabase() *schema.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"max_size_gb": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"requested_service_objective_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"requested_service_objective_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -208,46 +208,46 @@ func resourceSqlDatabase() *schema.Resource {
 			},
 
 			"source_database_deletion_date": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"elastic_pool_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"encryption": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"creation_date": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"default_secondary_location": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"threat_detection_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disabled_alerts": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Set:      schema.HashString,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Sql_Injection",
 									"Sql_Injection_Vulnerability",
@@ -257,7 +257,7 @@ func resourceSqlDatabase() *schema.Resource {
 						},
 
 						"email_account_admins": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
@@ -268,22 +268,22 @@ func resourceSqlDatabase() *schema.Resource {
 						},
 
 						"email_addresses": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 
 						"retention_days": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"state": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Default:          string(sql.SecurityAlertPolicyStateDisabled),
@@ -295,21 +295,21 @@ func resourceSqlDatabase() *schema.Resource {
 						},
 
 						"storage_account_access_key": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"storage_endpoint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						// TODO - 3.0: Remove this property
 						"use_server_default": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
@@ -324,13 +324,13 @@ func resourceSqlDatabase() *schema.Resource {
 			},
 
 			"read_scale": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"zone_redundant": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
@@ -339,7 +339,7 @@ func resourceSqlDatabase() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
 			if hasThreatDetection {
 				if tl := threatDetection.([]interface{}); len(tl) > 0 {
@@ -355,11 +355,11 @@ func resourceSqlDatabase() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
-func resourceSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -524,7 +524,7 @@ func resourceSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceSqlDatabaseRead(d, meta)
 }
 
-func resourceSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -614,7 +614,7 @@ func resourceSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -649,7 +649,7 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 	return ""
 }
 
-func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
+func flattenArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
 	// The SQL database threat detection API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.DatabaseSecurityAlertPolicyProperties
@@ -664,7 +664,7 @@ func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql
 	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
-		flattenedAlerts := schema.NewSet(schema.HashString, []interface{}{})
+		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		if v := *disabledAlerts; v != "" {
 			parsedAlerts := strings.Split(v, ";")
 			for _, a := range parsedAlerts {
@@ -674,7 +674,7 @@ func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql
 		threatDetectionPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
-		flattenedEmails := schema.NewSet(schema.HashString, []interface{}{})
+		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		if v := *emailAddresses; v != "" {
 			parsedEmails := strings.Split(*emailAddresses, ";")
 			for _, e := range parsedEmails {
@@ -698,7 +698,7 @@ func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql
 	return []interface{}{threatDetectionPolicy}
 }
 
-func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionRequest {
+func expandAzureRmSqlDatabaseImport(d *pluginsdk.ResourceData) sql.ImportExtensionRequest {
 	v := d.Get("import")
 	dbimportRefs := v.([]interface{})
 	dbimportRef := dbimportRefs[0].(map[string]interface{})
@@ -716,7 +716,7 @@ func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionR
 	}
 }
 
-func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
+func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		Location: utils.String(location),
 		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
@@ -738,7 +738,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
 
 		if v, ok := threatDetection["disabled_alerts"]; ok {
-			alerts := v.(*schema.Set).List()
+			alerts := v.(*pluginsdk.Set).List()
 			expandedAlerts := make([]string, len(alerts))
 			for i, a := range alerts {
 				expandedAlerts[i] = a.(string)
@@ -746,7 +746,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
 		}
 		if v, ok := threatDetection["email_addresses"]; ok {
-			emails := v.(*schema.Set).List()
+			emails := v.(*pluginsdk.Set).List()
 			expandedEmails := make([]string, len(emails))
 			for i, e := range emails {
 				expandedEmails[i] = e.(string)

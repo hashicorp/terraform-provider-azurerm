@@ -5,50 +5,47 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderAADB2C() *schema.Resource {
-	return &schema.Resource{
+func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
 		Read:   resourceArmApiManagementIdentityProviderAADB2CRead,
 		Update: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
 		Delete: resourceArmApiManagementIdentityProviderAADB2CDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"client_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"client_secret": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -56,45 +53,45 @@ func resourceArmApiManagementIdentityProviderAADB2C() *schema.Resource {
 
 			// For AADB2C identity providers, `allowed_tenants` must specify exactly one tenant
 			"allowed_tenant": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"signin_tenant": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				// B2C tenant domains can be customized, and GUIDs might work here too
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"authority": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				// B2C login domains can be customized and don't necessarily end in b2clogin.com
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"signup_policy": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"signin_policy": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"profile_editing_policy": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"password_reset_policy": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -102,7 +99,7 @@ func resourceArmApiManagementIdentityProviderAADB2C() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +155,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *schema.Resour
 	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,7 +199,7 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

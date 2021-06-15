@@ -1,5 +1,13 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/automation/resource-manager/readme.md tag: `package-2018-06-preview`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. JobNavigation.MarshalJSON() ([]byte, error)
+1. Key.MarshalJSON() ([]byte, error)
+1. LinkedWorkspace.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)
+1. Statistics.MarshalJSON() ([]byte, error)
+1. UpdateConfigurationNavigation.MarshalJSON() ([]byte, error)

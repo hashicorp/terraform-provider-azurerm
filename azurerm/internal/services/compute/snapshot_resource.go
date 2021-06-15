@@ -3,44 +3,43 @@ package compute
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSnapshot() *schema.Resource {
-	return &schema.Resource{
+func resourceSnapshot() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSnapshotCreateUpdate,
 		Read:   resourceSnapshotRead,
 		Update: resourceSnapshotCreateUpdate,
 		Delete: resourceSnapshotDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateSnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -48,7 +47,7 @@ func resourceSnapshot() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"create_option": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Copy),
@@ -58,25 +57,25 @@ func resourceSnapshot() *schema.Resource {
 			},
 
 			"source_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"source_resource_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"storage_account_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"disk_size_gb": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
@@ -88,7 +87,7 @@ func resourceSnapshot() *schema.Resource {
 	}
 }
 
-func resourceSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +163,7 @@ func resourceSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceSnapshotRead(d, meta)
 }
 
-func resourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +214,7 @@ func resourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,20 +237,4 @@ func resourceSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func ValidateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
-	// a-z, A-Z, 0-9, _ and -. The max name length is 80
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_-]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Snapshot Names can only contain alphanumeric characters and underscores."))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
-	}
-
-	return warnings, errors
 }

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccMachineLearningWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -39,10 +38,10 @@ func TestAccMachineLearningWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -58,10 +57,10 @@ func TestAccMachineLearningWorkspace_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -72,7 +71,7 @@ func TestAccMachineLearningWorkspace_basicUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -88,10 +87,10 @@ func TestAccMachineLearningWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -107,10 +106,10 @@ func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -121,7 +120,7 @@ func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completeUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -133,7 +132,7 @@ func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 	})
 }
 
-func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	workspacesClient := client.MachineLearning.WorkspacesClient
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
@@ -220,7 +219,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id            = azurerm_key_vault.test.id
   storage_account_id      = azurerm_storage_account.test.id
   container_registry_id   = azurerm_container_registry.test.id
-  sku_name                = "Enterprise"
+  sku_name                = "Basic"
   high_business_impact    = true
 
   identity {
@@ -258,7 +257,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id            = azurerm_key_vault.test.id
   storage_account_id      = azurerm_storage_account.test.id
   container_registry_id   = azurerm_container_registry.test.id
-  sku_name                = "Enterprise"
+  sku_name                = "Basic"
   high_business_impact    = true
 
   identity {
@@ -320,6 +319,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
+
+  purge_protection_enabled = true
 }
 
 resource "azurerm_storage_account" "test" {

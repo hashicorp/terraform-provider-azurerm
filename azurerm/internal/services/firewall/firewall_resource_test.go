@@ -6,13 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
 				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
@@ -40,31 +39,31 @@ func TestAccFirewall_enableDNS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.enableDNS(data, "1.1.1.1", "8.8.8.8"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.enableDNS(data, "1.1.1.1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -76,10 +75,10 @@ func TestAccFirewall_withManagementIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withManagementIp(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
 				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
@@ -95,10 +94,10 @@ func TestAccFirewall_withMultiplePublicIPs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multiplePublicIps(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
 				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
@@ -114,10 +113,10 @@ func TestAccFirewall_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -132,10 +131,10 @@ func TestAccFirewall_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -144,7 +143,7 @@ func TestAccFirewall_withTags(t *testing.T) {
 		},
 		{
 			Config: r.withUpdatedTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -160,10 +159,10 @@ func TestAccFirewall_withZones(t *testing.T) {
 	zones := []string{"1"}
 	zonesUpdate := []string{"1", "3"}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZones(data, zones),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
@@ -171,7 +170,7 @@ func TestAccFirewall_withZones(t *testing.T) {
 		},
 		{
 			Config: r.withZones(data, zonesUpdate),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("2"),
@@ -186,10 +185,10 @@ func TestAccFirewall_withoutZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withoutZone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -201,7 +200,7 @@ func TestAccFirewall_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -213,17 +212,17 @@ func TestAccFirewall_withFirewallPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withFirewallPolicy(data, "pol-01"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withFirewallPolicy(data, "pol-02"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -235,10 +234,10 @@ func TestAccFirewall_inVirtualHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.inVirtualHub(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
@@ -247,7 +246,7 @@ func TestAccFirewall_inVirtualHub(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.inVirtualHub(data, 2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("2"),
 				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
@@ -256,7 +255,7 @@ func TestAccFirewall_inVirtualHub(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.inVirtualHub(data, 1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
@@ -266,7 +265,42 @@ func TestAccFirewall_inVirtualHub(t *testing.T) {
 	})
 }
 
-func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccFirewall_privateRanges(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateRanges(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -282,7 +316,7 @@ func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, sta
 	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil
 }
 
-func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -860,4 +894,53 @@ resource "azurerm_firewall" "test" {
   threat_intel_mode  = ""
 }
 `, data.RandomInteger, data.Locations.Primary, pipCount)
+}
+
+func (FirewallResource) privateRanges(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+  private_ip_ranges = ["IANAPrivateRanges", "255.255.0.0/16"]
+  threat_intel_mode = "Deny"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

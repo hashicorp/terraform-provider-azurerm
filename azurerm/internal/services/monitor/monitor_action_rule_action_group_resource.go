@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorActionRuleActionGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorActionRuleActionGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorActionRuleActionGroupCreateUpdate,
 		Read:   resourceMonitorActionRuleActionGroupRead,
 		Update: resourceMonitorActionRuleActionGroupCreateUpdate,
 		Delete: resourceMonitorActionRuleActionGroupDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ActionRuleID(id)
 			return err
 		}, importMonitorActionRule(alertsmanagement.TypeActionGroup)),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ActionRuleName,
@@ -50,18 +49,18 @@ func resourceMonitorActionRuleActionGroup() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"action_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ActionGroupID,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -69,13 +68,13 @@ func resourceMonitorActionRuleActionGroup() *schema.Resource {
 			"condition": schemaActionRuleConditions(),
 
 			"scope": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(alertsmanagement.ScopeTypeResourceGroup),
@@ -84,10 +83,10 @@ func resourceMonitorActionRuleActionGroup() *schema.Resource {
 						},
 
 						"resource_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
 							},
 						},
@@ -100,7 +99,7 @@ func resourceMonitorActionRuleActionGroup() *schema.Resource {
 	}
 }
 
-func resourceMonitorActionRuleActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +155,7 @@ func resourceMonitorActionRuleActionGroupCreateUpdate(d *schema.ResourceData, me
 	return resourceMonitorActionRuleActionGroupRead(d, meta)
 }
 
-func resourceMonitorActionRuleActionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleActionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +193,7 @@ func resourceMonitorActionRuleActionGroupRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMonitorActionRuleActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleActionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

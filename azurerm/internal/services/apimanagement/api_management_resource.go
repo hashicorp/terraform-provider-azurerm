@@ -8,12 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,6 +19,8 @@ import (
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -47,25 +45,24 @@ var (
 	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
 )
 
-func resourceApiManagementService() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementServiceCreateUpdate,
 		Read:   resourceApiManagementServiceRead,
 		Update: resourceApiManagementServiceCreateUpdate,
 		Delete: resourceApiManagementServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(3 * time.Hour),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(3 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(3 * time.Hour),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(3 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(3 * time.Hour),
-			Delete: schema.DefaultTimeout(3 * time.Hour),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -73,31 +70,31 @@ func resourceApiManagementService() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"publisher_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimValidate.ApiManagementServicePublisherName,
 			},
 
 			"publisher_email": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
 			},
 
 			"sku_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -108,19 +105,19 @@ func resourceApiManagementService() *schema.Resource {
 							}, false),
 						},
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"identity_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.UserAssignedIdentityID,
 							},
 						},
@@ -129,7 +126,7 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"virtual_network_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(apimanagement.VirtualNetworkTypeNone),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -140,13 +137,13 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"virtual_network_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -155,26 +152,26 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"notification_sender_email": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"additional_location": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"location": azure.SchemaLocation(),
 
 						"virtual_network_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"subnet_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: azure.ValidateResourceID,
@@ -184,22 +181,22 @@ func resourceApiManagementService() *schema.Resource {
 						},
 
 						"gateway_regional_url": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"public_ip_addresses": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Type: pluginsdk.TypeList,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							Computed: true,
 						},
 
 						"private_ip_addresses": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Type: pluginsdk.TypeList,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							Computed: true,
 						},
@@ -208,25 +205,25 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"certificate": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 10,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"encoded_certificate": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							Sensitive: true,
 						},
 
 						"certificate_password": {
-							Type:      schema.TypeString,
-							Required:  true,
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
 							Sensitive: true,
 						},
 
 						"store_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(apimanagement.CertificateAuthority),
@@ -238,14 +235,14 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"protocols": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enable_http2": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -254,49 +251,49 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"security": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enable_backend_ssl30": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"enable_backend_tls10": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"enable_backend_tls11": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"enable_frontend_ssl30": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"enable_frontend_tls10": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"enable_frontend_tls11": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						// TODO: Remove in v3.0
 						"enable_triple_des_ciphers": {
-							Type:          schema.TypeBool,
+							Type:          pluginsdk.TypeBool,
 							Optional:      true,
 							Computed:      true,
 							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
@@ -304,54 +301,54 @@ func resourceApiManagementService() *schema.Resource {
 						},
 
 						"triple_des_ciphers_enabled": {
-							Type:          schema.TypeBool,
+							Type:          pluginsdk.TypeBool,
 							Optional:      true,
 							Computed:      true, // TODO: v3.0 remove Computed and set Default: false
 							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
 						},
 
 						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -360,61 +357,67 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"hostname_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"management": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
+							Elem: &pluginsdk.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"portal": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
+							Elem: &pluginsdk.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"developer_portal": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
+							Elem: &pluginsdk.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"proxy": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
+							Elem: &pluginsdk.Resource{
 								Schema: apiManagementResourceHostnameProxySchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"scm": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
+							Elem: &pluginsdk.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 					},
 				},
 			},
 
+			//lintignore:XS003
 			"policy": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"xml_content": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"policy.0.xml_link"},
@@ -422,7 +425,7 @@ func resourceApiManagementService() *schema.Resource {
 						},
 
 						"xml_link": {
-							Type:          schema.TypeString,
+							Type:          pluginsdk.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"policy.0.xml_content"},
 						},
@@ -431,14 +434,14 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"sign_in": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -446,33 +449,33 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"sign_up": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"terms_of_service": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Required: true,
 									},
 									"consent_required": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Required: true,
 									},
 									"text": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
@@ -483,73 +486,73 @@ func resourceApiManagementService() *schema.Resource {
 			},
 
 			"gateway_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"management_api_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"gateway_regional_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"public_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"private_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"portal_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"developer_portal_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"scm_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"tenant_access": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"primary_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"secondary_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -563,21 +566,21 @@ func resourceApiManagementService() *schema.Resource {
 		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("virtual_network_type", func(old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("virtual_network_type", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(old.(string) == string(apimanagement.VirtualNetworkTypeNone) &&
 					(new.(string) == string(apimanagement.VirtualNetworkTypeInternal) ||
 						new.(string) == string(apimanagement.VirtualNetworkTypeExternal)))
 			}),
 
-			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
 			}),
 		),
 	}
 }
 
-func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -739,7 +742,7 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, ""); err != nil {
+		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, "access", ""); err != nil {
 			return fmt.Errorf(" updating tenant access settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -747,7 +750,7 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceApiManagementServiceRead(d, meta)
 }
 
-func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -868,7 +871,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
-		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name, "access")
 		if err != nil {
 			return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -880,7 +883,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -907,7 +910,7 @@ func resourceApiManagementServiceDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.ServiceClient, serviceName, resourceGroup string) resource.StateRefreshFunc {
+func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.ServiceClient, serviceName, resourceGroup string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if API Management Service %q (Resource Group: %q) is available..", serviceName, resourceGroup)
 
@@ -932,7 +935,7 @@ func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.Service
 	}
 }
 
-func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
+func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData) *[]apimanagement.HostnameConfiguration {
 	results := make([]apimanagement.HostnameConfiguration, 0)
 	vs := d.Get("hostname_configuration")
 	if vs == nil {
@@ -941,6 +944,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
+		// hostnameRawVal is guaranteed to be non-nil as there is AtLeastOneOf constraint on its containing properties.
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
@@ -1017,7 +1021,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData, name, apimHostNameSuffix string) []interface{} {
+func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1102,7 +1106,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 	}
 }
 
-func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanagement.CertificateConfiguration {
+func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apimanagement.CertificateConfiguration {
 	vs := d.Get("certificate").([]interface{})
 
 	results := make([]apimanagement.CertificateConfiguration, 0)
@@ -1111,13 +1115,15 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 		config := v.(map[string]interface{})
 
 		certBase64 := config["encoded_certificate"].(string)
-		certificatePassword := config["certificate_password"].(string)
 		storeName := apimanagement.StoreName(config["store_name"].(string))
 
 		cert := apimanagement.CertificateConfiguration{
-			EncodedCertificate:  utils.String(certBase64),
-			CertificatePassword: utils.String(certificatePassword),
-			StoreName:           storeName,
+			EncodedCertificate: utils.String(certBase64),
+			StoreName:          storeName,
+		}
+
+		if certPassword := config["certificate_password"]; certPassword != nil {
+			cert.CertificatePassword = utils.String(certPassword.(string))
 		}
 
 		results = append(results, cert)
@@ -1126,7 +1132,7 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1208,7 +1214,7 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 
 	var identityIdSet []interface{}
 	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*schema.Set).List()
+		identityIdSet = identityIds.(*pluginsdk.Set).List()
 	}
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
@@ -1256,13 +1262,13 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 			}
 			identityIds = append(identityIds, parsedId.ID())
 		}
-		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
+		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
 	}
 
 	return []interface{}{result}, nil
 }
 
-func expandAzureRmApiManagementSkuName(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
+func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
 	vs := d.Get("sku_name").(string)
 
 	if len(vs) == 0 {
@@ -1288,7 +1294,7 @@ func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuPropertie
 	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 }
 
-func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumption bool) (map[string]*string, error) {
+func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsumption bool) (map[string]*string, error) {
 	backendProtocolSsl3 := false
 	backendProtocolTls10 := false
 	backendProtocolTls11 := false
@@ -1409,7 +1415,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 	return customProperties, nil
 }
 
-func expandAzureRmApiManagementVirtualNetworkConfigurations(d *schema.ResourceData) *apimanagement.VirtualNetworkConfiguration {
+func expandAzureRmApiManagementVirtualNetworkConfigurations(d *pluginsdk.ResourceData) *apimanagement.VirtualNetworkConfiguration {
 	vs := d.Get("virtual_network_configuration").([]interface{})
 	if len(vs) == 0 {
 		return nil
@@ -1622,7 +1628,7 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	return nil, fmt.Errorf("Either `xml_content` or `xml_link` should be set if the `policy` block is defined.")
 }
 
-func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.PolicyContract) []interface{} {
+func flattenApiManagementPolicies(d *pluginsdk.ResourceData, input apimanagement.PolicyContract) []interface{} {
 	xmlContent := ""
 	if props := input.PolicyContractProperties; props != nil {
 		if props.Value != nil {
@@ -1668,7 +1674,7 @@ func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.
 	}
 }
 
-func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
+func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationSecretsContract) []interface{} {
 	result := make(map[string]interface{})
 
 	result["enabled"] = *input.Enabled

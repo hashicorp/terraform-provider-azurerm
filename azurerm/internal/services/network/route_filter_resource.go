@@ -5,42 +5,41 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceRouteFilter() *schema.Resource {
-	return &schema.Resource{
+func resourceRouteFilter() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceRouteFilterCreateUpdate,
 		Read:   resourceRouteFilterRead,
 		Update: resourceRouteFilterCreateUpdate,
 		Delete: resourceRouteFilterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.RouteFilterID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -50,29 +49,29 @@ func resourceRouteFilter() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"rule": {
-				Type:       schema.TypeList,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"access": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Allow),
+								string(network.AccessAllow),
 							}, false),
 						},
 
 						"rule_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Community",
@@ -80,11 +79,11 @@ func resourceRouteFilter() *schema.Resource {
 						},
 
 						"communities": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -97,7 +96,7 @@ func resourceRouteFilter() *schema.Resource {
 	}
 }
 
-func resourceRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +153,7 @@ func resourceRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +187,7 @@ func resourceRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceRouteFilterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -212,7 +211,7 @@ func resourceRouteFilterDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandRouteFilterRules(d *schema.ResourceData) *[]network.RouteFilterRule {
+func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]network.RouteFilterRule {
 	configs := d.Get("rule").([]interface{})
 	rules := make([]network.RouteFilterRule, 0, len(configs))
 

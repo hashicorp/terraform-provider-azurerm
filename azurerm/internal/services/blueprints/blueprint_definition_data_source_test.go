@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -17,10 +16,10 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
 				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
 				check.That(data.ResourceName).Key("last_modified").Exists(),
@@ -36,10 +35,10 @@ func TestAccBlueprintDefinitionDataSource_basicAtRootManagementGroup(t *testing.
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicAtRootManagementGroup(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicRootManagementGroup"),
 				check.That(data.ResourceName).Key("time_created").Exists(),
 				check.That(data.ResourceName).Key("last_modified").Exists(),
@@ -53,10 +52,10 @@ func TestAccBlueprintDefinitionDataSource_basicAtChildManagementGroup(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicAtManagementGroup("testAcc_staticStubGroup"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("testAcc_staticStubManagementGroup"),
 				check.That(data.ResourceName).Key("time_created").Exists(),
 				check.That(data.ResourceName).Key("last_modified").Exists(),

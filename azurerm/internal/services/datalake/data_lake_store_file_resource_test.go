@@ -7,50 +7,25 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type DataLakeStoreFileResource struct {
 }
 
-func TestValidateDataLakeStoreRemoteFilePath(t *testing.T) {
-	cases := []struct {
-		Value  string
-		Errors int
-	}{
-		{
-			Value:  "bad",
-			Errors: 1,
-		},
-		{
-			Value:  "/good/file/path",
-			Errors: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := datalake.ValidateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
-
-		if len(errors) != tc.Errors {
-			t.Fatalf("Expected validateDataLakeStoreRemoteFilePath to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
-		}
-	}
-}
-
 func TestAccDataLakeStoreFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 	r := DataLakeStoreFileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -80,10 +55,10 @@ func TestAccDataLakeStoreFile_largefiles(t *testing.T) {
 		t.Errorf("Unable to close temporary file %q: %v", tmpfile.Name(), err)
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.largefiles(data, tmpfile.Name()),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -95,10 +70,10 @@ func TestAccDataLakeStoreFile_requiresimport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 	r := DataLakeStoreFileResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -109,7 +84,7 @@ func TestAccDataLakeStoreFile_requiresimport(t *testing.T) {
 	})
 }
 
-func (t DataLakeStoreFileResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DataLakeStoreFileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Datalake.StoreFilesClient
 	id, err := datalake.ParseDataLakeStoreFileId(state.ID, client.AdlsFileSystemDNSSuffix)
 	if err != nil {

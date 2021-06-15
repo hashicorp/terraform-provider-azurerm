@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
-	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
+	resourcesClient "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,6 +42,10 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	keysmith.Unlock()
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
+
+	if keyVaultId.SubscriptionId != c.VaultsClient.SubscriptionID {
+		c.VaultsClient = c.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
+	}
 
 	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
@@ -89,7 +93,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, er
 	return true, nil
 }
 
-func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resource.Client, keyVaultBaseUrl string) (*string, error) {
+func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resourcesClient.Client, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
 		return nil, err

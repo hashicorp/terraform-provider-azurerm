@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceManagedApplicationDefinition() *schema.Resource {
-	return &schema.Resource{
+func dataSourceManagedApplicationDefinition() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceManagedApplicationDefinitionRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ApplicationDefinitionName,
 			},
@@ -35,7 +35,7 @@ func dataSourceManagedApplicationDefinition() *schema.Resource {
 	}
 }
 
-func dataSourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

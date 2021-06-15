@@ -5,47 +5,43 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-
-	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSubnetServiceEndpointStoragePolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
 		Read:   resourceSubnetServiceEndpointStoragePolicyRead,
 		Update: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
 		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubnetServiceEndpointStoragePolicyID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SubnetServiceEndpointStoragePolicyName,
@@ -56,23 +52,23 @@ func resourceSubnetServiceEndpointStoragePolicy() *schema.Resource {
 			"location": location.Schema(),
 
 			"definition": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.SubnetServiceEndpointStoragePolicyDefinitionName,
 						},
 
 						"service_resources": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
 									azure.ValidateResourceID,
 									mgValidate.ManagementGroupID,
@@ -81,7 +77,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *schema.Resource {
 						},
 
 						"description": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
@@ -94,7 +90,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *schema.Resource {
 	}
 }
 
-func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -137,7 +133,7 @@ func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.ResourceDa
 	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
 }
 
-func resourceSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +168,7 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSubnetServiceEndpointStoragePolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,7 +198,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]network.Serv
 			ServiceEndpointPolicyDefinitionPropertiesFormat: &network.ServiceEndpointPolicyDefinitionPropertiesFormat{
 				Description:      utils.String(e["description"].(string)),
 				Service:          utils.String("Microsoft.Storage"),
-				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*schema.Set).List()),
+				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
 	}

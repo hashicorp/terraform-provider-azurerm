@@ -7,14 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,10 +33,10 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	r := ApiManagementIdentityProviderAADB2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, b2cConfig),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +49,10 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing
 	r := ApiManagementIdentityProviderAADB2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, b2cConfig),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -90,7 +88,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 	return config
 }
 
-func (ApiManagementIdentityProviderAADB2CResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementIdentityProviderAADB2CResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IdentityProviderID(state.ID)
 	if err != nil {
 		return nil, err

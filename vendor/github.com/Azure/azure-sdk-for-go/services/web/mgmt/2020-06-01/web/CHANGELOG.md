@@ -1,5 +1,40 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/web/resource-manager/readme.md tag: `package-2020-06`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. AnalysisDefinitionProperties.MarshalJSON() ([]byte, error)
+1. ArmIDWrapper.MarshalJSON() ([]byte, error)
+1. BackupItemProperties.MarshalJSON() ([]byte, error)
+1. CertificateDetails.MarshalJSON() ([]byte, error)
+1. CertificateOrderActionProperties.MarshalJSON() ([]byte, error)
+1. DefaultErrorResponse.MarshalJSON() ([]byte, error)
+1. DefaultErrorResponseErrorDetailsItem.MarshalJSON() ([]byte, error)
+1. DeletedSiteProperties.MarshalJSON() ([]byte, error)
+1. DetectorDefinitionProperties.MarshalJSON() ([]byte, error)
+1. DetectorInfo.MarshalJSON() ([]byte, error)
+1. DiagnosticCategoryProperties.MarshalJSON() ([]byte, error)
+1. DomainControlCenterSsoRequest.MarshalJSON() ([]byte, error)
+1. GeoRegionProperties.MarshalJSON() ([]byte, error)
+1. HybridConnectionKeyProperties.MarshalJSON() ([]byte, error)
+1. HybridConnectionLimitsProperties.MarshalJSON() ([]byte, error)
+1. MSDeployLogEntry.MarshalJSON() ([]byte, error)
+1. MSDeployLogProperties.MarshalJSON() ([]byte, error)
+1. MSDeployStatusProperties.MarshalJSON() ([]byte, error)
+1. ManagedServiceIdentityUserAssignedIdentitiesValue.MarshalJSON() ([]byte, error)
+1. MigrateMySQLStatusProperties.MarshalJSON() ([]byte, error)
+1. NetworkFeaturesProperties.MarshalJSON() ([]byte, error)
+1. PrivateLinkResourceProperties.MarshalJSON() ([]byte, error)
+1. ResourceMetricAvailability.MarshalJSON() ([]byte, error)
+1. SiteConfigurationSnapshotInfoProperties.MarshalJSON() ([]byte, error)
+1. SlotDifferenceProperties.MarshalJSON() ([]byte, error)
+1. SlotSwapStatus.MarshalJSON() ([]byte, error)
+1. SnapshotProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteBuildARMResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteCustomDomainOverviewARMResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteFunctionOverviewARMResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteUserInvitationResponseResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSitesWorkflowPreviewProperties.MarshalJSON() ([]byte, error)
+1. StorageMigrationResponseProperties.MarshalJSON() ([]byte, error)
+1. UsageProperties.MarshalJSON() ([]byte, error)

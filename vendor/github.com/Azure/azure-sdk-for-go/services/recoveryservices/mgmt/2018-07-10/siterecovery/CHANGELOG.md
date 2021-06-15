@@ -1,5 +1,21 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/recoveryservicessiterecovery/resource-manager/readme.md tag: `package-2018-07`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. AgentDetails.MarshalJSON() ([]byte, error)
+1. AgentDiskDetails.MarshalJSON() ([]byte, error)
+1. DraDetails.MarshalJSON() ([]byte, error)
+1. InMageRcmMobilityAgentDetails.MarshalJSON() ([]byte, error)
+1. InMageRcmNicDetails.MarshalJSON() ([]byte, error)
+1. InMageRcmProtectedDiskDetails.MarshalJSON() ([]byte, error)
+1. MigrationRecoveryPointProperties.MarshalJSON() ([]byte, error)
+1. ProcessServerDetails.MarshalJSON() ([]byte, error)
+1. ProtectionContainerFabricSpecificDetails.MarshalJSON() ([]byte, error)
+1. PushInstallerDetails.MarshalJSON() ([]byte, error)
+1. RcmProxyDetails.MarshalJSON() ([]byte, error)
+1. ReplicationAgentDetails.MarshalJSON() ([]byte, error)
+1. ReplicationEligibilityResults.MarshalJSON() ([]byte, error)
+1. ReplicationEligibilityResultsErrorInfo.MarshalJSON() ([]byte, error)
+1. ReprotectAgentDetails.MarshalJSON() ([]byte, error)

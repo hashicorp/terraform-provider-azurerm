@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sitetosite(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +34,10 @@ func TestAccVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sitetosite(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +52,10 @@ func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sitetositeWithoutSharedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,13 +70,13 @@ func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	data1.ResourceTest(t, r, []resource.TestStep{
+	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
-				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
 			),
 		},
 	})
@@ -87,10 +86,10 @@ func TestAccVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipsecpolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -101,10 +100,10 @@ func TestAccVirtualNetworkGatewayConnection_trafficSelectorPolicy(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.trafficselectorpolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_selector_policy.0.local_address_cidrs.0").HasValue("10.66.18.0/24"),
 				check.That(data.ResourceName).Key("traffic_selector_policy.0.local_address_cidrs.1").HasValue("10.66.17.0/24"),
@@ -119,10 +118,10 @@ func TestAccVirtualNetworkGatewayConnection_connectionprotocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.connectionprotocol(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_protocol").HasValue(expectedConnectionProtocol),
 			),
@@ -138,23 +137,23 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
 
-	data1.ResourceTest(t, r, []resource.TestStep{
+	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.vnettovnet(data1, data2.RandomInteger, firstSharedKey),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", firstSharedKey),
-				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", firstSharedKey),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", firstSharedKey),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", firstSharedKey),
 			),
 		},
 		{
 			Config: r.vnettovnet(data1, data2.RandomInteger, secondSharedKey),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", secondSharedKey),
-				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", secondSharedKey),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", secondSharedKey),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", secondSharedKey),
 			),
 		},
 	})
@@ -164,17 +163,17 @@ func TestAccVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.useLocalAzureIpAddressEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.useLocalAzureIpAddressEnabledUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -182,7 +181,7 @@ func TestAccVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(t *tes
 	})
 }
 
-func (t VirtualNetworkGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t VirtualNetworkGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	gatewayName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
@@ -550,11 +549,11 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
   ipsec_policy {
     dh_group         = "DHGroup14"
-    ike_encryption   = "AES256"
+    ike_encryption   = "GCMAES256"
     ike_integrity    = "SHA256"
     ipsec_encryption = "AES256"
     ipsec_integrity  = "SHA256"
-    pfs_group        = "PFS2048"
+    pfs_group        = "PFS14"
     sa_datasize      = 102400000
     sa_lifetime      = 27000
   }
@@ -777,7 +776,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
-  sku                        = "VpnGw1"
+  sku                        = "VpnGw1AZ"
   private_ip_address_enabled = true
   ip_configuration {
     name                          = "vnetGatewayConfig"
@@ -847,7 +846,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = azurerm_public_ip.test.id

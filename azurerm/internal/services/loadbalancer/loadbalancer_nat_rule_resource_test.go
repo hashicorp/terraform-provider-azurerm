@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,24 +51,24 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -81,10 +80,10 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,7 +95,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config: func(data acceptance.TestData) string {
 				return r.basic(data, "Basic")
@@ -112,10 +111,10 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 
 	r := LoadBalancerNatRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleRules(data, data2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("frontend_port").HasValue("3390"),
@@ -125,7 +124,7 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.multipleRulesUpdate(data, data2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("frontend_port").HasValue("3391"),
@@ -136,7 +135,7 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerNatRule) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancerNatRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerInboundNatRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -166,7 +165,7 @@ func (r LoadBalancerNatRule) Exists(ctx context.Context, client *clients.Client,
 	return utils.Bool(found), nil
 }
 
-func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerInboundNatRuleID(state.ID)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
@@ -35,10 +34,10 @@ func TestAccDataSourceAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic_addressPrefixes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
@@ -54,14 +53,14 @@ func TestAccDataSourceSubnet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// since the network security group association is a separate resource this forces it
 			Config: r.networkSecurityGroupDependencies(data),
 		},
 		{
 			Config: r.networkSecurityGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
@@ -77,14 +76,14 @@ func TestAccDataSourceSubnet_routeTable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// since the route table association is a separate resource this forces it
 			Config: r.routeTableDependencies(data),
 		},
 		{
 			Config: r.routeTable(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
@@ -100,10 +99,10 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.serviceEndpoint(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_name").Exists(),

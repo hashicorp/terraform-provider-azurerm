@@ -48,6 +48,16 @@ func (n NestedItemId) ID() string {
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
 
+func (n NestedItemId) VersionlessID() string {
+	// example: https://tharvey-keyvault.vault.azure.net/type/bird
+	segments := []string{
+		strings.TrimSuffix(n.KeyVaultBaseUrl, "/"),
+		n.NestedItemType,
+		n.Name,
+	}
+	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
+}
+
 // ParseNestedItemID parses a Key Vault Nested Item ID (such as a Certificate, Key or Secret)
 // containing a version into a NestedItemId object
 func ParseNestedItemID(input string) (*NestedItemId, error) {

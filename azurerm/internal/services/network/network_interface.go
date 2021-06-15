@@ -1,7 +1,7 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -120,7 +120,7 @@ func mapFieldsToNetworkInterface(input *[]network.InterfaceIPConfiguration, info
 			continue
 		}
 
-		if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion != network.IPv4 {
+		if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion != network.IPVersionIPv4 {
 			continue
 		}
 

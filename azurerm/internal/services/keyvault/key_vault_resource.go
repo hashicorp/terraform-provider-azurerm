@@ -8,13 +8,10 @@ import (
 	"strings"
 	"time"
 
-	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
+	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -28,7 +25,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -40,34 +39,33 @@ var armKeyVaultSkuFamily = "A"
 
 var keyVaultResourceName = "azurerm_key_vault"
 
-func resourceKeyVault() *schema.Resource {
-	return &schema.Resource{
+func resourceKeyVault() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,
 		Read:   resourceKeyVaultRead,
 		Update: resourceKeyVaultUpdate,
 		Delete: resourceKeyVaultDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
-		MigrateState: resourceKeyVaultMigrateState,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.KeyVaultV1ToV2Upgrader(),
-		},
 		SchemaVersion: 2,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KeyVaultV0ToV1{},
+			1: migration.KeyVaultV1ToV2{},
+		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: func() map[string]*schema.Schema {
-			rSchema := map[string]*schema.Schema{
+		Schema: func() map[string]*pluginsdk.Schema {
+			rSchema := map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.VaultName,
@@ -78,7 +76,7 @@ func resourceKeyVault() *schema.Resource {
 				"resource_group_name": azure.SchemaResourceGroupName(),
 
 				"sku_name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(keyvault.Standard),
@@ -87,31 +85,31 @@ func resourceKeyVault() *schema.Resource {
 				},
 
 				"tenant_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsUUID,
 				},
 
 				"access_policy": {
-					Type:       schema.TypeList,
-					ConfigMode: schema.SchemaConfigModeAttr,
+					Type:       pluginsdk.TypeList,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Optional:   true,
 					Computed:   true,
 					MaxItems:   1024,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"tenant_id": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.IsUUID,
 							},
 							"object_id": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.IsUUID,
 							},
 							"application_id": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ValidateFunc: validate.IsUUIDOrEmpty,
 							},
@@ -124,34 +122,34 @@ func resourceKeyVault() *schema.Resource {
 				},
 
 				"enabled_for_deployment": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"enabled_for_disk_encryption": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"enabled_for_template_deployment": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"enable_rbac_authorization": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"network_acls": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Computed: true,
 					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"default_action": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(keyvault.Allow),
@@ -159,7 +157,7 @@ func resourceKeyVault() *schema.Resource {
 								}, false),
 							},
 							"bypass": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(keyvault.None),
@@ -167,10 +165,10 @@ func resourceKeyVault() *schema.Resource {
 								}, false),
 							},
 							"ip_rules": {
-								Type:     schema.TypeSet,
+								Type:     pluginsdk.TypeSet,
 								Optional: true,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
 									ValidateFunc: validation.Any(
 										commonValidate.IPv4Address,
 										commonValidate.CIDR,
@@ -179,9 +177,9 @@ func resourceKeyVault() *schema.Resource {
 								Set: set.HashIPv4AddressOrCIDR,
 							},
 							"virtual_network_subnet_ids": {
-								Type:     schema.TypeSet,
+								Type:     pluginsdk.TypeSet,
 								Optional: true,
-								Elem:     &schema.Schema{Type: schema.TypeString},
+								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								Set:      set.HashStringIgnoreCase,
 							},
 						},
@@ -189,32 +187,32 @@ func resourceKeyVault() *schema.Resource {
 				},
 
 				"purge_protection_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"soft_delete_retention_days": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      90,
 					ValidateFunc: validation.IntBetween(7, 90),
 				},
 
 				"contact": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"email": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
 							"name": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Optional: true,
 							},
 							"phone": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Optional: true,
 							},
 						},
@@ -225,14 +223,14 @@ func resourceKeyVault() *schema.Resource {
 
 				// Computed
 				"vault_uri": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			}
 
 			if !features.ThreePointOh() {
-				rSchema["soft_delete_enabled"] = &schema.Schema{
-					Type:       schema.TypeBool,
+				rSchema["soft_delete_enabled"] = &pluginsdk.Schema{
+					Type:       pluginsdk.TypeBool,
 					Optional:   true,
 					Computed:   true,
 					Deprecated: `Azure has removed support for disabling Soft Delete as of 2020-12-15, as such this field is no longer configurable and can be safely removed. This field will be removed in version 3.0 of the Azure Provider.`,
@@ -244,7 +242,7 @@ func resourceKeyVault() *schema.Resource {
 	}
 }
 
-func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
@@ -374,14 +372,14 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if props := read.Properties; props != nil {
 		if vault := props.VaultURI; vault != nil {
 			log.Printf("[DEBUG] Waiting for %s to become available", id)
-			stateConf := &resource.StateChangeConf{
+			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"pending"},
 				Target:                    []string{"available"},
 				Refresh:                   keyVaultRefreshFunc(*vault),
 				Delay:                     30 * time.Second,
 				PollInterval:              10 * time.Second,
 				ContinuousTargetOccurence: 10,
-				Timeout:                   d.Timeout(schema.TimeoutCreate),
+				Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 			}
 
 			if _, err := stateConf.WaitForState(); err != nil {
@@ -392,7 +390,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("contact"); ok {
 		contacts := KeyVaultMgmt.Contacts{
-			ContactList: expandKeyVaultCertificateContactList(v.(*schema.Set).List()),
+			ContactList: expandKeyVaultCertificateContactList(v.(*pluginsdk.Set).List()),
 		}
 		if read.Properties == nil || read.Properties.VaultURI == nil {
 			return fmt.Errorf("failed to get vault base url for %s: %s", id, err)
@@ -405,7 +403,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -577,7 +575,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("contact") {
 		contacts := KeyVaultMgmt.Contacts{
-			ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*schema.Set).List()),
+			ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*pluginsdk.Set).List()),
 		}
 		if existing.Properties == nil || existing.Properties.VaultURI == nil {
 			return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
@@ -600,7 +598,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -690,7 +688,7 @@ func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -799,7 +797,7 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
+func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
@@ -833,7 +831,7 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 	bypass := v["bypass"].(string)
 	defaultAction := v["default_action"].(string)
 
-	ipRulesRaw := v["ip_rules"].(*schema.Set)
+	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
 	ipRules := make([]keyvault.IPRule, 0)
 
 	for _, v := range ipRulesRaw.List() {
@@ -843,7 +841,7 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 		ipRules = append(ipRules, rule)
 	}
 
-	networkRulesRaw := v["virtual_network_subnet_ids"].(*schema.Set)
+	networkRulesRaw := v["virtual_network_subnet_ids"].(*pluginsdk.Set)
 	networkRules := make([]keyvault.VirtualNetworkRule, 0)
 	for _, v := range networkRulesRaw.List() {
 		rawId := v.(string)
@@ -887,8 +885,8 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 			map[string]interface{}{
 				"bypass":                     string(keyvault.AzureServices),
 				"default_action":             string(keyvault.Allow),
-				"ip_rules":                   schema.NewSet(schema.HashString, []interface{}{}),
-				"virtual_network_subnet_ids": schema.NewSet(schema.HashString, []interface{}{}),
+				"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
+				"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 			},
 		}
 	}
@@ -908,7 +906,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 			ipRules = append(ipRules, *v.Value)
 		}
 	}
-	output["ip_rules"] = schema.NewSet(schema.HashString, ipRules)
+	output["ip_rules"] = pluginsdk.NewSet(pluginsdk.HashString, ipRules)
 
 	virtualNetworkRules := make([]interface{}, 0)
 	if input.VirtualNetworkRules != nil {
@@ -926,7 +924,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 			virtualNetworkRules = append(virtualNetworkRules, id)
 		}
 	}
-	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
+	output["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules)
 
 	return []interface{}{output}
 }

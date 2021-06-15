@@ -4,45 +4,44 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaDefaultNodePool() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaDefaultNodePool() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// Required
 				"name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.KubernetesAgentPoolName,
 				},
 
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Default:  string(containerservice.VirtualMachineScaleSets),
+					Default:  string(containerservice.AgentPoolTypeVirtualMachineScaleSets),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(containerservice.AvailabilitySet),
-						string(containerservice.VirtualMachineScaleSets),
+						string(containerservice.AgentPoolTypeAvailabilitySet),
+						string(containerservice.AgentPoolTypeVirtualMachineScaleSets),
 					}, false),
 				},
 
 				"vm_size": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -50,81 +49,89 @@ func SchemaDefaultNodePool() *schema.Schema {
 
 				// Optional
 				"availability_zones": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"enable_auto_scaling": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
 				"enable_node_public_ip": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
 				},
 
 				"enable_host_encryption": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
 				},
 
 				"max_count": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					// NOTE: rather than setting `0` users should instead pass `null` here
 					ValidateFunc: validation.IntBetween(1, 1000),
 				},
 
 				"max_pods": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
 					ForceNew: true,
 				},
 
 				"min_count": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					// NOTE: rather than setting `0` users should instead pass `null` here
 					ValidateFunc: validation.IntBetween(1, 1000),
 				},
 
 				"node_count": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 1000),
 				},
 
 				"node_labels": {
-					Type:     schema.TypeMap,
+					Type:     pluginsdk.TypeMap,
 					ForceNew: true,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 
+				"node_public_ip_prefix_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+					RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
+				},
+
 				"node_taints": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					ForceNew: true,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"tags": tags.Schema(),
 
 				"os_disk_size_gb": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
 					Computed:     true,
@@ -132,36 +139,36 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"os_disk_type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Default:  containerservice.Managed,
+					Default:  containerservice.OSDiskTypeManaged,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(containerservice.Ephemeral),
-						string(containerservice.Managed),
+						string(containerservice.OSDiskTypeEphemeral),
+						string(containerservice.OSDiskTypeManaged),
 					}, false),
 				},
 
 				"vnet_subnet_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"orchestrator_version": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"proximity_placement_group_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				},
 				"only_critical_addons_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
 				},
@@ -192,6 +199,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
 			AvailabilityZones:         defaultCluster.AvailabilityZones,
 			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:      defaultCluster.NodePublicIPPrefixID,
 			ScaleSetPriority:          defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy:    defaultCluster.ScaleSetEvictionPolicy,
 			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
@@ -204,7 +212,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 	}
 }
 
-func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedClusterAgentPoolProfile, error) {
+func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.ManagedClusterAgentPoolProfile, error) {
 	input := d.Get("default_node_pool").([]interface{})
 
 	raw := input[0].(map[string]interface{})
@@ -234,17 +242,17 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
 		Type:                   containerservice.AgentPoolType(raw["type"].(string)),
-		VMSize:                 containerservice.VMSizeTypes(raw["vm_size"].(string)),
+		VMSize:                 utils.String(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
 		// Windows agents can be configured via the separate node pool resource
-		OsType: containerservice.Linux,
+		OsType: containerservice.OSTypeLinux,
 
 		// without this set the API returns:
 		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
 		// since this is the "default" node pool we can assume this is a system node pool
-		Mode: containerservice.System,
+		Mode: containerservice.AgentPoolModeSystem,
 
 		UpgradeSettings: expandUpgradeSettings(raw["upgrade_settings"].([]interface{})),
 
@@ -265,11 +273,15 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		profile.MaxPods = utils.Int32(maxPods)
 	}
 
+	if prefixID := raw["node_public_ip_prefix_id"].(string); prefixID != "" {
+		profile.NodePublicIPPrefixID = utils.String(prefixID)
+	}
+
 	if osDiskSizeGB := int32(raw["os_disk_size_gb"].(int)); osDiskSizeGB > 0 {
 		profile.OsDiskSizeGB = utils.Int32(osDiskSizeGB)
 	}
 
-	profile.OsDiskType = containerservice.Managed
+	profile.OsDiskType = containerservice.OSDiskTypeManaged
 	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
 		profile.OsDiskType = containerservice.OSDiskType(raw["os_disk_type"].(string))
 	}
@@ -338,7 +350,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	}, nil
 }
 
-func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfile, d *schema.ResourceData) (*[]interface{}, error) {
+func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
@@ -401,6 +413,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
+	nodePublicIPPrefixID := ""
+	if agentPool.NodePublicIPPrefixID != nil {
+		nodePublicIPPrefixID = *agentPool.NodePublicIPPrefixID
+	}
+
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
 		for _, taint := range *agentPool.NodeTaints {
@@ -415,7 +432,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
 	}
 
-	osDiskType := containerservice.Managed
+	osDiskType := containerservice.OSDiskTypeManaged
 	if agentPool.OsDiskType != "" {
 		osDiskType = agentPool.OsDiskType
 	}
@@ -435,6 +452,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
 	}
 
+	vmSize := ""
+	if agentPool.VMSize != nil {
+		vmSize = *agentPool.VMSize
+	}
+
 	upgradeSettings := flattenUpgradeSettings(agentPool.UpgradeSettings)
 
 	return &[]interface{}{
@@ -449,12 +471,13 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                         name,
 			"node_count":                   count,
 			"node_labels":                  nodeLabels,
+			"node_public_ip_prefix_id":     nodePublicIPPrefixID,
 			"node_taints":                  []string{},
 			"os_disk_size_gb":              osDiskSizeGB,
 			"os_disk_type":                 string(osDiskType),
 			"tags":                         tags.Flatten(agentPool.Tags),
 			"type":                         string(agentPool.Type),
-			"vm_size":                      string(agentPool.VMSize),
+			"vm_size":                      vmSize,
 			"orchestrator_version":         orchestratorVersion,
 			"proximity_placement_group_id": proximityPlacementGroupId,
 			"upgrade_settings":             upgradeSettings,
@@ -464,7 +487,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	}, nil
 }
 
-func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfile, d *schema.ResourceData) (*containerservice.ManagedClusterAgentPoolProfile, error) {
+func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*containerservice.ManagedClusterAgentPoolProfile, error) {
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
 
@@ -485,7 +508,7 @@ func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfil
 			if v.Name == nil {
 				continue
 			}
-			if v.Mode != containerservice.System {
+			if v.Mode != containerservice.AgentPoolModeSystem {
 				continue
 			}
 

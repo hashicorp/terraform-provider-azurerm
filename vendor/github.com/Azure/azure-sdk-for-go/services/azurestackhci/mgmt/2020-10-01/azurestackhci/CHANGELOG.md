@@ -1,5 +1,13 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/azurestackhci/resource-manager/readme.md tag: `package-2020-10`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. AzureEntityResource.MarshalJSON() ([]byte, error)
+1. ClusterNode.MarshalJSON() ([]byte, error)
+1. ClusterReportedProperties.MarshalJSON() ([]byte, error)
+1. ErrorAdditionalInfo.MarshalJSON() ([]byte, error)
+1. ErrorDetail.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)

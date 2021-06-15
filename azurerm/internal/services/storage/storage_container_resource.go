@@ -5,53 +5,56 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
 )
 
-func resourceStorageContainer() *schema.Resource {
-	return &schema.Resource{
-		Create:        resourceStorageContainerCreate,
-		Read:          resourceStorageContainerRead,
-		Delete:        resourceStorageContainerDelete,
-		Update:        resourceStorageContainerUpdate,
-		MigrateState:  ResourceStorageContainerMigrateState,
+func resourceStorageContainer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceStorageContainerCreate,
+		Read:   resourceStorageContainerRead,
+		Delete: resourceStorageContainerDelete,
+		Update: resourceStorageContainerUpdate,
+
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
 		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ContainerV0ToV1{},
+		}),
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"storage_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"container_access_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "private",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,24 +68,24 @@ func resourceStorageContainer() *schema.Resource {
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
 			"has_immutability_policy": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"has_legal_hold": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"resource_manager_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +134,7 @@ func resourceStorageContainerCreate(d *schema.ResourceData, meta interface{}) er
 	return resourceStorageContainerRead(d, meta)
 }
 
-func resourceStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +183,7 @@ func resourceStorageContainerUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceStorageContainerRead(d, meta)
 }
 
-func resourceStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -233,7 +236,7 @@ func resourceStorageContainerRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

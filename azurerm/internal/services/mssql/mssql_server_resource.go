@@ -1,6 +1,7 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -8,8 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,33 +16,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMsSqlServer() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlServer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerCreateUpdate,
 		Read:   resourceMsSqlServerRead,
 		Update: resourceMsSqlServerCreateUpdate,
 		Delete: resourceMsSqlServerDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServerID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateMsSqlServerName,
@@ -54,7 +54,7 @@ func resourceMsSqlServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -64,38 +64,38 @@ func resourceMsSqlServer() *schema.Resource {
 			},
 
 			"administrator_login": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"administrator_login_password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				Sensitive: true,
 			},
 
 			"azuread_administrator": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"login_username": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"object_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 
 						"tenant_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IsUUID,
@@ -105,7 +105,7 @@ func resourceMsSqlServer() *schema.Resource {
 			},
 
 			"connection_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(sql.ServerConnectionTypeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -116,24 +116,24 @@ func resourceMsSqlServer() *schema.Resource {
 			},
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 							}, false),
 						},
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -141,7 +141,7 @@ func resourceMsSqlServer() *schema.Resource {
 			},
 
 			"minimum_tls_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
@@ -151,7 +151,7 @@ func resourceMsSqlServer() *schema.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -159,26 +159,26 @@ func resourceMsSqlServer() *schema.Resource {
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
 			"fully_qualified_domain_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"restorable_dropped_database_ids": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: msSqlMinimumTLSVersionDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
 	}
 }
 
-func resourceMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
@@ -303,7 +303,7 @@ func resourceMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceMsSqlServerRead(d, meta)
 }
 
-func resourceMsSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
@@ -389,7 +389,7 @@ func resourceMsSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMsSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -410,7 +410,7 @@ func resourceMsSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
-func expandSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentity {
+func expandSqlServerIdentity(d *pluginsdk.ResourceData) *sql.ResourceIdentity {
 	identities := d.Get("identity").([]interface{})
 	if len(identities) == 0 {
 		return &sql.ResourceIdentity{}
@@ -500,7 +500,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 	return res
 }
 
-func msSqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")

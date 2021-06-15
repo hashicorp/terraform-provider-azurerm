@@ -6,12 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccRedisCache_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -42,10 +41,10 @@ func TestAccRedisCache_withoutSSL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", false),
 				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", false),
@@ -59,10 +58,10 @@ func TestAccRedisCache_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -74,10 +73,10 @@ func TestAccRedisCache_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -89,10 +88,10 @@ func TestAccRedisCache_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -104,10 +103,10 @@ func TestAccRedisCache_premiumSharded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumSharded(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -119,16 +118,16 @@ func TestAccRedisCache_premiumShardedScaling(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumSharded(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.premiumShardedScaled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -139,10 +138,10 @@ func TestAccRedisCache_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nonStandardCasing(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -158,10 +157,10 @@ func TestAccRedisCache_BackupDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backupDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -172,10 +171,10 @@ func TestAccRedisCache_BackupEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backupEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
@@ -192,10 +191,10 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backupEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
@@ -206,7 +205,7 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 		},
 		{
 			Config: r.backupDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
@@ -222,10 +221,10 @@ func TestAccRedisCache_AOFBackupEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.aofBackupEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			ExpectNonEmptyPlan: true,
@@ -239,17 +238,17 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.aofBackupEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			ExpectNonEmptyPlan: true,
 		},
 		{
 			Config: r.aofBackupDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			ExpectNonEmptyPlan: true,
@@ -261,10 +260,10 @@ func TestAccRedisCache_PatchSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.patchSchedule(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -276,16 +275,16 @@ func TestAccRedisCache_PatchScheduleUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.patchSchedule(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.premium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -296,24 +295,24 @@ func TestAccRedisCache_PublicNetworkAccessDisabledEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.publicNetworkAccessDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -325,10 +324,10 @@ func TestAccRedisCache_InternalSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.internalSubnet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -340,10 +339,10 @@ func TestAccRedisCache_InternalSubnetStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.internalSubnetStaticIP(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -355,10 +354,10 @@ func TestAccRedisCache_InternalSubnet_withZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.internalSubnet_withZone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
@@ -372,10 +371,10 @@ func TestAccRedisCache_SubscribeAllEvents(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscribeAllEvents(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -386,10 +385,10 @@ func TestAccRedisCache_WithoutAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withoutAuth(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("redis_configuration.0.enable_authentication").HasValue("false"),
 			),
@@ -397,7 +396,21 @@ func TestAccRedisCache_WithoutAuth(t *testing.T) {
 	})
 }
 
-func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccRedisCache_ReplicasPerMaster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replicasPerMaster(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CacheID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1002,8 +1015,32 @@ resource "azurerm_redis_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
+func (RedisCacheResource) replicasPerMaster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-redis-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 3
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  replicas_per_master = 3
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) acceptance.TestCheckFunc {
+	return func(s *acceptance.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

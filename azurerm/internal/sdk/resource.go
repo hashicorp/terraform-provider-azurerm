@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type resourceBase interface {
@@ -59,7 +60,7 @@ type Resource interface {
 
 	// IDValidationFunc returns the SchemaValidateFunc used to validate the ID is valid during
 	// `terraform import` - ensuring users don't inadvertently specify the incorrect Resource ID
-	IDValidationFunc() schema.SchemaValidateFunc
+	IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 // TODO: ResourceWithCustomizeDiff

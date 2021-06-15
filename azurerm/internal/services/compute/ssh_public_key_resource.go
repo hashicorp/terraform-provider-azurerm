@@ -8,40 +8,40 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSshPublicKey() *schema.Resource {
-	return &schema.Resource{
+func resourceSshPublicKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSshPublicKeyCreate,
 		Read:   resourceSshPublicKeyRead,
 		Update: resourceSshPublicKeyUpdate,
 		Delete: resourceSshPublicKeyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SSHPublicKeyID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(45 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(45 * time.Minute),
-			Delete: schema.DefaultTimeout(45 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -49,16 +49,18 @@ func resourceSshPublicKey() *schema.Resource {
 					"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
 				),
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// We have to ignore case due to incorrect capitalisation of resource group name in
+			// ID in the response we get from the API request.
+			// Related issue: https://github.com/Azure/azure-rest-api-specs/issues/13491
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
 
 			"public_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     false,
-				ValidateFunc: ValidateSSHKey,
+				ValidateFunc: validate.SSHKey,
 			},
 
 			"tags": tags.Schema(),
@@ -66,7 +68,7 @@ func resourceSshPublicKey() *schema.Resource {
 	}
 }
 
-func resourceSshPublicKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,7 +118,7 @@ func resourceSshPublicKeyCreate(d *schema.ResourceData, meta interface{}) error 
 	return resourceSshPublicKeyRead(d, meta)
 }
 
-func resourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -151,7 +153,7 @@ func resourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSshPublicKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +199,7 @@ func resourceSshPublicKeyUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceSshPublicKeyRead(d, meta)
 }
 
-func resourceSshPublicKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

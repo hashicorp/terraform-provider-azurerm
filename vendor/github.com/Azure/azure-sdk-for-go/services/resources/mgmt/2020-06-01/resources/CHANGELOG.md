@@ -1,5 +1,15 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/resources/resource-manager/readme.md tag: `package-resources-2020-06`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.175
+## Additive Changes
 
+### New Funcs
 
+1. APIProfile.MarshalJSON() ([]byte, error)
+1. AliasPathMetadata.MarshalJSON() ([]byte, error)
+1. DeploymentOperationProperties.MarshalJSON() ([]byte, error)
+1. DeploymentPropertiesExtended.MarshalJSON() ([]byte, error)
+1. ErrorAdditionalInfo.MarshalJSON() ([]byte, error)
+1. ErrorResponse.MarshalJSON() ([]byte, error)
+1. GroupProperties.MarshalJSON() ([]byte, error)
+1. IdentityUserAssignedIdentitiesValue.MarshalJSON() ([]byte, error)
+1. Reference.MarshalJSON() ([]byte, error)
