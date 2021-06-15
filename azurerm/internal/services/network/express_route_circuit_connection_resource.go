@@ -19,9 +19,9 @@ import (
 
 func resourceExpressRouteCircuitConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceExpressRouteCircuitConnectionCreateUpdate,
+		Create: resourceExpressRouteCircuitConnectionCreate,
 		Read:   resourceExpressRouteCircuitConnectionRead,
-		Update: resourceExpressRouteCircuitConnectionCreateUpdate,
+		Update: resourceExpressRouteCircuitConnectionUpdate,
 		Delete: resourceExpressRouteCircuitConnectionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -80,9 +80,9 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	expressRouteCircuitPeeringId, err := parse.ExpressRouteCircuitPeeringID(d.Get("peering_id").(string))
@@ -92,17 +92,15 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 
 	id := parse.NewExpressRouteCircuitConnectionID(expressRouteCircuitPeeringId.SubscriptionId, expressRouteCircuitPeeringId.ResourceGroup, expressRouteCircuitPeeringId.ExpressRouteCircuitName, string(network.ExpressRoutePeeringTypeAzurePrivatePeering), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.ExpressRoutePeeringTypeAzurePrivatePeering), id.ConnectionName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.ExpressRoutePeeringTypeAzurePrivatePeering), id.ConnectionName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
 	}
 
 	expressRouteCircuitConnectionParameters := network.ExpressRouteCircuitConnection{
@@ -130,11 +128,11 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.ExpressRoutePeeringTypeAzurePrivatePeering), id.ConnectionName, expressRouteCircuitConnectionParameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -186,6 +184,51 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 	}
 
 	return nil
+}
+
+func resourceExpressRouteCircuitConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ExpressRouteCircuitConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	expressRouteCircuitConnectionParameters := network.ExpressRouteCircuitConnection{
+		Name: utils.String(id.ConnectionName),
+		ExpressRouteCircuitConnectionPropertiesFormat: &network.ExpressRouteCircuitConnectionPropertiesFormat{
+			AddressPrefix: utils.String(d.Get("address_prefix_ipv4").(string)),
+			ExpressRouteCircuitPeering: &network.SubResource{
+				ID: utils.String(d.Get("peering_id").(string)),
+			},
+			PeerExpressRouteCircuitPeering: &network.SubResource{
+				ID: utils.String(d.Get("peer_peering_id").(string)),
+			},
+		},
+	}
+
+	if v, ok := d.GetOk("authorization_key"); ok {
+		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
+		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.Ipv6CircuitConnectionConfig = &network.Ipv6CircuitConnectionConfig{
+			AddressPrefix: utils.String(v.(string)),
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.ExpressRoutePeeringTypeAzurePrivatePeering), id.ConnectionName, expressRouteCircuitConnectionParameters)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
+	return resourceExpressRouteCircuitConnectionRead(d, meta)
 }
 
 func resourceExpressRouteCircuitConnectionDelete(d *schema.ResourceData, meta interface{}) error {
