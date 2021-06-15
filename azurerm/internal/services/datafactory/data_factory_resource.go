@@ -173,6 +173,39 @@ func resourceDataFactory() *pluginsdk.Resource {
 				},
 			},
 
+			"global_parameter": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Array",
+								"Bool",
+								"Float",
+								"Int",
+								"Object",
+								"String",
+							}, false),
+						},
+
+						"value": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"public_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -262,6 +295,12 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	globalParameters, err := expandDataFactoryGlobalParameters(d.Get("global_parameter").(*pluginsdk.Set).List())
+	if err != nil {
+		return err
+	}
+	dataFactory.FactoryProperties.GlobalParameters = globalParameters
+
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, dataFactory, ""); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -315,6 +354,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					return fmt.Errorf("Error setting `customer_managed_key_id`: %+v", err)
 				}
 			}
+		}
+
+		if err := d.Set("global_parameter", flattenDataFactoryGlobalParameters(factoryProps.GlobalParameters)); err != nil {
+			return fmt.Errorf("setting `global_parameter`: %+v", err)
 		}
 	}
 
@@ -410,6 +453,30 @@ func expandDataFactoryRepoConfiguration(d *pluginsdk.ResourceData) (bool, datafa
 	return false, nil
 }
 
+func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafactory.GlobalParameterSpecification, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	result := make(map[string]*datafactory.GlobalParameterSpecification)
+	for _, item := range input {
+		if item == nil {
+			continue
+		}
+		v := item.(map[string]interface{})
+
+		name := v["name"].(string)
+		if _, ok := v[name]; ok {
+			return nil, fmt.Errorf("duplicate parameter name")
+		}
+
+		result[name] = &datafactory.GlobalParameterSpecification{
+			Type:  datafactory.GlobalParameterType(v["type"].(string)),
+			Value: v["value"].(string),
+		}
+	}
+	return result, nil
+}
+
 func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
 	result := make([]interface{}, 0)
 
@@ -493,4 +560,19 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interfac
 			"identity_ids": identityIds,
 		},
 	}, nil
+}
+
+func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalParameterSpecification) []interface{} {
+	if len(input) == 0 {
+		return []interface{}{}
+	}
+	result := make([]interface{}, 0)
+	for name, item := range input {
+		result = append(result, map[string]interface{}{
+			"name":  name,
+			"type":  string(item.Type),
+			"value": item.Value,
+		})
+	}
+	return result
 }
