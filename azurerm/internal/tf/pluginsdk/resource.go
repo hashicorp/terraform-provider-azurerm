@@ -17,7 +17,7 @@ type (
 	ResourceDiff           = schema.ResourceDiff
 	SchemaDiffSuppressFunc = schema.SchemaDiffSuppressFunc
 	StateUpgrader          = schema.StateUpgrader
-	SchemaValidateFunc     = schema.SchemaValidateFunc
+	SchemaValidateFunc     = func(interface{}, string) ([]string, []error)
 	ValueType              = schema.ValueType
 )
 
@@ -27,7 +27,7 @@ type (
 )
 
 type (
-	CreateFunc = schema.CreateFunc
+	CreateFunc = schema.CreateFunc //nolint:SA1019
 	DeleteFunc = schema.DeleteFunc
 	ExistsFunc = schema.ExistsFunc
 	ReadFunc   = schema.ReadFunc
