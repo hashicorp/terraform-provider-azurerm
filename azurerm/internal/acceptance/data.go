@@ -17,8 +17,6 @@ func init() {
 	if os.Getenv("TF_ACC") == "" {
 		return
 	}
-
-	EnsureProvidersAreInitialised()
 }
 
 type TestData struct {
@@ -55,8 +53,6 @@ type TestData struct {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	EnsureProvidersAreInitialised()
-
 	env, err := Environment()
 	if err != nil {
 		t.Fatalf("Error retrieving Environment: %+v", err)
