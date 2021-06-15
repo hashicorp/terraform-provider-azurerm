@@ -26,7 +26,7 @@ The following arguments are supported:
 
 * `private_markdown_storage_enforced` - (Required) Is the private tile markdown storage which used to display custom dynamic and static content enabled?
 
-~> **Note:** When `private_markdown_storage_enforced` is set to `true` Markdown tile will require external storage configuration (URI). The inline content configuration will be prohibited.
+~> **Note:** Once `private_markdown_storage_enforced` is set to `true`, it only requires external storage configuration (URI) while adding Markdown tile. The inline content configuration will be prohibited.
 
 ## Attributes Reference
 
