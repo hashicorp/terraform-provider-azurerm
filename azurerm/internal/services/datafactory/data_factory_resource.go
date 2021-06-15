@@ -454,11 +454,14 @@ func expandDataFactoryRepoConfiguration(d *pluginsdk.ResourceData) (bool, datafa
 }
 
 func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafactory.GlobalParameterSpecification, error) {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return nil, nil
 	}
 	result := make(map[string]*datafactory.GlobalParameterSpecification)
 	for _, item := range input {
+		if item == nil {
+			continue
+		}
 		v := item.(map[string]interface{})
 
 		name := v["name"].(string)
