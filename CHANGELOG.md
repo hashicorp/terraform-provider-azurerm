@@ -12,8 +12,11 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block [GH-11625]
 * `azurerm_monitor_metric_alert` - support the `StartsWith` dimension operator [GH-12181]
 * `azurerm_synapse_workspace` - support for the `data_exfiltration_protection_enabled` property [GH-12183]
+* `azurerm_synapse_role_assignment` - support for scopes and new role types [GH-11690]
 
 BUG FIXES:
+
+* migrate azurerm_synapse_role_assignment to support new roles and scopes #11690
 
 ## 2.63.0 (June 11, 2021)
 
