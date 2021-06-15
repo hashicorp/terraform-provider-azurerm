@@ -72,7 +72,9 @@ The following arguments are supported:
 
 * `role_name` - (Required) The Role Name of the Synapse Built-In Role. Changing this forces a new resource to be created.
 
--> **NOTE:** Currently, the Synapse built-in roles are `Synapse Administrator`, `Synapse Artifact Publisher`, `Synapse Artifact User`, `Synapse Contributor`, `Synapse Compute Operator`, `Synapse Credential User`, `Synapse Linked Data Manager`, `Synapse SQL Administrator`, `Synapse Spark Administrator` and `Synapse User`.
+-> **NOTE:** Currently, the Synapse built-in roles are `Apache Spark Administrator`, `Synapse Administrator`, `Synapse Artifact Publisher`, `Synapse Artifact User`, `Synapse Compute Operator`, `Synapse Contributor`, `Synapse Credential User`, `Synapse Linked Data Manager`, `Synapse SQL Administrator` and `Synapse User`.
+
+-> **NOTE:** Old roles are still supported: `Workspace Admin`, `Apache Spark Admin`, `Sql Admin`. These values will be removed in the next Major Version 3.0.
 
 * `principal_id` - (Required) The ID of the Principal (User, Group or Service Principal) to assign the Synapse Role Definition to. Changing this forces a new resource to be created.
 

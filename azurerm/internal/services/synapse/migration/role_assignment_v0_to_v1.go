@@ -38,16 +38,20 @@ func (RoleAssignmentV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		log.Printf("[DEBUG] Migrating for Synapse Role Assignment")
 
 		name := rawState["role_name"].(string)
-		switch name {
-		case "Workspace Admin":
-			name = "Synapse Administrator"
-		case "Apache Spark Admin":
-			name = "Synapse Spark Administrator"
-		case "Sql Admin":
-			name = "Synapse SQL Administrator"
-		}
-		rawState["role_name"] = name
+		rawState["role_name"] = MigrateToNewRole(name)
 
 		return rawState, nil
 	}
+}
+
+func MigrateToNewRole(roleName string) string {
+	switch roleName {
+	case "Workspace Admin":
+		roleName = "Synapse Administrator"
+	case "Apache Spark Admin":
+		roleName = "Apache Spark Administrator"
+	case "Sql Admin":
+		roleName = "Synapse SQL Administrator"
+	}
+	return roleName
 }

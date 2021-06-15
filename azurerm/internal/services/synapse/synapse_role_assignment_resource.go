@@ -71,17 +71,25 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+					return migration.MigrateToNewRole(old) == migration.MigrateToNewRole(new)
+				},
 				ValidateFunc: validation.StringInSlice([]string{
+					"Apache Spark Administrator",
 					"Synapse Administrator",
 					"Synapse Artifact Publisher",
 					"Synapse Artifact User",
-					"Synapse Contributor",
 					"Synapse Compute Operator",
+					"Synapse Contributor",
 					"Synapse Credential User",
 					"Synapse Linked Data Manager",
 					"Synapse SQL Administrator",
-					"Synapse Spark Administrator",
 					"Synapse User",
+
+					// TODO: to be removed in 3.0
+					"Workspace Admin",
+					"Apache Spark Admin",
+					"Sql Admin",
 				}, false),
 			},
 		},
@@ -115,7 +123,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	roleName := d.Get("role_name").(string)
+	roleName := migration.MigrateToNewRole(d.Get("role_name").(string))
 	roleId, err := getRoleIdByName(ctx, roleDefinitionsClient, scope, roleName)
 	if err != nil {
 		return err
