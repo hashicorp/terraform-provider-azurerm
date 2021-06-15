@@ -238,7 +238,7 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 
 		// if daily, we need daily retention
 		// if weekly daily cannot be set, and we need weekly
-		CustomizeDiff: func(diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 

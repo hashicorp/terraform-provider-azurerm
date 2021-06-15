@@ -20,10 +20,9 @@ type (
 //
 // If multiple functions returns errors, the result is a multierror.
 func CustomDiffWithAll(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
-	return func(d *schema.ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		var err error
 		for _, f := range funcs {
-			ctx := context.TODO()
 			thisErr := f(ctx, d, meta)
 			if thisErr != nil {
 				err = multierror.Append(err, thisErr)
@@ -39,9 +38,9 @@ func CustomDiffWithAll(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
 //
 // If all functions succeed, the combined function also succeeds.
 func CustomDiffInSequence(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
-	return func(d *schema.ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		for _, f := range funcs {
-			err := f(context.TODO(), d, meta)
+			err := f(ctx, d, meta)
 			if err != nil {
 				return err
 			}

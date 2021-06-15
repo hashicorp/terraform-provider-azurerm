@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
@@ -17,15 +17,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func AzureProvider() terraform.ResourceProvider {
+func AzureProvider() *schema.Provider {
 	return azureProvider(false)
 }
 
-func TestAzureProvider() terraform.ResourceProvider {
+func TestAzureProvider() *schema.Provider {
 	return azureProvider(true)
 }
 
-func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
+func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	// avoids this showing up in test output
 	debugLog := func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -319,12 +319,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			// platform level tracing
 			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
-		client, err := clients.Build(p.StopContext(), clientBuilder)
+		client, err := clients.Build(context.TODO(), clientBuilder)
 		if err != nil {
 			return nil, err
 		}
 
-		client.StopContext = p.StopContext()
+		client.StopContext = context.TODO()
 
 		if !skipProviderRegistration {
 			// List all the available providers and their registration state to avoid unnecessary
