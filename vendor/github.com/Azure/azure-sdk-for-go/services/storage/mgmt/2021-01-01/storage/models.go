@@ -316,6 +316,12 @@ type AccountInternetEndpoints struct {
 	Dfs *string `json:"dfs,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountInternetEndpoints.
+func (aie AccountInternetEndpoints) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountKey an access key for the storage account.
 type AccountKey struct {
 	// KeyName - READ-ONLY; Name of the key.
@@ -326,11 +332,23 @@ type AccountKey struct {
 	Permissions KeyPermission `json:"permissions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountKey.
+func (ak AccountKey) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountListKeysResult the response from the ListKeys operation.
 type AccountListKeysResult struct {
 	autorest.Response `json:"-"`
 	// Keys - READ-ONLY; Gets the list of storage account keys and their properties for the specified storage account.
 	Keys *[]AccountKey `json:"keys,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountListKeysResult.
+func (alkr AccountListKeysResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AccountListResult the response from the List Storage Accounts operation.
@@ -340,6 +358,12 @@ type AccountListResult struct {
 	Value *[]Account `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of storage accounts. Returned when total number of requested storage accounts exceed maximum page size.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountListResult.
+func (alr AccountListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AccountListResultIterator provides access to a complete listing of Account values.
@@ -507,6 +531,12 @@ type AccountMicrosoftEndpoints struct {
 	Web *string `json:"web,omitempty"`
 	// Dfs - READ-ONLY; Gets the dfs endpoint.
 	Dfs *string `json:"dfs,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountMicrosoftEndpoints.
+func (ame AccountMicrosoftEndpoints) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AccountProperties properties of the storage account.
@@ -927,6 +957,12 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureFilesIdentityBasedAuthentication settings for Azure Files identity based authentication.
 type AzureFilesIdentityBasedAuthentication struct {
 	// DirectoryServiceOptions - Indicates the directory service used. Possible values include: 'DirectoryServiceOptionsNone', 'DirectoryServiceOptionsAADDS', 'DirectoryServiceOptionsAD'
@@ -1193,11 +1229,23 @@ type BlobRestoreStatus struct {
 	Parameters *BlobRestoreParameters `json:"parameters,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BlobRestoreStatus.
+func (brs BlobRestoreStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BlobServiceItems ...
 type BlobServiceItems struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of blob services returned.
 	Value *[]BlobServiceProperties `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BlobServiceItems.
+func (bsi BlobServiceItems) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BlobServiceProperties the properties of a storage account’s Blob service.
@@ -1323,6 +1371,12 @@ type CheckNameAvailabilityResult struct {
 	Reason Reason `json:"reason,omitempty"`
 	// Message - READ-ONLY; Gets an error message explaining the Reason value in more detail.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResult.
+func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudError an error response from the Storage service.
@@ -1522,6 +1576,12 @@ type DeletedAccountListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeletedAccountListResult.
+func (dalr DeletedAccountListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeletedAccountListResultIterator provides access to a complete listing of DeletedAccount values.
 type DeletedAccountListResultIterator struct {
 	i    int
@@ -1686,6 +1746,12 @@ type DeletedAccountProperties struct {
 	DeletionTime *string `json:"deletionTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeletedAccountProperties.
+func (dap DeletedAccountProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeletedShare the deleted share to be restored.
 type DeletedShare struct {
 	// DeletedShareName - Required. Identify the name of the deleted share that will be restored.
@@ -1831,6 +1897,12 @@ type EncryptionScopeListResult struct {
 	Value *[]EncryptionScope `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of encryption scopes. Returned when total number of requested encryption scopes exceeds the maximum page size.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EncryptionScopeListResult.
+func (eslr EncryptionScopeListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EncryptionScopeListResultIterator provides access to a complete listing of EncryptionScope values.
@@ -2113,6 +2185,12 @@ type FileServiceItems struct {
 	Value *[]FileServiceProperties `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FileServiceItems.
+func (fsi FileServiceItems) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // FileServiceProperties the properties of File services in storage account.
 type FileServiceProperties struct {
 	autorest.Response `json:"-"`
@@ -2384,6 +2462,12 @@ type FileShareItems struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FileShareItems.
+func (fsi FileShareItems) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // FileShareItemsIterator provides access to a complete listing of FileShareItem values.
 type FileShareItemsIterator struct {
 	i    int
@@ -2596,6 +2680,12 @@ type GeoReplicationStats struct {
 	LastSyncTime *date.Time `json:"lastSyncTime,omitempty"`
 	// CanFailover - READ-ONLY; A boolean flag which indicates whether or not account failover is supported for the account.
 	CanFailover *bool `json:"canFailover,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GeoReplicationStats.
+func (grs GeoReplicationStats) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Identity identity for the resource.
@@ -2904,11 +2994,23 @@ type ListAccountSasResponse struct {
 	AccountSasToken *string `json:"accountSasToken,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ListAccountSasResponse.
+func (lasr ListAccountSasResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ListBlobInventoryPolicy list of blob inventory policies returned.
 type ListBlobInventoryPolicy struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of blob inventory policies.
 	Value *[]BlobInventoryPolicy `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListBlobInventoryPolicy.
+func (lbip ListBlobInventoryPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListContainerItem the blob container properties be listed out.
@@ -3002,6 +3104,12 @@ type ListContainerItems struct {
 	Value *[]ListContainerItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of containers. Returned when total number of requested containers exceed maximum page size.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListContainerItems.
+func (lci ListContainerItems) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListContainerItemsIterator provides access to a complete listing of ListContainerItem values.
@@ -3250,6 +3358,12 @@ type ListQueueResource struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ListQueueResource.
+func (lqr ListQueueResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ListQueueResourceIterator provides access to a complete listing of ListQueue values.
 type ListQueueResourceIterator struct {
 	i    int
@@ -3407,11 +3521,23 @@ type ListQueueServices struct {
 	Value *[]QueueServiceProperties `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ListQueueServices.
+func (lqs ListQueueServices) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ListServiceSasResponse the List service SAS credentials operation response.
 type ListServiceSasResponse struct {
 	autorest.Response `json:"-"`
 	// ServiceSasToken - READ-ONLY; List service SAS credentials of specific resource.
 	ServiceSasToken *string `json:"serviceSasToken,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListServiceSasResponse.
+func (lssr ListServiceSasResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListTableResource response schema. Contains list of tables returned
@@ -3421,6 +3547,12 @@ type ListTableResource struct {
 	Value *[]Table `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of tables
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListTableResource.
+func (ltr ListTableResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListTableResourceIterator provides access to a complete listing of Table values.
@@ -3578,6 +3710,12 @@ type ListTableServices struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of table services returned.
 	Value *[]TableServiceProperties `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListTableServices.
+func (lts ListTableServices) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagementPolicy the Get Storage Account ManagementPolicies operation response.
@@ -4038,6 +4176,12 @@ type PrivateEndpoint struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnection the Private Endpoint Connection resource.
 type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
@@ -4255,6 +4399,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Queue ...
 type Queue struct {
 	autorest.Response `json:"-"`
@@ -4434,6 +4584,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceAccessRule resource Access Rule.
 type ResourceAccessRule struct {
 	// TenantID - Tenant Id
@@ -4559,6 +4715,12 @@ type SKUCapability struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SKUCapability.
+func (sc SKUCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SkuInformation storage SKU and its properties
 type SkuInformation struct {
 	// Name - Possible values include: 'StandardLRS', 'StandardGRS', 'StandardRAGRS', 'StandardZRS', 'PremiumLRS', 'PremiumZRS', 'StandardGZRS', 'StandardRAGZRS'
@@ -4597,6 +4759,12 @@ type SkuListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; Get the list result of storage SKUs and their properties.
 	Value *[]SkuInformation `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuListResult.
+func (slr SkuListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SmbSetting setting for SMB protocol
@@ -4708,6 +4876,12 @@ type TableProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TableProperties.
+func (tp TableProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TableServiceProperties the properties of a storage account’s Table service.
 type TableServiceProperties struct {
 	autorest.Response `json:"-"`
@@ -4811,6 +4985,12 @@ type TagProperty struct {
 	Upn *string `json:"upn,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TagProperty.
+func (tp TagProperty) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
 // which has 'tags' and a 'location'
 type TrackedResource struct {
@@ -4854,6 +5034,12 @@ type UpdateHistoryProperty struct {
 	Upn *string `json:"upn,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UpdateHistoryProperty.
+func (uhp UpdateHistoryProperty) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Usage describes Storage Resource Usage.
 type Usage struct {
 	// Unit - READ-ONLY; Gets the unit of measurement. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountsPerSecond', 'BytesPerSecond'
@@ -4864,6 +5050,12 @@ type Usage struct {
 	Limit *int32 `json:"limit,omitempty"`
 	// Name - READ-ONLY; Gets the name of the type of usage.
 	Name *UsageName `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Usage.
+func (u Usage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UsageListResult the response from the List Usages operation.
@@ -4881,12 +5073,24 @@ type UsageName struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UsageName.
+func (un UsageName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UserAssignedIdentity userAssignedIdentity for the resource.
 type UserAssignedIdentity struct {
 	// PrincipalID - READ-ONLY; The principal ID of the identity.
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The client ID of the identity.
 	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedIdentity.
+func (uai UserAssignedIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkRule virtual Network rule.

@@ -104,6 +104,12 @@ type CertificatePropertiesWithNonce struct {
 	Certificate *string `json:"certificate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CertificatePropertiesWithNonce.
+func (cpwn CertificatePropertiesWithNonce) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CertificateVerificationDescription the JSON-serialized leaf certificate
 type CertificateVerificationDescription struct {
 	// Certificate - base-64 representation of X509 certificate .cer file or just .pem file content.
@@ -339,6 +345,12 @@ type ErrorDetails struct {
 	Message *string `json:"message,omitempty"`
 	// Details - READ-ONLY; The error details.
 	Details *string `json:"details,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorDetails.
+func (ed ErrorDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EventHubConsumerGroupInfo the properties of the EventHubConsumerGroupInfo object.
@@ -659,6 +671,12 @@ type IotHubCapacity struct {
 	Default *int64 `json:"default,omitempty"`
 	// ScaleType - READ-ONLY; The type of the scaling enabled. Possible values include: 'IotHubScaleTypeAutomatic', 'IotHubScaleTypeManual', 'IotHubScaleTypeNone'
 	ScaleType IotHubScaleType `json:"scaleType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotHubCapacity.
+func (ihc IotHubCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotHubDescription the description of the IoT hub.
@@ -1025,6 +1043,12 @@ type IotHubQuotaMetricInfo struct {
 	CurrentValue *int64 `json:"currentValue,omitempty"`
 	// MaxValue - READ-ONLY; The maximum value of the quota metric.
 	MaxValue *int64 `json:"maxValue,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotHubQuotaMetricInfo.
+func (ihqmi IotHubQuotaMetricInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotHubQuotaMetricInfoListResult the JSON-serialized array of IotHubQuotaMetricInfo objects with a next
@@ -1571,6 +1595,12 @@ type JobResponse struct {
 	ParentJobID *string `json:"parentJobId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobResponse.
+func (jr JobResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobResponseListResult the JSON-serialized array of JobResponse objects with a next link.
 type JobResponseListResult struct {
 	autorest.Response `json:"-"`
@@ -1798,6 +1828,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (o OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationInputs input values.
 type OperationInputs struct {
 	// Name - The name of the IoT hub to check.
@@ -1812,6 +1848,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -1970,6 +2012,12 @@ type PrivateEndpoint struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnection the private endpoint connection of an IotHub
 type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
@@ -2109,6 +2157,12 @@ type RegistryStatistics struct {
 	EnabledDeviceCount *int64 `json:"enabledDeviceCount,omitempty"`
 	// DisabledDeviceCount - READ-ONLY; The count of disabled devices in the identity registry.
 	DisabledDeviceCount *int64 `json:"disabledDeviceCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RegistryStatistics.
+func (rs RegistryStatistics) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Resource the common properties of an Azure resource.

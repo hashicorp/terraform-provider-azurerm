@@ -451,3 +451,9 @@ type ErrorResponse struct {
 	// Message - READ-ONLY; The error message indicating why the operation failed.
 	Message *string `json:"message,omitempty"`
 }
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
