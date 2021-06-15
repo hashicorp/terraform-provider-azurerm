@@ -3,13 +3,11 @@ package session
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/processcreds"
-	"github.com/aws/aws-sdk-go/aws/credentials/ssocreds"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/defaults"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -49,10 +47,10 @@ func resolveCredentials(cfg *aws.Config,
 }
 
 // WebIdentityEmptyRoleARNErr will occur if 'AWS_WEB_IDENTITY_TOKEN_FILE' was set but
-// 'AWS_ROLE_ARN' was not set.
+// 'AWS_IAM_ROLE_ARN' was not set.
 var WebIdentityEmptyRoleARNErr = awserr.New(stscreds.ErrCodeWebIdentity, "role ARN is not set", nil)
 
-// WebIdentityEmptyTokenFilePathErr will occur if 'AWS_ROLE_ARN' was set but
+// WebIdentityEmptyTokenFilePathErr will occur if 'AWS_IAM_ROLE_ARN' was set but
 // 'AWS_WEB_IDENTITY_TOKEN_FILE' was not set.
 var WebIdentityEmptyTokenFilePathErr = awserr.New(stscreds.ErrCodeWebIdentity, "token file path is not set", nil)
 
@@ -100,9 +98,6 @@ func resolveCredsFromProfile(cfg *aws.Config,
 		creds = credentials.NewStaticCredentialsFromCreds(
 			sharedCfg.Creds,
 		)
-
-	case sharedCfg.hasSSOConfiguration():
-		creds = resolveSSOCredentials(cfg, sharedCfg, handlers)
 
 	case len(sharedCfg.CredentialProcess) != 0:
 		// Get credentials from CredentialProcess
@@ -153,21 +148,6 @@ func resolveCredsFromProfile(cfg *aws.Config,
 	}
 
 	return creds, nil
-}
-
-func resolveSSOCredentials(cfg *aws.Config, sharedCfg sharedConfig, handlers request.Handlers) *credentials.Credentials {
-	cfgCopy := cfg.Copy()
-	cfgCopy.Region = &sharedCfg.SSORegion
-
-	return ssocreds.NewCredentials(
-		&Session{
-			Config:   cfgCopy,
-			Handlers: handlers.Copy(),
-		},
-		sharedCfg.SSOAccountID,
-		sharedCfg.SSORoleName,
-		sharedCfg.SSOStartURL,
-	)
 }
 
 // valid credential source values
@@ -226,14 +206,7 @@ func credsFromAssumeRole(cfg aws.Config,
 		sharedCfg.RoleARN,
 		func(opt *stscreds.AssumeRoleProvider) {
 			opt.RoleSessionName = sharedCfg.RoleSessionName
-
-			if sessOpts.AssumeRoleDuration == 0 &&
-				sharedCfg.AssumeRoleDuration != nil &&
-				*sharedCfg.AssumeRoleDuration/time.Minute > 15 {
-				opt.Duration = *sharedCfg.AssumeRoleDuration
-			} else if sessOpts.AssumeRoleDuration != 0 {
-				opt.Duration = sessOpts.AssumeRoleDuration
-			}
+			opt.Duration = sessOpts.AssumeRoleDuration
 
 			// Assume role with external ID
 			if len(sharedCfg.ExternalID) > 0 {

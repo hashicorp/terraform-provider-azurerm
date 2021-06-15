@@ -267,15 +267,17 @@ func loadModuleLegacyHCL(dir string) (*Module, Diagnostics) {
 				if err != nil {
 					return nil, diagnosticsErrorf("invalid provider block at %s: %s", item.Pos(), err)
 				}
+
+				if block.Version != "" {
+					mod.RequiredProviders[name] = append(mod.RequiredProviders[name], block.Version)
+				}
+
 				// Even if there wasn't an explicit version required, we still
 				// need an entry in our map to signal the unversioned dependency.
 				if _, exists := mod.RequiredProviders[name]; !exists {
-					mod.RequiredProviders[name] = &ProviderRequirement{}
+					mod.RequiredProviders[name] = []string{}
 				}
 
-				if block.Version != "" {
-					mod.RequiredProviders[name].VersionConstraints = append(mod.RequiredProviders[name].VersionConstraints, block.Version)
-				}
 			}
 		}
 	}

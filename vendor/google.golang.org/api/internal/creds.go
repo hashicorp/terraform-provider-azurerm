@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 
 	"golang.org/x/oauth2"
-	"google.golang.org/api/internal/impersonate"
 
 	"golang.org/x/oauth2/google"
 )
@@ -19,17 +18,6 @@ import (
 // Creds returns credential information obtained from DialSettings, or if none, then
 // it returns default credential information.
 func Creds(ctx context.Context, ds *DialSettings) (*google.Credentials, error) {
-	creds, err := baseCreds(ctx, ds)
-	if err != nil {
-		return nil, err
-	}
-	if ds.ImpersonationConfig != nil {
-		return impersonateCredentials(ctx, creds, ds)
-	}
-	return creds, nil
-}
-
-func baseCreds(ctx context.Context, ds *DialSettings) (*google.Credentials, error) {
 	if ds.Credentials != nil {
 		return ds.Credentials, nil
 	}
@@ -114,18 +102,4 @@ func QuotaProjectFromCreds(cred *google.Credentials) string {
 		return ""
 	}
 	return v.QuotaProject
-}
-
-func impersonateCredentials(ctx context.Context, creds *google.Credentials, ds *DialSettings) (*google.Credentials, error) {
-	if len(ds.ImpersonationConfig.Scopes) == 0 {
-		ds.ImpersonationConfig.Scopes = ds.Scopes
-	}
-	ts, err := impersonate.TokenSource(ctx, creds.TokenSource, ds.ImpersonationConfig)
-	if err != nil {
-		return nil, err
-	}
-	return &google.Credentials{
-		TokenSource: ts,
-		ProjectID:   creds.ProjectID,
-	}, nil
 }
