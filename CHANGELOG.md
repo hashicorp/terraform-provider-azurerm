@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource** `azurerm_data_protection_backup_policy_postgresql` [GH-12072]
 * **New Resource** `azurerm_machine_learning_compute_cluster` [GH-11675]
+* **New Resource** `azurerm_eventhub_namespace_customer_managed_key` [GH-12159]
 
 ENHANCEMENTS:
 
