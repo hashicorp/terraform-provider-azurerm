@@ -10,11 +10,11 @@ This is tracking the changes necessary for Plugin SDKv2
 4. (DONE) Updating the Customize Diff functions to use the new wrapper
 5. (DONE) Updating the Import functions to use the new wrappers
 
-6. Update the `validate` package tests to include `_test` suffix for the package name
+6. (DONE) Update the `validate` package tests to include `_test` suffix for the package name
 	At the same time, add the package name to the generator to reflect this:
 	./azurerm/internal/tools/generator-resource-id/main.go:15
 
-7. Gradually updating each service package to use the new wrappers
+7. (DONE) Gradually updating each service package to use the new wrappers
 	This script _should_ be safe to re-run multiple times over the same service package
 	It's only Sed, but it does most of the job.
 
