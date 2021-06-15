@@ -1299,7 +1299,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 			},
 		}
 
-		if _, err := deleteWait.WaitForState(); err != nil {
+		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for the deletion of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 		}
 	}

@@ -342,7 +342,7 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name st
 			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err))
 		}
 
