@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/testclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
@@ -82,16 +83,12 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 }
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
-	testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
-		"azuread": func() (terraform.ResourceProvider, error) {
-			aad := azuread.Provider()
-			return aad, nil
-		},
-		"azurerm": func() (terraform.ResourceProvider, error) {
+	testCase.ProviderFactories = map[string]func() (*schema.Provider, error){
+		"azurerm": func() (*schema.Provider, error) {
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
-		"azurerm-alt": func() (terraform.ResourceProvider, error) {
+		"azurerm-alt": func() (*schema.Provider, error) {
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
@@ -101,12 +98,12 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 }
 
 func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
-	testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
-		"azuread": func() (terraform.ResourceProvider, error) {
-			aad := azuread.Provider()
-			return aad, nil
+	testCase.ProviderFactories = map[string]func() (*schema.Provider, error){
+		"azurerm": func() (*schema.Provider, error) {
+			azurerm := provider.TestAzureProvider()
+			return azurerm, nil
 		},
-		"azurerm": func() (terraform.ResourceProvider, error) {
+		"azurerm-alt": func() (*schema.Provider, error) {
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
