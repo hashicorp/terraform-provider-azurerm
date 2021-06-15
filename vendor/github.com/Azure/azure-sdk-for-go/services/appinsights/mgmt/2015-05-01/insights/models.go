@@ -51,6 +51,12 @@ type AnnotationsListResult struct {
 	Value *[]Annotation `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AnnotationsListResult.
+func (alr AnnotationsListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // APIKeyRequest an Application Insights component API Key creation request definition.
 type APIKeyRequest struct {
 	// Name - The name of the API Key.
@@ -281,6 +287,12 @@ type ApplicationInsightsComponentAvailableFeatures struct {
 	Result *[]ApplicationInsightsComponentFeature `json:"Result,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentAvailableFeatures.
+func (aicaf ApplicationInsightsComponentAvailableFeatures) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ApplicationInsightsComponentBillingFeatures an Application Insights component billing features
 type ApplicationInsightsComponentBillingFeatures struct {
 	autorest.Response `json:"-"`
@@ -483,6 +495,12 @@ type ApplicationInsightsComponentFeature struct {
 	SupportedAddonFeatures *string `json:"SupportedAddonFeatures,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentFeature.
+func (aicf ApplicationInsightsComponentFeature) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ApplicationInsightsComponentFeatureCapabilities an Application Insights component feature capabilities
 type ApplicationInsightsComponentFeatureCapabilities struct {
 	autorest.Response `json:"-"`
@@ -520,6 +538,12 @@ type ApplicationInsightsComponentFeatureCapabilities struct {
 	ThrottleRate *float64 `json:"ThrottleRate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentFeatureCapabilities.
+func (aicfc ApplicationInsightsComponentFeatureCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ApplicationInsightsComponentFeatureCapability an Application Insights component feature capability
 type ApplicationInsightsComponentFeatureCapability struct {
 	// Name - READ-ONLY; The name of the capability.
@@ -534,6 +558,12 @@ type ApplicationInsightsComponentFeatureCapability struct {
 	MeterID *string `json:"MeterId,omitempty"`
 	// MeterRateFrequency - READ-ONLY; The meter rate of the meter.
 	MeterRateFrequency *string `json:"MeterRateFrequency,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentFeatureCapability.
+func (aicfc ApplicationInsightsComponentFeatureCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsComponentListResult describes the list of Application Insights Resources.
@@ -820,6 +850,12 @@ type ApplicationInsightsComponentQuotaStatus struct {
 	ExpirationTime *string `json:"ExpirationTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentQuotaStatus.
+func (aicqs ApplicationInsightsComponentQuotaStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ApplicationInsightsComponentWebTestLocation properties that define a web test location available to an
 // Application Insights Component.
 type ApplicationInsightsComponentWebTestLocation struct {
@@ -827,6 +863,12 @@ type ApplicationInsightsComponentWebTestLocation struct {
 	DisplayName *string `json:"DisplayName,omitempty"`
 	// Tag - READ-ONLY; Internally defined geographic location tag.
 	Tag *string `json:"Tag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentWebTestLocation.
+func (aicwtl ApplicationInsightsComponentWebTestLocation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsWebTestLocationsListResult describes the list of web test locations available to an
@@ -1182,6 +1224,12 @@ type MyWorkbooksListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; An array of private workbooks.
 	Value *[]MyWorkbook `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbooksListResult.
+func (mwlr MyWorkbooksListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Operation CDN REST API operation
@@ -1976,6 +2024,12 @@ type WorkbooksListResult struct {
 	Value *[]Workbook `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for WorkbooksListResult.
+func (wlr WorkbooksListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // WorkItemConfiguration work item configuration associated with an application insights resource.
 type WorkItemConfiguration struct {
 	autorest.Response `json:"-"`
@@ -2005,6 +2059,12 @@ type WorkItemConfigurationsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; An array of work item configurations.
 	Value *[]WorkItemConfiguration `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkItemConfigurationsListResult.
+func (wiclr WorkItemConfigurationsListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // WorkItemCreateConfiguration work item configuration creation payload

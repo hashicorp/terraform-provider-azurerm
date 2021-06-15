@@ -215,6 +215,12 @@ type Capabilities struct {
 	Capabilities *CapabilitiesCapabilities `json:"capabilities,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Capabilities.
+func (c Capabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CapabilitiesCapabilities the supported capabilities.
 type CapabilitiesCapabilities struct {
 	// MaxMemoryInGB - READ-ONLY; The maximum allowed memory request in GB.
@@ -223,6 +229,12 @@ type CapabilitiesCapabilities struct {
 	MaxCPU *float64 `json:"maxCpu,omitempty"`
 	// MaxGpuCount - READ-ONLY; The maximum allowed GPU count.
 	MaxGpuCount *float64 `json:"maxGpuCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CapabilitiesCapabilities.
+func (c CapabilitiesCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CapabilitiesListResult the response containing list of capabilities.
@@ -638,6 +650,12 @@ type ContainerGroupIdentityUserAssignedIdentitiesValue struct {
 	ClientID *string `json:"clientId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ContainerGroupIdentityUserAssignedIdentitiesValue.
+func (cgiAiv ContainerGroupIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ContainerGroupListResult the container group list response that contains the container group properties.
 type ContainerGroupListResult struct {
 	autorest.Response `json:"-"`
@@ -887,6 +905,12 @@ type ContainerGroupPropertiesInstanceView struct {
 	Events *[]Event `json:"events,omitempty"`
 	// State - READ-ONLY; The state of the container group. Only valid in response.
 	State *string `json:"state,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerGroupPropertiesInstanceView.
+func (cgV ContainerGroupPropertiesInstanceView) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ContainerGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -1149,6 +1173,12 @@ type ContainerPropertiesInstanceView struct {
 	Events *[]Event `json:"events,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ContainerPropertiesInstanceView.
+func (cpV ContainerPropertiesInstanceView) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ContainerState the container instance state.
 type ContainerState struct {
 	// State - READ-ONLY; The state of the container instance.
@@ -1161,6 +1191,12 @@ type ContainerState struct {
 	FinishTime *date.Time `json:"finishTime,omitempty"`
 	// DetailStatus - READ-ONLY; The human-readable status of the container instance state.
 	DetailStatus *string `json:"detailStatus,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerState.
+func (cs ContainerState) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DNSConfiguration DNS configuration for the container group.
@@ -1207,6 +1243,12 @@ type Event struct {
 	Message *string `json:"message,omitempty"`
 	// Type - READ-ONLY; The event type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Event.
+func (e Event) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // GitRepoVolume represents a volume that is populated with the contents of a git repository
@@ -1333,6 +1375,12 @@ type InitContainerPropertiesDefinitionInstanceView struct {
 	PreviousState *ContainerState `json:"previousState,omitempty"`
 	// Events - READ-ONLY; The events of the init container.
 	Events *[]Event `json:"events,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InitContainerPropertiesDefinitionInstanceView.
+func (icpdV InitContainerPropertiesDefinitionInstanceView) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IPAddress IP address for the container group.
@@ -1662,11 +1710,23 @@ type Usage struct {
 	Name *UsageName `json:"name,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Usage.
+func (u Usage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UsageListResult the response containing the usage data
 type UsageListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The usage data.
 	Value *[]Usage `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UsageListResult.
+func (ulr UsageListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UsageName the name object of the resource
@@ -1675,6 +1735,12 @@ type UsageName struct {
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - READ-ONLY; The localized name of the resource
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UsageName.
+func (u UsageName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Volume the properties of the volume.

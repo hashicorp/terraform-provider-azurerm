@@ -56,11 +56,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 						string(network.VpnAuthenticationTypeRadius),
 					}, false),
 				},
-
-				// StatusCode=400 -- Original Error: Code="MultipleVpnAuthenticationTypesNotSupprtedOnVpnServerConfiguration"
-				// Message="VpnServerConfiguration XXX/acctestrg-191125124621329676 supports single VpnAuthenticationType at a time.
-				// Customer has specified 3 number of VpnAuthenticationTypes."
-				MaxItems: 1,
 			},
 
 			// Optional

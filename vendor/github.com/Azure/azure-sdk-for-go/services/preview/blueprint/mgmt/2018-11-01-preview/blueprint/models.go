@@ -985,6 +985,12 @@ type AssignmentStatus struct {
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssignmentStatus.
+func (as AssignmentStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureResourceBase common properties for all Azure resources.
 type AzureResourceBase struct {
 	// ID - READ-ONLY; String Id used to locate any resource on Azure.
@@ -993,6 +999,12 @@ type AzureResourceBase struct {
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; Name of this resource.
 	Name *string `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureResourceBase.
+func (arb AzureResourceBase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AzureResourceManagerError error code and message
@@ -2011,6 +2023,12 @@ type ResourceStatusBase struct {
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceStatusBase.
+func (rsb ResourceStatusBase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RoleAssignmentArtifact blueprint artifact that applies a Role assignment.
 type RoleAssignmentArtifact struct {
 	// RoleAssignmentArtifactProperties - Properties for a Role assignment blueprint artifact.
@@ -2192,6 +2210,12 @@ type Status struct {
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 	// LastModified - READ-ONLY; Last modified time of this blueprint definition.
 	LastModified *date.Time `json:"lastModified,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Status.
+func (s Status) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TemplateArtifact blueprint artifact that deploys a Resource Manager template.

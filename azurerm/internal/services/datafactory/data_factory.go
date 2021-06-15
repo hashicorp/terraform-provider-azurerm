@@ -218,7 +218,7 @@ func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceDat
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -234,7 +234,25 @@ func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVault
 	}
 }
 
-func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if v, ok := input["store"].(map[string]interface{}); ok {
+		if v != nil {
+			parameters["linked_service_name"] = v["referenceName"].(string)
+		}
+	}
+
+	parameters["secret_name"] = input["secretName"]
+
+	return []interface{}{parameters}
+}
+
+func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
 		return nil
 	}
@@ -259,6 +277,10 @@ func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.Bas
 
 	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
 		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
+	}
+
+	if _, ok := d.GetOk("azure_blob_fs_location"); ok {
+		return expandDataFactoryDatasetAzureBlobFSLocation(d)
 	}
 
 	return nil
@@ -289,6 +311,27 @@ func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData)
 		FolderPath: path,
 		FileName:   filename,
 	}
+	return blobStorageLocation
+}
+
+func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	azureBlobFsLocations := d.Get("azure_blob_fs_location").([]interface{})
+	if len(azureBlobFsLocations) == 0 || azureBlobFsLocations[0] == nil {
+		return nil
+	}
+	props := azureBlobFsLocations[0].(map[string]interface{})
+
+	blobStorageLocation := datafactory.AzureBlobFSLocation{
+		FileSystem: props["file_system"].(string),
+		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
+	}
+	if path := props["path"].(string); len(path) > 0 {
+		blobStorageLocation.FolderPath = path
+	}
+	if filename := props["filename"].(string); len(filename) > 0 {
+		blobStorageLocation.FileName = filename
+	}
+
 	return blobStorageLocation
 }
 
@@ -328,4 +371,35 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 	}
 
 	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFSLocation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	fileSystem, path, fileName := "", "", ""
+	if input.FileSystem != nil {
+		if v, ok := input.FileSystem.(string); ok {
+			fileSystem = v
+		}
+	}
+	if input.FolderPath != nil {
+		if v, ok := input.FolderPath.(string); ok {
+			path = v
+		}
+	}
+	if input.FileName != nil {
+		if v, ok := input.FileName.(string); ok {
+			fileName = v
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"file_system": fileSystem,
+			"path":        path,
+			"filename":    fileName,
+		},
+	}
 }

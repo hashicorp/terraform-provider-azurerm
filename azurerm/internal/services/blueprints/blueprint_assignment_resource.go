@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -67,7 +66,7 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				Optional:         true,
 				StateFunc:        normalizeAssignmentParameterValuesJSON,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"resource_groups": {
@@ -75,7 +74,7 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				Optional:         true,
 				StateFunc:        normalizeAssignmentResourceGroupValuesJSON,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"lock_mode": {

@@ -1951,3 +1951,9 @@ type UserAssignedResourceIdentity struct {
 	// TenantID - READ-ONLY; The tenant id of user assigned identity.
 	TenantID *string `json:"tenantId,omitempty"`
 }
+
+// MarshalJSON is the custom marshaler for UserAssignedResourceIdentity.
+func (uari UserAssignedResourceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}

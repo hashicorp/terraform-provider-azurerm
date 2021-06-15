@@ -29,5 +29,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_machine_learning_workspace":         resourceMachineLearningWorkspace(),
 		"azurerm_machine_learning_inference_cluster": resourceAksInferenceCluster(),
+		"azurerm_machine_learning_compute_cluster":   resourceComputeCluster(),
 	}
 }

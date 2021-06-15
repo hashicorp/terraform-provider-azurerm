@@ -45,7 +45,7 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]do
 	return &paths
 }
 
-func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[][]documentdb.CompositePath {
+func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[][]documentdb.CompositePath {
 	indexes := make([][]documentdb.CompositePath, 0)
 
 	for _, i := range input {
@@ -61,6 +61,30 @@ func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 			indexPairs = append(indexPairs, index)
 		}
 		indexes = append(indexes, indexPairs)
+	}
+
+	return &indexes
+}
+
+func expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]documentdb.SpatialSpec {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	indexes := make([]documentdb.SpatialSpec, 0)
+	// no matter what spatial types are updated, all types will be set and returned from service
+	spatialTypes := []documentdb.SpatialType{
+		documentdb.SpatialTypeLineString,
+		documentdb.SpatialTypeMultiPolygon,
+		documentdb.SpatialTypePoint,
+		documentdb.SpatialTypePolygon,
+	}
+
+	for _, i := range input {
+		indexPair := i.(map[string]interface{})
+		indexes = append(indexes, documentdb.SpatialSpec{
+			Types: &spatialTypes,
+			Path:  utils.String(indexPair["path"].(string)),
+		})
 	}
 
 	return &indexes
@@ -83,8 +107,11 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *documentdb.
 	}
 
 	if v, ok := input["composite_index"].([]interface{}); ok {
-		policy.CompositeIndexes = expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
+		policy.CompositeIndexes = ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
+
+	policy.SpatialIndexes = expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+
 	return policy
 }
 
@@ -131,7 +158,7 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 	return indexPairs
 }
 
-func flattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.CompositePath) []interface{} {
+func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.CompositePath) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -163,6 +190,41 @@ func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]documentdb.IncludedPath
 	return includedPaths
 }
 
+func flattenCosmosDBIndexingPolicySpatialIndexes(input *[]documentdb.SpatialSpec) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexes := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var path string
+		if v.Path != nil {
+			path = *v.Path
+		}
+		indexes = append(indexes, map[string]interface{}{
+			"path":  path,
+			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypes(v.Types),
+		})
+	}
+
+	return indexes
+}
+
+func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]documentdb.SpatialType) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	types := make([]interface{}, 0)
+
+	for _, v := range *input {
+		types = append(types, string(v))
+	}
+
+	return types
+}
+
 func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if indexingPolicy == nil {
@@ -173,7 +235,8 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 	result["indexing_mode"] = strings.Title(string(indexingPolicy.IndexingMode))
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
-	result["composite_index"] = flattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
+	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
+	result["spatial_index"] = flattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
 
 	results = append(results, result)
 	return results
