@@ -169,7 +169,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	fileStorageProperties := &datafactory.AzureFileStorageLinkedServiceTypeProperties{
 		ConnectionString: &datafactory.SecureString{
 			Value: utils.String(d.Get("connection_string").(string)),
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		},
 		FileShare: d.Get("file_share").(string),
 		Host:      d.Get("host").(string),
@@ -180,7 +180,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	if password != "" {
 		fileStorageProperties.Password = &datafactory.SecureString{
 			Value: utils.String(d.Get("password").(string)),
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 	}
 

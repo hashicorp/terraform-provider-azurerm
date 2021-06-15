@@ -294,6 +294,12 @@ type ErrorDefinition struct {
 	AdditionalInfo *[]TypedErrorInfo `json:"additionalInfo,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorDefinition.
+func (ed ErrorDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorResponse error response.
 type ErrorResponse struct {
 	// Error - The error details.
@@ -421,6 +427,12 @@ type PolicyDetails struct {
 	PolicySetDefinitionID *string `json:"policySetDefinitionId,omitempty"`
 	// PolicyDefinitionReferenceID - READ-ONLY; The policy definition reference ID within the policy set definition.
 	PolicyDefinitionReferenceID *string `json:"policyDefinitionReferenceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PolicyDetails.
+func (pd PolicyDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PolicyEvaluationDetails policy evaluation details.
@@ -1160,6 +1172,12 @@ type PolicyMetadataCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PolicyMetadataCollection.
+func (pmc PolicyMetadataCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PolicyMetadataCollectionIterator provides access to a complete listing of SlimPolicyMetadata values.
 type PolicyMetadataCollectionIterator struct {
 	i    int
@@ -1330,6 +1348,12 @@ type PolicyMetadataProperties struct {
 	Metadata interface{} `json:"metadata,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PolicyMetadataProperties.
+func (pmp PolicyMetadataProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PolicyMetadataSlimProperties the properties of the policy metadata, excluding properties containing
 // large strings
 type PolicyMetadataSlimProperties struct {
@@ -1345,6 +1369,12 @@ type PolicyMetadataSlimProperties struct {
 	AdditionalContentURL *string `json:"additionalContentUrl,omitempty"`
 	// Metadata - READ-ONLY; Additional metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PolicyMetadataSlimProperties.
+func (pmsp PolicyMetadataSlimProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PolicyState policy state record.
@@ -2107,6 +2137,12 @@ type PolicyTrackedResource struct {
 	LastUpdateUtc *date.Time `json:"lastUpdateUtc,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PolicyTrackedResource.
+func (ptr PolicyTrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PolicyTrackedResourcesQueryResults query results.
 type PolicyTrackedResourcesQueryResults struct {
 	autorest.Response `json:"-"`
@@ -2114,6 +2150,12 @@ type PolicyTrackedResourcesQueryResults struct {
 	Value *[]PolicyTrackedResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PolicyTrackedResourcesQueryResults.
+func (ptrqr PolicyTrackedResourcesQueryResults) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PolicyTrackedResourcesQueryResultsIterator provides access to a complete listing of
@@ -2281,6 +2323,12 @@ type QueryFailureError struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for QueryFailureError.
+func (qf QueryFailureError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Remediation the remediation definition.
 type Remediation struct {
 	autorest.Response `json:"-"`
@@ -2372,6 +2420,12 @@ type RemediationDeployment struct {
 	LastUpdatedOn *date.Time `json:"lastUpdatedOn,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RemediationDeployment.
+func (rd RemediationDeployment) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RemediationDeploymentsListResult list of deployments for a remediation.
 type RemediationDeploymentsListResult struct {
 	autorest.Response `json:"-"`
@@ -2379,6 +2433,12 @@ type RemediationDeploymentsListResult struct {
 	Value *[]RemediationDeployment `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RemediationDeploymentsListResult.
+func (rdlr RemediationDeploymentsListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RemediationDeploymentsListResultIterator provides access to a complete listing of RemediationDeployment
@@ -2543,6 +2603,12 @@ type RemediationDeploymentSummary struct {
 	FailedDeployments *int32 `json:"failedDeployments,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RemediationDeploymentSummary.
+func (rds RemediationDeploymentSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RemediationFilters the filters that will be applied to determine which resources to remediate.
 type RemediationFilters struct {
 	// Locations - The resource locations that will be remediated.
@@ -2556,6 +2622,12 @@ type RemediationListResult struct {
 	Value *[]Remediation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RemediationListResult.
+func (rlr RemediationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RemediationListResultIterator provides access to a complete listing of Remediation values.
@@ -2869,10 +2941,22 @@ type TrackedResourceModificationDetails struct {
 	DeploymentTime *date.Time `json:"deploymentTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TrackedResourceModificationDetails.
+func (trmd TrackedResourceModificationDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TypedErrorInfo scenario specific error details.
 type TypedErrorInfo struct {
 	// Type - READ-ONLY; The type of included error details.
 	Type *string `json:"type,omitempty"`
 	// Info - READ-ONLY; The scenario specific error details.
 	Info interface{} `json:"info,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TypedErrorInfo.
+func (tei TypedErrorInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
