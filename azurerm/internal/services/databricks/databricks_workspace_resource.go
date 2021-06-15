@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -16,6 +17,7 @@ import (
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -62,8 +64,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"tags": tags.Schema(),
-
 			"managed_resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -79,31 +79,71 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"no_public_ip": {
-							Type:     pluginsdk.TypeBool,
-							ForceNew: true,
+						"aml_workspace_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"customer_managed_key": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							Computed: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_source": {
+										Type:             pluginsdk.TypeString,
+										Optional:         true,
+										Default:          "Default",
+										DiffSuppressFunc: suppress.CaseDifference,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(databricks.Default),
+											string(databricks.MicrosoftKeyvault),
+										}, true),
+									},
+									"key_name": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"key_version": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"key_vault_uri": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
 							},
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"no_public_ip": {
+							Type:         pluginsdk.TypeBool,
+							ForceNew:     true,
+							Optional:     true,
+							Default:      false,
+							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
 						"public_subnet_name": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Optional: true,
-							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
-							},
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
 						"private_subnet_name": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Optional: true,
-							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
-							},
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
 						"virtual_network_id": {
@@ -111,13 +151,58 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
-							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
-							},
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"enable_cmk_encryption": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							Default:      false,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"enable_infrastructure_encryption": {
+							Type:         pluginsdk.TypeBool,
+							ForceNew:     true,
+							Optional:     true,
+							Default:      false,
+							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 					},
 				},
 			},
+
+			"provider_authorization": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 100,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"principal_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"role_definition_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
+
+			"ui_definition_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+			},
+
+			"tags": tags.Schema(),
 
 			"managed_resource_group_id": {
 				Type:     pluginsdk.TypeString,
@@ -140,10 +225,29 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				sku, changedSKU := d.GetChange("sku")
 
 				if changedSKU == "trial" {
-					log.Printf("[DEBUG] recreate databricks workspace, could't be migrated to %s", changedSKU)
+					log.Printf("[DEBUG] recreate databricks workspace, cannot be migrated to %s", changedSKU)
 					d.ForceNew("sku")
 				} else {
 					log.Printf("[DEBUG] databricks workspace can be upgraded from %s to %s", sku, changedSKU)
+				}
+			}
+
+			customParamsRaw := d.Get("custom_parameters").([]interface{})
+			if len(customParamsRaw) != 0 && customParamsRaw[0] != nil {
+				cmkEncrypt := false
+				infraEncypt := false
+				config := customParamsRaw[0].(map[string]interface{})
+
+				if v, ok := config["enable_cmk_encryption"].(bool); ok {
+					cmkEncrypt = v
+				}
+
+				if v, ok := config["enable_infrastructure_encryption"].(bool); ok {
+					infraEncypt = v
+				}
+
+				if cmkEncrypt && infraEncypt {
+					return fmt.Errorf("'enable_cmk_encryption' and 'enable_infrastructure_encryption' cannot both be 'true'")
 				}
 			}
 
@@ -186,8 +290,28 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
 
+	uiDefUri := d.Get("ui_definition_uri").(string)
+
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams := expandWorkspaceCustomParameters(customParamsRaw)
+
+	authsRaw := d.Get("provider_authorization").([]interface{})
+	auths := expandWorkspaceAuthorizations(authsRaw)
+
+	if len(customParamsRaw) != 0 && customParamsRaw[0] != nil {
+		configCmk := false
+		config := customParamsRaw[0].(map[string]interface{})
+
+		if v, ok := config["customer_managed_key"].([]interface{}); ok {
+			if len(v) != 0 {
+				configCmk = true
+			}
+
+			if d.IsNewResource() && configCmk {
+				return fmt.Errorf("%s: 'customer_managed_key' cannot be defined during workspace creation, you must define the 'customer_managed_key' once the workspace has been created and key vault access policies have been added.", id)
+			}
+		}
+	}
 
 	// Including the Tags in the workspace parameters will update the tags on
 	// the workspace only
@@ -201,6 +325,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Parameters:             customParams,
 		},
 		Tags: expandedTags,
+	}
+
+	if uiDefUri != "" {
+		workspace.WorkspaceProperties.UIDefinitionURI = &uiDefUri
+	}
+	if auths != nil {
+		workspace.WorkspaceProperties.Authorizations = auths
 	}
 
 	future, err := client.CreateOrUpdate(ctx, workspace, id.ResourceGroup, id.Name)
@@ -274,9 +405,14 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+		d.Set("ui_definition_uri", props.UIDefinitionURI)
 
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `custom_parameters`: %+v", err)
+		}
+
+		if err := d.Set("provider_authorization", flattenWorkspaceAuthorizations(props.Authorizations)); err != nil {
+			return fmt.Errorf("setting `provider_authorization`: %+v", err)
 		}
 
 		d.Set("workspace_url", props.WorkspaceURL)
@@ -310,38 +446,105 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) []interface{} {
-	if p == nil {
+func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameters) []interface{} {
+	if input == nil {
 		return nil
 	}
 
 	parameters := make(map[string]interface{})
 
-	if v := p.EnableNoPublicIP; v != nil {
+	if v := input.AmlWorkspaceID; v != nil {
+		if v.Value != nil {
+			parameters["aml_workspace_id"] = *v.Value
+		}
+	}
+
+	if v := input.EnableNoPublicIP; v != nil {
 		if v.Value != nil {
 			parameters["no_public_ip"] = *v.Value
 		}
 	}
 
-	if v := p.CustomPrivateSubnetName; v != nil {
+	if v := input.CustomPrivateSubnetName; v != nil {
 		if v.Value != nil {
 			parameters["private_subnet_name"] = *v.Value
 		}
 	}
 
-	if v := p.CustomPublicSubnetName; v != nil {
+	if v := input.CustomPublicSubnetName; v != nil {
 		if v.Value != nil {
 			parameters["public_subnet_name"] = *v.Value
 		}
 	}
 
-	if v := p.CustomVirtualNetworkID; v != nil {
+	if v := input.CustomVirtualNetworkID; v != nil {
 		if v.Value != nil {
 			parameters["virtual_network_id"] = *v.Value
 		}
 	}
 
+	if v := input.Encryption; v != nil {
+		e := make(map[string]interface{})
+
+		if t := v.Value.KeySource; t != "" {
+			e["key_source"] = t
+		}
+		if t := v.Value.KeyName; t != nil {
+			e["key_name"] = *t
+		}
+		if t := v.Value.KeyVersion; t != nil {
+			e["key_version"] = *t
+		}
+		if t := v.Value.KeyVaultURI; t != nil {
+			e["key_vault_uri"] = *t
+		}
+
+		if len(e) != 0 {
+			parameters["customer_managed_key"] = []interface{}{e}
+		}
+	}
+
+	if v := input.PrepareEncryption; v != nil {
+		if v.Value != nil {
+			parameters["enable_cmk_encryption"] = *v.Value
+		}
+	}
+
+	if v := input.RequireInfrastructureEncryption; v != nil {
+		if v.Value != nil {
+			parameters["enable_infrastructure_encryption"] = *v.Value
+		}
+	}
+
 	return []interface{}{parameters}
+}
+
+func flattenWorkspaceAuthorizations(input *[]databricks.WorkspaceProviderAuthorization) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	auths := make([]interface{}, 0)
+
+	for _, x := range *input {
+		auth := make(map[string]interface{})
+
+		if v := x.PrincipalID; v != nil {
+			if pId := v.String(); pId != "" {
+				auth["principal_id"] = pId
+			}
+		}
+
+		if v := x.RoleDefinitionID; v != nil {
+			if rId := v.String(); rId != "" {
+				auth["role_definition_id"] = rId
+			}
+		}
+
+		auths = append(auths, auth)
+	}
+
+	return auths
 }
 
 func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceCustomParameters {
@@ -352,6 +555,55 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 	config := input[0].(map[string]interface{})
 	parameters := databricks.WorkspaceCustomParameters{}
 
+	if v, ok := config["aml_workspace_id"].(string); ok {
+		parameters.AmlWorkspaceID = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["customer_managed_key"]; ok {
+		if v != nil {
+			cmkRaw := v.([]interface{})
+			if len(cmkRaw) > 0 {
+				cmk := cmkRaw[0].(map[string]interface{})
+				var keySource string
+				var keyName string
+				var keyVersion string
+				var keyVaultURI string
+
+				if t := cmk["key_source"].(string); t != "" {
+					keySource = t
+				}
+				if t := cmk["key_name"].(string); t != "" {
+					keyName = t
+				}
+				if t := cmk["key_version"].(string); t != "" {
+					keyVersion = t
+				}
+				if t := cmk["key_vault_uri"].(string); t != "" {
+					keyVaultURI = t
+				}
+
+				parameters.Encryption = &databricks.WorkspaceEncryptionParameter{
+					Value: &databricks.Encryption{
+						KeySource: databricks.KeySource(keySource),
+					},
+				}
+
+				// Only set the values if they are not empty strings
+				if keyName != "" {
+					parameters.Encryption.Value.KeyName = &keyName
+				}
+				if keyVersion != "" {
+					parameters.Encryption.Value.KeyVersion = &keyVersion
+				}
+				if keyVaultURI != "" {
+					parameters.Encryption.Value.KeyVaultURI = &keyVaultURI
+				}
+			}
+		}
+	}
+
 	if v, ok := config["no_public_ip"].(bool); ok {
 		parameters.EnableNoPublicIP = &databricks.WorkspaceCustomBooleanParameter{
 			Value: &v,
@@ -360,6 +612,18 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 
 	if v := config["public_subnet_name"].(string); v != "" {
 		parameters.CustomPublicSubnetName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["enable_cmk_encryption"].(bool); ok {
+		parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["enable_infrastructure_encryption"].(bool); ok {
+		parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
 			Value: &v,
 		}
 	}
@@ -377,4 +641,33 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 	}
 
 	return &parameters
+}
+
+func expandWorkspaceAuthorizations(input []interface{}) *[]databricks.WorkspaceProviderAuthorization {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	output := []databricks.WorkspaceProviderAuthorization{}
+
+	for _, x := range input {
+		config := x.(map[string]interface{})
+		pId := uuid.FromStringOrNil(config["principal_id"].(string))
+		rId := uuid.FromStringOrNil(config["role_definition_id"].(string))
+
+		auth := databricks.WorkspaceProviderAuthorization{
+			PrincipalID:      &pId,
+			RoleDefinitionID: &rId,
+		}
+
+		output = append(output, auth)
+	}
+
+	return &output
+}
+
+func workspaceCustomParametersString() []string {
+	return []string{"custom_parameters.0.aml_workspace_id", "custom_parameters.0.customer_managed_key", "custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+		"custom_parameters.0.private_subnet_name", "custom_parameters.0.enable_cmk_encryption", "custom_parameters.0.enable_infrastructure_encryption", "custom_parameters.0.virtual_network_id",
+	}
 }

@@ -50,21 +50,56 @@ The following arguments are supported:
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
+* `provider_authorization` - (Optional) A `provider_authorization` block as documented below.
+
+* `ui_definition_uri` - (Optional) The blob URI where the UI definition file is located. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`custom_parameters` supports the following:
+A `custom_parameters` block supports the following:
 
-* `no_public_ip` - (Optional) Are public IP Addresses not allowed?
+* `aml_workspace_id` - (Optional) The ID of a Azure Machine Learning workspace to link with Databricks workspace. Changing this forces a new resource to be created.
 
-* `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
-* `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+* `enable_cmk_encryption` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`.
 
-* `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
+* `enable_infrastructure_encryption`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
+
+* `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
+
+* `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 
 ~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_source` - (Optional) The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`. Defaults to `Default`.
+
+* `key_name` - (Optional) The name of Key Vault key.
+
+* `key_version` - (Optional) The version of Key Vault key.
+
+* `key_vault_uri` - (Optional) The Uri of Key Vault.
+
+~> **NOTE** To successfully provision `customer_managed_key` you must first create the workspace with the `enable_cmk_encryption` field set to `true`. Once the workspace has been created you will then need to add the `customer_managed_key` block to your configuration file and `apply` the changes.
+
+---
+
+A `provider_authorization` block supports the following:
+
+* `principal_id` - (Required) The provider's principal UUID. This is the identity that the provider will use to call ARM to manage the workspace resources. Changing this forces a new resource to be created.
+
+* `role_definition_id` - (Required) The provider's role definition UUID. This role will define all the permissions that the provider must have on the workspace's container resource group. This role definition cannot have permission to delete the resource group. Changing this forces a new resource to be created.
+
 
 ## Attributes Reference
 
