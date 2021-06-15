@@ -538,7 +538,7 @@ func waitForReplicationToBeHealthy(d *pluginsdk.ResourceData, meta interface{}) 
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
-	result, err := stateConf.WaitForState()
+	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for site recovery to replicate vm: %+v", err)
 	}
