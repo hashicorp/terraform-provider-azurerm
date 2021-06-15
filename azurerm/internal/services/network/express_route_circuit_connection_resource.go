@@ -90,10 +90,10 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	id := parse.NewExpressRouteCircuitConnectionID(expressRouteCircuitPeeringId.SubscriptionId, expressRouteCircuitPeeringId.ResourceGroup, expressRouteCircuitPeeringId.ExpressRouteCircuitName, "AzurePrivatePeering", d.Get("name").(string))
+	id := parse.NewExpressRouteCircuitConnectionID(expressRouteCircuitPeeringId.SubscriptionId, expressRouteCircuitPeeringId.ResourceGroup, expressRouteCircuitPeeringId.ExpressRouteCircuitName, string(network.AzurePrivatePeering), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering", id.ConnectionName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.AzurePrivatePeering), id.ConnectionName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -128,7 +128,7 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering", id.ConnectionName, expressRouteCircuitConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.AzurePrivatePeering), id.ConnectionName, expressRouteCircuitConnectionParameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -163,11 +163,7 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 	}
 
 	d.Set("name", id.ConnectionName)
-	d.Set("peering_id", parse.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering").ID())
-
-	if resp.PeerExpressRouteCircuitPeering != nil && resp.PeerExpressRouteCircuitPeering.ID != nil {
-		d.Set("peer_peering_id", resp.PeerExpressRouteCircuitPeering.ID)
-	}
+	d.Set("peering_id", parse.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, string(network.AzurePrivatePeering)).ID())
 
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {
 		d.Set("address_prefix_ipv4", props.AddressPrefix)
@@ -182,6 +178,10 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 			d.Set("address_prefix_ipv6", props.Ipv6CircuitConnectionConfig.AddressPrefix)
 		} else {
 			d.Set("address_prefix_ipv6", "")
+		}
+
+		if props.PeerExpressRouteCircuitPeering != nil && props.PeerExpressRouteCircuitPeering.ID != nil {
+			d.Set("peer_peering_id", resp.PeerExpressRouteCircuitPeering.ID)
 		}
 	}
 

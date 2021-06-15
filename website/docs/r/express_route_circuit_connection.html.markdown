@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key which is associated with the Express Route Circuit Connection.
 
-* `address_prefix_ipv6` - (Required) The IPv6 address space to carve out customer addresses for global reach.
+* `address_prefix_ipv6` - (Optional) The IPv6 address space from which to allocate customer addresses for global reach.
 
 ## Attributes Reference
 
