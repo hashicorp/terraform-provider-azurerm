@@ -19,7 +19,7 @@ This is tracking the changes necessary for Plugin SDKv2
 	At this point there should be ~100 imports for "github.com/hashicorp/terraform-plugin-sdk/v2", meaning
 	this should be a fairly small change - at which point we can upgrade to v2.
 	The following bits are notable:
-		- github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/hashicorp/terraform-plugin-sdk/v2/v2
+		- github.com/hashicorp/terraform-plugin-sdk => github.com/hashicorp/terraform-plugin-sdk/v2
 		- ./azurerm/internal/provider/provider.go:323-328 needs to become:
 			```
 			client, err := clients.Build(context.TODO(), clientBuilder)
