@@ -18,7 +18,7 @@ This is tracking the changes necessary for Plugin SDKv2
 	This script _should_ be safe to re-run multiple times over the same service package
 	It's only Sed, but it does most of the job.
 
-8. Upgrade to Plugin SDKv2
+8. (DONE) Upgrade to Plugin SDKv2
 	At this point there should be ~100 imports for "github.com/hashicorp/terraform-plugin-sdk/v2", meaning
 	this should be a fairly small change - at which point we can upgrade to v2.
 	The following bits are notable:
