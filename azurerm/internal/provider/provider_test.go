@@ -64,7 +64,7 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 
 			// every Resource has to have a Create, Read & Destroy timeout
-			if resource.Timeouts.Create == nil && resource.Create != nil {
+			if resource.Timeouts.Create == nil && resource.Create != nil { //nolint:SA1019
 				t.Fatalf("Resource %q defines a Create method but no Create Timeout", resourceName)
 			}
 			if resource.Timeouts.Delete == nil && resource.Delete != nil {
