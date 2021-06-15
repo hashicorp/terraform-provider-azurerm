@@ -8,8 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 )
 
-const CharSetAlpha = acctest.CharSetAlpha
-
 func RandTimeInt() int {
 	// acctest.RantInt() returns a value of size:
 	// 000000000000000000
