@@ -5,7 +5,6 @@ import (
 	"time"
 
 	iso8601 "github.com/btubbs/datetime"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/rickb777/date/period"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
@@ -63,7 +62,7 @@ func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error
 	return warnings, errors
 }
 
-func AzureTimeZoneString() schema.SchemaValidateFunc {
+func AzureTimeZoneString() func(interface{}, string) ([]string, []error) {
 	// List collected from https://support.microsoft.com/en-gb/help/973627/microsoft-time-zone-index-values
 	// TODO look into programatic retrieval https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows
 	validTimeZones := []string{

@@ -84,11 +84,11 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ProviderFactories = map[string]func() (*schema.Provider, error){
-		"azurerm": func() (*schema.Provider, error) {
+		"azurerm": func() (*schema.Provider, error) { //nolint:unparam
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
-		"azurerm-alt": func() (*schema.Provider, error) {
+		"azurerm-alt": func() (*schema.Provider, error) { //nolint:unparam
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
@@ -99,11 +99,11 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 
 func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ProviderFactories = map[string]func() (*schema.Provider, error){
-		"azurerm": func() (*schema.Provider, error) {
+		"azurerm": func() (*schema.Provider, error) { //nolint:unparam
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},
-		"azurerm-alt": func() (*schema.Provider, error) {
+		"azurerm-alt": func() (*schema.Provider, error) { //nolint:unparam
 			azurerm := provider.TestAzureProvider()
 			return azurerm, nil
 		},

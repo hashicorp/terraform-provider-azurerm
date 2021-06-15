@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -37,7 +38,7 @@ func TestValidateResourceIDPriorToImport(t *testing.T) {
 		f := ValidateResourceIDPriorToImport(v.validator)
 		resourceData := &schema.ResourceData{}
 		resourceData.SetId("hello")
-		_, err := f.State(resourceData, nil)
+		_, err := f.StateContext(context.TODO(), resourceData, nil)
 		wasImported := err == nil
 
 		if v.shouldBeImported != wasImported {
