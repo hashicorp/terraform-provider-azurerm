@@ -55,6 +55,10 @@ resource "azurerm_windows_virtual_machine" "example" {
     azurerm_network_interface.example.id,
   ]
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
@@ -63,22 +67,46 @@ resource "azurerm_windows_virtual_machine" "example" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
+    sku       = "2019-Datacenter"
     version   = "latest"
   }
 }
 
-resource "azurerm_virtual_machine_configuration_policy_assignment" "example" {
-  name               = "example-gca"
-  location           = azurerm_linux_virtual_machine.example.id
-  virtual_machine_id = azurerm_linux_virtual_machine.example.id
-  guest_configuration {
-    name    = "WhitelistedApplication"
-    version = "1.*"
+resource "azurerm_virtual_machine_extension" "example" {
+  name                       = "AzurePolicyforWindows"
+  virtual_machine_id         = azurerm_windows_virtual_machine.example.id
+  publisher                  = "Microsoft.GuestConfiguration"
+  type                       = "ConfigurationforWindows"
+  type_handler_version       = "1.0"
+  auto_upgrade_minor_version = "true"
+}
 
+resource "azurerm_virtual_machine_configuration_policy_assignment" "example" {
+  name               = "AzureWindowsBaseline"
+  location           = azurerm_windows_virtual_machine.example.location
+  virtual_machine_id = azurerm_windows_virtual_machine.example.id
+  configuration {
+    name    = "AzureWindowsBaseline"
+    version = "1.*"
     parameter {
-      name  = "[InstalledApplication]bwhitelistedapp;Name"
-      value = "NotePad,sql"
+      name  = "Minimum Password Length;ExpectedValue"
+      value = "16"
+    }
+    parameter {
+      name  = "Minimum Password Age;ExpectedValue"
+      value = "0"
+    }
+    parameter {
+      name  = "Maximum Password Age;ExpectedValue"
+      value = "30,45"
+    }
+    parameter {
+      name  = "Enforce Password History;ExpectedValue"
+      value = "10"
+    }
+    parameter {
+      name  = "Password Must Meet Complexity Requirements;ExpectedValue"
+      value = "1"
     }
   }
 }

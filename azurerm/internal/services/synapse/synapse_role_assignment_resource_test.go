@@ -45,23 +45,59 @@ func TestAccSynapseRoleAssignment_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccSynapseRoleAssignment_sparkPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
+	r := SynapseRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sparkPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO to be removed in 3.0
+func TestAccSynapseRoleAssignment_oldRole(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
+	r := SynapseRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.oldRole(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	environment := client.Account.Environment
-	accessClient, err := client.Synapse.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	workspaceName, _, err := parse.SynapseScope(id.Scope)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := accessClient.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
+
+	environment := client.Account.Environment
+	roleAssignmentsClient, err := client.Synapse.RoleAssignmentsClient(workspaceName, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := roleAssignmentsClient.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Synapse RoleAssignment (Resource Group %q): %+v", id.Workspace.Name, err)
+		return nil, fmt.Errorf("retrieving Synapse RoleAssignment (Resource Group %q): %+v", workspaceName, err)
 	}
 
 	return utils.Bool(true), nil
@@ -74,7 +110,7 @@ func (r SynapseRoleAssignmentResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_synapse_role_assignment" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
-  role_name            = "Sql Admin"
+  role_name            = "Synapse SQL Administrator"
   principal_id         = data.azurerm_client_config.current.object_id
 
   depends_on = [azurerm_synapse_firewall_rule.test]
@@ -93,6 +129,45 @@ resource "azurerm_synapse_role_assignment" "import" {
   principal_id         = azurerm_synapse_role_assignment.test.principal_id
 }
 `, config)
+}
+
+func (r SynapseRoleAssignmentResource) sparkPool(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_spark_pool" "test" {
+  name                 = "acctestSSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  node_size_family     = "MemoryOptimized"
+  node_size            = "Small"
+  node_count           = 3
+}
+
+resource "azurerm_synapse_role_assignment" "test" {
+  synapse_spark_pool_id = azurerm_synapse_spark_pool.test.id
+  role_name             = "Synapse Contributor"
+  principal_id          = data.azurerm_client_config.current.object_id
+
+  depends_on = [azurerm_synapse_firewall_rule.test]
+}
+`, template, data.RandomString)
+}
+
+// TODO to be removed in 3.0
+func (r SynapseRoleAssignmentResource) oldRole(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_role_assignment" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  role_name            = "Sql Admin"
+  principal_id         = data.azurerm_client_config.current.object_id
+
+  depends_on = [azurerm_synapse_firewall_rule.test]
+}
+`, template)
 }
 
 func (r SynapseRoleAssignmentResource) template(data acceptance.TestData) string {

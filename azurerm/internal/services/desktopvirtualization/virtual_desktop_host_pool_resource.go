@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -116,6 +116,12 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 999999),
 			},
 
+			"start_vm_on_connect": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"preferred_app_group_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
@@ -198,6 +204,7 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
 			CustomRdpProperty:             utils.String(d.Get("custom_rdp_properties").(string)),
 			MaxSessionLimit:               utils.Int32(int32(d.Get("maximum_sessions_allowed").(int))),
+			StartVMOnConnect:              utils.Bool(d.Get("start_vm_on_connect").(bool)),
 			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
 			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
@@ -255,6 +262,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
+		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("custom_rdp_properties", props.CustomRdpProperty)
 
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {

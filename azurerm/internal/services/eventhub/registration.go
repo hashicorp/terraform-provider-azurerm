@@ -37,6 +37,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_eventhub_authorization_rule":                 resourceEventHubAuthorizationRule(),
 		"azurerm_eventhub_cluster":                            resourceEventHubCluster(),
 		"azurerm_eventhub_namespace_authorization_rule":       resourceEventHubNamespaceAuthorizationRule(),
+		"azurerm_eventhub_namespace_customer_managed_key":     resourceEventHubNamespaceCustomerManagedKey(),
 		"azurerm_eventhub_namespace_disaster_recovery_config": resourceEventHubNamespaceDisasterRecoveryConfig(),
 		"azurerm_eventhub_namespace":                          resourceEventHubNamespace(),
 		"azurerm_eventhub":                                    resourceEventHub(),

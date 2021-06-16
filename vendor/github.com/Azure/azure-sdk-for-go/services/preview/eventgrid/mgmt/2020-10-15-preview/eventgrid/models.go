@@ -7250,6 +7250,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSku describes an EventGrid Resource Sku.
 type ResourceSku struct {
 	// Name - The Sku name of the resource. The possible values are: Basic or Premium. Possible values include: 'Basic', 'Premium'

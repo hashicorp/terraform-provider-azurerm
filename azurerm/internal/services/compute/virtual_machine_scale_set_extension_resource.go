@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -90,7 +89,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				Optional:         true,
 				Sensitive:        true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"provision_after_extensions": {
@@ -105,7 +104,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 		},
 	}
@@ -137,7 +136,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 
 	settings := map[string]interface{}{}
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		s, err := structure.ExpandJsonFromString(settingsString)
+		s, err := pluginsdk.ExpandJsonFromString(settingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse `settings`: %s", err)
 		}
@@ -149,7 +148,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 
 	protectedSettings := map[string]interface{}{}
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		ps, err := structure.ExpandJsonFromString(protectedSettingsString)
+		ps, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse `protected_settings`: %s", err)
 		}
@@ -212,7 +211,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	if d.HasChange("protected_settings") {
 		protectedSettings := map[string]interface{}{}
 		if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-			ps, err := structure.ExpandJsonFromString(protectedSettingsString)
+			ps, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
 			if err != nil {
 				return fmt.Errorf("unable to parse `protected_settings`: %s", err)
 			}
@@ -235,7 +234,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 		settings := map[string]interface{}{}
 
 		if settingsString := d.Get("settings").(string); settingsString != "" {
-			s, err := structure.ExpandJsonFromString(settingsString)
+			s, err := pluginsdk.ExpandJsonFromString(settingsString)
 			if err != nil {
 				return fmt.Errorf("unable to parse `settings`: %s", err)
 			}
@@ -317,7 +316,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		if props.Settings != nil {
 			settingsVal, ok := props.Settings.(map[string]interface{})
 			if ok {
-				settingsJson, err := structure.FlattenJsonToString(settingsVal)
+				settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return fmt.Errorf("unable to parse settings from response: %s", err)
 				}
