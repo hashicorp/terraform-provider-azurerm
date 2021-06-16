@@ -53,7 +53,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the frontend ip configuration.
 * `availability_zone` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Defaults to `Zone-Redundant`.
-  
+  `Zone-Redundant` will specify multiple zones in a region with Availability Zones and create a zone-redundant resource.
+
 -> **Please Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Load Balancer that do not specify a zone are zone redundant by default.
 
 * `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
