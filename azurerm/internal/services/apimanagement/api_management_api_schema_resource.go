@@ -167,8 +167,7 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
 			*/
 			switch *properties.ContentType {
-			case "application/vnd.ms-azure-apim.swagger.definitions+json":
-			case "application/vnd.oai.openapi.components+json":
+			case "application/vnd.ms-azure-apim.swagger.definitions+json", "application/vnd.oai.openapi.components+json":
 				if documentProperties.Definitions != nil {
 					value, err := json.Marshal(documentProperties.Definitions)
 					if err != nil {
@@ -176,8 +175,7 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 					}
 					d.Set("value", string(value))
 				}
-			case "application/vnd.ms-azure-apim.xsd+xml":
-			case "application/vnd.ms-azure-apim.wadl.grammars+xml":
+			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
 				d.Set("value", documentProperties.Value)
 			default:
 				return fmt.Errorf("[FATAL] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
