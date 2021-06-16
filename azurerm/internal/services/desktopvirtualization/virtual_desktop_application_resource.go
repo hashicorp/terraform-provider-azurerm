@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -40,10 +39,7 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.ApplicationV0ToV1{},
-		}),
+		SchemaVersion: 0,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
