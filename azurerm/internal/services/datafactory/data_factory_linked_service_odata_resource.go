@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -70,12 +71,15 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							// This isn't returned from the API so we'll ignore changes when it's empty
+							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+								return (new == d.Get(k).(string)) && (old == "*****")
+							},
 						},
 					},
 				},
@@ -143,9 +147,27 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 	}
 
 	odataLinkedService := &datafactory.ODataLinkedService{
-		Description:                      utils.String(d.Get("description").(string)),
-		Type:                             datafactory.TypeBasicLinkedServiceTypeOData,
-		ODataLinkedServiceTypeProperties: authenticationProperties(d),
+		Description: utils.String(d.Get("description").(string)),
+		Type:        datafactory.TypeBasicLinkedServiceTypeOData,
+		ODataLinkedServiceTypeProperties: &datafactory.ODataLinkedServiceTypeProperties{
+			AuthenticationType: datafactory.ODataAuthenticationTypeAnonymous,
+			URL:                d.Get("url").(string),
+		},
+	}
+
+	// There are multiple authentication paths. If support for those get added, we can easily add them in
+	// a similar format to the below while not messing up the other attributes in ODataLinkedServiceTypeProperties
+	if v, ok := d.GetOk("basic_authentication"); ok {
+		attrs := v.([]interface{})
+		if len(attrs) != 0 && attrs[0] != nil {
+			raw := attrs[0].(map[string]interface{})
+			odataLinkedService.AuthenticationType = datafactory.ODataAuthenticationTypeBasic
+			odataLinkedService.UserName = raw["username"].(string)
+			odataLinkedService.Password = datafactory.SecureString{
+				Value: utils.String(raw["password"].(string)),
+				Type:  datafactory.TypeTypeSecureString,
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -219,11 +241,13 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 	props := odata.ODataLinkedServiceTypeProperties
 	d.Set("url", props.URL)
 	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic {
-		d.Set("basic_authentication",
-			map[string]interface{}{
-				"username": props.UserName,
-				"password": props.Password,
-			})
+		if err := d.Set("basic_authentication", []interface{}{map[string]interface{}{
+			"username": props.UserName,
+			// `password` isn't returned from the api so we'll set it to `*****` here to be able to check for diffs during plan
+			"password": "*****",
+		}}); err != nil {
+			return fmt.Errorf("setting `basic_authentication`: %+v", err)
+		}
 	}
 
 	d.Set("additional_properties", odata.AdditionalProperties)
@@ -266,27 +290,4 @@ func resourceArmDataFactoryLinkedServiceODataDelete(d *schema.ResourceData, meta
 	}
 
 	return nil
-}
-
-func authenticationProperties(d *schema.ResourceData) *datafactory.ODataLinkedServiceTypeProperties {
-	url := d.Get("url").(string)
-	basic_authentication := d.Get("basic_authentication").([]interface{})
-	if basic_authentication != nil {
-		raw := basic_authentication[0].(map[string]interface{})
-		return &datafactory.ODataLinkedServiceTypeProperties{
-			AuthenticationType: datafactory.ODataAuthenticationTypeBasic,
-			URL:                url,
-			UserName:           raw["username"].(string),
-			Password: datafactory.SecureString{
-				Value: utils.String(raw["password"].(string)),
-				Type:  datafactory.TypeTypeSecureString,
-			},
-		}
-	}
-
-	// default: anonymous authentication
-	return &datafactory.ODataLinkedServiceTypeProperties{
-		AuthenticationType: datafactory.ODataAuthenticationTypeAnonymous,
-		URL:                url,
-	}
 }
