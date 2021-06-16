@@ -64,7 +64,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *schema.Resource {
 				ValidateFunc: postgresValidate.DatabaseID,
 			},
 
-			"policy_id": {
+			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.BackupPolicyID,
@@ -99,7 +99,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	databaseId, _ := postgresParse.DatabaseID(d.Get("database_id").(string))
 	location := location.Normalize(d.Get("location").(string))
 	serverId := postgresParse.NewServerID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.ServerName)
-	policyId, _ := parse.BackupPolicyID(d.Get("policy_id").(string))
+	policyId, _ := parse.BackupPolicyID(d.Get("backup_policy_id").(string))
 
 	parameters := dataprotection.BackupInstanceResource{
 		Properties: &dataprotection.BackupInstance{
@@ -168,7 +168,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 		}
 		if props.PolicyInfo != nil {
-			d.Set("policy_id", props.PolicyInfo.PolicyID)
+			d.Set("backup_policy_id", props.PolicyInfo.PolicyID)
 		}
 	}
 	return nil

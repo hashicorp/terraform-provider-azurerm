@@ -69,7 +69,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "example" {
 
   database_id       = azurerm_postgresql_database.example.id
   database_location = azurerm_resource_group.rg.location
-  policy_id         = azurerm_data_protection_backup_policy_postgresql.example.id
+  backup_policy_id  = azurerm_data_protection_backup_policy_postgresql.example.id
 }
 ```
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `database_location` - (Required) The location of the source database. Changing this forces a new Backup Instance PostgreSQL to be created.
 
-* `policy_id` - (Required) The ID of the Backup Policy.
+* `backup_policy_id` - (Required) The ID of the Backup Policy.
 
 ## Attributes Reference
 
