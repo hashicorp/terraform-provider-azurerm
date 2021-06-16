@@ -24,7 +24,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_data_protection_backup_vault":             resourceDataProtectionBackupVault(),
-		"azurerm_data_protection_backup_policy_postgresql": resourceDataProtectionBackupPolicyPostgreSQL(),
+		"azurerm_data_protection_backup_vault":               resourceDataProtectionBackupVault(),
+		"azurerm_data_protection_backup_policy_postgresql":   resourceDataProtectionBackupPolicyPostgreSQL(),
+		"azurerm_data_protection_backup_instance_postgresql": resourceDataProtectionBackupInstancePostgreSQL(),
 	}
 }

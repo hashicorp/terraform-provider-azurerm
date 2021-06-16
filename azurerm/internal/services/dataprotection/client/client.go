@@ -6,8 +6,9 @@ import (
 )
 
 type Client struct {
-	BackupVaultClient  *dataprotection.BackupVaultsClient
-	BackupPolicyClient *dataprotection.BackupPoliciesClient
+	BackupVaultClient    *dataprotection.BackupVaultsClient
+	BackupPolicyClient   *dataprotection.BackupPoliciesClient
+	BackupInstanceClient *dataprotection.BackupInstancesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -17,8 +18,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	backupPolicyClient := dataprotection.NewBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupPolicyClient.Client, o.ResourceManagerAuthorizer)
 
+	backupInstanceClient := dataprotection.NewBackupInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&backupInstanceClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		BackupVaultClient:  &backupVaultClient,
-		BackupPolicyClient: &backupPolicyClient,
+		BackupVaultClient:    &backupVaultClient,
+		BackupPolicyClient:   &backupPolicyClient,
+		BackupInstanceClient: &backupInstanceClient,
 	}
 }
