@@ -173,18 +173,18 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_application" "test" {
-	name                   = "acctestAG%d"
-	application_group_id   = azurerm_virtual_desktop_application_group.test.id
-	friendly_name 		   = "Google Chrome"
-	description 		   = "Chromium based web browser"
-	file_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-	command_line_setting   = "DoNotAllow"
-	command_line_arguments = "--incognito"
-	show_in_portal         = false
-	icon_path			   = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-	icon_index             = 1
-  }
-  
+  name                   = "acctestAG%d"
+  application_group_id   = azurerm_virtual_desktop_application_group.test.id
+  friendly_name          = "Google Chrome"
+  description            = "Chromium based web browser"
+  file_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  command_line_setting   = "DoNotAllow"
+  command_line_arguments = "--incognito"
+  show_in_portal         = false
+  icon_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  icon_index             = 1
+}
+
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 

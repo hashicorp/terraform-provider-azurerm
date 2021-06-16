@@ -53,15 +53,15 @@ resource "azurerm_virtual_desktop_application_group" "remoteapp" {
 
 resource "azurerm_virtual_desktop_application" "chrome" {
   name                   = "googlechrome"
-	application_group_id   = azurerm_virtual_desktop_application_group.remoteapp.id
-	friendly_name 		     = "Google Chrome"
-	description 		       = "Chromium based web browser"
-	file_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-	command_line_setting   = "DoNotAllow"
-	command_line_arguments = "--incognito"
-	show_in_portal         = false
-	icon_path			         = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-	icon_index             = 0
+  application_group_id   = azurerm_virtual_desktop_application_group.remoteapp.id
+  friendly_name          = "Google Chrome"
+  description            = "Chromium based web browser"
+  file_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  command_line_setting   = "DoNotAllow"
+  command_line_arguments = "--incognito"
+  show_in_portal         = false
+  icon_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  icon_index             = 0
 }
 ```
 
