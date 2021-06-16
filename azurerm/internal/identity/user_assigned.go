@@ -3,6 +3,7 @@ package identity
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var _ Identity = UserAssigned{}
@@ -16,8 +17,11 @@ func (u UserAssigned) Expand(input []interface{}) (*ExpandedConfig, error) {
 		}, nil
 	}
 
+	v := input[0].(map[string]interface{})
+
 	return &ExpandedConfig{
-		Type: systemAssigned,
+		Type:                    userAssigned,
+		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].([]interface{})),
 	}, nil
 }
 
@@ -26,19 +30,10 @@ func (u UserAssigned) Flatten(input *ExpandedConfig) []interface{} {
 		return []interface{}{}
 	}
 
-	coalesce := func(input *string) string {
-		if input == nil {
-			return ""
-		}
-
-		return *input
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"type":         input.Type,
-			"principal_id": coalesce(input.PrincipalId),
-			"tenant_id":    coalesce(input.TenantId),
+			"identity_ids": utils.FlattenStringSlice(input.UserAssignedIdentityIds),
 		},
 	}
 }

@@ -75,10 +75,13 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceIdentity) *identity.ExpandedConfig {
 	var config *identity.ExpandedConfig
 	if input != nil {
+		identityIds := make([]string, 0, len(input.UserAssignedIdentities))
+		for id := range input.UserAssignedIdentities {
+			identityIds = append(identityIds, id)
+		}
 		config = &identity.ExpandedConfig{
-			Type:        string(input.Type),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
+			Type:                    string(input.Type),
+			UserAssignedIdentityIds: &identityIds,
 		}
 	}
 	return config
