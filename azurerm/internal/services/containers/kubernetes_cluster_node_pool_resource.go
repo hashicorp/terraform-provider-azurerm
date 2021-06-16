@@ -107,6 +107,10 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"kubelet_config": schemaNodePoolKubeletConfig(),
+
+			"linux_os_config": schemaNodePoolLinuxOSConfig(),
+
 			"max_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -407,6 +411,21 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("`max_count` and `min_count` must be set to `null` when enable_auto_scaling is set to `false`")
 	}
 
+	if kubeletConfig := d.Get("kubelet_config").([]interface{}); len(kubeletConfig) > 0 {
+		profile.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfig)
+	}
+
+	if linuxOSConfig := d.Get("linux_os_config").([]interface{}); len(linuxOSConfig) > 0 {
+		if osType != string(containerservice.OSTypeLinux) {
+			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
+		}
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
+		if err != nil {
+			return err
+		}
+		profile.LinuxOSConfig = linuxOSConfig
+	}
+
 	parameters := containerservice.AgentPool{
 		Name:                                     &name,
 		ManagedClusterAgentPoolProfileProperties: &profile,
@@ -634,6 +653,18 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			evictionPolicy = string(props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
+
+		if err := d.Set("kubelet_config", flattenAgentPoolKubeletConfig(props.KubeletConfig)); err != nil {
+			return fmt.Errorf("setting `kubelet_config`: %+v", err)
+		}
+
+		linuxOSConfig, err := flattenAgentPoolLinuxOSConfig(props.LinuxOSConfig)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("linux_os_config", linuxOSConfig); err != nil {
+			return fmt.Errorf("setting `linux_os_config`: %+v", err)
+		}
 
 		maxCount := 0
 		if props.MaxCount != nil {
