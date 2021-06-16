@@ -2,6 +2,7 @@ package identity
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,7 +22,7 @@ func (u UserAssigned) Expand(input []interface{}) (*ExpandedConfig, error) {
 
 	return &ExpandedConfig{
 		Type:                    userAssigned,
-		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].([]interface{})),
+		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].(*pluginsdk.Set).List()),
 	}, nil
 }
 
@@ -53,11 +54,11 @@ func (u UserAssigned) Schema() *pluginsdk.Schema {
 					}, false),
 				},
 				"identity_ids": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Required: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.NoZeroValues,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 			},
