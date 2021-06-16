@@ -179,7 +179,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "test" {
   location            = azurerm_resource_group.test.location
   vault_name          = azurerm_data_protection_backup_vault.test.name
   database_id         = azurerm_postgresql_database.test.id
-  policy_id           = azurerm_data_protection_backup_policy_postgresql.test.id
+  backup_policy_id    = azurerm_data_protection_backup_policy_postgresql.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -195,7 +195,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "import" {
   location            = azurerm_resource_group.test.location
   vault_name          = azurerm_data_protection_backup_instance_postgresql.test.vault_name
   database_id         = azurerm_postgresql_database.test.id
-  policy_id           = azurerm_data_protection_backup_policy_postgresql.test.id
+  backup_policy_id    = azurerm_data_protection_backup_policy_postgresql.test.id
 }
 `, config)
 }
@@ -211,7 +211,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "test" {
   location            = azurerm_resource_group.test.location
   vault_name          = azurerm_data_protection_backup_vault.test.name
   database_id         = azurerm_postgresql_database.test.id
-  policy_id           = azurerm_data_protection_backup_policy_postgresql.another.id
+  backup_policy_id    = azurerm_data_protection_backup_policy_postgresql.another.id
 }
 `, template, data.RandomInteger)
 }
