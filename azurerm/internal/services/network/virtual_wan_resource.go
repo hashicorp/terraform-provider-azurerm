@@ -5,22 +5,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVirtualWan() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualWan() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualWanCreateUpdate,
 		Read:   resourceVirtualWanRead,
 		Update: resourceVirtualWanCreateUpdate,
@@ -28,16 +27,16 @@ func resourceVirtualWan() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -48,27 +47,27 @@ func resourceVirtualWan() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"disable_vpn_encryption": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"allow_branch_to_branch_traffic": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			// TODO 3.0: remove this property
 			"allow_vnet_to_vnet_traffic": {
-				Type:       schema.TypeBool,
+				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Default:    false,
 				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"office365_local_breakout_category": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.OfficeTrafficCategoryAll),
@@ -80,7 +79,7 @@ func resourceVirtualWan() *schema.Resource {
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "Standard",
 			},
@@ -90,7 +89,7 @@ func resourceVirtualWan() *schema.Resource {
 	}
 }
 
-func resourceVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +152,7 @@ func resourceVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +190,7 @@ func resourceVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

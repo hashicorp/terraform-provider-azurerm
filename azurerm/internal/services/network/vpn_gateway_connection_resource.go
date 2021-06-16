@@ -5,28 +5,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVPNGatewayConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceVPNGatewayConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVpnGatewayConnectionResourceCreateUpdate,
 		Read:   resourceVpnGatewayConnectionResourceRead,
 		Update: resourceVpnGatewayConnectionResourceCreateUpdate,
@@ -37,58 +30,58 @@ func resourceVPNGatewayConnection() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"vpn_gateway_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VpnGatewayID,
 			},
 
 			"remote_vpn_site_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VpnSiteID,
 			},
 
 			"internet_security_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			// Service will create a route table for the user if this is not specified.
 			"routing": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"associated_route_table": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.HubRouteTableID,
 						},
 						"propagated_route_tables": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.HubRouteTableID,
 							},
 						},
@@ -97,19 +90,19 @@ func resourceVPNGatewayConnection() *schema.Resource {
 			},
 
 			"vpn_link": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"vpn_site_link_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							// The vpn site link associated with one link connection can not be updated
 							ForceNew:     true,
@@ -117,60 +110,60 @@ func resourceVPNGatewayConnection() *schema.Resource {
 						},
 
 						"route_weight": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 							Default:      0,
 						},
 
 						"protocol": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IKEv1),
-								string(network.IKEv2),
+								string(network.VirtualNetworkGatewayConnectionProtocolIKEv1),
+								string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
 							}, false),
-							Default: string(network.IKEv2),
+							Default: string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
 						},
 
 						"bandwidth_mbps": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 							Default:      10,
 						},
 
 						"shared_key": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"bgp_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							ForceNew: true,
 							Optional: true,
 							Default:  false,
 						},
 
 						"ipsec_policy": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"sa_lifetime_sec": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(300, 172799),
 									},
 									"sa_data_size_kb": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1024, 2147483647),
 									},
 									"encryption_algorithm": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IpsecEncryptionAES128),
@@ -185,7 +178,7 @@ func resourceVPNGatewayConnection() *schema.Resource {
 										}, false),
 									},
 									"integrity_algorithm": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IpsecIntegrityMD5),
@@ -198,21 +191,21 @@ func resourceVPNGatewayConnection() *schema.Resource {
 									},
 
 									"ike_encryption_algorithm": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.DES),
-											string(network.DES3),
-											string(network.AES128),
-											string(network.AES192),
-											string(network.AES256),
-											string(network.GCMAES128),
-											string(network.GCMAES256),
+											string(network.IkeEncryptionDES),
+											string(network.IkeEncryptionDES3),
+											string(network.IkeEncryptionAES128),
+											string(network.IkeEncryptionAES192),
+											string(network.IkeEncryptionAES256),
+											string(network.IkeEncryptionGCMAES128),
+											string(network.IkeEncryptionGCMAES256),
 										}, false),
 									},
 
 									"ike_integrity_algorithm": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IkeIntegrityMD5),
@@ -225,22 +218,22 @@ func resourceVPNGatewayConnection() *schema.Resource {
 									},
 
 									"dh_group": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.None),
-											string(network.DHGroup1),
-											string(network.DHGroup2),
-											string(network.DHGroup14),
-											string(network.DHGroup24),
-											string(network.DHGroup2048),
-											string(network.ECP256),
-											string(network.ECP384),
+											string(network.DhGroupNone),
+											string(network.DhGroupDHGroup1),
+											string(network.DhGroupDHGroup2),
+											string(network.DhGroupDHGroup14),
+											string(network.DhGroupDHGroup24),
+											string(network.DhGroupDHGroup2048),
+											string(network.DhGroupECP256),
+											string(network.DhGroupECP384),
 										}, false),
 									},
 
 									"pfs_group": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.PfsGroupNone),
@@ -259,19 +252,19 @@ func resourceVPNGatewayConnection() *schema.Resource {
 						},
 
 						"ratelimit_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"local_azure_ip_address_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"policy_based_traffic_selector_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -282,7 +275,7 @@ func resourceVPNGatewayConnection() *schema.Resource {
 	}
 }
 
-func resourceVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -347,7 +340,7 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData, me
 	return resourceVpnGatewayConnectionResourceRead(d, meta)
 }
 
-func resourceVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -404,7 +397,7 @@ func resourceVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceVpnGatewayConnectionResourceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

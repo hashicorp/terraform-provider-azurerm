@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,8 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLocalNetworkGateway() *schema.Resource {
-	return &schema.Resource{
+func resourceLocalNetworkGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLocalNetworkGatewayCreateUpdate,
 		Read:   resourceLocalNetworkGatewayRead,
 		Update: resourceLocalNetworkGatewayCreateUpdate,
@@ -25,16 +24,16 @@ func resourceLocalNetworkGateway() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -44,43 +43,43 @@ func resourceLocalNetworkGateway() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"gateway_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
 			},
 
 			"gateway_fqdn": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
 			},
 
 			"address_space": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"bgp_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"bgp_peering_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"peer_weight": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
@@ -93,7 +92,7 @@ func resourceLocalNetworkGateway() *schema.Resource {
 	}
 }
 
-func resourceLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +170,7 @@ func resourceLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
-func resourceLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +212,7 @@ func resourceLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +253,7 @@ func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (st
 	return resGroup, name, nil
 }
 
-func expandLocalNetworkGatewayBGPSettings(d *schema.ResourceData) *network.BgpSettings {
+func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *network.BgpSettings {
 	v, exists := d.GetOk("bgp_settings")
 	if !exists {
 		return nil
@@ -272,7 +271,7 @@ func expandLocalNetworkGatewayBGPSettings(d *schema.ResourceData) *network.BgpSe
 	return &bgpSettings
 }
 
-func expandLocalNetworkGatewayAddressSpaces(d *schema.ResourceData) *[]string {
+func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *[]string {
 	prefixes := make([]string, 0)
 
 	for _, pref := range d.Get("address_space").([]interface{}) {

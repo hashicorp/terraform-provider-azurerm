@@ -3,14 +3,14 @@ package apimanagement
 import (
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
 // XmlWithDotNetInterpolationsDiffSuppress is a Diff Suppress Func for when the XML contains
 // .net interpolations, and thus isn't valid XML to parse
 // whilst really we should be parsing the XML Tokens and skipping over the error - in practice
-func XmlWithDotNetInterpolationsDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+func XmlWithDotNetInterpolationsDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
 	// try parsing this as valid xml if we can, to handle ordering differences
 	same := suppress.XmlDiff(k, old, new, d)
 	if same {

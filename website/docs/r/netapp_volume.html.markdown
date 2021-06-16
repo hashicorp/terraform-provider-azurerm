@@ -70,6 +70,7 @@ resource "azurerm_netapp_volume" "example" {
   service_level       = "Premium"
   subnet_id           = azurerm_subnet.example.id
   protocols           = ["NFSv4.1"]
+  security_style      = "Unix"
   storage_quota_in_gb = 100
 
   # When creating volume from a snapshot
@@ -106,11 +107,15 @@ The following arguments are supported:
 
 * `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost. Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol) document.
 
+* `security_style` - (Optional) Volume security style, accepted values are `Unix` or `Ntfs`. If not provided, single-protocol volume is created defaulting to `Unix` if it is `NFSv3` or `NFSv4.1` volume, if `CIFS`, it will default to `Ntfs`. In a dual-protocol volume, if not provided, its value will be `Ntfs`.
+
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
 * `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name`, `account_name` and `pool_name`.
+
+* `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
@@ -144,13 +149,13 @@ An `export_policy_rule` block supports the following:
 
 ---
 
-An `data_protection_replication` is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
+A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
 
 * `endpoint_type` - (Optional) The endpoint type, default value is `dst` for destination.
   
-* `remote_volume_location` - (Required) Primary volume's location.
+* `remote_volume_location` - (Required) Location of the primary volume.
 
-* `remote_volume_resource_id` - (Required) Primary volume's resource id.
+* `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
   
 * `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 

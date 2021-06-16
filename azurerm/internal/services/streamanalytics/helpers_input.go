@@ -3,21 +3,21 @@ package streamanalytics
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaStreamAnalyticsStreamInputSerialization() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(streamanalytics.TypeAvro),
@@ -27,7 +27,7 @@ func schemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
 				},
 
 				"field_delimiter": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						" ",
@@ -39,7 +39,7 @@ func schemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
 				},
 
 				"encoding": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(streamanalytics.UTF8),
@@ -53,7 +53,7 @@ func schemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
 func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
 	v := input[0].(map[string]interface{})
 
-	inputType := streamanalytics.Type(v["type"].(string))
+	inputType := streamanalytics.TypeBasicSerialization(v["type"].(string))
 	encoding := v["encoding"].(string)
 	fieldDelimiter := v["field_delimiter"].(string)
 

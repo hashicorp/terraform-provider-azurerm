@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,31 +16,31 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSubnetNetworkSecurityGroupAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSubnetNetworkSecurityGroupAssociationCreate,
 		Read:   resourceSubnetNetworkSecurityGroupAssociationRead,
 		Delete: resourceSubnetNetworkSecurityGroupAssociationDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"network_security_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -50,7 +49,7 @@ func resourceSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 	}
 }
 
-func resourceSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +123,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData,
 	return resourceSubnetNetworkSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +164,7 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

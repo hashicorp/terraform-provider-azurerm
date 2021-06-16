@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -14,13 +13,13 @@ func TestAccNotificationHubDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_notification_hub", "test")
 	d := NotificationHubDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
-				resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
-				resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 			),
 		},
 	})

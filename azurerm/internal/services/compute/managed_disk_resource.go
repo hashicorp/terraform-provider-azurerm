@@ -6,26 +6,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceManagedDisk() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceManagedDiskCreateUpdate,
+func resourceManagedDisk() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceManagedDiskCreate,
 		Read:   resourceManagedDiskRead,
 		Update: resourceManagedDiskUpdate,
 		Delete: resourceManagedDiskDelete,
@@ -35,16 +33,16 @@ func resourceManagedDisk() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -56,7 +54,7 @@ func resourceManagedDisk() *schema.Resource {
 			"zones": azure.SchemaSingleZone(),
 
 			"storage_account_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.StandardLRS),
@@ -68,7 +66,7 @@ func resourceManagedDisk() *schema.Resource {
 			},
 
 			"create_option": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -81,33 +79,33 @@ func resourceManagedDisk() *schema.Resource {
 			},
 
 			"source_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
 			"source_resource_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"image_reference_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"os_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Windows),
@@ -116,26 +114,26 @@ func resourceManagedDisk() *schema.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.ManagedDiskSizeGB,
 			},
 
 			"disk_iops_read_write": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
 
 			"disk_mbps_read_write": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
 
 			"disk_encryption_set_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
@@ -145,14 +143,39 @@ func resourceManagedDisk() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"network_access_policy": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AllowAll),
+					string(compute.AllowPrivate),
+					string(compute.DenyAll),
+				}, false),
+			},
+			"disk_access_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
+			},
+
+			"tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
@@ -160,8 +183,9 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -177,6 +201,7 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
+
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	skuName := compute.DiskStorageAccountTypes(storageAccountType)
@@ -258,6 +283,30 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
+		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+	} else {
+		props.NetworkAccessPolicy = compute.AllowAll
+	}
+
+	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		switch {
+		case props.NetworkAccessPolicy == compute.AllowPrivate:
+			props.DiskAccessID = utils.String(diskAccessID)
+		case diskAccessID != "" && props.NetworkAccessPolicy != compute.AllowPrivate:
+			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+		default:
+			props.DiskAccessID = nil
+		}
+	}
+
+	if tier := d.Get("tier").(string); tier != "" {
+		if storageAccountType != string(compute.PremiumZRS) && storageAccountType != string(compute.PremiumLRS) {
+			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+		props.Tier = &tier
+	}
+
 	createDisk := compute.Disk{
 		Name:           &name,
 		Location:       &location,
@@ -286,12 +335,12 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,6 +363,15 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	diskUpdate := compute.DiskUpdate{
 		DiskUpdateProperties: &compute.DiskUpdateProperties{},
+	}
+
+	if d.HasChange("tier") {
+		if storageAccountType != string(compute.PremiumZRS) && storageAccountType != string(compute.PremiumLRS) {
+			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+		shouldShutDown = true
+		tier := d.Get("tier").(string)
+		diskUpdate.Tier = &tier
 	}
 
 	if d.HasChange("tags") {
@@ -372,6 +430,23 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 		} else {
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+		}
+	}
+
+	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
+		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+	} else {
+		diskUpdate.NetworkAccessPolicy = compute.AllowAll
+	}
+
+	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		switch {
+		case diskUpdate.NetworkAccessPolicy == compute.AllowPrivate:
+			diskUpdate.DiskAccessID = utils.String(diskAccessID)
+		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.AllowPrivate:
+			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+		default:
+			diskUpdate.DiskAccessID = nil
 		}
 	}
 
@@ -495,7 +570,7 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -546,6 +621,12 @@ func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
+		d.Set("tier", props.Tier)
+
+		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
+			d.Set("network_access_policy", props.NetworkAccessPolicy)
+		}
+		d.Set("disk_access_id", props.DiskAccessID)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
@@ -561,7 +642,7 @@ func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

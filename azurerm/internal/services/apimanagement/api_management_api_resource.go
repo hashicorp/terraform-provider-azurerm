@@ -6,23 +6,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementApi() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementApi() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiCreateUpdate,
 		Read:   resourceApiManagementApiRead,
 		Update: resourceApiManagementApiCreateUpdate,
@@ -30,14 +28,14 @@ func resourceApiManagementApi() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementApiName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
@@ -45,22 +43,22 @@ func resourceApiManagementApi() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ApiManagementApiPath,
 			},
 
 			"protocols": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.ProtocolHTTP),
 						string(apimanagement.ProtocolHTTPS),
@@ -69,7 +67,7 @@ func resourceApiManagementApi() *schema.Resource {
 			},
 
 			"revision": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -77,24 +75,24 @@ func resourceApiManagementApi() *schema.Resource {
 
 			// Optional
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"import": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"content_value": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"content_format": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(apimanagement.Openapi),
@@ -111,19 +109,19 @@ func resourceApiManagementApi() *schema.Resource {
 						},
 
 						"wsdl_selector": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"service_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"endpoint_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -135,25 +133,25 @@ func resourceApiManagementApi() *schema.Resource {
 			},
 
 			"service_url": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"subscription_key_parameter_names": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"header": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"query": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -162,30 +160,30 @@ func resourceApiManagementApi() *schema.Resource {
 			},
 
 			"subscription_required": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"soap_pass_through": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"oauth2_authorization": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"authorization_server_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ApiManagementChildName,
 						},
 						"scope": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// There is currently no validation, as any length and characters can be used in the field
 						},
@@ -194,21 +192,21 @@ func resourceApiManagementApi() *schema.Resource {
 			},
 
 			"openid_authentication": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"openid_provider_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ApiManagementChildName,
 						},
 						"bearer_token_sending_methods": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(apimanagement.BearerTokenSendingMethodsAuthorizationHeader),
 									string(apimanagement.BearerTokenSendingMethodsQuery),
@@ -221,23 +219,23 @@ func resourceApiManagementApi() *schema.Resource {
 
 			// Computed
 			"is_current": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"is_online": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 				Optional: true,
 			},
 
 			"version_set_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 				Optional: true,
 			},
@@ -245,7 +243,7 @@ func resourceApiManagementApi() *schema.Resource {
 	}
 }
 
-func resourceApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -344,7 +342,7 @@ func resourceApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface
 	serviceUrl := d.Get("service_url").(string)
 	subscriptionRequired := d.Get("subscription_required").(bool)
 
-	protocolsRaw := d.Get("protocols").(*schema.Set).List()
+	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 
 	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
@@ -402,7 +400,7 @@ func resourceApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface
 	return resourceApiManagementApiRead(d, meta)
 }
 
-func resourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -471,7 +469,7 @@ func resourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -597,7 +595,7 @@ func expandApiManagementOpenIDAuthenticationSettingsContract(input []interface{}
 	openIDAuthorizationV := input[0].(map[string]interface{})
 	return &apimanagement.OpenIDAuthenticationSettingsContract{
 		OpenidProviderID:          utils.String(openIDAuthorizationV["openid_provider_name"].(string)),
-		BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].(*schema.Set).List()),
+		BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -633,7 +631,7 @@ func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthent
 			bearerTokenSendingMethods = append(bearerTokenSendingMethods, string(v))
 		}
 	}
-	result["bearer_token_sending_methods"] = schema.NewSet(schema.HashString, bearerTokenSendingMethods)
+	result["bearer_token_sending_methods"] = pluginsdk.NewSet(pluginsdk.HashString, bearerTokenSendingMethods)
 
 	return []interface{}{result}
 }

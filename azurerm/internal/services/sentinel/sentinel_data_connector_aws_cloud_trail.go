@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSentinelDataConnectorAwsCloudTrail() *schema.Resource {
-	return &schema.Resource{
+func resourceSentinelDataConnectorAwsCloudTrail() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
 		Read:   resourceSentinelDataConnectorAwsCloudTrailRead,
 		Update: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
@@ -30,30 +29,30 @@ func resourceSentinelDataConnectorAwsCloudTrail() *schema.Resource {
 			return err
 		}, importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"aws_role_arn": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -61,7 +60,7 @@ func resourceSentinelDataConnectorAwsCloudTrail() *schema.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,7 +91,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 			AwsRoleArn: utils.String(d.Get("aws_role_arn").(string)),
 			DataTypes: &securityinsight.AwsCloudTrailDataConnectorDataTypes{
 				Logs: &securityinsight.AwsCloudTrailDataConnectorDataTypesLogs{
-					State: securityinsight.Enabled,
+					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
 		},
@@ -124,7 +123,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 	return resourceSentinelDataConnectorAwsCloudTrailRead(d, meta)
 }
 
-func resourceSentinelDataConnectorAwsCloudTrailRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAwsCloudTrailRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +159,7 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceSentinelDataConnectorAwsCloudTrailDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAwsCloudTrailDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

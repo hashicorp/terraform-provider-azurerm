@@ -66,7 +66,9 @@ The following arguments are supported:
 
 * `default_node_pool` - (Required) A `default_node_pool` block as defined below.
 
-* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
+* `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
+
+* `dns_prefix_private_cluster` - (Optional) Specifies the DNS prefix to use with private clusters. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
@@ -90,9 +92,11 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
--> **NOTE:** One of either `identity` or `service_principal` must be specified.
+!> **NOTE:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
+
+* `kubelet_identity` - A `kubelet_identity` block as defined below. Changing this forces a new resource to be created.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
@@ -156,9 +160,9 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
-* `service_principal` - (Optional) A `service_principal` block as documented below.
+* `service_principal` - (Optional) A `service_principal` block as documented below. One of either `identity` or `service_principal` must be specified. 
 
--> **NOTE:** One of either `identity` or `service_principal` must be specified.
+!> **NOTE:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
 
@@ -203,7 +207,7 @@ A `addon_profile` block supports the following:
 
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
--> **NOTE:** At this time Azure Policy is not supported in Azure China or Azure US Government.
+-> **NOTE:** At this time Azure Policy is not supported in Azure US Government.
 
 ~> **Note:** Azure Policy is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-gb/azure/governance/policy/concepts/policy-for-kubernetes).
 
@@ -215,15 +219,23 @@ A `addon_profile` block supports the following:
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
+* `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
+
 ---
 
-A `auto_scaler_profile` block supports the following:
+An `auto_scaler_profile` block supports the following:
 
 * `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
 * `expander` - Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
 
 * `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
+
+* `max_node_provisioning_time` - Maximum time the autoscaler waits for a node to be provisioned. Defaults to `15m`.
+
+* `max_unready_nodes` - Maximum Number of allowed unready nodes. Defaults to `3`.
+
+* `max_unready_percentage` - Maximum percentage of unready nodes the cluster autoscaler will stop if the percentage is exceeded. Defaults to `45`.
 
 * `new_pod_scale_up_delay` - For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
 
@@ -259,6 +271,8 @@ When `managed` is set to `true` the following properties can be specified:
 
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
+* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
+
 When `managed` is set to `false` the following properties can be specified:
 
 * `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
@@ -293,9 +307,11 @@ A `default_node_pool` block supports the following:
 
 * `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Defaults to `false`.
 
-* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`.
+* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
+
+* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool. Changing this forces a new resource to be created.
 
@@ -350,6 +366,17 @@ An `identity` block supports the following:
 * `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
 * `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
+---
+
+The `kubelet_identity` block supports the following:
+
+* `client_id` - (Required) The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.
+
+* `object_id` - (Required) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically.
+
+* `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically. 
+
+-> **NOTE:** The functionality to bring your own `kubelet_identity` is in Public Preview, and therefore has some limitations - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity#limitations-2). It requires a BYO Cluster Identity  `identity.0.user_assigned_identity_id`) to be specified.
 ---
 
 A `kube_dashboard` block supports the following:
@@ -432,6 +459,22 @@ A `oms_agent` block supports the following:
 
 ---
 
+An `ingress_application_gateway` block supports the following:
+
+* `enabled` - (Required) Whether to deploy the Application Gateway ingress controller to this Kubernetes Cluster?
+
+* `gateway_id` - (Optional) The ID of the Application Gateway to integrate with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
+
+* `gateway_name` - (Optional) The name of the Application Gateway to be used or created in the Nodepool Resource Group, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+* `subnet_cidr` - (Optional) The subnet CIDR to be used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+* `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+-> **NOTE** If using `enabled` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
+
+---
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -488,9 +531,9 @@ The following attributes are exported:
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. 
 
-* `kubelet_identity` - A `kubelet_identity` block as defined below.  
+* `addon_profile` - An `addon_profile` block as defined below.
 
 ---
 
@@ -511,32 +554,6 @@ The `identity` block exports the following:
 * `principal_id` - The principal id of the system assigned identity which is used by master components.
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by master components.
-
----
-
-The `kubelet_identity` block exports the following:
-
-* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
-
-* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
-
-* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
-
----
-
-The `oms_agent` block exports the following: 
-
-* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
-
----
-
-The `oms_agent_identity` block exports the following:
-
-* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
-
-* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
-
-* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
 
 ---
 
@@ -566,6 +583,48 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
 }
 ```
+
+---
+
+The `addon_profile` block exports the following:
+
+* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
+
+* `oms_agent` - An `oms_agent` block as defined below.
+
+---
+
+The `ingress_application_gateway` block exports the following:
+
+* `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
+
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `ingress_application_gateway_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Application Gateway.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Application Gateway.
+
+---
+
+The `oms_agent` block exports the following: 
+
+* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `oms_agent_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
 
 ## Timeouts
 

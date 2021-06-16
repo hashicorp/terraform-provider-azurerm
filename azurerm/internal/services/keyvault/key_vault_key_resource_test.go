@@ -6,14 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,10 +23,10 @@ func TestAccKeyVaultKey_basicEC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -39,10 +38,10 @@ func TestAccKeyVaultKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -57,10 +56,10 @@ func TestAccKeyVaultKey_basicECHSM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicECHSM(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,10 +70,25 @@ func TestAccKeyVaultKey_curveEC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.curveEC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultKey_curveECDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.curveECDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -86,10 +100,10 @@ func TestAccKeyVaultKey_basicRSA(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicRSA(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -101,10 +115,10 @@ func TestAccKeyVaultKey_basicRSAHSM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicRSAHSM(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -116,10 +130,10 @@ func TestAccKeyVaultKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
@@ -136,10 +150,10 @@ func TestAccKeyVaultKey_softDeleteRecovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.softDeleteRecovery(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
@@ -154,7 +168,7 @@ func TestAccKeyVaultKey_softDeleteRecovery(t *testing.T) {
 		},
 		{
 			Config: r.softDeleteRecovery(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
@@ -169,10 +183,10 @@ func TestAccKeyVaultKey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicRSA(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_opts.#").HasValue("6"),
 				check.That(data.ResourceName).Key("key_opts.0").HasValue("decrypt"),
@@ -180,7 +194,7 @@ func TestAccKeyVaultKey_update(t *testing.T) {
 		},
 		{
 			Config: r.basicUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_opts.#").HasValue("5"),
 				check.That(data.ResourceName).Key("key_opts.0").HasValue("encrypt"),
@@ -193,10 +207,10 @@ func TestAccKeyVaultKey_updatedExternally(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.updateExpiryDate("2029-02-02T12:59:00Z")),
 			),
@@ -204,7 +218,7 @@ func TestAccKeyVaultKey_updatedExternally(t *testing.T) {
 		},
 		{
 			Config: r.basicECUpdatedExternally(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -220,7 +234,7 @@ func TestAccKeyVaultKey_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicEC,
 			TestResource: r,
@@ -232,10 +246,10 @@ func TestAccKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
 			),
 			ExpectNonEmptyPlan: true,
@@ -247,17 +261,17 @@ func TestAccKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withExternalAccessPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("key_size"),
 		{
 			Config: r.withExternalAccessPolicyUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -269,10 +283,10 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -283,7 +297,7 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 	})
 }
 
-func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultsClient := clients.KeyVault
 
@@ -314,7 +328,7 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(resp.Key != nil), nil
 }
 
-func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
 	if err != nil {
 		return err
@@ -328,7 +342,7 @@ func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *cl
 }
 
 func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		name := state.Attributes["name"]
 		keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
 		if err != nil {
@@ -358,7 +372,7 @@ func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.Client
 	}
 }
 
-func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
 	if err != nil {
@@ -566,6 +580,28 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "EC"
   curve        = "P-521"
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, r.templateStandard(data), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) curveECDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  curve        = "SECP256K1"
 
   key_opts = [
     "sign",

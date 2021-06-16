@@ -5,20 +5,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePacketCapture() *schema.Resource {
-	return &schema.Resource{
+func resourcePacketCapture() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create:             resourcePacketCaptureCreate,
 		Read:               resourcePacketCaptureRead,
 		Delete:             resourcePacketCaptureDelete,
@@ -26,16 +25,16 @@ func resourcePacketCapture() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -43,33 +42,33 @@ func resourcePacketCapture() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"target_resource_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"maximum_bytes_per_packet": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ForceNew: true,
 				Default:  0,
 			},
 
 			"maximum_bytes_per_session": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ForceNew: true,
 				Default:  1073741824,
 			},
 
 			"maximum_capture_duration": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      18000,
@@ -77,24 +76,24 @@ func resourcePacketCapture() *schema.Resource {
 			},
 
 			"storage_location": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"file_path": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_account_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_path": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -102,23 +101,23 @@ func resourcePacketCapture() *schema.Resource {
 			},
 
 			"filter": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"local_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 						"local_port": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 						"protocol": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -128,12 +127,12 @@ func resourcePacketCapture() *schema.Resource {
 							}, false),
 						},
 						"remote_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
 						"remote_port": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
@@ -144,7 +143,7 @@ func resourcePacketCapture() *schema.Resource {
 	}
 }
 
-func resourcePacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,9 +177,9 @@ func resourcePacketCaptureCreate(d *schema.ResourceData, meta interface{}) error
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int32(int32(bytesToCapturePerPacket)),
+			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int32(int32(totalBytesPerSession)),
+			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
 			Filters:                 expandPacketCaptureFilters(d),
 		},
 	}
@@ -204,7 +203,7 @@ func resourcePacketCaptureCreate(d *schema.ResourceData, meta interface{}) error
 	return resourcePacketCaptureRead(d, meta)
 }
 
-func resourcePacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +252,7 @@ func resourcePacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourcePacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,7 +286,7 @@ func resourcePacketCaptureDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandPacketCaptureStorageLocation(d *schema.ResourceData) (*network.PacketCaptureStorageLocation, error) {
+func expandPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
 	locations := d.Get("storage_location").([]interface{})
 	if len(locations) == 0 {
 		return nil, fmt.Errorf("Error expandng `storage_location`: not found")
@@ -329,7 +328,7 @@ func flattenPacketCaptureStorageLocation(input *network.PacketCaptureStorageLoca
 	return []interface{}{output}
 }
 
-func expandPacketCaptureFilters(d *schema.ResourceData) *[]network.PacketCaptureFilter {
+func expandPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.PacketCaptureFilter {
 	inputFilters := d.Get("filter").([]interface{})
 	if len(inputFilters) == 0 {
 		return nil

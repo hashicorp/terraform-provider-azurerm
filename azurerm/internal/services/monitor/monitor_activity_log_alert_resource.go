@@ -9,19 +9,18 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorActivityLogAlert() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorActivityLogAlertCreateUpdate,
 		Read:   resourceMonitorActivityLogAlertRead,
 		Update: resourceMonitorActivityLogAlertCreateUpdate,
@@ -30,16 +29,16 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -48,24 +47,24 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scopes": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"criteria": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Administrative",
@@ -78,15 +77,15 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							}, false),
 						},
 						"operation_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"caller": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"level": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Verbose",
@@ -97,32 +96,32 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							}, false),
 						},
 						"resource_provider": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"resource_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"resource_group": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"resource_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"status": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"sub_status": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"recommendation_category": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Cost",
@@ -135,7 +134,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							ConflictsWith: []string{"criteria.0.recommendation_type"},
 						},
 						"recommendation_impact": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"High",
@@ -147,50 +146,51 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							ConflictsWith: []string{"criteria.0.recommendation_type"},
 						},
 						"recommendation_type": {
-							Type:          schema.TypeString,
+							Type:          pluginsdk.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
 						//lintignore:XS003
 						"service_health": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"events": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Incident",
 												"Maintenance",
 												"Informational",
 												"ActionRequired",
+												"Security",
 											},
 												false,
 											),
 										},
-										Set: schema.HashString,
+										Set: pluginsdk.HashString,
 									},
 									"locations": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
-										Set: schema.HashString,
+										Set: pluginsdk.HashString,
 									},
 									"services": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
-										Set: schema.HashString,
+										Set: pluginsdk.HashString,
 									},
 								},
 							},
@@ -201,20 +201,20 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 			},
 
 			"action": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"action_group_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"webhook_properties": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -223,12 +223,12 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -238,7 +238,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 	}
 }
 
-func resourceMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,9 +261,9 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta in
 
 	enabled := d.Get("enabled").(bool)
 	description := d.Get("description").(string)
-	scopesRaw := d.Get("scopes").(*schema.Set).List()
+	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
 	criteriaRaw := d.Get("criteria").([]interface{})
-	actionRaw := d.Get("action").(*schema.Set).List()
+	actionRaw := d.Get("action").(*pluginsdk.Set).List()
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -296,7 +296,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta in
 	return resourceMonitorActivityLogAlertRead(d, meta)
 }
 
-func resourceMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -336,7 +336,7 @@ func resourceMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -457,7 +457,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []insights.Aler
 			continue
 		}
 		vs := serviceItem.(map[string]interface{})
-		rv := vs["locations"].(*schema.Set)
+		rv := vs["locations"].(*pluginsdk.Set)
 		if len(rv.List()) > 0 {
 			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
 				Field:       utils.String("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
@@ -465,7 +465,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []insights.Aler
 			})
 		}
 
-		ev := vs["events"].(*schema.Set)
+		ev := vs["events"].(*pluginsdk.Set)
 		if len(ev.List()) > 0 {
 			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
 			for _, e := range ev.List() {
@@ -480,7 +480,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []insights.Aler
 			})
 		}
 
-		sv := vs["services"].(*schema.Set)
+		sv := vs["services"].(*pluginsdk.Set)
 		if len(sv.List()) > 0 {
 			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
 				Field:       utils.String("properties.impactedServices[*].ServiceName"),
@@ -608,5 +608,5 @@ func resourceMonitorActivityLogAlertActionHash(input interface{}) int {
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
 	}
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }

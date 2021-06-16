@@ -5,21 +5,20 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVirtualHubConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualHubConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualHubConnectionCreateOrUpdate,
 		Read:   resourceVirtualHubConnectionRead,
 		Update: resourceVirtualHubConnectionCreateOrUpdate,
@@ -28,30 +27,30 @@ func resourceVirtualHubConnection() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubConnectionName,
 			},
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"remote_virtual_network_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualNetworkID,
@@ -59,34 +58,34 @@ func resourceVirtualHubConnection() *schema.Resource {
 
 			// TODO 3.0: remove this property
 			"hub_to_vitual_network_traffic_allowed": {
-				Type:       schema.TypeBool,
+				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 			},
 
 			// TODO 3.0: remove this property
 			"vitual_network_to_hub_gateways_traffic_allowed": {
-				Type:       schema.TypeBool,
+				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 			},
 
 			"internet_security_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 				Default:  false,
 			},
 
 			"routing": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"associated_route_table_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.HubRouteTableID,
@@ -94,29 +93,29 @@ func resourceVirtualHubConnection() *schema.Resource {
 						},
 
 						"propagated_route_table": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 
 									"route_table_ids": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validate.HubRouteTableID,
 										},
 										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
@@ -128,27 +127,27 @@ func resourceVirtualHubConnection() *schema.Resource {
 
 						//lintignore:XS003
 						"static_vnet_route": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"address_prefixes": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsCIDR,
 										},
 									},
 
 									"next_hop_ip_address": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsIPv4Address,
 									},
@@ -163,7 +162,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 	}
 }
 
-func resourceVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +224,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta int
 	return resourceVirtualHubConnectionRead(d, meta)
 }
 
-func resourceVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +269,7 @@ func resourceVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceVirtualHubConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -329,7 +328,7 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *networ
 
 	result := network.PropagatedRouteTable{}
 
-	if labels := v["labels"].(*schema.Set).List(); len(labels) != 0 {
+	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
 		result.Labels = utils.ExpandStringSlice(labels)
 	}
 
@@ -360,7 +359,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.Vne
 			result.Name = utils.String(name)
 		}
 
-		if addressPrefixes := v["address_prefixes"].(*schema.Set).List(); len(addressPrefixes) != 0 {
+		if addressPrefixes := v["address_prefixes"].(*pluginsdk.Set).List(); len(addressPrefixes) != 0 {
 			result.AddressPrefixes = utils.ExpandStringSlice(addressPrefixes)
 		}
 

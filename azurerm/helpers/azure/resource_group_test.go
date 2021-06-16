@@ -1,6 +1,7 @@
 package azure_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -11,10 +12,12 @@ func TestValidateResourceGroupName(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
+		Message  string
 	}{
 		{
 			Value:    "",
 			ErrCount: 1,
+			Message:  "cannot be blank",
 		},
 		{
 			Value:    "hello",
@@ -64,6 +67,13 @@ func TestValidateResourceGroupName(t *testing.T) {
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected "+
 				"validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
+		} else if len(errors) == 1 && tc.Message != "" {
+			errorMessage := errors[0].Error()
+
+			if !strings.Contains(errorMessage, tc.Message) {
+				t.Fatalf("Expected "+
+					"validateResourceGroupName to report an error including '%s' for '%s' - got '%s'", tc.Message, tc.Value, errorMessage)
+			}
 		}
 	}
 }

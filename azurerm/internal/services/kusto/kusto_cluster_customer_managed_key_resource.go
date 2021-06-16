@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -15,13 +13,15 @@ import (
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKustoClusterCustomerManagedKey() *schema.Resource {
-	return &schema.Resource{
+func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKustoClusterCustomerManagedKeyCreateUpdate,
 		Read:   resourceKustoClusterCustomerManagedKeyRead,
 		Update: resourceKustoClusterCustomerManagedKeyCreateUpdate,
@@ -31,43 +31,49 @@ func resourceKustoClusterCustomerManagedKey() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"cluster_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ClusterID,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"key_version": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"user_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: msiValidate.UserAssignedIdentityID,
 			},
 		},
 	}
 }
 
-func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	vaultsClient := keyVaultsClient.VaultsClient
@@ -144,6 +150,10 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 		},
 	}
 
+	if v, ok := d.GetOk("user_identity"); ok {
+		props.ClusterProperties.KeyVaultProperties.UserIdentity = utils.String(v.(string))
+	}
+
 	future, err := clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props)
 	if err != nil {
 		return fmt.Errorf("Error updating Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
@@ -157,7 +167,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 	return resourceKustoClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
@@ -193,6 +203,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta int
 	keyName := ""
 	keyVaultURI := ""
 	keyVersion := ""
+	userIdentity := ""
 	if props != nil {
 		if props.KeyName != nil {
 			keyName = *props.KeyName
@@ -202,6 +213,9 @@ func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta int
 		}
 		if props.KeyVersion != nil {
 			keyVersion = *props.KeyVersion
+		}
+		if props.UserIdentity != nil {
+			userIdentity = *props.UserIdentity
 		}
 	}
 
@@ -219,11 +233,11 @@ func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta int
 	d.Set("key_vault_id", keyVaultID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
-
+	d.Set("user_identity", userIdentity)
 	return nil
 }
 
-func resourceKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
 		Read:   resourceDataFactoryDatasetDelimitedTextRead,
 		Update: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
@@ -28,23 +27,23 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -55,32 +54,31 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"linked_service_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Delimited Text Specific Field, one option for 'location'
 			"http_server_location": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
-				ConflictsWith: []string{"azure_blob_storage_location"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"relative_url": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"path": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"filename": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -90,26 +88,51 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 
 			// Delimited Text Specific Field, one option for 'location'
 			"azure_blob_storage_location": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
-				ConflictsWith: []string{"http_server_location"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"container": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"path": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"filename": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"azure_blob_fs_location": {
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"file_system": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"filename": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -118,100 +141,100 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 
 			// Delimited Text Specific Field
 			"column_delimiter": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Delimited Text Specific Field
 			"row_delimiter": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Delimited Text Specific Field
 			"encoding": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Delimited Text Specific Field
 			"quote_character": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Delimited Text Specific Field
 			"escape_character": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Delimited Text Specific Field
 			"first_row_as_header": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"null_value": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"folder": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"additional_properties": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"schema_column": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Byte",
@@ -232,7 +255,7 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 							}, false),
 						},
 						"description": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -241,7 +264,7 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 			},
 
 			"compression_codec": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"bzip2",
@@ -256,7 +279,7 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 			},
 
 			"compression_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Optimal",
@@ -267,7 +290,7 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -346,7 +369,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData,
 		delimited_textTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeDelimitedText)
+	datasetType := string(datafactory.TypeBasicDatasetTypeDelimitedText)
 	dataset := datafactory.DatasetResource{
 		Properties: &delimited_textTableset,
 		Type:       &datasetType,
@@ -370,7 +393,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData,
 	return resourceDataFactoryDatasetDelimitedTextRead(d, meta)
 }
 
-func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -396,7 +419,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta in
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
@@ -422,14 +445,18 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta in
 	}
 
 	if properties := delimited_textTable.DelimitedTextDatasetTypeProperties; properties != nil {
-		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
-			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
-				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
+		switch location := properties.Location.(type) {
+		case datafactory.HTTPServerLocation:
+			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(&location)); err != nil {
+				return fmt.Errorf("setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
 			}
-		}
-		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
-			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
-				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
+		case datafactory.AzureBlobStorageLocation:
+			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(&location)); err != nil {
+				return fmt.Errorf("setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
+			}
+		case datafactory.AzureBlobFSLocation:
+			if err := d.Set("azure_blob_fs_location", flattenDataFactoryDatasetAzureBlobFSLocation(&location)); err != nil {
+				return fmt.Errorf("setting `azure_blob_fs_location` for Data Factory Delimited Text Dataset %s", err)
 			}
 		}
 
@@ -507,7 +534,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

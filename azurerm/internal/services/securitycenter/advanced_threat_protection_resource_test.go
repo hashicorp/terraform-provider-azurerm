@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
 	r := AdvancedThreatProtectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccount(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
@@ -32,7 +31,7 @@ func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.storageAccount(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
@@ -52,10 +51,10 @@ func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	// run it multiple times in a row as it only fails 50% of the time
 	t.Skip()
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cosmosAccount(data, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
@@ -63,7 +62,7 @@ func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cosmosAccount(data, true, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
@@ -71,7 +70,7 @@ func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cosmosAccount(data, false, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(checkAdvancedThreatProtectionIsFalse),
 			),
 		},
@@ -82,10 +81,10 @@ func TestAccAdvancedThreatProtection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
 	r := AdvancedThreatProtectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccount(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
@@ -95,7 +94,7 @@ func TestAccAdvancedThreatProtection_requiresImport(t *testing.T) {
 	})
 }
 
-func (AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AdvancedThreatProtectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +109,7 @@ func (AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *cli
 }
 
 // nolint unused
-func checkAdvancedThreatProtectionIsFalse(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func checkAdvancedThreatProtectionIsFalse(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.AdvancedThreatProtectionID(state.ID)
 	if err != nil {
 		return err

@@ -6,8 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -18,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNATGatewayPublicIpAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNATGatewayPublicIpAssociationCreate,
 		Read:   resourceNATGatewayPublicIpAssociationRead,
 		Delete: resourceNATGatewayPublicIpAssociationDelete,
@@ -29,22 +28,22 @@ func resourceNATGatewayPublicIpAssociation() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"nat_gateway_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NatGatewayID,
 			},
 
 			"public_ip_address_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.PublicIpAddressID,
@@ -53,7 +52,7 @@ func resourceNATGatewayPublicIpAssociation() *schema.Resource {
 	}
 }
 
-func resourceNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +111,7 @@ func resourceNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta in
 	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
 
-func resourceNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +166,7 @@ func resourceNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

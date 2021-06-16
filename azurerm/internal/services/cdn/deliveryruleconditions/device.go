@@ -4,16 +4,16 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func Device() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func Device() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"operator": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "Equal",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -22,17 +22,17 @@ func Device() *schema.Resource {
 			},
 
 			"negate_condition": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"match_values": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"Desktop",
 						"Mobile",
@@ -54,7 +54,7 @@ func ExpandArmCdnEndpointConditionDevice(input []interface{}) []cdn.BasicDeliver
 				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleIsDeviceConditionParameters"),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -87,7 +87,7 @@ func FlattenArmCdnEndpointConditionDevice(input cdn.BasicDeliveryRuleCondition) 
 
 	return &map[string]interface{}{
 		"operator":         operator,
-		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,
 	}, nil
 }

@@ -6,13 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +21,10 @@ func TestAccMySQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,11 +35,11 @@ func TestAccMySQLVirtualNetworkRule_badsubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.badsubnet(data),
 			/*
-				Check: resource.ComposeTestCheckFunc(
+				Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				),*/
 		},
@@ -52,10 +50,10 @@ func TestAccMySQLVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -74,19 +72,19 @@ func TestAccMySQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnetSwitchPre(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 			),
 		},
 		{
 			Config: r.subnetSwitchPost(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
 			),
 		},
 	})
@@ -96,7 +94,7 @@ func TestAccMySQLVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -108,17 +106,17 @@ func TestAccMySQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "rule1")
 	r := MySQLVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleSubnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
 }
 
-func (r MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -131,7 +129,7 @@ func (r MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r MySQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MySQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err

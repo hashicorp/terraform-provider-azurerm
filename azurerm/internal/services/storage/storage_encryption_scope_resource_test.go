@@ -7,12 +7,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,25 @@ type StorageEncryptionScopeResource struct{}
 func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 	r := StorageEncryptionScopeResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVaultKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageEncryptionScope_keyVaultKeyRequireInfrastructureEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
+	r := StorageEncryptionScopeResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultKeyRequireInfrastructureEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
@@ -36,10 +50,10 @@ func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 func TestAccStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 	r := StorageEncryptionScopeResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVaultKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
@@ -47,7 +61,7 @@ func TestAccStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.keyVaultKeyUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
@@ -59,10 +73,10 @@ func TestAccStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 func TestAccStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 	r := StorageEncryptionScopeResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVaultKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
@@ -70,7 +84,7 @@ func TestAccStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *testing.T
 		data.ImportStep(),
 		{
 			Config: r.microsoftManagedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 			),
@@ -83,10 +97,10 @@ func TestAccStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKey(t *te
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
 	r := StorageEncryptionScopeResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.microsoftManagedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 			),
@@ -94,7 +108,7 @@ func TestAccStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKey(t *te
 		data.ImportStep(),
 		{
 			Config: r.keyVaultKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
@@ -107,10 +121,26 @@ func TestAccStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
 	r := StorageEncryptionScopeResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.microsoftManagedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageEncryptionScope_microsoftManagedKeyRequireInfrastructureEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
+
+	r := StorageEncryptionScopeResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.microsoftManagedKeyRequireInfrastructureEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 			),
@@ -123,10 +153,10 @@ func TestAccStorageEncryptionScope_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
 	r := StorageEncryptionScopeResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.microsoftManagedKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 			),
@@ -135,7 +165,7 @@ func TestAccStorageEncryptionScope_requiresImport(t *testing.T) {
 	})
 }
 
-func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.EncryptionScopeID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
@@ -211,6 +241,29 @@ resource "azurerm_storage_encryption_scope" "test" {
 `, template, data.RandomInteger)
 }
 
+func (t StorageEncryptionScopeResource) keyVaultKeyRequireInfrastructureEncryption(data acceptance.TestData) string {
+	template := t.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name                               = "acctestES%d"
+  storage_account_id                 = azurerm_storage_account.test.id
+  source                             = "Microsoft.KeyVault"
+  key_vault_key_id                   = azurerm_key_vault_key.first.id
+  infrastructure_encryption_required = true
+}
+`, template, data.RandomInteger)
+}
+
 func (t StorageEncryptionScopeResource) microsoftManagedKey(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
@@ -227,6 +280,27 @@ resource "azurerm_storage_encryption_scope" "test" {
   name               = "acctestES%d"
   storage_account_id = azurerm_storage_account.test.id
   source             = "Microsoft.Storage"
+}
+`, template, data.RandomInteger)
+}
+
+func (t StorageEncryptionScopeResource) microsoftManagedKeyRequireInfrastructureEncryption(data acceptance.TestData) string {
+	template := t.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+%s
+resource "azurerm_storage_encryption_scope" "test" {
+  name                               = "acctestES%d"
+  storage_account_id                 = azurerm_storage_account.test.id
+  source                             = "Microsoft.Storage"
+  infrastructure_encryption_required = true
 }
 `, template, data.RandomInteger)
 }

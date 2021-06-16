@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -16,12 +14,13 @@ import (
 	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageAccountCustomerManagedKey() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCustomerManagedKeyCreateUpdate,
 		Read:   resourceStorageAccountCustomerManagedKeyRead,
 		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
@@ -31,35 +30,35 @@ func resourceStorageAccountCustomerManagedKey() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"key_version": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -67,7 +66,7 @@ func resourceStorageAccountCustomerManagedKey() *schema.Resource {
 	}
 }
 
-func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	vaultsClient := keyVaultsClient.VaultsClient
@@ -85,7 +84,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 
 	storageAccount, err := storageClient.GetProperties(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 	if storageAccount.AccountProperties == nil {
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
@@ -95,7 +94,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 	resourceID := storageAccountIDRaw
 
 	if d.IsNewResource() {
-		// whilst this looks superflurious given encryption is enabled by default, due to the way
+		// whilst this looks superfluous given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		if storageAccount.AccountProperties.Encryption != nil {
 			if storageAccount.AccountProperties.Encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
@@ -107,6 +106,11 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 	keyVaultID, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
+	}
+
+	// If the Keyvault is in another subscription we need to update the client
+	if keyVaultID.SubscriptionId != vaultsClient.SubscriptionID {
+		vaultsClient = meta.(*clients.Client).KeyVault.KeyVaultClientForSubscription(keyVaultID.SubscriptionId)
 	}
 
 	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
@@ -130,7 +134,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 
 	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
+		return fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q) (Subscription %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, keyVaultsClient.VaultsClient.SubscriptionID, err)
 	}
 
 	keyName := d.Get("key_name").(string)
@@ -165,7 +169,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
-func resourceStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
@@ -232,7 +236,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

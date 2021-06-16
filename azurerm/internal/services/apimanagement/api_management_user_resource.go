@@ -5,22 +5,20 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementUser() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementUser() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementUserCreateUpdate,
 		Read:   resourceApiManagementUserRead,
 		Update: resourceApiManagementUserCreateUpdate,
@@ -28,14 +26,14 @@ func resourceApiManagementUser() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(45 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(45 * time.Minute),
-			Delete: schema.DefaultTimeout(45 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"user_id": schemaz.SchemaApiManagementUserName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
@@ -43,25 +41,25 @@ func resourceApiManagementUser() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"first_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"email": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"last_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"confirmation": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -71,18 +69,18 @@ func resourceApiManagementUser() *schema.Resource {
 			},
 
 			"note": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Sensitive: true,
 			},
 
 			"state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -95,7 +93,7 @@ func resourceApiManagementUser() *schema.Resource {
 	}
 }
 
-func resourceApiManagementUserCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +165,7 @@ func resourceApiManagementUserCreateUpdate(d *schema.ResourceData, meta interfac
 	return resourceApiManagementUserRead(d, meta)
 }
 
-func resourceApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,7 +205,7 @@ func resourceApiManagementUserRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceApiManagementUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

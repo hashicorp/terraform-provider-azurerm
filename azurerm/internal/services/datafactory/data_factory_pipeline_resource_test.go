@@ -6,12 +6,10 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +20,10 @@ func TestAccDataFactoryPipeline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 	r := PipelineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +35,10 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 	r := PipelineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update1(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("1"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
@@ -50,12 +48,13 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 		},
 		{
 			Config: r.update2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
 				check.That(data.ResourceName).Key("description").HasValue("test description2"),
 				check.That(data.ResourceName).Key("variables.%").HasValue("3"),
+				check.That(data.ResourceName).Key("folder").HasValue("test-folder"),
 			),
 		},
 		data.ImportStep(),
@@ -66,10 +65,10 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 	r := PipelineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.activities(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("activities_json").Exists(),
 				check.That(data.ResourceName).Key("activities_json").ContainsJsonValue(r.appendVariableActivityNameIs("Append variable1")),
@@ -78,7 +77,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.activitiesUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("activities_json").Exists(),
 				check.That(data.ResourceName).Key("activities_json").ContainsJsonValue(r.appendVariableActivityNameIs("Append variable1")),
@@ -87,7 +86,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.activities(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("activities_json").Exists(),
 				check.That(data.ResourceName).Key("activities_json").ContainsJsonValue(r.appendVariableActivityNameIs("Append variable1")),
@@ -97,7 +96,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 	})
 }
 
-func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -218,6 +217,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   annotations         = ["test1", "test2"]
   description         = "test description2"
+  folder              = "test-folder"
 
   parameters = {
     test  = "testparameter"

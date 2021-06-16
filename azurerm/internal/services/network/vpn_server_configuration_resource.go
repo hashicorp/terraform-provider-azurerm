@@ -5,21 +5,20 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVPNServerConfiguration() *schema.Resource {
-	return &schema.Resource{
+func resourceVPNServerConfiguration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVPNServerConfigurationCreateUpdate,
 		Read:   resourceVPNServerConfigurationRead,
 		Update: resourceVPNServerConfigurationCreateUpdate,
@@ -27,16 +26,16 @@ func resourceVPNServerConfiguration() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -47,42 +46,37 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"vpn_authentication_types": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(network.AAD),
-						string(network.Certificate),
-						string(network.Radius),
+						string(network.VpnAuthenticationTypeAAD),
+						string(network.VpnAuthenticationTypeCertificate),
+						string(network.VpnAuthenticationTypeRadius),
 					}, false),
 				},
-
-				// StatusCode=400 -- Original Error: Code="MultipleVpnAuthenticationTypesNotSupprtedOnVpnServerConfiguration"
-				// Message="VpnServerConfiguration XXX/acctestrg-191125124621329676 supports single VpnAuthenticationType at a time.
-				// Customer has specified 3 number of VpnAuthenticationTypes."
-				MaxItems: 1,
 			},
 
 			// Optional
 			"azure_active_directory_authentication": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"audience": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"issuer": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"tenant": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -90,17 +84,17 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			},
 
 			"client_revoked_certificate": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"thumbprint": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -108,17 +102,17 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			},
 
 			"client_root_certificate": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"public_cert_data": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -126,42 +120,42 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			},
 
 			"ipsec_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"dh_group": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.DHGroup1),
-								string(network.DHGroup2),
-								string(network.DHGroup14),
-								string(network.DHGroup24),
-								string(network.DHGroup2048),
-								string(network.ECP256),
-								string(network.ECP384),
-								string(network.None),
+								string(network.DhGroupDHGroup1),
+								string(network.DhGroupDHGroup2),
+								string(network.DhGroupDHGroup14),
+								string(network.DhGroupDHGroup24),
+								string(network.DhGroupDHGroup2048),
+								string(network.DhGroupECP256),
+								string(network.DhGroupECP384),
+								string(network.DhGroupNone),
 							}, false),
 						},
 
 						"ike_encryption": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.AES128),
-								string(network.AES192),
-								string(network.AES256),
-								string(network.DES),
-								string(network.DES3),
-								string(network.GCMAES128),
-								string(network.GCMAES256),
+								string(network.IkeEncryptionAES128),
+								string(network.IkeEncryptionAES192),
+								string(network.IkeEncryptionAES256),
+								string(network.IkeEncryptionDES),
+								string(network.IkeEncryptionDES3),
+								string(network.IkeEncryptionGCMAES128),
+								string(network.IkeEncryptionGCMAES256),
 							}, false),
 						},
 
 						"ike_integrity": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IkeIntegrityGCMAES128),
@@ -174,7 +168,7 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"ipsec_encryption": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IpsecEncryptionAES128),
@@ -190,7 +184,7 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"ipsec_integrity": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IpsecIntegrityGCMAES128),
@@ -203,7 +197,7 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"pfs_group": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.PfsGroupECP256),
@@ -219,12 +213,12 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"sa_lifetime_seconds": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"sa_data_size_kilobytes": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 					},
@@ -232,31 +226,31 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			},
 
 			"radius": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"server": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"address": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"secret": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive:    true,
 									},
 
 									"score": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 30),
 									},
@@ -265,17 +259,17 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"client_root_certificate": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"thumbprint": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -283,17 +277,17 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"server_root_certificate": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"public_cert_data": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -307,37 +301,37 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			},
 
 			"radius_server": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				MaxItems:   1,
 				Deprecated: "Deprecated in favour of `radius`",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"address": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"secret": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
 						"client_root_certificate": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"thumbprint": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -345,17 +339,17 @@ func resourceVPNServerConfiguration() *schema.Resource {
 						},
 
 						"server_root_certificate": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"public_cert_data": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -369,11 +363,11 @@ func resourceVPNServerConfiguration() *schema.Resource {
 			},
 
 			"vpn_protocols": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.VpnGatewayTunnelingProtocolIkeV2),
 						string(network.VpnGatewayTunnelingProtocolOpenVPN),
@@ -386,7 +380,7 @@ func resourceVPNServerConfiguration() *schema.Resource {
 	}
 }
 
-func resourceVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -410,10 +404,10 @@ func resourceVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta int
 	aadAuthenticationRaw := d.Get("azure_active_directory_authentication").([]interface{})
 	aadAuthentication := expandVpnServerConfigurationAADAuthentication(aadAuthenticationRaw)
 
-	clientRevokedCertsRaw := d.Get("client_revoked_certificate").(*schema.Set).List()
+	clientRevokedCertsRaw := d.Get("client_revoked_certificate").(*pluginsdk.Set).List()
 	clientRevokedCerts := expandVpnServerConfigurationClientRevokedCertificates(clientRevokedCertsRaw)
 
-	clientRootCertsRaw := d.Get("client_root_certificate").(*schema.Set).List()
+	clientRootCertsRaw := d.Get("client_root_certificate").(*pluginsdk.Set).List()
 	clientRootCerts := expandVpnServerConfigurationClientRootCertificates(clientRootCertsRaw)
 
 	ipSecPoliciesRaw := d.Get("ipsec_policy").([]interface{})
@@ -425,7 +419,7 @@ func resourceVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta int
 	}
 	radius := expandVpnServerConfigurationRadius(radiusRaw)
 
-	vpnProtocolsRaw := d.Get("vpn_protocols").(*schema.Set).List()
+	vpnProtocolsRaw := d.Get("vpn_protocols").(*pluginsdk.Set).List()
 	vpnProtocols := expandVpnServerConfigurationVPNProtocols(vpnProtocolsRaw)
 
 	supportsAAD := false
@@ -438,13 +432,13 @@ func resourceVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta int
 		authType := network.VpnAuthenticationType(v.(string))
 
 		switch authType {
-		case network.AAD:
+		case network.VpnAuthenticationTypeAAD:
 			supportsAAD = true
 
-		case network.Certificate:
+		case network.VpnAuthenticationTypeCertificate:
 			supportsCertificates = true
 
-		case network.Radius:
+		case network.VpnAuthenticationTypeRadius:
 			supportsRadius = true
 
 		default:
@@ -515,7 +509,7 @@ func resourceVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta int
 	return resourceVPNServerConfigurationRead(d, meta)
 }
 
-func resourceVPNServerConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -588,7 +582,7 @@ func resourceVPNServerConfigurationRead(d *schema.ResourceData, meta interface{}
 		}
 
 		flattenedVpnProtocols := flattenVpnServerConfigurationVPNProtocols(props.VpnProtocols)
-		if err := d.Set("vpn_protocols", schema.NewSet(schema.HashString, flattenedVpnProtocols)); err != nil {
+		if err := d.Set("vpn_protocols", pluginsdk.NewSet(pluginsdk.HashString, flattenedVpnProtocols)); err != nil {
 			return fmt.Errorf("Error setting `vpn_protocols`: %+v", err)
 		}
 	}
@@ -596,7 +590,7 @@ func resourceVPNServerConfigurationRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVPNServerConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -807,7 +801,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	val := input[0].(map[string]interface{})
 
 	clientRootCertificates := make([]network.VpnServerConfigRadiusClientRootCertificate, 0)
-	clientRootCertsRaw := val["client_root_certificate"].(*schema.Set).List()
+	clientRootCertsRaw := val["client_root_certificate"].(*pluginsdk.Set).List()
 	for _, raw := range clientRootCertsRaw {
 		v := raw.(map[string]interface{})
 		clientRootCertificates = append(clientRootCertificates, network.VpnServerConfigRadiusClientRootCertificate{
@@ -817,7 +811,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	}
 
 	serverRootCertificates := make([]network.VpnServerConfigRadiusServerRootCertificate, 0)
-	serverRootCertsRaw := val["server_root_certificate"].(*schema.Set).List()
+	serverRootCertsRaw := val["server_root_certificate"].(*pluginsdk.Set).List()
 	for _, raw := range serverRootCertsRaw {
 		v := raw.(map[string]interface{})
 		serverRootCertificates = append(serverRootCertificates, network.VpnServerConfigRadiusServerRootCertificate{

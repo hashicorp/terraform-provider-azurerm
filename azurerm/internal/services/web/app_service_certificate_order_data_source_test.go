@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -20,10 +19,10 @@ func TestAccDataSourceAppServiceCertificateOrder_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate_order", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AppServiceCertificateOrderDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
 				check.That(data.ResourceName).Key("distinguished_name").HasValue("CN=example.com"),
@@ -41,10 +40,10 @@ func TestAccDataSourceAppServiceCertificateOrder_wildcard(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate_order", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AppServiceCertificateOrderDataSource{}.wildcard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
 				check.That(data.ResourceName).Key("distinguished_name").HasValue("CN=*.example.com"),
@@ -62,10 +61,10 @@ func TestAccDataSourceAppServiceCertificateOrder_complete(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate_order", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AppServiceCertificateOrderDataSource{}.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("csr").Exists(),
 				check.That(data.ResourceName).Key("domain_verification_token").Exists(),
 				check.That(data.ResourceName).Key("distinguished_name").HasValue("CN=example.com"),
