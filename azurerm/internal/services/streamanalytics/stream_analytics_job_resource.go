@@ -117,6 +117,31 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"job_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -190,6 +215,10 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
 	}
 
+	if identity, ok := d.GetOk("identity"); ok {
+		props.Identity = expandStreamAnalyticsJobIdentity(identity.([]interface{}))
+	}
+
 	if d.IsNewResource() {
 		props.StreamingJobProperties.Transformation = &transformation
 
@@ -259,6 +288,10 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
+	if err := d.Set("identity", flattenStreamAnalyticsJobIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %v", err)
+	}
+
 	if props := resp.StreamingJobProperties; props != nil {
 		d.Set("compatibility_level", string(props.CompatibilityLevel))
 		d.Set("data_locale", props.DataLocale)
@@ -305,4 +338,40 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandStreamAnalyticsJobIdentity(identity []interface{}) *streamanalytics.Identity {
+	b := identity[0].(map[string]interface{})
+	return &streamanalytics.Identity{
+		Type: utils.String(b["type"].(string)),
+	}
+}
+
+func flattenStreamAnalyticsJobIdentity(identity *streamanalytics.Identity) []interface{} {
+	if identity == nil {
+		return nil
+	}
+
+	var t string
+	if identity.Type != nil {
+		t = *identity.Type
+	}
+
+	var tenantId string
+	if identity.TenantID != nil {
+		tenantId = *identity.TenantID
+	}
+
+	var principalId string
+	if identity.PrincipalID != nil {
+		principalId = *identity.PrincipalID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         t,
+			"tenant_id":    tenantId,
+			"principal_id": principalId,
+		},
+	}
 }
