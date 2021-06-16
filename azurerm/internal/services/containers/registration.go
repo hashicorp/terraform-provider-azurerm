@@ -33,13 +33,12 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_container_group":                 resourceContainerGroup(),
-		"azurerm_container_registry_webhook":      resourceContainerRegistryWebhook(),
-		"azurerm_container_registry":              resourceContainerRegistry(),
-		"azurerm_container_registry_token":        resourceContainerRegistryToken(),
-		"azurerm_container_registry_scope_map":    resourceContainerRegistryScopeMap(),
-		"azurerm_kubernetes_cluster":              resourceKubernetesCluster(),
-		"azurerm_kubernetes_cluster_node_pool":    resourceKubernetesClusterNodePool(),
-		"azurerm_kubernetes_cluster_pod_identity": resourceKubernetesClusterPodIdentity(),
+		"azurerm_container_group":              resourceContainerGroup(),
+		"azurerm_container_registry_webhook":   resourceContainerRegistryWebhook(),
+		"azurerm_container_registry":           resourceContainerRegistry(),
+		"azurerm_container_registry_token":     resourceContainerRegistryToken(),
+		"azurerm_container_registry_scope_map": resourceContainerRegistryScopeMap(),
+		"azurerm_kubernetes_cluster":           resourceKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool": resourceKubernetesClusterNodePool(),
 	}
 }
