@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `kubelet_config` and `linux_os_config` blocks [GH-11119]
 * `azurerm_data_factory` - support for `global_parameter` [GH-12178]
 * `azurerm_monitor_metric_alert` - support the `StartsWith` dimension operator [GH-12181]
+* `azurerm_stream_analytics_job` - supports for the `identity` block [GH-12171]
 * `azurerm_synapse_workspace` - support for the `data_exfiltration_protection_enabled` property [GH-12183]
 * `azurerm_synapse_role_assignment` - support for scopes and new role types [GH-11690]
 
