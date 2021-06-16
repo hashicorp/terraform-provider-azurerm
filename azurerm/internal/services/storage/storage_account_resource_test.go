@@ -2804,14 +2804,14 @@ resource "azurerm_storage_account" "test" {
       max_age_in_seconds = "500"
     }
 
-    delete_retention_policy {
+    retention_policy {
       days = 300
     }
 
     smb {
-      versions                   = ["SMB3.0"]
-      authentication_methods     = ["NTLMv2"]
-      kerberos_ticket_encryption = ["AES-256"]
+      versions                        = ["SMB3.0"]
+      authentication_types            = ["NTLMv2"]
+      kerberos_ticket_encryption_type = ["AES-256"]
     }
   }
 }
@@ -2854,14 +2854,14 @@ resource "azurerm_storage_account" "test" {
       max_age_in_seconds = "1000"
     }
 
-    delete_retention_policy {
+    retention_policy {
     }
 
     smb {
-      versions                   = ["SMB3.0", "SMB3.1.1"]
-      authentication_methods     = ["NTLMv2", "Kerberos"]
-      kerberos_ticket_encryption = ["AES-256", "RC4-HMAC"]
-      channel_encryption         = ["AES-128-CCM", "AES-256-GCM"]
+      versions                        = ["SMB3.0", "SMB3.1.1"]
+      authentication_types            = ["NTLMv2", "Kerberos"]
+      kerberos_ticket_encryption_type = ["AES-256", "RC4-HMAC"]
+      channel_encryption_type         = ["AES-128-CCM", "AES-256-GCM"]
     }
   }
 }
@@ -2904,7 +2904,7 @@ resource "azurerm_storage_account" "test" {
       max_age_in_seconds = "1000"
     }
 
-    delete_retention_policy {
+    retention_policy {
     }
 
   }
@@ -2955,7 +2955,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   share_properties {
-    delete_retention_policy {
+    retention_policy {
       days = 3
     }
   }

@@ -558,7 +558,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"cors_rule": schemaStorageAccountCorsRule(true),
 
-						"delete_retention_policy": {
+						"retention_policy": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -593,7 +593,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										},
 									},
 
-									"authentication_methods": {
+									"authentication_types": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -605,7 +605,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										},
 									},
 
-									"kerberos_ticket_encryption": {
+									"kerberos_ticket_encryption_type": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -617,7 +617,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										},
 									},
 
-									"channel_encryption": {
+									"channel_encryption_type": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -2086,7 +2086,7 @@ func expandShareProperties(input []interface{}) storage.FileServiceProperties {
 
 	v := input[0].(map[string]interface{})
 
-	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["delete_retention_policy"].([]interface{}), false)
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}), false)
 
 	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
 
@@ -2111,9 +2111,9 @@ func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
 
 	return &storage.SmbSetting{
 		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
-		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_methods"].(*pluginsdk.Set).List(), ";"),
-		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption"].(*pluginsdk.Set).List(), ";"),
-		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
 	}
 }
 
@@ -2660,9 +2660,9 @@ func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":               flattenedCorsRules,
-			"delete_retention_policy": flattenedDeletePolicy,
-			"smb":                     flattenedSMB,
+			"cors_rule":        flattenedCorsRules,
+			"retention_policy": flattenedDeletePolicy,
+			"smb":              flattenedSMB,
 		},
 	}
 }
@@ -2697,10 +2697,10 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"versions":                   versions,
-			"authentication_methods":     authenticationMethods,
-			"kerberos_ticket_encryption": kerberosTicketEncryption,
-			"channel_encryption":         channelEncryption,
+			"versions":                        versions,
+			"authentication_types":            authenticationMethods,
+			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
+			"channel_encryption_type":         channelEncryption,
 		},
 	}
 }
