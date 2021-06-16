@@ -195,6 +195,21 @@ func TestAccAzureRMLoadBalancer_NoZone(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_SingleZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availability_zone(data, "1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	loadBalancerName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
