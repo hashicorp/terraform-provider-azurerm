@@ -92,6 +92,8 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 							MaxItems:   1,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
+								// Note: If it only converts one of `labels` and `route_table_ids` to default value, it's not meaningful.
+								// So they are added `Computed` attribute.
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
 										Type:     pluginsdk.TypeSet,
