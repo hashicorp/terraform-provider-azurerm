@@ -75,12 +75,12 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
-			"file_path": {
+			"path": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
-			"command_line_setting": {
+			"command_line_argument_policy": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -147,8 +147,8 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 		ApplicationProperties: &desktopvirtualization.ApplicationProperties{
 			FriendlyName:         utils.String(d.Get("friendly_name").(string)),
 			Description:          utils.String(d.Get("description").(string)),
-			FilePath:             utils.String(d.Get("file_path").(string)),
-			CommandLineSetting:   desktopvirtualization.CommandLineSetting(d.Get("command_line_setting").(string)),
+			FilePath:             utils.String(d.Get("path").(string)),
+			CommandLineSetting:   desktopvirtualization.CommandLineSetting(d.Get("command_line_argument_policy").(string)),
 			CommandLineArguments: utils.String(d.Get("command_line_arguments").(string)),
 			ShowInPortal:         utils.Bool(d.Get("show_in_portal").(bool)),
 			IconPath:             utils.String(d.Get("icon_path").(string)),
@@ -197,8 +197,8 @@ func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta inter
 	if props := resp.ApplicationProperties; props != nil {
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("description", props.Description)
-		d.Set("file_path", props.FilePath)
-		d.Set("command_line_setting", props.CommandLineSetting)
+		d.Set("path", props.FilePath)
+		d.Set("command_line_argument_policy", props.CommandLineSetting)
 		d.Set("command_line_arguments", props.CommandLineArguments)
 		d.Set("show_in_portal", props.ShowInPortal)
 		d.Set("icon_path", props.IconPath)

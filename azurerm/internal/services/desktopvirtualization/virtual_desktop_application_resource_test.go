@@ -130,10 +130,10 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_application" "test" {
-  name                 = "acctestAG%d"
-  application_group_id = azurerm_virtual_desktop_application_group.test.id
-  file_path            = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-  command_line_setting = "DoNotAllow"
+  name                         = "acctestAG%d"
+  application_group_id         = azurerm_virtual_desktop_application_group.test.id
+  path                         = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  command_line_argument_policy = "DoNotAllow"
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
@@ -173,16 +173,16 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_application" "test" {
-  name                   = "acctestAG%d"
-  application_group_id   = azurerm_virtual_desktop_application_group.test.id
-  friendly_name          = "Google Chrome"
-  description            = "Chromium based web browser"
-  file_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-  command_line_setting   = "DoNotAllow"
-  command_line_arguments = "--incognito"
-  show_in_portal         = false
-  icon_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-  icon_index             = 1
+  name                         = "acctestAG%d"
+  application_group_id         = azurerm_virtual_desktop_application_group.test.id
+  friendly_name                = "Google Chrome"
+  description                  = "Chromium based web browser"
+  path                         = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  command_line_argument_policy = "DoNotAllow"
+  command_line_arguments       = "--incognito"
+  show_in_portal               = false
+  icon_path                    = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  icon_index                   = 1
 }
 
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8))
@@ -193,10 +193,10 @@ func (r VirtualDesktopApplicationResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_virtual_desktop_application" "import" {
-  name                 = azurerm_virtual_desktop_application.test.name
-  application_group_id = azurerm_virtual_desktop_application.test.application_group_id
-  file_path            = azurerm_virtual_desktop_application.test.file_path
-  command_line_setting = azurerm_virtual_desktop_application.test.command_line_setting
+  name                         = azurerm_virtual_desktop_application.test.name
+  application_group_id         = azurerm_virtual_desktop_application.test.application_group_id
+  path                         = azurerm_virtual_desktop_application.test.path
+  command_line_argument_policy = azurerm_virtual_desktop_application.test.command_line_argument_policy
 
 }
 `, r.basic(data))

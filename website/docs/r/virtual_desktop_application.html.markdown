@@ -52,16 +52,16 @@ resource "azurerm_virtual_desktop_application_group" "remoteapp" {
 }
 
 resource "azurerm_virtual_desktop_application" "chrome" {
-  name                   = "googlechrome"
-  application_group_id   = azurerm_virtual_desktop_application_group.remoteapp.id
-  friendly_name          = "Google Chrome"
-  description            = "Chromium based web browser"
-  file_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-  command_line_setting   = "DoNotAllow"
-  command_line_arguments = "--incognito"
-  show_in_portal         = false
-  icon_path              = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-  icon_index             = 0
+  name                         = "googlechrome"
+  application_group_id         = azurerm_virtual_desktop_application_group.remoteapp.id
+  friendly_name                = "Google Chrome"
+  description                  = "Chromium based web browser"
+  path                         = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  command_line_argument_policy = "DoNotAllow"
+  command_line_arguments       = "--incognito"
+  show_in_portal               = false
+  icon_path                    = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  icon_index                   = 0
 }
 ```
 
@@ -78,9 +78,9 @@ The following arguments are supported:
 
 * `description` - (Optional) Option to set a description for the Virtual Desktop Application.
 
-* `file_path` - (Required) The file path location of the app on the Virtual Desktop OS.
+* `path` - (Required) The file path location of the app on the Virtual Desktop OS.
 
-* `command_line_setting` - (Required) Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: `DoNotAllow`, `Allow`, `Require`.
+* `command_line_argument_policy` - (Required) Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: `DoNotAllow`, `Allow`, `Require`.
 
 * `command_line_arguments` - (Optional) Command Line Arguments for Virtual Desktop Application.
 
