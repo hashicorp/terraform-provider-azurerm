@@ -317,3 +317,30 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 		}
 	}
 }
+
+
+func SchemaApiManagementCertificate() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"expiry": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+				},
+
+				"subject": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+				},
+
+				"thumbprint": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
+}

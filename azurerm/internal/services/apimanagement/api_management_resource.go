@@ -228,6 +228,8 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"certificate": schemaz.SchemaApiManagementCertificate(),
+
 						"encoded_certificate": {
 							Type:      pluginsdk.TypeString,
 							Required:  true,
@@ -251,6 +253,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 					},
 				},
 			},
+
 
 			"protocols": {
 				Type:     pluginsdk.TypeList,
