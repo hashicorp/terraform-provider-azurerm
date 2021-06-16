@@ -165,7 +165,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 			odataLinkedService.UserName = raw["username"].(string)
 			odataLinkedService.Password = datafactory.SecureString{
 				Value: utils.String(raw["password"].(string)),
-				Type:  datafactory.TypeTypeSecureString,
+				Type:  datafactory.ParameterTypeSecureString,
 			}
 		}
 	}
