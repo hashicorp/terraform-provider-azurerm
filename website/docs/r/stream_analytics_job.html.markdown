@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `events_out_of_order_policy` - (Optional) Specifies the policy which should be applied to events which arrive out of order in the input event stream. Possible values are `Adjust` and `Drop`.  Default is `Adjust`.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `output_error_policy` - (Optional) Specifies the policy which should be applied to events which arrive at the output and cannot be written to the external storage due to being malformed (such as missing column values, column values of wrong type or size). Possible values are `Drop` and `Stop`.  Default is `Drop`.
 
 * `streaming_units` - (Required) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`.
@@ -73,6 +75,12 @@ The following arguments are supported:
 
 * `tags` - A mapping of tags assigned to the resource.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of identity used for the Stream Analytics Job. Possible values are `SystemAssigned`.
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
@@ -80,6 +88,16 @@ The following attributes are exported in addition to the arguments listed above:
 * `id` - The ID of the Stream Analytics Job.
 
 * `job_id` - The Job ID assigned by the Stream Analytics Job.
+  
+* `identity` - (Optional) An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+
+* `tenant_id` - The ID of the Azure Active Directory Tenant.
 
 ## Timeouts
 
