@@ -3,6 +3,7 @@ package loadbalancer
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
@@ -108,7 +109,9 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"private_ip_address_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(network.IPVersionIPv4),
+							// this property should only be applied for frontendIpConfigurations which reference a subnet
+							//Default:  string(network.IPVersionIPv4),
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPVersionIPv4),
 								string(network.IPVersionIPv6),
@@ -243,7 +246,11 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	properties := network.LoadBalancerPropertiesFormat{}
 
 	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
-		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
+		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(d)
+		if err != nil {
+			return err
+		}
+		properties.FrontendIPConfigurations = frontendIPConfigurations
 	}
 
 	loadBalancer := network.LoadBalancer{
@@ -348,11 +355,12 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) *[]network.FrontendIPConfiguration {
+func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.FrontendIPConfiguration, 0, len(configs))
+	sku := d.Get("sku").(string)
 
-	for _, configRaw := range configs {
+	for index, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
@@ -364,8 +372,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			properties.PrivateIPAddress = &v
 		}
 
-		properties.PrivateIPAddressVersion = network.IPVersion(data["private_ip_address_version"].(string))
-
+		subnetSet := false
 		if v := data["public_ip_address_id"].(string); v != "" {
 			properties.PublicIPAddress = &network.PublicIPAddress{
 				ID: &v,
@@ -379,6 +386,11 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		}
 
 		if v := data["subnet_id"].(string); v != "" {
+			subnetSet = true
+			properties.PrivateIPAddressVersion = network.IPVersionIPv4
+			if v := data["private_ip_address_version"].(string); v != "" {
+				properties.PrivateIPAddressVersion = network.IPVersion(v)
+			}
 			properties.Subnet = &network.Subnet{
 				ID: &v,
 			}
@@ -386,15 +398,18 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 
 		name := data["name"].(string)
 		zones := &[]string{"1", "2"}
+		zonesSet := false
 		// TODO - Remove in 3.0
-		if deprecatedZonesRaw, ok := data["zones"]; ok {
+		if deprecatedZonesRaw, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)); ok {
+			zonesSet = true
 			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
 			if deprecatedZones != nil {
 				zones = deprecatedZones
 			}
 		}
 
-		if availabilityZones, ok := data["availability_zone"]; ok {
+		if availabilityZones, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)); ok {
+			zonesSet = true
 			switch availabilityZones.(string) {
 			case "1", "2", "3":
 				zones = &[]string{availabilityZones.(string)}
@@ -403,6 +418,17 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			case "No-Zone":
 				zones = &[]string{}
 			}
+		}
+		if !strings.EqualFold(sku, string(network.LoadBalancerSkuNameStandard)) {
+			if zonesSet && len(*zones) > 0 {
+				return nil, fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
+			}
+			zones = &[]string{}
+		} else if !subnetSet {
+			if zonesSet && len(*zones) > 0 {
+				return nil, fmt.Errorf("Networking supports zones only for frontendIpconfigurations which reference a subnet.")
+			}
+			zones = &[]string{}
 		}
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name:                                    &name,
@@ -413,7 +439,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
 	}
 
-	return &frontEndConfigs
+	return &frontEndConfigs, nil
 }
 
 func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
