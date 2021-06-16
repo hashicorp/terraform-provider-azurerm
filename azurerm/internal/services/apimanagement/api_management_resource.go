@@ -228,7 +228,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"certificate": schemaz.SchemaApiManagementCertificate(),
+						"certificate_information": schemaz.SchemaApiManagementCertificate(),
 
 						"encoded_certificate": {
 							Type:      pluginsdk.TypeString,
@@ -253,7 +253,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 					},
 				},
 			},
-
 
 			"protocols": {
 				Type:     pluginsdk.TypeList,
@@ -384,6 +383,8 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"certificate_information": schemaz.SchemaApiManagementCertificate(),
+
 						"management": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -867,6 +868,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
 		d.Set("gateway_disabled", props.DisableGateway)
 
+		d.Set("certificate", flattenAPIManagementCertificates(props.Certificates))
+
 		if resp.Sku != nil && resp.Sku.Name != "" {
 			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
 				return fmt.Errorf("setting `security`: %+v", err)
@@ -1044,6 +1047,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
 			results = append(results, output)
 		}
+
 	}
 
 	return &results
@@ -1078,6 +1082,8 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.NegotiateClientCertificate = utils.Bool(v.(bool))
 	}
 
+	output.Certificate = schemaz.ExpandApiManagementCertificate(input["certificate_information"].([]interface{}))
+
 	return output
 }
 
@@ -1111,6 +1117,10 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.KeyVaultID != nil {
 			output["key_vault_id"] = *config.KeyVaultID
+		}
+
+		if config.Certificate != nil {
+			output["certificate_information"] = schemaz.FlattenApiManagementCertificate(config.Certificate)
 		}
 
 		var configType string
@@ -1180,6 +1190,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 		cert := apimanagement.CertificateConfiguration{
 			EncodedCertificate: utils.String(certBase64),
 			StoreName:          storeName,
+			Certificate:        schemaz.ExpandApiManagementCertificate(config["certificate_information"].([]interface{})),
 		}
 
 		if certPassword := config["certificate_password"]; certPassword != nil {
@@ -1752,4 +1763,20 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 	}
 
 	return []interface{}{result}
+}
+
+func flattenAPIManagementCertificates(inputs *[]apimanagement.CertificateConfiguration) []interface{} {
+	if inputs == nil || len(*inputs) == 0 {
+		return []interface{}{}
+	}
+
+	outputs := []interface{}{}
+	for _, input := range *inputs {
+		outputs = append(outputs,
+			map[string]interface{}{
+				"store_name":              string(input.StoreName),
+				"certificate_information": schemaz.FlattenApiManagementCertificate(input.Certificate),
+			})
+	}
+	return outputs
 }

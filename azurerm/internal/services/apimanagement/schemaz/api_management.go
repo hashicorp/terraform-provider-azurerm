@@ -2,7 +2,9 @@ package schemaz
 
 import (
 	"fmt"
+	"github.com/Azure/go-autorest/autorest/date"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
@@ -318,7 +320,6 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 	}
 }
 
-
 func SchemaApiManagementCertificate() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -327,13 +328,13 @@ func SchemaApiManagementCertificate() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"expiry": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 
 				"subject": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 
 				"thumbprint": {
@@ -341,6 +342,53 @@ func SchemaApiManagementCertificate() *pluginsdk.Schema {
 					Required: true,
 				},
 			},
+		},
+	}
+}
+
+func ExpandApiManagementCertificate(inputs []interface{}) *apimanagement.CertificateInformation {
+	if len(inputs) == 0 {
+		return nil
+	}
+
+	input := inputs[0].(map[string]interface{})
+
+	output := apimanagement.CertificateInformation{
+		Thumbprint: utils.String(input["thumbprint"].(string)),
+		Subject:    utils.String(input["subject"].(string)),
+	}
+
+	if v := input["expiry"].(string); v != "" {
+		t, _ := time.Parse(time.RFC3339, v)
+		output.Expiry = &date.Time{Time: t}
+	}
+
+	return &output
+}
+
+func FlattenApiManagementCertificate(input *apimanagement.CertificateInformation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var expiry, subject, thumbprint string
+	if input.Expiry != nil && !input.Expiry.IsZero() {
+		expiry = input.Expiry.Format(time.RFC3339)
+	}
+
+	if input.Thumbprint != nil {
+		thumbprint = *input.Thumbprint
+	}
+
+	if input.Subject != nil {
+		subject = *input.Subject
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"expiry":     expiry,
+			"subject":    subject,
+			"thumbprint": thumbprint,
 		},
 	}
 }
