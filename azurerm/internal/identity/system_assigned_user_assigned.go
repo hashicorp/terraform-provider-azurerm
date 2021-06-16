@@ -1,6 +1,9 @@
 package identity
 
 import (
+	"fmt"
+
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,11 +23,15 @@ func (s SystemAssignedUserAssigned) Expand(input []interface{}) (*ExpandedConfig
 	v := input[0].(map[string]interface{})
 
 	config := &ExpandedConfig{
-		Type:                    v["type"].(string),
-		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].([]interface{})),
+		Type: v["type"].(string),
 	}
 
-	if identityIds := v["identity_ids"].([]interface{}); len(identityIds) != 0 {
+	identityIds := v["identity_ids"].(*pluginsdk.Set).List()
+
+	if len(identityIds) != 0 {
+		if config.Type != userAssigned && config.Type != systemAssignedUserAssigned {
+			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+		}
 		config.UserAssignedIdentityIds = utils.ExpandStringSlice(identityIds)
 	}
 
@@ -71,11 +78,11 @@ func (s SystemAssignedUserAssigned) Schema() *pluginsdk.Schema {
 					}, false),
 				},
 				"identity_ids": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.NoZeroValues,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 				"principal_id": {
