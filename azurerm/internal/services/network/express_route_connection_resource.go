@@ -5,111 +5,110 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceExpressRouteConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceExpressRouteConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceExpressRouteConnectionCreateUpdate,
 		Read:   resourceExpressRouteConnectionRead,
 		Update: resourceExpressRouteConnectionCreateUpdate,
 		Delete: resourceExpressRouteConnectionDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ExpressRouteConnectionID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ExpressRouteConnectionName,
 			},
 
 			"express_route_circuit_peering_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ExpressRouteCircuitPeeringID,
 			},
 
 			"express_route_gateway_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ExpressRouteGatewayID,
 			},
 
 			"authorization_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"enable_internet_security": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			// Note: when the `routing` property isn't specified, the `associated_route_table_id` property and the `propagated_route_table` property would be set with the default value.
 			// As the `routing` property has default value, so it has to add the `ConfigMode` attribute to roll back to the default value after the `routing` property is specified.
 			"routing": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						// Note: When the `associated_route_table_id` property isn't specified, it has default value. So it has to add the `Computed` attribute to ignore the diff.
 						// But if the `Computed` attribute is added, it cannot be rolled back to default value after this property is specified. So the `Computed` attribute has to be removed from schema.
 						"associated_route_table_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.Any(validate.HubRouteTableID, validation.StringIsEmpty),
 						},
 
 						"propagated_route_table": {
-							Type:       schema.TypeList,
+							Type:       pluginsdk.TypeList,
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 
 									"route_table_ids": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validate.HubRouteTableID,
 										},
 									},
@@ -121,7 +120,7 @@ func resourceExpressRouteConnection() *schema.Resource {
 			},
 
 			"routing_weight": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntBetween(0, 32000),
@@ -130,7 +129,7 @@ func resourceExpressRouteConnection() *schema.Resource {
 	}
 }
 
-func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,29 +154,23 @@ func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	expressRouteConnectionParameters := network.ExpressRouteConnection{
+	parameters := network.ExpressRouteConnection{
 		Name: utils.String(id.Name),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
 			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
 			},
-			RoutingWeight: utils.Int32(int32(d.Get("routing_weight").(int))),
+			EnableInternetSecurity: utils.Bool(d.Get("enable_internet_security").(bool)),
+			RoutingConfiguration:   expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
+			RoutingWeight:          utils.Int32(int32(d.Get("routing_weight").(int))),
 		},
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		expressRouteConnectionParameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
+		parameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("enable_internet_security"); ok {
-		expressRouteConnectionParameters.ExpressRouteConnectionProperties.EnableInternetSecurity = utils.Bool(v.(bool))
-	}
-
-	if v, ok := d.GetOk("routing"); ok {
-		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
-	}
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, expressRouteConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -191,7 +184,7 @@ func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta int
 	return resourceExpressRouteConnectionRead(d, meta)
 }
 
-func resourceExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +233,7 @@ func resourceExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceExpressRouteConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +256,7 @@ func resourceExpressRouteConnectionDelete(d *schema.ResourceData, meta interface
 }
 
 func expandExpressRouteConnectionRouting(input []interface{}) *network.RoutingConfiguration {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &network.RoutingConfiguration{}
 	}
 
@@ -284,7 +277,7 @@ func expandExpressRouteConnectionRouting(input []interface{}) *network.RoutingCo
 }
 
 func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &network.PropagatedRouteTable{}
 	}
 
@@ -292,11 +285,11 @@ func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *netw
 
 	result := network.PropagatedRouteTable{}
 
-	if labels := v["labels"].(*schema.Set).List(); len(labels) != 0 {
+	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
 		result.Labels = utils.ExpandStringSlice(labels)
 	}
 
-	if routeTableIds := v["route_table_ids"].(*schema.Set).List(); len(routeTableIds) != 0 {
+	if routeTableIds := v["route_table_ids"].(*pluginsdk.Set).List(); len(routeTableIds) != 0 {
 		result.Ids = expandIDsToSubResources(routeTableIds)
 	}
 
