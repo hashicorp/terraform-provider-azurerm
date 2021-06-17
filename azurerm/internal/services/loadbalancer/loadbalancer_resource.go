@@ -109,8 +109,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"private_ip_address_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// this property should only be applied for frontendIpConfigurations which reference a subnet
-							//Default:  string(network.IPVersionIPv4),
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPVersionIPv4),
