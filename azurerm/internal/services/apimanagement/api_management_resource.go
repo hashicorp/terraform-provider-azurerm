@@ -1082,7 +1082,9 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.NegotiateClientCertificate = utils.Bool(v.(bool))
 	}
 
-	output.Certificate = schemaz.ExpandApiManagementCertificate(input["certificate_information"].([]interface{}))
+	if v, ok := input["certificate_information"]; ok {
+		output.Certificate = schemaz.ExpandApiManagementCertificate(v.([]interface{}))
+	}
 
 	return output
 }
@@ -1190,11 +1192,14 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 		cert := apimanagement.CertificateConfiguration{
 			EncodedCertificate: utils.String(certBase64),
 			StoreName:          storeName,
-			Certificate:        schemaz.ExpandApiManagementCertificate(config["certificate_information"].([]interface{})),
 		}
 
 		if certPassword := config["certificate_password"]; certPassword != nil {
 			cert.CertificatePassword = utils.String(certPassword.(string))
+		}
+
+		if v, ok := config["certificate_information"]; ok {
+			cert.Certificate = schemaz.ExpandApiManagementCertificate(v.([]interface{}))
 		}
 
 		results = append(results, cert)
