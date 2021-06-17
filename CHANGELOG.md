@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_monitor_metric_alert` - support the `StartsWith` dimension operator [GH-12181]
 * `azurerm_private_link_service`  - changing `load_balancer_frontend_ip_configuration_ids` list no longer creates a new resource [GH-12250]
 * `azurerm_stream_analytics_job` - supports for the `identity` block [GH-12171]
+* `azurerm_storage_account` - support for the `share_properties` block [GH-12103]
 * `azurerm_synapse_workspace` - support for the `data_exfiltration_protection_enabled` property [GH-12183]
 * `azurerm_synapse_role_assignment` - support for scopes and new role types [GH-11690]
 
