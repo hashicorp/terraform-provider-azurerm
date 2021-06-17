@@ -373,7 +373,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "acctestzone%[2]d.com"
+  name                = "acc%[2]d.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
