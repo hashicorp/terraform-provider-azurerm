@@ -383,8 +383,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"certificate_information": schemaz.SchemaApiManagementCertificate(),
-
 						"management": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -868,7 +866,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
 		d.Set("gateway_disabled", props.DisableGateway)
 
-		d.Set("certificate", flattenAPIManagementCertificates(props.Certificates))
+		d.Set("certificate", flattenAPIManagementCertificates(d,props.Certificates))
 
 		if resp.Sku != nil && resp.Sku.Name != "" {
 			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
@@ -1086,6 +1084,10 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.Certificate = schemaz.ExpandApiManagementCertificate(v.([]interface{}))
 	}
 
+	if v, ok := input["identity_client_id"].(string); ok && v != "" {
+		output.IdentityClientID = utils.String(v)
+	}
+
 	return output
 }
 
@@ -1123,6 +1125,10 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.Certificate != nil {
 			output["certificate_information"] = schemaz.FlattenApiManagementCertificate(config.Certificate)
+		}
+
+		if config.IdentityClientID != nil {
+			output["identity_client_id"] = *config.IdentityClientID
 		}
 
 		var configType string
@@ -1770,18 +1776,24 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 	return []interface{}{result}
 }
 
-func flattenAPIManagementCertificates(inputs *[]apimanagement.CertificateConfiguration) []interface{} {
+func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apimanagement.CertificateConfiguration) []interface{} {
 	if inputs == nil || len(*inputs) == 0 {
 		return []interface{}{}
 	}
 
 	outputs := []interface{}{}
-	for _, input := range *inputs {
-		outputs = append(outputs,
-			map[string]interface{}{
-				"store_name":              string(input.StoreName),
-				"certificate_information": schemaz.FlattenApiManagementCertificate(input.Certificate),
-			})
+	for i, input := range *inputs {
+		output := map[string]interface{}{
+			"store_name":              string(input.StoreName),
+			"certificate_information": schemaz.FlattenApiManagementCertificate(input.Certificate),
+		}
+		if v,ok:= d.GetOk(fmt.Sprintf("certificate.%d.certificate_password",i));ok{
+			output["certificate_password"] = v.(string)
+		}
+		if v,ok:=d.GetOk(fmt.Sprintf("certificate.%d.encoded_certificate",i));ok{
+			output["encoded_certificate"] = v.(string)
+		}
+		outputs = append(outputs, output)
 	}
 	return outputs
 }

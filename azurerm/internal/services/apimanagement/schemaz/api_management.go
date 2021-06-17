@@ -3,6 +3,7 @@ package schemaz
 import (
 	"fmt"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"strings"
 	"time"
 
@@ -324,22 +325,27 @@ func SchemaApiManagementCertificate() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"expiry": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsRFC3339Time,
 				},
 
 				"subject": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"thumbprint": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},

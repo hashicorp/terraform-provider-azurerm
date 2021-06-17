@@ -107,7 +107,8 @@ func TestAccApiManagement_complete(t *testing.T) {
 			ImportState:       true,
 			ImportStateVerify: true,
 			ImportStateVerifyIgnore: []string{
-				"certificate", // not returned from API, sensitive
+				"certificate.#.encoded_certificate",
+				"certificate.#.certificate_password",
 				"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 				"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -269,6 +270,21 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 		data.ImportStep(),
 		{
 			Config: r.identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultIdUpdateCD(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_identityUserAssignedHostnameConfigurationsVersionedKeyVaultId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedHostnameConfigurationsKeyVaultId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -895,12 +911,22 @@ resource "azurerm_api_management" "test" {
     encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "CertificateAuthority"
+    certificate_information {
+      expiry     = "2028-07-02T10:33:30Z"
+      subject    = "CN=api.terraform.io"
+      thumbprint = "8155941A075F972A60AE1C74C749BBDDF82960B5"
+    }
   }
 
   certificate {
     encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "Root"
+    certificate_information {
+      expiry     = "2028-07-02T10:33:30Z"
+      subject    = "CN=api.terraform.io"
+      thumbprint = "8155941A075F972A60AE1C74C749BBDDF82960B5"
+    }
   }
 
   certificate {
@@ -943,6 +969,11 @@ resource "azurerm_api_management" "test" {
       certificate_password         = "terraform"
       default_ssl_binding          = true
       negotiate_client_certificate = false
+      certificate_information {
+        expiry     = "2028-07-02T10:33:30Z"
+        subject    = "CN=api.terraform.io"
+        thumbprint = "8155941A075F972A60AE1C74C749BBDDF82960B5"
+      }
     }
 
     proxy {
@@ -961,6 +992,11 @@ resource "azurerm_api_management" "test" {
     developer_portal {
       host_name   = "developer-portal.terraform.io"
       certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_information {
+        expiry     = "2021-10-09T08:04:41Z"
+        subject    = "CN=developer-portal.terraform.io"
+        thumbprint = "179D0C359DE2FACAEBFABF5DE2EE76D7D6A2E223"
+      }
     }
   }
 
@@ -1493,6 +1529,137 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+}
+
+func (ApiManagementResource) identityUserAssignedHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestKV-%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+  certificate_permissions = [
+    "Create",
+    "Delete",
+    "Deleteissuers",
+    "Get",
+    "Getissuers",
+    "Import",
+    "List",
+    "Listissuers",
+    "Managecontacts",
+    "Manageissuers",
+    "Setissuers",
+    "Update",
+    "Purge",
+  ]
+  secret_permissions = [
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault_access_policy" "test2" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_user_assigned_identity.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+  secret_permissions = [
+    "Get",
+    "List",
+  ]
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  depends_on   = [azurerm_key_vault_access_policy.test]
+  name         = "acctestKVCert-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+    x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject_alternative_names {
+        dns_names = ["api.terraform.io"]
+      }
+      subject            = "CN=api.terraform.io"
+      validity_in_months = 1
+    }
+  }
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+
+  hostname_configuration {
+    proxy {
+      host_name                    = "api.terraform.io"
+      key_vault_id                 = azurerm_key_vault_certificate.test.secret_id
+      default_ssl_binding          = true
+      negotiate_client_certificate = false
+      identity_client_id           = azurerm_user_assigned_identity.test.client_id
+    }
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+  depends_on = [azurerm_key_vault_access_policy.test2]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (ApiManagementResource) consumption(data acceptance.TestData) string {
