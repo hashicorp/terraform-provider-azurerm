@@ -122,7 +122,7 @@ The following arguments are supported:
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
-  
+
   ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as documented below.
@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication? Defaults to `false`.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 
@@ -199,7 +199,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
-* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key. 
+* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key.
 
 ~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
