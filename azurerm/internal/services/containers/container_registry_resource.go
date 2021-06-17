@@ -675,6 +675,9 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 
 	// delete previously deployed locations
 	for _, replication := range oldGeoReplications {
+		if replication.Location == nil {
+			continue
+		}
 		oldLocation := azure.NormalizeLocation(*replication.Location)
 
 		future, err := replicationClient.Delete(ctx, resourceGroup, name, oldLocation)
@@ -688,6 +691,9 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 
 	// create new geo-replication locations
 	for _, replication := range newGeoReplications {
+		if replication.Location == nil {
+			continue
+		}
 		locationToCreate := azure.NormalizeLocation(*replication.Location)
 		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, replication)
 		if err != nil {
