@@ -10,7 +10,13 @@ description: |-
 
 Manages Portal Tenant Configuration.
 
-~> **Note:** User has to be a Tenant Admin for managing this resource. The Service Principal with Tenant Admin could be created by `az ad sp create-for-rbac --name "<sp name>" --role="Owner" --scopes="/"`.
+~> **Note:** User has to be a Tenant Admin for managing this resource.
+
+~> **Note:** The Service Principal with Tenant Admin could be created by `az ad sp create-for-rbac --name "<sp name>" --role="Owner" --scopes="/"`.
+
+~> **Note:** The Service Principal could be granted Tenant Admin permission by `az role assignment create --assignee "<app id>" --role "Owner" --scope "/"`.
+
+~> **Note:** While assigning the role to the existing/new Service Principal at the Tenant Scope, the user assigning role must already have the `Owner` role assigned at the Tenant Scope.
 
 ## Example Usage
 
