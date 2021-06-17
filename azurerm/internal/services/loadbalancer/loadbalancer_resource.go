@@ -397,6 +397,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		}
 
 		name := data["name"].(string)
+		// TODO - get zone list for each location by Resource API, instead of hardcode
 		zones := &[]string{"1", "2"}
 		zonesSet := false
 		// TODO - Remove in 3.0
