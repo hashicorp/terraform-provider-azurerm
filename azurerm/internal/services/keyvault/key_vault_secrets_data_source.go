@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
@@ -32,7 +33,6 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 			"max_results": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Default:  25,
 			},
 
 			"names": {
@@ -52,7 +52,6 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	maxResults := d.Get("max_results").(int)
 	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
@@ -63,18 +62,24 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	// we always want to get the latest version
-	resp, err := client.GetSecrets(ctx, *keyVaultBaseUri, utils.Int32(int32(maxResults)))
-	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
+	var secretList keyvault.SecretListResultIterator
+	if maxResults, ok := d.GetOk("max_results"); ok {
+		secretList, err = client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(int32(maxResults.(int))))
+		if err != nil {
+			return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
+		}
+	} else {
+		secretList, err = client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(2147483647))
+		if err != nil {
+			return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
+		}
 	}
-
 	d.SetId(keyVaultId.ID())
 
 	var names []string
 
-	if resp.Response().Value != nil {
-		for _, v := range *resp.Response().Value {
+	if secretList.Response().Value != nil {
+		for _, v := range *secretList.Response().Value {
 			name, err := parseNameFromSecretUrl(*v.ID)
 			if err != nil {
 				return err

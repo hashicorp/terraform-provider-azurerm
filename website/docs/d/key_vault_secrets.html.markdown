@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `key_vault_id` - Specifies the ID of the Key Vault instance to fetch secret names from, available on the `azurerm_key_vault` Data Source / Resource.
 
-* `max_results` - Maximum amount of secrets to fetch from the Key Vault. Defaults to `25`.
+* `max_results` - Maximum amount of secrets to fetch from the Key Vault.
 
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
