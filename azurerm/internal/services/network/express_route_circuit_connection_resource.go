@@ -169,11 +169,18 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {
 		d.Set("address_prefix_ipv4", props.AddressPrefix)
-		d.Set("authorization_key", props.AuthorizationKey)
 
-		if props.Ipv6CircuitConnectionConfig != nil {
-			d.Set("address_prefix_ipv6", props.Ipv6CircuitConnectionConfig.AddressPrefix)
+		authorizationKey := ""
+		if props.AuthorizationKey != nil {
+			authorizationKey = *props.AuthorizationKey
 		}
+		d.Set("authorization_key", authorizationKey)
+
+		addressPrefixIPv6 := ""
+		if props.Ipv6CircuitConnectionConfig != nil && props.Ipv6CircuitConnectionConfig.AddressPrefix != nil {
+			addressPrefixIPv6 = *props.Ipv6CircuitConnectionConfig.AddressPrefix
+		}
+		d.Set("address_prefix_ipv6", addressPrefixIPv6)
 
 		if props.PeerExpressRouteCircuitPeering != nil && props.PeerExpressRouteCircuitPeering.ID != nil {
 			circuitPeerPeeringId, err := parse.ExpressRouteCircuitPeeringID(*props.PeerExpressRouteCircuitPeering.ID)
