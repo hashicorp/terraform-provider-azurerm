@@ -178,7 +178,8 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
 				d.Set("value", documentProperties.Value)
 			default:
-				return fmt.Errorf("[FATAL] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+				log.Printf("[WARN] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+				d.Set("value", documentProperties.Value)
 			}
 		}
 	}
