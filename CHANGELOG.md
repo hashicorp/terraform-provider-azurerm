@@ -2,8 +2,9 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_key_vault_secrets` [GH-12147]
-* **New Resource:** `azurerm_data_factory_linked_service_odata` [GH-11556]
+* **New Data Source** `azurerm_key_vault_secrets` [GH-12147]
+* **New Resource** `azurerm_api_management_redis_cache` [GH-12174]
+* **New Resource** `azurerm_data_factory_linked_service_odata` [GH-11556]
 * **New Resource** `azurerm_data_protection_backup_policy_postgresql` [GH-12072]
 * **New Resource** `azurerm_machine_learning_compute_cluster` [GH-11675]
 * **New Resource** `azurerm_eventhub_namespace_customer_managed_key` [GH-12159]
