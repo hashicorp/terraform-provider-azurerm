@@ -73,7 +73,10 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return err
 				}
 				names = append(names, *name)
-				secretList.NextWithContext(ctx)
+				err = secretList.NextWithContext(ctx)
+				if err != nil {
+					return fmt.Errorf("listing secrets on Azure KeyVault %q: %+v", *keyVaultId, err)
+				}
 			}
 		}
 	}
