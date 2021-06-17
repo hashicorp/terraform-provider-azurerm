@@ -122,6 +122,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
