@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
@@ -28,11 +27,6 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
-			},
-
-			"max_results": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
 			},
 
 			"names": {
@@ -62,29 +56,25 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	var secretList keyvault.SecretListResultIterator
-	if maxResults, ok := d.GetOk("max_results"); ok {
-		secretList, err = client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(int32(maxResults.(int))))
-		if err != nil {
-			return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
-		}
-	} else {
-		secretList, err = client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(10000))
-		if err != nil {
-			return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
-		}
+	secretList, err := client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(25))
+	if err != nil {
+		return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
 	}
+
 	d.SetId(keyVaultId.ID())
 
 	var names []string
 
 	if secretList.Response().Value != nil {
-		for _, v := range *secretList.Response().Value {
-			name, err := parseNameFromSecretUrl(*v.ID)
-			if err != nil {
-				return err
+		for secretList.NotDone() {
+			for _, v := range *secretList.Response().Value {
+				name, err := parseNameFromSecretUrl(*v.ID)
+				if err != nil {
+					return err
+				}
+				names = append(names, *name)
+				secretList.NextWithContext(ctx)
 			}
-			names = append(names, *name)
 		}
 	}
 
