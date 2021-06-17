@@ -86,11 +86,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Express Route Circuit Connection. Changing this forces a new Express Route Circuit Connection to be created.
 
-* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering within which this Express Route Circuit Connection should be created. Changing this forces a new Express Route Circuit Connection to be created.
+* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering that this Express Route Circuit Connection connects with. Changing this forces a new Express Route Circuit Connection to be created.
   
 * `peer_peering_id` - (Required) The ID of the peered Express Route Circuit Private Peering. Changing this forces a new Express Route Circuit Connection to be created.
-  
-* `address_prefix_ipv4` - (Required) The IPv4 address space to carve out customer addresses for tunnels.
+
+* `address_prefix_ipv4` - (Required) The IPv4 address space from which to allocate customer address for global reach.
 
 ---
 

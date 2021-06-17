@@ -7,20 +7,19 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type ExpressRouteCircuitConnectionResource struct{}
 
 func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if ok := skipExpressRouteCircuitConnection(); ok {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
@@ -37,10 +36,8 @@ func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" ||
-		os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if ok := skipExpressRouteCircuitConnection(); ok {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
@@ -57,10 +54,8 @@ func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" ||
-		os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if ok := skipExpressRouteCircuitConnection(); ok {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
@@ -77,9 +72,8 @@ func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if ok := skipExpressRouteCircuitConnection(); ok {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
@@ -110,9 +104,8 @@ func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_updateAddressPrefixIPv6(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if ok := skipExpressRouteCircuitConnection(); ok {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
@@ -135,7 +128,7 @@ func TestAccExpressRouteCircuitConnection_updateAddressPrefixIPv6(t *testing.T) 
 	})
 }
 
-func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ExpressRouteCircuitConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -223,7 +216,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = "%[1]s"
   resource_group_name           = "%[2]s"
-  shared_key                    = "SSSSsssssshhhhhItsASecret"
+  shared_key                    = "ItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.1.0/30"
@@ -234,11 +227,19 @@ resource "azurerm_express_route_circuit_peering" "peer_test" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = "%[3]s"
   resource_group_name           = "%[2]s"
-  shared_key                    = "SSSSsssssshhhhhItsASecret"
+  shared_key                    = "ItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.1.0/30"
   vlan_id                       = 100
 }
 `, circuitName1, rg, circuitName2)
+}
+
+func skipExpressRouteCircuitConnection() bool {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+		return true
+	}
+
+	return false
 }
