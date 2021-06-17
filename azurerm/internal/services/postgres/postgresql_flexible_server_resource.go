@@ -116,6 +116,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"private_dns_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 			},
@@ -248,9 +249,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	parameters := postgresqlflexibleservers.Server{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
-			CreateMode:     postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
-			Version:        postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
-			StorageProfile: expandArmServerStorageProfile(d),
+			CreateMode:               postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
+			DelegatedSubnetArguments: expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
+			PrivateDNSZoneArguments:  expandArmServerServerPropertiesPrivateDNSZoneArguments(d.Get("private_dns_zone_id").(string)),
+			Version:                  postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
+			StorageProfile:           expandArmServerStorageProfile(d),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -267,12 +270,6 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
 		parameters.ServerProperties.AvailabilityZone = utils.String(v.(string))
 	}
-
-	delegatedSubnetArguments, privateDNSZoneArguments, err := expandArmServerServerPropertiesSubnet(d.Get("delegated_subnet_id").(string), d.Get("private_dns_zone_id").(string))
-	if err != nil {
-		return err
-	}
-	parameters.ServerProperties.DelegatedSubnetArguments, parameters.ServerProperties.PrivateDNSZoneArguments = delegatedSubnetArguments, privateDNSZoneArguments
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
 		sourceServer, err := parse.FlexibleServerID(v.(string))
@@ -458,23 +455,24 @@ func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandArmServerServerPropertiesSubnet(subnetInput string, privateDnsInput string) (*postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments, *postgresqlflexibleservers.ServerPropertiesPrivateDNSZoneArguments, error) {
-	if subnetInput == "" && privateDnsInput == "" {
-		return nil, nil, nil
-	}
-
-	if subnetInput == "" || privateDnsInput == "" {
-		return nil, nil, fmt.Errorf("`delegated_subnet_id` and `private_dns_zone_id` must be provided together")
+func expandArmServerServerPropertiesDelegatedSubnetArguments(input string) *postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments {
+	if len(input) == 0 {
+		return nil
 	}
 
 	return &postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments{
-			SubnetArmResourceID: utils.String(subnetInput),
-		},
-		&postgresqlflexibleservers.ServerPropertiesPrivateDNSZoneArguments{
-			PrivateDNSZoneArmResourceID: utils.String(privateDnsInput),
-		},
-		nil
+		SubnetArmResourceID: utils.String(input),
+	}
+}
 
+func expandArmServerServerPropertiesPrivateDNSZoneArguments(input string) *postgresqlflexibleservers.ServerPropertiesPrivateDNSZoneArguments {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &postgresqlflexibleservers.ServerPropertiesPrivateDNSZoneArguments{
+		PrivateDNSZoneArmResourceID: utils.String(input),
+	}
 }
 
 func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexibleservers.MaintenanceWindow {
