@@ -1,6 +1,7 @@
 package apimanagement
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -52,6 +53,12 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					if d.Get("content_type") == "application/vnd.ms-azure-apim.swagger.definitions+json" || d.Get("content_type") == "application/vnd.oai.openapi.components+json" {
+						return pluginsdk.SuppressJsonDiff(k, old, new, d)
+					}
+					return old == new
+				},
 			},
 		},
 	}
@@ -95,15 +102,23 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating or updating API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return pluginsdk.RetryableError(fmt.Errorf("Expected schema %q (API Management Service %q / API %q / Resource Group %q) to be created but was in non existent state, retrying", schemaID, serviceName, apiName, resourceGroup))
+			}
+			return pluginsdk.NonRetryableError(fmt.Errorf("Error getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err))
+		}
+		if resp.ID == nil {
+			return pluginsdk.NonRetryableError(fmt.Errorf("Cannot read ID for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err))
+		}
+		d.SetId(*resp.ID)
+		return nil
+	})
 	if err != nil {
-		return fmt.Errorf("retrieving API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("Error getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
-
 	return resourceApiManagementApiSchemaRead(d, meta)
 }
 
@@ -140,10 +155,33 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
 		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
-			d.Set("value", documentProperties.Value)
+			/*
+				As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
+
+				- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
+				- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
+				- OpenApi Schema use application/vnd.oai.openapi.components+json
+				- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
+
+				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
+			*/
+			switch *properties.ContentType {
+			case "application/vnd.ms-azure-apim.swagger.definitions+json", "application/vnd.oai.openapi.components+json":
+				if documentProperties.Definitions != nil {
+					value, err := json.Marshal(documentProperties.Definitions)
+					if err != nil {
+						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, documentProperties.Definitions)
+					}
+					d.Set("value", string(value))
+				}
+			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
+				d.Set("value", documentProperties.Value)
+			default:
+				log.Printf("[WARN] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+				d.Set("value", documentProperties.Value)
+			}
 		}
 	}
-
 	return nil
 }
 
