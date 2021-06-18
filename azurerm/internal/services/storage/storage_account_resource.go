@@ -1491,16 +1491,16 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	storageAccountName := d.Get("name").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetProperties(ctx, resGroup, name, "")
+	resp, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
+		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", storageAccountName, err)
 	}
 
 	// handle the user not having permissions to list the keys
@@ -1511,7 +1511,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resGroup, name, storage.Kerb)
+	keys, err := client.ListKeys(ctx, resourceGroupName, storageAccountName, storage.Kerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool
@@ -1524,12 +1524,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
 		}
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroupName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -1642,27 +1642,27 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	storageClient := meta.(*clients.Client).Storage
-	account, err := storageClient.FindAccount(ctx, name)
+	account, err := storageClient.FindAccount(ctx, storageAccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+		return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", name)
+		return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
 	}
 
 	blobClient := storageClient.BlobServicesClient
 
 	// FileStorage does not support blob settings
 	if resp.Kind != storage.FileStorage {
-		blobProps, err := blobClient.GetServiceProperties(ctx, resGroup, name)
+		blobProps, err := blobClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(blobProps.Response) {
-				return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", name, err)
+				return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", storageAccountName, err)
 			}
 		}
 
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
-			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1670,21 +1670,21 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// FileStorage does not support blob kind, FileStorage Premium is supported
 	if resp.Kind == storage.FileStorage || resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
-		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
+		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
-				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", name, err)
+				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", storageAccountName, err)
 			}
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
-			return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", name, err)
+			return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", storageAccountName, err)
 		}
 	}
 
 	// queue is only available for certain tier and kind (as specified below)
 	if resp.Sku == nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `sku` was nil", name, resGroup)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `sku` was nil", storageAccountName, resourceGroupName)
 	}
 
 	if resp.Sku.Tier == storage.Standard {
@@ -1694,9 +1694,9 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error building Queues Client: %s", err)
 			}
 
-			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, name)
+			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, storageAccountName)
 			if err != nil {
-				return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
+				return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", storageAccountName, err)
 			}
 
 			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
@@ -1711,9 +1711,9 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Kind == storage.StorageV2 || resp.Kind == storage.BlockBlobStorage {
 		storageClient := meta.(*clients.Client).Storage
 
-		account, err := storageClient.FindAccount(ctx, name)
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
@@ -1721,10 +1721,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
 		}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, name)
+		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, storageAccountName)
 		if err != nil {
 			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
-				return fmt.Errorf("Error reading static website for AzureRM Storage Account %q: %+v", name, err)
+				return fmt.Errorf("Error reading static website for AzureRM Storage Account %q: %+v", storageAccountName, err)
 			}
 		}
 
@@ -1732,7 +1732,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err := d.Set("static_website", staticWebsite); err != nil {
-		return fmt.Errorf("Error setting `static_website `for AzureRM Storage Account %q: %+v", name, err)
+		return fmt.Errorf("Error setting `static_website `for AzureRM Storage Account %q: %+v", storageAccountName, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1744,19 +1744,19 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	storageAccountName := d.Get("name").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
 
-	locks.ByName(name, storageAccountResourceName)
-	defer locks.UnlockByName(name, storageAccountResourceName)
+	locks.ByName(storageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
-	read, err := client.GetProperties(ctx, resourceGroup, name, "")
+	read, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroupName, err)
 	}
 
 	// the networking api's only allow a single change to be made to a network layout at once, so let's lock to handle that
@@ -1789,15 +1789,15 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroupName, err)
 		}
 	}
 
 	// remove this from the cache
-	storageClient.RemoveAccountFromCache(name)
+	storageClient.RemoveAccountFromCache(storageAccountName)
 
 	return nil
 }
