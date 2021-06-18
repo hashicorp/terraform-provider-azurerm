@@ -321,17 +321,22 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			// platform level tracing
 			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
-		client, err := clients.Build(context.TODO(), clientBuilder)
+
+		stopCtx, ok := schema.StopContext(ctx) //nolint:SA1019
+		if ok {
+			stopCtx = ctx
+		}
+
+		client, err := clients.Build(stopCtx, clientBuilder)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		client.StopContext = context.TODO()
+		client.StopContext = stopCtx
 
 		if !skipProviderRegistration {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
-			ctx := client.StopContext
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, diag.FromErr(fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
