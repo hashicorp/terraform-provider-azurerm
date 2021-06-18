@@ -63,7 +63,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *pluginsdk.Resource {
 			"categories": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Default:  string(security.Unknown),
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -72,7 +71,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *pluginsdk.Resource {
 						string(security.IdentityAndAccess),
 						string(security.IoT),
 						string(security.Networking),
-						string(security.Unknown),
 					}, false),
 				},
 			},
@@ -229,7 +227,9 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *pluginsdk.ResourceData, 
 		categories := make([]string, 0)
 		if props.Categories != nil {
 			for _, item := range *props.Categories {
-				categories = append(categories, string(item))
+				if string(item) != "Unknown" {
+					categories = append(categories, string(item))
+				}
 			}
 		}
 		d.Set("categories", utils.FlattenStringSlice(&categories))
