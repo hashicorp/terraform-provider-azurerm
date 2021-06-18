@@ -3,6 +3,7 @@ package maintenance
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
@@ -12,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -79,7 +81,8 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 				Default:  string(maintenance.VisibilityCustom),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(maintenance.VisibilityCustom),
-					// string(maintenance.VisibilityPublic), Creating public configurations doesn't appear to be supported
+					// Creating public configurations doesn't appear to be supported, API returns `Public Maintenance Configuration must set correct properties`
+					// string(maintenance.VisibilityPublic),
 				}, false),
 			},
 
@@ -100,14 +103,20 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 						"duration": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"),
+								"duration must match the format HH:mm",
+							),
 						},
 						"time_zone": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.MaintenanceTimeZone(),
 						},
 						"recur_every": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
