@@ -40,13 +40,13 @@ func NewPrivateEndpointConnectionsClientWithBaseURI(baseURI string, subscription
 // privateEndpointConnectionName - the name of the private endpoint connection associated with the Cognitive
 // Services Account
 // properties - the private endpoint connection properties.
-func (client PrivateEndpointConnectionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, privateEndpointConnectionName string, properties PrivateEndpointConnection) (result PrivateEndpointConnection, err error) {
+func (client PrivateEndpointConnectionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, privateEndpointConnectionName string, properties PrivateEndpointConnection) (result PrivateEndpointConnectionsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -74,16 +74,9 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdate(ctx context.Contex
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -99,11 +92,12 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdatePreparer(ctx contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	properties.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -116,8 +110,17 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdatePreparer(ctx contex
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Request) (future PrivateEndpointConnectionsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -125,7 +128,7 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Re
 func (client PrivateEndpointConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -138,13 +141,13 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdateResponder(resp *htt
 // accountName - the name of Cognitive Services account.
 // privateEndpointConnectionName - the name of the private endpoint connection associated with the Cognitive
 // Services Account
-func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, privateEndpointConnectionName string) (result autorest.Response, err error) {
+func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,16 +172,9 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateEndpointConnectionsClient", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateEndpointConnectionsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -194,7 +190,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -209,8 +205,17 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (future PrivateEndpointConnectionsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -218,7 +223,7 @@ func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (
 func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -286,7 +291,7 @@ func (client PrivateEndpointConnectionsClient) GetPreparer(ctx context.Context, 
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -376,7 +381,7 @@ func (client PrivateEndpointConnectionsClient) ListPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
