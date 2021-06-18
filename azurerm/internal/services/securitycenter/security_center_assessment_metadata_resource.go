@@ -60,6 +60,21 @@ func resourceArmSecurityCenterAssessmentMetadata() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"categories": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(security.Compute),
+						string(security.Data),
+						string(security.IdentityAndAccess),
+						string(security.IoT),
+						string(security.Networking),
+					}, false),
+				},
+			},
+
 			"implementation_effort": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -104,10 +119,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// The `category` property doesn't take effect at the service side since the property name is incorrect and it should be `categories`.
-			// To implement this property once the bug is fixed.
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/12297
-
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -144,6 +155,14 @@ func resourceArmSecurityCenterAssessmentMetadataCreate(d *pluginsdk.ResourceData
 			DisplayName:    utils.String(d.Get("display_name").(string)),
 			Severity:       security.Severity(d.Get("severity").(string)),
 		},
+	}
+
+	if v, ok := d.GetOk("categories"); ok {
+		categories := make([]security.Categories, 0)
+		for _, item := range v.(*pluginsdk.Set).List() {
+			categories = append(categories, (security.Categories)(item.(string)))
+		}
+		params.AssessmentMetadataProperties.Categories = &categories
 	}
 
 	if v, ok := d.GetOk("threats"); ok {
@@ -205,6 +224,14 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *pluginsdk.ResourceData, 
 		d.Set("remediation_description", props.RemediationDescription)
 		d.Set("user_impact", string(props.UserImpact))
 
+		categories := make([]string, 0)
+		if props.Categories != nil {
+			for _, item := range *props.Categories {
+				categories = append(categories, string(item))
+			}
+		}
+		d.Set("categories", utils.FlattenStringSlice(&categories))
+
 		threats := make([]string, 0)
 		if props.Threats != nil {
 			for _, item := range *props.Threats {
@@ -245,6 +272,14 @@ func resourceArmSecurityCenterAssessmentMetadataUpdate(d *pluginsdk.ResourceData
 
 	if d.HasChange("severity") {
 		existing.AssessmentMetadataProperties.Severity = security.Severity(d.Get("severity").(string))
+	}
+
+	if d.HasChange("categories") {
+		categories := make([]security.Categories, 0)
+		for _, item := range d.Get("categories").(*pluginsdk.Set).List() {
+			categories = append(categories, (security.Categories)(item.(string)))
+		}
+		existing.AssessmentMetadataProperties.Categories = &categories
 	}
 
 	if d.HasChange("threats") {
