@@ -44,19 +44,22 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 			"display_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.ApiManagementApiPath,
 			},
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -70,6 +73,12 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"revision_description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -171,6 +180,11 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"source_api_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"oauth2_authorization": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -234,6 +248,12 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"version_description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"version_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -256,9 +276,17 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
+	displayName := d.Get("display_name").(string)
+	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
+	protocols := expandApiManagementApiProtocols(protocolsRaw)
+	sourceApiId := d.Get("source_api_id").(string)
 
 	if version != "" && versionSetId == "" {
 		return fmt.Errorf("setting `version` without the required `version_set_id`")
+	}
+
+	if sourceApiId == "" && (displayName == "" || path == "" || len(*protocols) == 0) {
+		return fmt.Errorf("`display_name`, `path`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	if d.IsNewResource() {
@@ -338,12 +366,8 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	description := d.Get("description").(string)
-	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
 	subscriptionRequired := d.Get("subscription_required").(bool)
-
-	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
-	protocols := expandApiManagementApiProtocols(protocolsRaw)
 
 	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
 	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
@@ -371,8 +395,15 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			APIVersion:                    utils.String(version),
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
+			APIRevisionDescription:        utils.String(d.Get("revision_description").(string)),
+			APIVersionDescription:         utils.String(d.Get("version_description").(string)),
+			SourceAPIID:                   utils.String(d.Get("source_api_id").(string)),
 		},
 	}
+
+	//if v,ok:=d.GetOk("source_api_id");ok{
+	//	params.SourceAPIID = utils.String(v.(string))
+	//}
 
 	if versionSetId != "" {
 		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
@@ -448,6 +479,8 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
+		d.Set("revision_description", props.APIRevisionDescription)
+		d.Set("version_description", props.APIVersionDescription)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("setting `protocols`: %s", err)
