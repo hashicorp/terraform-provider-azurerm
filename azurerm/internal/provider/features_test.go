@@ -18,6 +18,9 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
+				CognitiveAccount: features.CognitiveAccountFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
@@ -46,6 +49,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"cognitive_account": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
+					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy":    true,
@@ -83,6 +91,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
+				CognitiveAccount: features.CognitiveAccountFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
@@ -111,6 +122,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"cognitive_account": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+						},
+					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy":    false,
@@ -148,6 +164,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
+				CognitiveAccount: features.CognitiveAccountFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    false,
 					RecoverSoftDeletedKeyVaults: false,
@@ -179,6 +198,71 @@ func TestExpandFeatures(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result, testCase.Expected) {
 			t.Fatalf("Expected %+v but got %+v", result, testCase.Expected)
+		}
+	}
+}
+
+func TestExpandFeaturesCognitiveServices(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"cognitive_account": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				CognitiveAccount: features.CognitiveAccountFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
+			},
+		},
+		{
+			Name: "Purge on Destroy Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"cognitive_account": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				CognitiveAccount: features.CognitiveAccountFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
+			},
+		},
+		{
+			Name: "Purge on Destroy Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"cognitive_account": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				CognitiveAccount: features.CognitiveAccountFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.CognitiveAccount, testCase.Expected.CognitiveAccount) {
+			t.Fatalf("Expected %+v but got %+v", result.CognitiveAccount, testCase.Expected.CognitiveAccount)
 		}
 	}
 }
