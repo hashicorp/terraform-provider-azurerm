@@ -111,7 +111,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 			},
 
 			"bandwidth_in_mbps": {
-				Type:     pluginsdk.TypeInt,
+				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				RequiredWith:  []string{"peering_location", "service_provider_name"},
 				ConflictsWith: []string{"bandwidth_in_gbps", "express_route_port_id"},
