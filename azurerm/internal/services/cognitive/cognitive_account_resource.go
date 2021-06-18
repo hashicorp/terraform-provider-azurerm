@@ -382,7 +382,8 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cognitive.AccountsClient
+	accountsClient := meta.(*clients.Client).Cognitive.AccountsClient
+	deletedAccountsClient := meta.(*clients.Client).Cognitive.DeletedAccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -391,13 +392,30 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// first we need to retrieve it, since we need the location to be able to purge it
+	log.Printf("[DEBUG] Retrieving %s..", *id)
+	account, err := accountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	log.Printf("[DEBUG] Deleting %s..", *id)
+	deleteFuture, err := accountsClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err := deleteFuture.WaitForCompletionRef(ctx, accountsClient.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	// TODO: add a feature flag for this
+	log.Printf("[DEBUG] Purging %s..", *id)
+	purgeFuture, err := deletedAccountsClient.Purge(ctx, *account.Location, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("purging %s: %+v", *id, err)
+	}
+	if err := purgeFuture.WaitForCompletionRef(ctx, deletedAccountsClient.Client); err != nil {
+		return fmt.Errorf("waiting for purge of %s: %+v", *id, err)
 	}
 
 	return nil
