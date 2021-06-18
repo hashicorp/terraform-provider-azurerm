@@ -101,6 +101,18 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 				},
 			},
 
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(signalr.SignalR),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(signalr.SignalR),
+					string(signalr.RawWebSockets),
+					"ServiceCatalog",
+				}, false),
+			},
+
 			"upstream_endpoint": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -232,6 +244,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
+	kind := signalr.ServiceKind(d.Get("kind").(string))
 
 	expandedFeatures := expandSignalRFeatures(featureFlags)
 
@@ -251,6 +264,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Sku:        expandSignalRServiceSku(sku),
 		Tags:       expandedTags,
 		Properties: properties,
+		Kind:       kind,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resourceType)
@@ -300,6 +314,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("name", id.SignalRName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("kind", string(resp.Kind))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
