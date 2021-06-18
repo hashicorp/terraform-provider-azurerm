@@ -971,6 +971,53 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+				"headers": {
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					Computed:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+
+							// lintignore:S018
+							"x_forwarded_host": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_forwarded_for": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_azure_fdid": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_fd_health_probe": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
