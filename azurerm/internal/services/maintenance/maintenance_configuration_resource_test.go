@@ -58,9 +58,16 @@ func TestAccMaintenanceConfiguration_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Public"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
+				check.That(data.ResourceName).Key("window.0.start_date_time").HasValue("5555-12-31 00:00"),
+				check.That(data.ResourceName).Key("window.0.expiration_date_time").HasValue("6666-12-31 00:00"),
+				check.That(data.ResourceName).Key("window.0.duration").HasValue("06:00"),
+				check.That(data.ResourceName).Key("window.0.time_zone").HasValue("Pacific Standard Time"),
+				check.That(data.ResourceName).Key("window.0.recur_every").HasValue("2Days"),
+				check.That(data.ResourceName).Key("properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("properties.description").HasValue("acceptance test"),
 			),
 		},
 		data.ImportStep(),
@@ -79,6 +86,8 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
 				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("window.#").HasValue("0"),
+				check.That(data.ResourceName).Key("properties.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -87,9 +96,16 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Public"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
+				check.That(data.ResourceName).Key("window.0.start_date_time").HasValue("5555-12-31 00:00"),
+				check.That(data.ResourceName).Key("window.0.expiration_date_time").HasValue("6666-12-31 00:00"),
+				check.That(data.ResourceName).Key("window.0.duration").HasValue("06:00"),
+				check.That(data.ResourceName).Key("window.0.time_zone").HasValue("Pacific Standard Time"),
+				check.That(data.ResourceName).Key("window.0.recur_every").HasValue("2Days"),
+				check.That(data.ResourceName).Key("properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("properties.description").HasValue("acceptance test"),
 			),
 		},
 		data.ImportStep(),
@@ -100,6 +116,8 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
 				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("window.#").HasValue("0"),
+				check.That(data.ResourceName).Key("properties.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -171,7 +189,19 @@ resource "azurerm_maintenance_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   scope               = "SQLDB"
-  visibility          = "Public"
+  visibility          = "Custom"
+
+  window {
+    start_date_time      = "5555-12-31 00:00"
+    expiration_date_time = "6666-12-31 00:00"
+    duration             = "06:00"
+    time_zone            = "Pacific Standard Time"
+    recur_every          = "2Days"
+  }
+
+  properties = {
+    description = "acceptance test"
+  }
 
   tags = {
     enV = "TesT"

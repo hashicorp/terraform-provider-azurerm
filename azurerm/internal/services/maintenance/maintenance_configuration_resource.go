@@ -63,7 +63,7 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 				Optional: true,
 				Default:  "All",
 				ValidateFunc: validation.StringInSlice([]string{
-					"All",
+					"All", // All is still accepted by the API
 					string(maintenance.ScopeExtension),
 					string(maintenance.ScopeHost),
 					string(maintenance.ScopeInGuestPatch),
@@ -79,8 +79,47 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 				Default:  string(maintenance.VisibilityCustom),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(maintenance.VisibilityCustom),
-					string(maintenance.VisibilityPublic),
+					// string(maintenance.VisibilityPublic), Creating public configurations doesn't appear to be supported
 				}, false),
+			},
+
+			"window": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"start_date_time": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"expiration_date_time": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+						"duration": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+						"time_zone": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"recur_every": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"properties": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -93,14 +132,6 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	scope := d.Get("scope").(string)
-	visibility := d.Get("visibility").(string)
-	if visibility == string(maintenance.VisibilityPublic) {
-		if !(scope == string(maintenance.ScopeSQLDB) || scope == string(maintenance.ScopeSQLManagedInstance)) {
-			return fmt.Errorf("`scope` must be set to %s or %s when `visibility` is %s", string(maintenance.ScopeSQLDB), string(maintenance.ScopeSQLManagedInstance), visibility)
-		}
-	}
 
 	id := parse.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
@@ -115,13 +146,22 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
+	scope := d.Get("scope").(string)
+	visibility := d.Get("visibility").(string)
+	windowRaw := d.Get("window").([]interface{})
+	window := expandMaintenanceConfigurationWindow(windowRaw)
+
+	extensionProperties := utils.ExpandMapStringPtrString(d.Get("properties").(map[string]interface{}))
+
 	configuration := maintenance.Configuration{
 		Name:     utils.String(id.Name),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ConfigurationProperties: &maintenance.ConfigurationProperties{
-			MaintenanceScope: maintenance.Scope(scope),
-			Visibility:       maintenance.Visibility(visibility),
-			Namespace:        utils.String("Microsoft.Maintenance"),
+			MaintenanceScope:    maintenance.Scope(scope),
+			Visibility:          maintenance.Visibility(visibility),
+			Namespace:           utils.String("Microsoft.Maintenance"),
+			Window:              window,
+			ExtensionProperties: extensionProperties,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -160,6 +200,12 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
 		d.Set("visibility", props.Visibility)
+		d.Set("properties", props.ExtensionProperties)
+
+		window := flattenMaintenanceConfigurationWindow(props.Window)
+		if err := d.Set("window", window); err != nil {
+			return fmt.Errorf("error setting `window`: %+v", err)
+		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -178,4 +224,57 @@ func resourceArmMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
+}
+
+func expandMaintenanceConfigurationWindow(input []interface{}) *maintenance.Window {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	startDateTime := v["start_date_time"].(string)
+	expirationDateTime := v["expiration_date_time"].(string)
+	duration := v["duration"].(string)
+	timeZone := v["time_zone"].(string)
+	recurEvery := v["recur_every"].(string)
+	window := maintenance.Window{
+		StartDateTime:      utils.String(startDateTime),
+		ExpirationDateTime: utils.String(expirationDateTime),
+		Duration:           utils.String(duration),
+		TimeZone:           utils.String(timeZone),
+		RecurEvery:         utils.String(recurEvery),
+	}
+	return &window
+}
+
+func flattenMaintenanceConfigurationWindow(input *maintenance.Window) []interface{} {
+	results := make([]interface{}, 0)
+
+	if v := input; v != nil {
+		output := make(map[string]interface{})
+
+		if startDateTime := v.StartDateTime; startDateTime != nil {
+			output["start_date_time"] = *startDateTime
+		}
+
+		if expirationDateTime := v.ExpirationDateTime; expirationDateTime != nil {
+			output["expiration_date_time"] = *expirationDateTime
+		}
+
+		if duration := v.Duration; duration != nil {
+			output["duration"] = *duration
+		}
+
+		if timeZone := v.TimeZone; timeZone != nil {
+			output["time_zone"] = *timeZone
+		}
+
+		if recurEvery := v.RecurEvery; recurEvery != nil {
+			output["recur_every"] = *recurEvery
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
