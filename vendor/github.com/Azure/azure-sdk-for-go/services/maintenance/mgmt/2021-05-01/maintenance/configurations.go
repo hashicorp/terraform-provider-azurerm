@@ -33,7 +33,7 @@ func NewConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) C
 // CreateOrUpdate sends the create or update request.
 // Parameters:
 // resourceGroupName - resource Group Name
-// resourceName - resource Identifier
+// resourceName - maintenance Configuration Name
 // configuration - the configuration
 func (client ConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, configuration Configuration) (result Configuration, err error) {
 	if tracing.IsEnabled() {
@@ -76,7 +76,7 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -112,7 +112,7 @@ func (client ConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) 
 // Delete sends the delete request.
 // Parameters:
 // resourceGroupName - resource Group Name
-// resourceName - resource Identifier
+// resourceName - maintenance Configuration Name
 func (client ConfigurationsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string) (result Configuration, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationsClient.Delete")
@@ -154,7 +154,7 @@ func (client ConfigurationsClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client ConfigurationsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client ConfigurationsClient) DeleteResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -188,7 +188,7 @@ func (client ConfigurationsClient) DeleteResponder(resp *http.Response) (result 
 // Get sends the get request.
 // Parameters:
 // resourceGroupName - resource Group Name
-// resourceName - resource Identifier
+// resourceName - maintenance Configuration Name
 func (client ConfigurationsClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result Configuration, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationsClient.Get")
@@ -230,7 +230,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,7 +301,7 @@ func (client ConfigurationsClient) ListPreparer(ctx context.Context) (*http.Requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,7 +335,7 @@ func (client ConfigurationsClient) ListResponder(resp *http.Response) (result Li
 // UpdateMethod sends the update method request.
 // Parameters:
 // resourceGroupName - resource Group Name
-// resourceName - resource Identifier
+// resourceName - maintenance Configuration Name
 // configuration - the configuration
 func (client ConfigurationsClient) UpdateMethod(ctx context.Context, resourceGroupName string, resourceName string, configuration Configuration) (result Configuration, err error) {
 	if tracing.IsEnabled() {
@@ -378,7 +378,7 @@ func (client ConfigurationsClient) UpdateMethodPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

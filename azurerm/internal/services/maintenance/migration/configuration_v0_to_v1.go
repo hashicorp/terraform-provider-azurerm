@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -37,7 +36,7 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"scope": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(maintenance.ScopeAll),
+			Default:  "All",
 		},
 
 		"tags": {

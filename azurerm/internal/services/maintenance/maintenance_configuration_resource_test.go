@@ -26,6 +26,7 @@ func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 			),
 		},
 		data.ImportStep(),
@@ -56,9 +57,10 @@ func TestAccMaintenanceConfiguration_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Public"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
 			),
 		},
 		data.ImportStep(),
@@ -75,6 +77,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -83,7 +86,8 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Public"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
 			),
@@ -94,6 +98,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -131,6 +136,7 @@ resource "azurerm_maintenance_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   scope               = "All"
+  visibility          = "Custom"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -144,6 +150,7 @@ resource "azurerm_maintenance_configuration" "import" {
   resource_group_name = azurerm_maintenance_configuration.test.resource_group_name
   location            = azurerm_maintenance_configuration.test.location
   scope               = azurerm_maintenance_configuration.test.scope
+  visibility          = azurerm_maintenance_configuration.test.visibility
 }
 `, r.basic(data))
 }
@@ -163,10 +170,11 @@ resource "azurerm_maintenance_configuration" "test" {
   name                = "acctest-MC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  scope               = "Host"
+  scope               = "SQLDB"
+  visibility          = "Public"
 
   tags = {
-    env = "TesT"
+    enV = "TesT"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

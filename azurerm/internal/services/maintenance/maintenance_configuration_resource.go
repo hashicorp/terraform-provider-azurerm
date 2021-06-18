@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
+	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -62,26 +61,29 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 			"scope": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(maintenance.ScopeAll),
+				Default:  "All",
 				ValidateFunc: validation.StringInSlice([]string{
-					string(maintenance.ScopeAll),
+					"All",
+					string(maintenance.ScopeExtension),
 					string(maintenance.ScopeHost),
-					string(maintenance.ScopeInResource),
-					string(maintenance.ScopeResource),
+					string(maintenance.ScopeInGuestPatch),
+					string(maintenance.ScopeOSImage),
+					string(maintenance.ScopeSQLDB),
+					string(maintenance.ScopeSQLManagedInstance),
 				}, false),
 			},
 
-			// There's a bug in the Azure API where the the key of tags is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/9075
-			// use custom tags defition here to prevent inputting upper case key
-			"tags": {
-				Type:         pluginsdk.TypeMap,
-				Optional:     true,
-				ValidateFunc: validate.TagsWithLowerCaseKey,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
+			"visibility": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(maintenance.VisibilityCustom),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(maintenance.VisibilityCustom),
+					string(maintenance.VisibilityPublic),
+				}, false),
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -91,6 +93,14 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	scope := d.Get("scope").(string)
+	visibility := d.Get("visibility").(string)
+	if visibility == string(maintenance.VisibilityPublic) {
+		if !(scope == string(maintenance.ScopeSQLDB) || scope == string(maintenance.ScopeSQLManagedInstance)) {
+			return fmt.Errorf("`scope` must be set to %s or %s when `visibility` is %s", string(maintenance.ScopeSQLDB), string(maintenance.ScopeSQLManagedInstance), visibility)
+		}
+	}
 
 	id := parse.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
@@ -109,7 +119,8 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 		Name:     utils.String(id.Name),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ConfigurationProperties: &maintenance.ConfigurationProperties{
-			MaintenanceScope: maintenance.Scope(d.Get("scope").(string)),
+			MaintenanceScope: maintenance.Scope(scope),
+			Visibility:       maintenance.Visibility(visibility),
 			Namespace:        utils.String("Microsoft.Maintenance"),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -148,6 +159,7 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
+		d.Set("visibility", props.Visibility)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

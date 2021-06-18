@@ -13,7 +13,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
 
 // ApplyUpdate apply Update request
 type ApplyUpdate struct {
@@ -26,6 +26,8 @@ type ApplyUpdate struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ApplyUpdate.
@@ -82,6 +84,15 @@ func (au *ApplyUpdate) UnmarshalJSON(body []byte) error {
 				}
 				au.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				au.SystemData = &systemData
+			}
 		}
 	}
 
@@ -90,7 +101,7 @@ func (au *ApplyUpdate) UnmarshalJSON(body []byte) error {
 
 // ApplyUpdateProperties properties for apply update
 type ApplyUpdateProperties struct {
-	// Status - The status. Possible values include: 'Pending', 'InProgress', 'Completed', 'RetryNow', 'RetryLater'
+	// Status - The status. Possible values include: 'UpdateStatusPending', 'UpdateStatusInProgress', 'UpdateStatusCompleted', 'UpdateStatusRetryNow', 'UpdateStatusRetryLater'
 	Status UpdateStatus `json:"status,omitempty"`
 	// ResourceID - The resourceId
 	ResourceID *string `json:"resourceId,omitempty"`
@@ -113,6 +124,8 @@ type Configuration struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Configuration.
@@ -193,6 +206,15 @@ func (c *Configuration) UnmarshalJSON(body []byte) error {
 				}
 				c.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				c.SystemData = &systemData
+			}
 		}
 	}
 
@@ -212,6 +234,8 @@ type ConfigurationAssignment struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ConfigurationAssignment.
@@ -280,6 +304,15 @@ func (ca *ConfigurationAssignment) UnmarshalJSON(body []byte) error {
 				}
 				ca.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				ca.SystemData = &systemData
+			}
 		}
 	}
 
@@ -300,8 +333,12 @@ type ConfigurationProperties struct {
 	Namespace *string `json:"namespace,omitempty"`
 	// ExtensionProperties - Gets or sets extensionProperties of the maintenanceConfiguration
 	ExtensionProperties map[string]*string `json:"extensionProperties"`
-	// MaintenanceScope - Gets or sets maintenanceScope of the configuration. Possible values include: 'ScopeAll', 'ScopeHost', 'ScopeResource', 'ScopeInResource'
+	// MaintenanceScope - Gets or sets maintenanceScope of the configuration. Possible values include: 'ScopeHost', 'ScopeOSImage', 'ScopeExtension', 'ScopeInGuestPatch', 'ScopeSQLDB', 'ScopeSQLManagedInstance'
 	MaintenanceScope Scope `json:"maintenanceScope,omitempty"`
+	// Window - Definition of a MaintenanceWindow
+	*Window `json:"maintenanceWindow,omitempty"`
+	// Visibility - Gets or sets the visibility of the configuration. The default value is 'Custom'. Possible values include: 'VisibilityCustom', 'VisibilityPublic'
+	Visibility Visibility `json:"visibility,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ConfigurationProperties.
@@ -316,7 +353,73 @@ func (cp ConfigurationProperties) MarshalJSON() ([]byte, error) {
 	if cp.MaintenanceScope != "" {
 		objectMap["maintenanceScope"] = cp.MaintenanceScope
 	}
+	if cp.Window != nil {
+		objectMap["maintenanceWindow"] = cp.Window
+	}
+	if cp.Visibility != "" {
+		objectMap["visibility"] = cp.Visibility
+	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ConfigurationProperties struct.
+func (cp *ConfigurationProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "namespace":
+			if v != nil {
+				var namespace string
+				err = json.Unmarshal(*v, &namespace)
+				if err != nil {
+					return err
+				}
+				cp.Namespace = &namespace
+			}
+		case "extensionProperties":
+			if v != nil {
+				var extensionProperties map[string]*string
+				err = json.Unmarshal(*v, &extensionProperties)
+				if err != nil {
+					return err
+				}
+				cp.ExtensionProperties = extensionProperties
+			}
+		case "maintenanceScope":
+			if v != nil {
+				var maintenanceScope Scope
+				err = json.Unmarshal(*v, &maintenanceScope)
+				if err != nil {
+					return err
+				}
+				cp.MaintenanceScope = maintenanceScope
+			}
+		case "maintenanceWindow":
+			if v != nil {
+				var window Window
+				err = json.Unmarshal(*v, &window)
+				if err != nil {
+					return err
+				}
+				cp.Window = &window
+			}
+		case "visibility":
+			if v != nil {
+				var visibility Visibility
+				err = json.Unmarshal(*v, &visibility)
+				if err != nil {
+					return err
+				}
+				cp.Visibility = visibility
+			}
+		}
+	}
+
+	return nil
 }
 
 // Error an error response received from the Azure Maintenance service.
@@ -331,6 +434,13 @@ type ErrorDetails struct {
 	Code *string `json:"code,omitempty"`
 	// Message - Human-readable representation of the error.
 	Message *string `json:"message,omitempty"`
+}
+
+// ListApplyUpdate response for ApplyUpdate list
+type ListApplyUpdate struct {
+	autorest.Response `json:"-"`
+	// Value - The list of apply updates
+	Value *[]ApplyUpdate `json:"value,omitempty"`
 }
 
 // ListConfigurationAssignmentsResult response for ConfigurationAssignments list
@@ -364,6 +474,8 @@ type Operation struct {
 	Origin *string `json:"origin,omitempty"`
 	// Properties - Properties of the operation
 	Properties interface{} `json:"properties,omitempty"`
+	// IsDataAction - Indicates whether the operation is a data action
+	IsDataAction *bool `json:"isDataAction,omitempty"`
 }
 
 // OperationInfo information about an operation
@@ -393,6 +505,8 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -401,13 +515,29 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
 // Update maintenance update on a resource
 type Update struct {
-	// MaintenanceScope - The impact area. Possible values include: 'ScopeAll', 'ScopeHost', 'ScopeResource', 'ScopeInResource'
+	// MaintenanceScope - The impact area. Possible values include: 'ScopeHost', 'ScopeOSImage', 'ScopeExtension', 'ScopeInGuestPatch', 'ScopeSQLDB', 'ScopeSQLManagedInstance'
 	MaintenanceScope Scope `json:"maintenanceScope,omitempty"`
-	// ImpactType - The impact type. Possible values include: 'None', 'Freeze', 'Restart', 'Redeploy'
+	// ImpactType - The impact type. Possible values include: 'ImpactTypeNone', 'ImpactTypeFreeze', 'ImpactTypeRestart', 'ImpactTypeRedeploy'
 	ImpactType ImpactType `json:"impactType,omitempty"`
-	// Status - The status. Possible values include: 'Pending', 'InProgress', 'Completed', 'RetryNow', 'RetryLater'
+	// Status - The status. Possible values include: 'UpdateStatusPending', 'UpdateStatusInProgress', 'UpdateStatusCompleted', 'UpdateStatusRetryNow', 'UpdateStatusRetryLater'
 	Status UpdateStatus `json:"status,omitempty"`
 	// ImpactDurationInSec - Duration of impact in seconds
 	ImpactDurationInSec *int32 `json:"impactDurationInSec,omitempty"`
@@ -514,4 +644,18 @@ func (u *Update) UnmarshalJSON(body []byte) error {
 type UpdateProperties struct {
 	// ResourceID - The resourceId
 	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+// Window definition of a MaintenanceWindow
+type Window struct {
+	// StartDateTime - Effective start date of the maintenance window in YYYY-MM-DD hh:mm format. The start date can be set to either the current date or future date. The window will be created in the time zone provided and adjusted to daylight savings according to that time zone.
+	StartDateTime *string `json:"startDateTime,omitempty"`
+	// ExpirationDateTime - Effective expiration date of the maintenance window in YYYY-MM-DD hh:mm format. The window will be created in the time zone provided and adjusted to daylight savings according to that time zone. Expiration date must be set to a future date. If not provided, it will be set to the maximum datetime 9999-12-31 23:59:59.
+	ExpirationDateTime *string `json:"expirationDateTime,omitempty"`
+	// Duration - Duration of the maintenance window in HH:mm format. If not provided, default value will be used based on maintenance scope provided. Example: 05:00.
+	Duration *string `json:"duration,omitempty"`
+	// TimeZone - Name of the timezone. List of timezones can be obtained by executing [System.TimeZoneInfo]::GetSystemTimeZones() in PowerShell. Example: Pacific Standard Time, UTC, W. Europe Standard Time, Korea Standard Time, Cen. Australia Standard Time.
+	TimeZone *string `json:"timeZone,omitempty"`
+	// RecurEvery - Rate at which a Maintenance window is expected to recur. The rate can be expressed as daily, weekly, or monthly schedules. Daily schedule are formatted as recurEvery: [Frequency as integer]['Day(s)']. If no frequency is provided, the default frequency is 1. Daily schedule examples are recurEvery: Day, recurEvery: 3Days.  Weekly schedule are formatted as recurEvery: [Frequency as integer]['Week(s)'] [Optional comma separated list of weekdays Monday-Sunday]. Weekly schedule examples are recurEvery: 3Weeks, recurEvery: Week Saturday,Sunday. Monthly schedules are formatted as [Frequency as integer]['Month(s)'] [Comma separated list of month days] or [Frequency as integer]['Month(s)'] [Week of Month (First, Second, Third, Fourth, Last)] [Weekday Monday-Sunday]. Monthly schedule examples are recurEvery: Month, recurEvery: 2Months, recurEvery: Month day23,day24, recurEvery: Month Last Sunday, recurEvery: Month Fourth Monday.
+	RecurEvery *string `json:"recurEvery,omitempty"`
 }

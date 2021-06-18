@@ -19,9 +19,10 @@ func TestAccMaintenanceConfigurationDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Public"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
 			),
 		},
 	})

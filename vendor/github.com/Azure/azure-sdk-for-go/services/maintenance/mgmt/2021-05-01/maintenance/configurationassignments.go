@@ -83,7 +83,7 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdatePreparer(ctx context.
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -172,7 +172,7 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateParentPreparer(ctx co
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -256,7 +256,7 @@ func (client ConfigurationAssignmentsClient) DeletePreparer(ctx context.Context,
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -280,7 +280,7 @@ func (client ConfigurationAssignmentsClient) DeleteSender(req *http.Request) (*h
 func (client ConfigurationAssignmentsClient) DeleteResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -342,7 +342,7 @@ func (client ConfigurationAssignmentsClient) DeleteParentPreparer(ctx context.Co
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -366,7 +366,7 @@ func (client ConfigurationAssignmentsClient) DeleteParentSender(req *http.Reques
 func (client ConfigurationAssignmentsClient) DeleteParentResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -422,7 +422,7 @@ func (client ConfigurationAssignmentsClient) ListPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -506,7 +506,7 @@ func (client ConfigurationAssignmentsClient) ListParentPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
