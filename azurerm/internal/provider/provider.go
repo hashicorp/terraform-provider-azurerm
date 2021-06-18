@@ -323,7 +323,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		stopCtx, ok := schema.StopContext(ctx) //nolint:SA1019
-		if ok {
+		if !ok {
 			stopCtx = ctx
 		}
 
