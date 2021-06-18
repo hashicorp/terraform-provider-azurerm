@@ -428,6 +428,10 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
+	if d.HasChange("policy_definition_group") {
+		existing.SetDefinitionProperties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(d.Get("policy_definition_group").(*pluginsdk.Set).List())
+	}
+
 	if d.HasChange("policy_definitions") {
 		var policyDefinitions []policy.DefinitionReference
 		err := json.Unmarshal([]byte(d.Get("policy_definitions").(string)), &policyDefinitions)
@@ -620,7 +624,6 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d *pluginsdk.Resour
 			PolicyDefinitionID:          utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_definition_id", i)).(string)),
 			Parameters:                  parameters,
 			PolicyDefinitionReferenceID: utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.reference_id", i)).(string)),
-			GroupNames:                  utils.ExpandStringSlice(d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_group_names", i)).(*pluginsdk.Set).List()),
 		})
 	}
 
