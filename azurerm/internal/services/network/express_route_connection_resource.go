@@ -67,33 +67,27 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			// Note: when the `routing` property isn't specified, the `associated_route_table_id` property and the `propagated_route_table` property would be set with the default value.
-			// As the `routing` property has default value, so it has to add the `ConfigMode` attribute to roll back to the default value after the `routing` property is specified.
 			"routing": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// Note: When the `associated_route_table_id` property isn't specified, it has default value. So it has to add the `Computed` attribute to ignore the diff.
-						// But if the `Computed` attribute is added, it cannot be rolled back to default value after this property is specified. So the `Computed` attribute has to be removed from schema.
 						"associated_route_table_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.Any(validate.HubRouteTableID, validation.StringIsEmpty),
+							Computed:     true,
+							ValidateFunc: validate.HubRouteTableID,
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 						},
 
 						"propagated_route_table": {
-							Type:       pluginsdk.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
-								// Note: If it only converts one of `labels` and `route_table_ids` to default value, it's not meaningful.
-								// So they are added `Computed` attribute.
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
 										Type:     pluginsdk.TypeSet,
@@ -103,19 +97,22 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 
 									"route_table_ids": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validate.HubRouteTableID,
 										},
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 						},
 					},
 				},
@@ -163,9 +160,12 @@ func resourceExpressRouteConnectionCreateUpdate(d *pluginsdk.ResourceData, meta 
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
 			},
 			EnableInternetSecurity: utils.Bool(d.Get("enable_internet_security").(bool)),
-			RoutingConfiguration:   expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:          utils.Int32(int32(d.Get("routing_weight").(int))),
 		},
+	}
+
+	if v, ok := d.GetOk("routing"); ok {
+		parameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
