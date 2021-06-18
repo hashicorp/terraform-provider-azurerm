@@ -70,8 +70,8 @@ func TestAccAppServicePlanDataSource_basicWindowsContainer(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "xenon"),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
-				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "PremiumContainer"),
-				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "PC2"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "PremiumV3"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "P1v3"),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "is_xenon", "true"),
 			),
 		},
@@ -199,8 +199,8 @@ resource "azurerm_app_service_plan" "test" {
   kind                = "xenon"
 
   sku {
-    tier = "PremiumContainer"
-    size = "PC2"
+    tier = "PremiumV3"
+    size = "P1v3"
   }
 }
 

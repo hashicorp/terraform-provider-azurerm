@@ -390,24 +390,13 @@ func TestAccAppService_connectionStrings(t *testing.T) {
 			Config: r.connectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.connectionStringsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
 		data.ImportStep(),
@@ -5315,8 +5304,8 @@ resource "azurerm_app_service_plan" "test" {
   kind                = "xenon"
 
   sku {
-    tier = "PremiumContainer"
-    size = "PC2"
+    tier = "PremiumV3"
+    size = "P1v3"
   }
 }
 
