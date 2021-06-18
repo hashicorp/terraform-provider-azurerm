@@ -1,38 +1,38 @@
-## 2.64.0 (Unreleased)
+## 2.64.0 (June 18, 2021)
 
 FEATURES:
 
-* **New Data Source** `azurerm_key_vault_secrets` [GH-12147]
-* **New Resource** `azurerm_api_management_redis_cache` [GH-12174]
-* **New Resource** `azurerm_data_factory_linked_service_odata` [GH-11556]
-* **New Resource** `azurerm_data_protection_backup_policy_postgresql` [GH-12072]
-* **New Resource** `azurerm_machine_learning_compute_cluster` [GH-11675]
-* **New Resource** `azurerm_eventhub_namespace_customer_managed_key` [GH-12159]
-* **New Resource** `azurerm_virtual_desktop_application` [GH-12077]
+* **New Data Source** `azurerm_key_vault_secrets` ([#12147](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12147))
+* **New Resource** `azurerm_api_management_redis_cache` ([#12174](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12174))
+* **New Resource** `azurerm_data_factory_linked_service_odata` ([#11556](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11556))
+* **New Resource** `azurerm_data_protection_backup_policy_postgresql` ([#12072](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12072))
+* **New Resource** `azurerm_machine_learning_compute_cluster` ([#11675](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11675))
+* **New Resource** `azurerm_eventhub_namespace_customer_managed_key` ([#12159](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12159))
+* **New Resource** `azurerm_virtual_desktop_application` ([#12077](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12077))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v55.2.0` of `github.com/Azure/azure-sdk-for-go` [GH-12153]
-* dependencies: updating `synapse` to use API Version `2021-03-01` [GH-12183]
-* `azurerm_api_management` - support for the `client_certificate_enabled`, `gateway_disabled`, `min_api_version`, and `zones` propeties [GH-12125]
-* `azurerm_api_management_api_schema` - prevent plan not empty after apply for json definitions  [GH-12039]
-* `azurerm_application_gateway` - correctly poopulat the `identity` block [GH-12226]
-* `azurerm_container_registry` - support for the `zone_redundancy_enabled` field [GH-11706]
-* `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block [GH-11625]
-* `azurerm_cosmos_gremlin_graph` - support for the `spatial_index` property [GH-12176]
-* `azurerm_data_factory` - support for `global_parameter` [GH-12178]
-* `azurerm_kubernetes_cluster` - support for the `kubelet_config` and `linux_os_config` blocks [GH-11119]
-* `azurerm_monitor_metric_alert` - support the `StartsWith` dimension operator [GH-12181]
-* `azurerm_private_link_service`  - changing `load_balancer_frontend_ip_configuration_ids` list no longer creates a new resource [GH-12250]
-* `azurerm_stream_analytics_job` - supports for the `identity` block [GH-12171]
-* `azurerm_storage_account` - support for the `share_properties` block [GH-12103]
-* `azurerm_synapse_workspace` - support for the `data_exfiltration_protection_enabled` property [GH-12183]
-* `azurerm_synapse_role_assignment` - support for scopes and new role types [GH-11690]
+* dependencies: updating to `v55.2.0` of `github.com/Azure/azure-sdk-for-go` ([#12153](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12153))
+* dependencies: updating `synapse` to use API Version `2021-03-01` ([#12183](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12183))
+* `azurerm_api_management` - support for the `client_certificate_enabled`, `gateway_disabled`, `min_api_version`, and `zones` propeties ([#12125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12125))
+* `azurerm_api_management_api_schema` - prevent plan not empty after apply for json definitions  ([#12039](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12039))
+* `azurerm_application_gateway` - correctly poopulat the `identity` block ([#12226](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12226))
+* `azurerm_container_registry` - support for the `zone_redundancy_enabled` field ([#11706](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11706))
+* `azurerm_cosmosdb_sql_container` - support for the `spatial_index` block ([#11625](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11625))
+* `azurerm_cosmos_gremlin_graph` - support for the `spatial_index` property ([#12176](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12176))
+* `azurerm_data_factory` - support for `global_parameter` ([#12178](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12178))
+* `azurerm_kubernetes_cluster` - support for the `kubelet_config` and `linux_os_config` blocks ([#11119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11119))
+* `azurerm_monitor_metric_alert` - support the `StartsWith` dimension operator ([#12181](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12181))
+* `azurerm_private_link_service`  - changing `load_balancer_frontend_ip_configuration_ids` list no longer creates a new resource ([#12250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12250))
+* `azurerm_stream_analytics_job` - supports for the `identity` block ([#12171](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12171))
+* `azurerm_storage_account` - support for the `share_properties` block ([#12103](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12103))
+* `azurerm_synapse_workspace` - support for the `data_exfiltration_protection_enabled` property ([#12183](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12183))
+* `azurerm_synapse_role_assignment` - support for scopes and new role types ([#11690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11690))
 
 BUG FIXES:
 
-* `azurerm_synapse_role_assignment` - support new roles and scopes [GH-11690]
-* `azurerm_lb` - fix zone behaviour bug introduced in recent API upgrade [GH-12208]
+* `azurerm_synapse_role_assignment` - support new roles and scopes ([#11690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11690))
+* `azurerm_lb` - fix zone behaviour bug introduced in recent API upgrade ([#12208](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12208))
 
 ## 2.63.0 (June 11, 2021)
 
