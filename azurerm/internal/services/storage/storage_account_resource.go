@@ -239,6 +239,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"allow_shared_key_access": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 			"network_rules": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -894,15 +899,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
+	allowSharedKeyAccess := d.Get("allow_shared_key_access").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-	// this is the default behavior for the resource if the attribute is nil
-	// we are making this change in Terraform https://github.com/terraform-providers/terraform-provider-azurerm/issues/11689
-	// because the portal UI team has a bug in their code ignoring the ARM API documention which state that nil is true
-	// TODO: Remove code when Portal UI team fixes their code
-	allowSharedKeyAccess := true
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -916,8 +917,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
 			IsHnsEnabled:           &isHnsEnabled,
 			EnableNfsV3:            &nfsV3Enabled,
-			// TODO: Remove AllowSharedKeyAcces assignment when Portal UI team fixes their code (e.g. nil is true)
-			AllowSharedKeyAccess: &allowSharedKeyAccess,
+			AllowSharedKeyAccess:   &allowSharedKeyAccess,
 		},
 	}
 
@@ -1152,8 +1152,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AllowSharedKeyAccess can only be true due to issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/11460
-	// if value is nil that brakes the Portal UI as reported in https://github.com/terraform-providers/terraform-provider-azurerm/issues/11689
+	// If AllowSharedKeyAccess is nil that brakes the Portal UI as reported in https://github.com/terraform-providers/terraform-provider-azurerm/issues/11689
 	// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manafests itself in the Portal UI
 	// when a storage account is created by terraform that the AllowSharedKeyAccess is Disabled when it is actually Enabled, thus confusing out customers
 	// to fix this, I have added this code to explicitly to set the value to true if is nil to workaround the Portal UI bug for our customers.
