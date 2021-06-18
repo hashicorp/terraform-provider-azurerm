@@ -107,8 +107,12 @@ func TestAccApiManagement_complete(t *testing.T) {
 			ImportState:       true,
 			ImportStateVerify: true,
 			ImportStateVerifyIgnore: []string{
-				"certificate.#.encoded_certificate",
-				"certificate.#.certificate_password",
+				"certificate.0.certificate_password",
+				"certificate.0.encoded_certificate",
+				"certificate.1.certificate_password",
+				"certificate.1.encoded_certificate",
+				"certificate.2.encoded_certificate",
+				"certificate.3.encoded_certificate",
 				"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 				"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive

@@ -866,7 +866,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
 		d.Set("gateway_disabled", props.DisableGateway)
 
-		d.Set("certificate", flattenAPIManagementCertificates(d,props.Certificates))
+		d.Set("certificate", flattenAPIManagementCertificates(d, props.Certificates))
 
 		if resp.Sku != nil && resp.Sku.Name != "" {
 			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
@@ -1787,10 +1787,10 @@ func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apima
 			"store_name":              string(input.StoreName),
 			"certificate_information": schemaz.FlattenApiManagementCertificate(input.Certificate),
 		}
-		if v,ok:= d.GetOk(fmt.Sprintf("certificate.%d.certificate_password",i));ok{
+		if v, ok := d.GetOk(fmt.Sprintf("certificate.%d.certificate_password", i)); ok {
 			output["certificate_password"] = v.(string)
 		}
-		if v,ok:=d.GetOk(fmt.Sprintf("certificate.%d.encoded_certificate",i));ok{
+		if v, ok := d.GetOk(fmt.Sprintf("certificate.%d.encoded_certificate", i)); ok {
 			output["encoded_certificate"] = v.(string)
 		}
 		outputs = append(outputs, output)
