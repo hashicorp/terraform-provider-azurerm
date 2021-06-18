@@ -18,9 +18,7 @@ import (
 type ExpressRouteCircuitConnectionResource struct{}
 
 func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
-	if ok := skipExpressRouteCircuitConnection(); ok {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-	}
+	skipExpressRouteCircuitConnection(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
@@ -36,9 +34,7 @@ func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
-	if ok := skipExpressRouteCircuitConnection(); ok {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-	}
+	skipExpressRouteCircuitConnection(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
@@ -54,9 +50,7 @@ func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
-	if ok := skipExpressRouteCircuitConnection(); ok {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-	}
+	skipExpressRouteCircuitConnection(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
@@ -72,9 +66,7 @@ func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
-	if ok := skipExpressRouteCircuitConnection(); ok {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-	}
+	skipExpressRouteCircuitConnection(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
@@ -104,9 +96,7 @@ func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_updateAddressPrefixIPv6(t *testing.T) {
-	if ok := skipExpressRouteCircuitConnection(); ok {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-	}
+	skipExpressRouteCircuitConnection(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
@@ -236,10 +226,8 @@ resource "azurerm_express_route_circuit_peering" "peer_test" {
 `, circuitName1, rg, circuitName2)
 }
 
-func skipExpressRouteCircuitConnection() bool {
+func skipExpressRouteCircuitConnection(t *testing.T) {
 	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
-		return true
+		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
 	}
-
-	return false
 }

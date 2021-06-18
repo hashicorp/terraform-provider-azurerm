@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -169,12 +169,7 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {
 		d.Set("address_prefix_ipv4", props.AddressPrefix)
-
-		authorizationKey := ""
-		if props.AuthorizationKey != nil {
-			authorizationKey = *props.AuthorizationKey
-		}
-		d.Set("authorization_key", authorizationKey)
+		d.Set("authorization_key", props.AuthorizationKey)
 
 		addressPrefixIPv6 := ""
 		if props.Ipv6CircuitConnectionConfig != nil && props.Ipv6CircuitConnectionConfig.AddressPrefix != nil {
