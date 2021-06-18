@@ -181,8 +181,9 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 
 			"source_api_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.ApiID,
 			},
 
 			"oauth2_authorization": {
@@ -285,8 +286,8 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `version` without the required `version_set_id`")
 	}
 
-	if sourceApiId == "" && (displayName == "" || path == "" || len(*protocols) == 0) {
-		return fmt.Errorf("`display_name`, `path`, `protocols` are required when `source_api_id` is not set")
+	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
+		return fmt.Errorf("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	if d.IsNewResource() {
@@ -387,7 +388,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			APIType:                       apiType,
 			SoapAPIType:                   soapApiType,
 			Description:                   utils.String(description),
-			DisplayName:                   utils.String(displayName),
 			Path:                          utils.String(path),
 			Protocols:                     protocols,
 			ServiceURL:                    utils.String(serviceUrl),
@@ -397,13 +397,16 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			AuthenticationSettings:        authenticationSettings,
 			APIRevisionDescription:        utils.String(d.Get("revision_description").(string)),
 			APIVersionDescription:         utils.String(d.Get("version_description").(string)),
-			SourceAPIID:                   utils.String(d.Get("source_api_id").(string)),
 		},
 	}
 
-	//if v,ok:=d.GetOk("source_api_id");ok{
-	//	params.SourceAPIID = utils.String(v.(string))
-	//}
+	if sourceApiId != "" {
+		params.APICreateOrUpdateProperties.SourceAPIID = &sourceApiId
+	}
+
+	if displayName != "" {
+		params.APICreateOrUpdateProperties.DisplayName = &displayName
+	}
 
 	if versionSetId != "" {
 		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
@@ -534,6 +537,9 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func expandApiManagementApiProtocols(input []interface{}) *[]apimanagement.Protocol {
+	if len(input) == 0 {
+		return nil
+	}
 	results := make([]apimanagement.Protocol, 0)
 
 	for _, v := range input {

@@ -56,13 +56,15 @@ The following arguments are supported:
 
 * `revision` - (Required) The Revision which used for this API.
 
-* `display_name` - (Required) The display name of the API.
-
-* `path` - (Required) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of its resource paths within the API Management Service.
-
-* `protocols` - (Required) A list of protocols the operations in this API can be invoked. Possible values are `http` and `https`.
-
 ---
+
+* `display_name` - (Optional) The display name of the API.
+
+* `path` - (Optional) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of its resource paths within the API Management Service.
+
+* `protocols` - (Optional) A list of protocols the operations in this API can be invoked. Possible values are `http` and `https`.
+
+-> **NOTE:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
 
 * `description` - (Optional) A description of the API Management API, which may include HTML formatting tags.
 
@@ -85,6 +87,12 @@ The following arguments are supported:
 * `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
 
 -> **NOTE:** When `version` is set, `version_set_id` must also be specified
+
+* `revision_description` - (Optional) The description of the Api Revision of the API Management API.
+
+* `version_description` - (Optional) The description of the Api Version of the API Management API.
+
+* `source_api_id` - (Optional) The API id of the source API, which could be in format `azurerm_api_management_api.example.id` or in format `azurerm_api_management_api.example.id;rev=1`
 
 ---
 

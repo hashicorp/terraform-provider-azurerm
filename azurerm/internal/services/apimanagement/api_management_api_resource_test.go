@@ -302,7 +302,22 @@ func TestAccApiManagementApi_createRevisionFromExisting(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("source_api_id"),
+	})
+}
+
+func TestAccApiManagementApi_createRevisionFromExistingRevision(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "revision")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createRevisionFromExistingRevision(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_api_id"),
 	})
 }
 
@@ -628,7 +643,7 @@ resource "azurerm_api_management_api" "version" {
   version_set_id      = azurerm_api_management_api_version_set.test.id
   version_description = "Create Echo API into a new Version using Existing Version Set and Copy all Operations."
 }
-`, r.basic(data), data.RandomInteger)
+`, r.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementApiResource) createRevisionFromExisting(data acceptance.TestData) string {
@@ -644,6 +659,21 @@ resource "azurerm_api_management_api" "revision" {
   revision_description = "Creating a Revision of an existing API"
 }
 `, r.basic(data), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) createRevisionFromExistingRevision(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "revision" {
+  name                 = "acctestRevision-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  api_management_name  = azurerm_api_management.test.name
+  revision             = "18"
+  source_api_id        = "${azurerm_api_management_api.test.id};rev=3"
+  revision_description = "Creating a Revision of an existing API"
+}
+`, r.complete(data), data.RandomInteger)
 }
 
 func (ApiManagementApiResource) template(data acceptance.TestData) string {
