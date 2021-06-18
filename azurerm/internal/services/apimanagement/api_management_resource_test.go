@@ -282,7 +282,7 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 	})
 }
 
-func TestAccApiManagement_identityUserAssignedHostnameConfigurationsVersionedKeyVaultId(t *testing.T) {
+func TestAccApiManagement_identityUserAssignedHostnameConfigurationsKeyVaultId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 

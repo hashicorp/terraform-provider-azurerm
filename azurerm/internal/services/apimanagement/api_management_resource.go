@@ -1045,7 +1045,6 @@ func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
 			results = append(results, output)
 		}
-
 	}
 
 	return &results
