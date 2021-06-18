@@ -612,6 +612,8 @@ A `windows_profile` block supports the following:
 
 * `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
+* `license` - (Optional) The license for Windows VMs. Possible values are `None` and `Windows_Server`.
+
 ---
 
 A `upgrade_settings` block supports the following:
