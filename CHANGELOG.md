@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v55.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-12263]
 
+BUG FIXES:
+
+* `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing [GH-12128]
+
 ## 2.64.0 (June 18, 2021)
 
 FEATURES:
