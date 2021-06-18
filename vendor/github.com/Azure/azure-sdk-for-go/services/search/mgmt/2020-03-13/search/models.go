@@ -29,6 +29,12 @@ type AdminKeyResult struct {
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AdminKeyResult.
+func (akr AdminKeyResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CheckNameAvailabilityInput input of check name availability API.
 type CheckNameAvailabilityInput struct {
 	// Name - The Search service name to validate. Search service names must only contain lowercase letters, digits or dashes, cannot use dash as the first two or last one characters, cannot contain consecutive dashes, and must be between 2 and 60 characters in length.
@@ -46,6 +52,12 @@ type CheckNameAvailabilityOutput struct {
 	Reason UnavailableNameReason `json:"reason,omitempty"`
 	// Message - READ-ONLY; A message that explains why the name is invalid and provides resource naming requirements. Available only if 'Invalid' is returned in the 'reason' property.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityOutput.
+func (cnao CheckNameAvailabilityOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudError contains information about an API error.
@@ -98,6 +110,12 @@ type ListQueryKeysResult struct {
 	Value *[]QueryKey `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of query keys. Returned when the total number of requested query keys exceed maximum page size.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListQueryKeysResult.
+func (lqkr ListQueryKeysResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListQueryKeysResultIterator provides access to a complete listing of QueryKey values.
@@ -265,6 +283,12 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that describes the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; The friendly name of the resource provider.
@@ -277,6 +301,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (o OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult the result of the request to list REST API operations. It contains a list of
 // operations and a URL  to get the next set of results.
 type OperationListResult struct {
@@ -285,6 +315,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of operation list results, if any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnection describes an existing Private Endpoint connection to the Azure Cognitive
@@ -317,6 +353,12 @@ type PrivateEndpointConnectionListResult struct {
 	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of private endpoint connections. Returned when the total number of requested private endpoint connections exceed maximum page size.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionListResult.
+func (peclr PrivateEndpointConnectionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnectionListResultIterator provides access to a complete listing of
@@ -509,6 +551,12 @@ type PrivateLinkResource struct {
 	Properties *PrivateLinkResourceProperties `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkResourceProperties describes the properties of a supported private link resource for the
 // Azure Cognitive Search service.
 type PrivateLinkResourceProperties struct {
@@ -520,11 +568,23 @@ type PrivateLinkResourceProperties struct {
 	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkResourcesResult response containing a list of supported Private Link Resources.
 type PrivateLinkResourcesResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of supported Private Link Resources.
 	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourcesResult.
+func (plrr PrivateLinkResourcesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // QueryKey describes an API key for a given Azure Cognitive Search service that has permissions for query
@@ -535,6 +595,12 @@ type QueryKey struct {
 	Name *string `json:"name,omitempty"`
 	// Key - READ-ONLY; The value of the query API key.
 	Key *string `json:"key,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QueryKey.
+func (qk QueryKey) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Resource base type for all Azure resources.
@@ -704,6 +770,12 @@ type ServiceListResult struct {
 	Value *[]Service `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Request URL that can be used to query next page of search services. Returned when the total number of requested search services exceed maximum page size.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceListResult.
+func (slr ServiceListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServiceListResultIterator provides access to a complete listing of Service values.

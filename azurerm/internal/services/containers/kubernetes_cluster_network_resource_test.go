@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -41,10 +40,10 @@ func testAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingConfig(data, "kubenet"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 			),
@@ -62,10 +61,10 @@ func testAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingCompleteConfig(data, "kubenet"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 			),
@@ -83,10 +82,10 @@ func testAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingConfig(data, "azure"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 			),
@@ -104,10 +103,10 @@ func testAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingCompleteConfig(data, "azure"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 			),
@@ -125,10 +124,10 @@ func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
@@ -147,10 +146,10 @@ func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "calico"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
@@ -164,10 +163,10 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTran
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "transparent"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
@@ -187,10 +186,10 @@ func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
@@ -209,10 +208,10 @@ func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "azure"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
@@ -231,29 +230,10 @@ func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Enabled
-			Config: r.enableNodePublicIPConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Disabled
-			Config: r.enableNodePublicIPConfig(data, false),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Enabled
-			Config: r.enableNodePublicIPConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.enableNodePublicIPConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
 			),
@@ -271,12 +251,34 @@ func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.internalNetworkConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").HasValue("60"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_nodePublicIPPrefix(t)
+}
+
+func testAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePublicIPPrefixConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -292,10 +294,10 @@ func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.outboundTypeLoadBalancerConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -312,10 +314,10 @@ func testAccKubernetesCluster_privateClusterOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateClusterConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_fqdn").Exists(),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
@@ -334,10 +336,10 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateClusterWithPrivateDNSZoneConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
@@ -357,12 +359,31 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrinci
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateClusterWithPrivateDNSZoneAndServicePrincipalConfig(data, true, clientId, clientSecret),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t)
+}
+
+func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateClusterWithPrivateDNSZoneSubDomain(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -377,10 +398,10 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateClusterWithPrivateDNSZoneSystemConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
@@ -398,10 +419,10 @@ func testAccKubernetesCluster_privateClusterOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateClusterConfig(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("false"),
 			),
@@ -419,10 +440,10 @@ func testAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardLoadBalancerConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
@@ -440,10 +461,10 @@ func testAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardLoadBalancerCompleteConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
@@ -461,10 +482,10 @@ func testAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardLoadBalancerProfileConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("3"),
@@ -486,10 +507,10 @@ func testAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardLoadBalancerProfileCompleteConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
@@ -511,10 +532,10 @@ func testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *t
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardLoadBalancerProfileWithPortAndTimeoutConfig(data, clientId, clientSecret),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ports_allocated").HasValue("8000"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes").HasValue("10"),
@@ -533,7 +554,7 @@ func testAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicLoadBalancerProfileConfig(data),
 			ExpectError: regexp.MustCompile("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
@@ -550,10 +571,10 @@ func testAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.prefixedLoadBalancerProfileConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
@@ -573,10 +594,10 @@ func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
@@ -586,7 +607,7 @@ func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.changingLoadBalancerProfileConfigManagedIPs(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("1"),
@@ -596,7 +617,7 @@ func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.changingLoadBalancerProfileConfigIPIds(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_address_ids.#").HasValue("1"),
@@ -606,7 +627,7 @@ func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
@@ -953,7 +974,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkMode, networkPlugin, networkPolicy)
 }
 
-func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -974,14 +995,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                  = "default"
     node_count            = 1
     vm_size               = "Standard_DS2_v2"
-    enable_node_public_ip = %t
+    enable_node_public_ip = true
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) internalNetworkConfig(data acceptance.TestData) string {
@@ -1036,6 +1057,45 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) nodePublicIPPrefixConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpipprefix%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  prefix_length       = 31
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                     = "default"
+    node_count               = 1
+    vm_size                  = "Standard_DS2_v2"
+    enable_node_public_ip    = true
+    node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) outboundTypeLoadBalancerConfig(data acceptance.TestData) string {
@@ -1239,6 +1299,72 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, clientId, clientSecret, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) privateClusterWithPrivateDNSZoneSubDomain(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.%s.azmk8s.io"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestRG-aks-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_private_dns_zone.test.id
+  role_definition_name = "Private DNS Zone Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                       = "acctestaks%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  private_cluster_enabled    = true
+  private_dns_zone_id        = azurerm_private_dns_zone.test.id
+  dns_prefix_private_cluster = "prefix"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) privateClusterWithPrivateDNSZoneSystemConfig(data acceptance.TestData, enablePrivateCluster bool) string {

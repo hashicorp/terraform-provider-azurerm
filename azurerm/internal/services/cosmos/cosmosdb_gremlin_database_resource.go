@@ -5,25 +5,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCosmosGremlinDatabase() *schema.Resource {
-	return &schema.Resource{
+func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceCosmosGremlinDatabaseCreate,
 		Update: resourceCosmosGremlinDatabaseUpdate,
 		Read:   resourceCosmosGremlinDatabaseRead,
@@ -37,16 +34,16 @@ func resourceCosmosGremlinDatabase() *schema.Resource {
 			0: migration.GremlinDatabaseV0ToV1{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
@@ -55,14 +52,14 @@ func resourceCosmosGremlinDatabase() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"throughput": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
@@ -73,7 +70,7 @@ func resourceCosmosGremlinDatabase() *schema.Resource {
 	}
 }
 
-func resourceCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +134,7 @@ func resourceCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interface{
 	return resourceCosmosGremlinDatabaseRead(d, meta)
 }
 
-func resourceCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +189,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interface{
 	return resourceCosmosGremlinDatabaseRead(d, meta)
 }
 
-func resourceCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +233,7 @@ func resourceCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceCosmosGremlinDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

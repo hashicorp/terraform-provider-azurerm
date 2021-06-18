@@ -6,26 +6,27 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceDataFactory() *schema.Resource {
-	return &schema.Resource{
+func dataSourceDataFactory() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceDataFactoryRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
@@ -38,20 +39,27 @@ func dataSourceDataFactory() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"identity_ids": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -59,28 +67,28 @@ func dataSourceDataFactory() *schema.Resource {
 			},
 
 			"github_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"account_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"branch_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"git_url": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"repository_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"root_folder": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -88,32 +96,32 @@ func dataSourceDataFactory() *schema.Resource {
 			},
 
 			"vsts_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"account_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"branch_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"project_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"repository_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"root_folder": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -125,26 +133,23 @@ func dataSourceDataFactory() *schema.Resource {
 	}
 }
 
-func dataSourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error Data Factory %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
 
-		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Data Factory %q (resource group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -153,23 +158,27 @@ func dataSourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeFactoryVSTSConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryGitHubConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeFactoryRepoConfiguration {
+	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenDataFactoryIdentity(resp.Identity)); err != nil {
+	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	if err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

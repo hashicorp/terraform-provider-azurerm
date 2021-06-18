@@ -95,8 +95,10 @@ func ValidateResourceGroupName(v interface{}, k string) (warnings []string, erro
 		errors = append(errors, fmt.Errorf("%q may not end with a period", k))
 	}
 
-	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-	if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
+	if len(value) == 0 {
+		errors = append(errors, fmt.Errorf("%q cannot be blank", k))
+	} else if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
+		// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 

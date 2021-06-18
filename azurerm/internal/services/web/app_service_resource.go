@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppService() *schema.Resource {
-	return &schema.Resource{
+func resourceAppService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceCreate,
 		Read:   resourceAppServiceRead,
 		Update: resourceAppServiceUpdate,
@@ -33,16 +32,16 @@ func resourceAppService() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServiceName,
@@ -53,16 +52,16 @@ func resourceAppService() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"app_service_plan_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"app_settings": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -71,30 +70,30 @@ func resourceAppService() *schema.Resource {
 			"backup": schemaAppServiceBackup(),
 
 			"client_affinity_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"client_cert_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"connection_string": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.APIHub),
@@ -113,7 +112,7 @@ func resourceAppService() *schema.Resource {
 						},
 
 						"value": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							Sensitive: true,
 						},
@@ -122,7 +121,7 @@ func resourceAppService() *schema.Resource {
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -130,7 +129,7 @@ func resourceAppService() *schema.Resource {
 			"identity": schemaAppServiceIdentity(),
 
 			"https_only": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -146,16 +145,16 @@ func resourceAppService() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"site_credential": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -164,45 +163,45 @@ func resourceAppService() *schema.Resource {
 			},
 
 			"custom_domain_verification_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"default_site_hostname": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"outbound_ip_addresses": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"outbound_ip_address_list": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"possible_outbound_ip_addresses": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"possible_outbound_ip_address_list": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -241,7 +240,7 @@ func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("App Service Environment %q (Resource Group %q) does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
-		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, aspID.ServerfarmName))
+		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, *aspDetails.HostingEnvironmentProfile.Name))
 		availabilityRequest.IsFqdn = utils.Bool(true)
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -357,7 +356,7 @@ func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAppServiceUpdate(d, meta)
 }
 
-func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -521,7 +520,7 @@ func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("storage_account") {
-		storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
+		storageAccountsRaw := d.Get("storage_account").(*pluginsdk.Set).List()
 		storageAccounts := expandAppServiceStorageAccounts(storageAccountsRaw)
 		properties := web.AzureStoragePropertyDictionaryResource{
 			Properties: storageAccounts,
@@ -567,7 +566,7 @@ func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAppServiceRead(d, meta)
 }
 
-func resourceAppServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -736,7 +735,7 @@ func resourceAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -760,7 +759,7 @@ func resourceAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
+func expandAppServiceAppSettings(d *pluginsdk.ResourceData) map[string]*string {
 	input := d.Get("app_settings").(map[string]interface{})
 	output := make(map[string]*string, len(input))
 
@@ -771,8 +770,8 @@ func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
 	return output
 }
 
-func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
-	input := d.Get("connection_string").(*schema.Set).List()
+func expandAppServiceConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {
+	input := d.Get("connection_string").(*pluginsdk.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
 	for _, v := range input {

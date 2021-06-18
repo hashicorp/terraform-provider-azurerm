@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -17,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
-	return &schema.Resource{
+func resourceIoTTimeSeriesInsightsStandardEnvironment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
 		Read:   resourceIoTTimeSeriesInsightsStandardEnvironmentRead,
 		Update: resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
@@ -32,16 +31,16 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -55,7 +54,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -83,14 +82,14 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 			},
 
 			"data_retention_time": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azValidate.ISO8601Duration,
 			},
 
 			"storage_limit_exceeded_behavior": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(timeseriesinsights.PurgeOldData),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -100,7 +99,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 			},
 
 			"partition_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.NoZeroValues,
 				ForceNew:     true,
@@ -111,7 +110,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 	}
 }
 
-func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +191,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.Reso
 	return resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d, meta)
 }
 
-func resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,7 +237,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceIoTTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

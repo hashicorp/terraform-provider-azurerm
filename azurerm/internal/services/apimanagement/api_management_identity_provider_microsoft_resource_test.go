@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +21,10 @@ func TestAccApiManagementIdentityProviderMicrosoft_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
 	r := ApiManagementIdentityProviderMicrosoftResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +36,10 @@ func TestAccApiManagementIdentityProviderMicrosoft_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
 	r := ApiManagementIdentityProviderMicrosoftResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_id").HasValue("00000000-0000-0000-0000-000000000000"),
 			),
@@ -49,7 +47,7 @@ func TestAccApiManagementIdentityProviderMicrosoft_update(t *testing.T) {
 		data.ImportStep("client_secret"),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_id").HasValue("11111111-1111-1111-1111-111111111111"),
 			),
@@ -62,10 +60,10 @@ func TestAccApiManagementIdentityProviderMicrosoft_requiresImport(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
 	r := ApiManagementIdentityProviderMicrosoftResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -73,7 +71,7 @@ func TestAccApiManagementIdentityProviderMicrosoft_requiresImport(t *testing.T) 
 	})
 }
 
-func (ApiManagementIdentityProviderMicrosoftResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementIdentityProviderMicrosoftResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IdentityProviderID(state.ID)
 	if err != nil {
 		return nil, err

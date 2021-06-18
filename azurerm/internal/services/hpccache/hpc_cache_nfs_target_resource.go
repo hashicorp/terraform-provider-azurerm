@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHPCCacheNFSTarget() *schema.Resource {
-	return &schema.Resource{
+func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHPCCacheNFSTargetCreateOrUpdate,
 		Update: resourceHPCCacheNFSTargetCreateOrUpdate,
 		Read:   resourceHPCCacheNFSTargetRead,
@@ -30,16 +29,16 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageTargetName,
@@ -48,39 +47,39 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"cache_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"namespace_junction": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
 				// Confirmed with service team that they have a mac of 10 that is enforced by the backend.
 				MaxItems: 10,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"namespace_path": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.CacheNamespacePath,
 						},
 						"nfs_export": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.CacheNFSExport,
 						},
 						"target_path": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "",
 							ValidateFunc: validate.CacheNFSTargetPath,
 						},
 
 						"access_policy_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "default",
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -90,7 +89,7 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 			},
 
 			"target_host_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -99,7 +98,7 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 			// TODO: use SDK enums once following issue is addressed
 			// https://github.com/Azure/azure-rest-api-specs/issues/13839
 			"usage_model": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"READ_HEAVY_INFREQ",
@@ -115,7 +114,7 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 	}
 }
 
-func resourceHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +140,7 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta interf
 	// Construct parameters
 	param := &storagecache.StorageTarget{
 		StorageTargetProperties: &storagecache.StorageTargetProperties{
-			Junctions:  expandNamespaceJunctions(d.Get("namespace_junction").(*schema.Set).List()),
+			Junctions:  expandNamespaceJunctions(d.Get("namespace_junction").(*pluginsdk.Set).List()),
 			TargetType: storagecache.StorageTargetTypeNfs3,
 			Nfs3: &storagecache.Nfs3Target{
 				Target:     utils.String(d.Get("target_host_name").(string)),
@@ -173,7 +172,7 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta interf
 	return resourceHPCCacheNFSTargetRead(d, meta)
 }
 
-func resourceHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +212,7 @@ func resourceHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceHPCCacheNFSTargetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

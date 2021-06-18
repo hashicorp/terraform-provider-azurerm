@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNetworkSecurityRule() *schema.Resource {
-	return &schema.Resource{
+func resourceNetworkSecurityRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetworkSecurityRuleCreateUpdate,
 		Read:   resourceNetworkSecurityRuleRead,
 		Update: resourceNetworkSecurityRuleCreateUpdate,
@@ -26,16 +25,16 @@ func resourceNetworkSecurityRule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -43,105 +42,107 @@ func resourceNetworkSecurityRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_security_group_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 140),
 			},
 
 			"protocol": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleProtocolAsterisk),
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
 					string(network.SecurityRuleProtocolIcmp),
+					string(network.SecurityRuleProtocolAh),
+					string(network.SecurityRuleProtocolEsp),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"source_port_range": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"source_port_ranges"},
 			},
 
 			"source_port_ranges": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"source_port_range"},
 			},
 
 			"destination_port_range": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"destination_port_ranges"},
 			},
 
 			"destination_port_ranges": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"destination_port_range"},
 			},
 
 			"source_address_prefix": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"source_address_prefixes"},
 			},
 
 			"source_address_prefixes": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"source_address_prefix"},
 			},
 
 			"destination_address_prefix": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"destination_address_prefixes"},
 			},
 
 			"destination_address_prefixes": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
 			// lintignore:S018
 			"source_application_security_group_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			// lintignore:S018
 			"destination_application_security_group_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"access": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleAccessAllow),
@@ -151,13 +152,13 @@ func resourceNetworkSecurityRule() *schema.Resource {
 			},
 
 			"priority": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(100, 4096),
 			},
 
 			"direction": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleDirectionInbound),
@@ -169,7 +170,7 @@ func resourceNetworkSecurityRule() *schema.Resource {
 	}
 }
 
-func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +227,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	if r, ok := d.GetOk("source_port_ranges"); ok {
 		var sourcePortRanges []string
-		r := r.(*schema.Set).List()
+		r := r.(*pluginsdk.Set).List()
 		for _, v := range r {
 			s := v.(string)
 			sourcePortRanges = append(sourcePortRanges, s)
@@ -236,7 +237,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	if r, ok := d.GetOk("destination_port_ranges"); ok {
 		var destinationPortRanges []string
-		r := r.(*schema.Set).List()
+		r := r.(*pluginsdk.Set).List()
 		for _, v := range r {
 			s := v.(string)
 			destinationPortRanges = append(destinationPortRanges, s)
@@ -246,7 +247,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	if r, ok := d.GetOk("source_address_prefixes"); ok {
 		var sourceAddressPrefixes []string
-		r := r.(*schema.Set).List()
+		r := r.(*pluginsdk.Set).List()
 		for _, v := range r {
 			s := v.(string)
 			sourceAddressPrefixes = append(sourceAddressPrefixes, s)
@@ -256,7 +257,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	if r, ok := d.GetOk("destination_address_prefixes"); ok {
 		var destinationAddressPrefixes []string
-		r := r.(*schema.Set).List()
+		r := r.(*pluginsdk.Set).List()
 		for _, v := range r {
 			s := v.(string)
 			destinationAddressPrefixes = append(destinationAddressPrefixes, s)
@@ -266,7 +267,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	if r, ok := d.GetOk("source_application_security_group_ids"); ok {
 		var sourceApplicationSecurityGroups []network.ApplicationSecurityGroup
-		for _, v := range r.(*schema.Set).List() {
+		for _, v := range r.(*pluginsdk.Set).List() {
 			sg := network.ApplicationSecurityGroup{
 				ID: utils.String(v.(string)),
 			}
@@ -277,7 +278,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	if r, ok := d.GetOk("destination_application_security_group_ids"); ok {
 		var destinationApplicationSecurityGroups []network.ApplicationSecurityGroup
-		for _, v := range r.(*schema.Set).List() {
+		for _, v := range r.(*pluginsdk.Set).List() {
 			sg := network.ApplicationSecurityGroup{
 				ID: utils.String(v.(string)),
 			}
@@ -308,7 +309,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceNetworkSecurityRuleRead(d, meta)
 }
 
-func resourceNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,7 +362,7 @@ func resourceNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

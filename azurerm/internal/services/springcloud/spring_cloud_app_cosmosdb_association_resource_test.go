@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_cassandra_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cassandra_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_cassandra_requiresImport(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cassandra_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,17 +50,17 @@ func TestAccSpringCloudAppCosmosDbAssociation_cassandra_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cassandra_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("cosmosdb_access_key"),
 		{
 			Config: r.cassandra_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -73,10 +72,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_gremlin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.gremlin_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,10 +87,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_gremlin_requiresImport(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.gremlin_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -103,17 +102,17 @@ func TestAccSpringCloudAppCosmosDbAssociation_gremlin_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.gremlin_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("cosmosdb_access_key"),
 		{
 			Config: r.gremlin_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -125,10 +124,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_mongo_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.mongo_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -140,10 +139,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_mongo_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.mongo_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -155,17 +154,17 @@ func TestAccSpringCloudAppCosmosDbAssociation_mongo_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.mongo_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("cosmosdb_access_key"),
 		{
 			Config: r.mongo_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -177,10 +176,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_sql_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sql_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -192,10 +191,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_sql_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sql_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -207,17 +206,17 @@ func TestAccSpringCloudAppCosmosDbAssociation_sql_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sql_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("cosmosdb_access_key"),
 		{
 			Config: r.sql_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -229,10 +228,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_table_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.table_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -244,10 +243,10 @@ func TestAccSpringCloudAppCosmosDbAssociation_table_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.table_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -259,17 +258,17 @@ func TestAccSpringCloudAppCosmosDbAssociation_table_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")
 	r := SpringCloudAppCosmosDbAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.table_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("cosmosdb_access_key"),
 		{
 			Config: r.table_update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -277,7 +276,7 @@ func TestAccSpringCloudAppCosmosDbAssociation_table_update(t *testing.T) {
 	})
 }
 
-func (t SpringCloudAppCosmosDbAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t SpringCloudAppCosmosDbAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudAppAssociationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -383,6 +382,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "update" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -390,11 +390,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "update" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 
@@ -661,6 +656,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -668,11 +664,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     indexing_mode  = "Consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
-  }
-
-  conflict_resolution_policy {
-    mode                     = "LastWriterWins"
-    conflict_resolution_path = "/_ts"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

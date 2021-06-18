@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -17,7 +16,12 @@ var kubernetesAddOnTests = map[string]func(t *testing.T){
 	"addonProfileOMS":                       testAccKubernetesCluster_addonProfileOMS,
 	"addonProfileOMSToggle":                 testAccKubernetesCluster_addonProfileOMSToggle,
 	"addonProfileRouting":                   testAccKubernetesCluster_addonProfileRoutingToggle,
+	"addonProfileAppGatewayAppGatewayId":    testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId,
+	"addonProfileAppGatewaySubnetCIDR":      testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR,
+	"addonProfileAppGatewaySubnetID":        testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
 }
+
+var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
@@ -28,10 +32,10 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileAciConnectorLinuxConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.#").HasValue("1"),
@@ -52,10 +56,10 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileAciConnectorLinuxDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -77,11 +81,11 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enable with V2
 			Config: r.addonProfileAzurePolicyConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
@@ -91,7 +95,7 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		{
 			// Disable it
 			Config: r.addonProfileAzurePolicyConfig(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("false"),
@@ -101,7 +105,7 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		{
 			// Enable with V2
 			Config: r.addonProfileAzurePolicyConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
@@ -120,10 +124,10 @@ func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileKubeDashboardConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
@@ -142,10 +146,10 @@ func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
@@ -169,10 +173,10 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -184,7 +188,7 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSDisabledConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -196,7 +200,7 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
@@ -208,7 +212,7 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
@@ -230,10 +234,10 @@ func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileRoutingConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("true"),
@@ -244,12 +248,93 @@ func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.addonProfileRoutingConfigDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.http_application_routing_zone_name").Exists(),
 				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t)
+}
+
+func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addonProfileIngressApplicationGatewayAppGatewayConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
+					check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id"),
+				),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t)
+}
+
+func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addonProfileIngressApplicationGatewaySubnetCIDRConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_name").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileIngressApplicationGatewayDisabledConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t)
+}
+
+func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addonProfileIngressApplicationGatewaySubnetIdConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_name").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -726,4 +811,287 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestappgw%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_V2"
+    tier     = "Standard_V2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "gwipcfg"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = "frontendport"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "frontendipcfg"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  backend_address_pool {
+    name = "backendaddresspool"
+  }
+
+  backend_http_settings {
+    name                  = "backendhttpsettings"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 60
+  }
+
+  http_listener {
+    name                           = "httplistener"
+    frontend_ip_configuration_name = "frontendipcfg"
+    frontend_port_name             = "frontendport"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "requestroutingrule"
+    rule_type                  = "Basic"
+    http_listener_name         = "httplistener"
+    backend_address_pool_name  = "backendaddresspool"
+    backend_http_settings_name = "backendhttpsettings"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  addon_profile {
+    ingress_application_gateway {
+      enabled    = true
+      gateway_id = azurerm_application_gateway.test.id
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetCIDRConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  addon_profile {
+    ingress_application_gateway {
+      enabled      = true
+      gateway_name = "acctestgwn%d"
+      subnet_cidr  = "%s"
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, addOnAppGatewaySubnetCIDR)
+}
+
+func (KubernetesClusterResource) addonProfileIngressApplicationGatewayDisabledConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  addon_profile {
+    ingress_application_gateway {
+      enabled = false
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetIdConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.2.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  addon_profile {
+    ingress_application_gateway {
+      enabled      = true
+      gateway_name = "acctestgwn%d"
+      subnet_id    = azurerm_subnet.test.id
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

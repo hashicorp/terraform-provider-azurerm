@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +13,10 @@ type MsSqlServerDataSource struct{}
 func TestAccDataSourceMsSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_server", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: MsSqlServerDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestsqlserver%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 			),
@@ -29,10 +27,10 @@ func TestAccDataSourceMsSqlServer_basic(t *testing.T) {
 func TestAccDataSourceMsSqlServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_server", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: MsSqlServerDataSource{}.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestsqlserver%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 				check.That(data.ResourceName).Key("version").Exists(),

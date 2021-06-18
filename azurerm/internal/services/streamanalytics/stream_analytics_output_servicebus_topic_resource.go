@@ -5,21 +5,20 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStreamAnalyticsOutputServiceBusTopic() *schema.Resource {
-	return &schema.Resource{
+func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate,
 		Read:   resourceStreamAnalyticsOutputServiceBusTopicRead,
 		Update: resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate,
@@ -29,23 +28,23 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"stream_analytics_job_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -54,26 +53,26 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"topic_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"servicebus_namespace": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -83,7 +82,7 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +153,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *schema.Resource
 	return resourceStreamAnalyticsOutputServiceBusTopicRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +196,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

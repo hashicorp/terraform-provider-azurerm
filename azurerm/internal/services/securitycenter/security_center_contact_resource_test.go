@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,10 +31,10 @@ func testAccSecurityCenterContact_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template("basic@example.com", "+1-555-555-5555", true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("email").HasValue("basic@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-555-5555"),
@@ -50,10 +49,10 @@ func testAccSecurityCenterContact_basic(t *testing.T) {
 func testAccSecurityCenterContact_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template("require@example.com", "+1-555-555-5555", true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("email").HasValue("require@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-555-5555"),
@@ -71,10 +70,10 @@ func testAccSecurityCenterContact_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template("update@example.com", "+1-555-555-5555", true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("email").HasValue("update@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-555-5555"),
@@ -84,7 +83,7 @@ func testAccSecurityCenterContact_update(t *testing.T) {
 		},
 		{
 			Config: r.template("updated@example.com", "+1-555-678-6789", false, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("email").HasValue("updated@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-678-6789"),
@@ -100,10 +99,10 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.templateWithoutPhone("basic@example.com", true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("email").HasValue("basic@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue(""),
@@ -115,7 +114,7 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 	})
 }
 
-func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, _ *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) (*bool, error) {
 	contactName := "default1"
 
 	resp, err := clients.SecurityCenter.ContactsClient.Get(ctx, contactName)

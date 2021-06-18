@@ -8,13 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,10 +23,10 @@ func TestAccFunctionApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasContentShareAppSetting(false)),
 				check.That(data.ResourceName).Key("version").HasValue("~1"),
@@ -49,10 +48,10 @@ func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.deprecatedConnectionString(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,7 +64,7 @@ func TestAccFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.deprecatedConnectionStringMissingError(data),
 			ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified"),
@@ -78,7 +77,7 @@ func TestAccFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.deprecatedConnectionStringBothSpecifiedError(data),
 			ExpectError: regexp.MustCompile("both `storage_account_name` and `storage_account_access_key` must be specified"),
@@ -90,10 +89,10 @@ func TestAccFunctionApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasContentShareAppSetting(false)),
 			),
@@ -106,10 +105,10 @@ func TestAccFunctionApp_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
@@ -123,10 +122,10 @@ func TestAccFunctionApp_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
@@ -134,7 +133,7 @@ func TestAccFunctionApp_tagsUpdate(t *testing.T) {
 		},
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
@@ -148,31 +147,31 @@ func TestAccFunctionApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.appSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.appSettingsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("app_settings.%", "app_settings.AzureWebJobsDashboard", "app_settings.AzureWebJobsStorage"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -184,10 +183,10 @@ func TestAccFunctionApp_siteConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.alwaysOn(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
@@ -200,10 +199,10 @@ func TestAccFunctionApp_healthCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.healthCheck(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.health_check_path").HasValue("/"),
 			),
@@ -216,12 +215,12 @@ func TestAccFunctionApp_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.linuxFxVersion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
 			),
 		},
@@ -233,10 +232,10 @@ func TestAccFunctionApp_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.connectionStrings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_string.#").HasValue("1"),
 				check.That(data.ResourceName).Key("connection_string.163594034.name").HasValue("Example"),
@@ -253,17 +252,17 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("0"),
 			),
 		},
 		{
 			Config: r.appSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
@@ -271,7 +270,7 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 		},
 		{
 			Config: r.appSettingsAlwaysOn(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
@@ -280,9 +279,9 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 		},
 		{
 			Config: r.appSettingsAlwaysOnLinuxFxVersion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
@@ -291,9 +290,9 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 		},
 		{
 			Config: r.appSettingsAlwaysOnLinuxFxVersionConnectionStrings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
@@ -310,17 +309,17 @@ func TestAccFunctionApp_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.version(data, "~1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue("~1"),
 			),
 		},
 		{
 			Config: r.version(data, "~2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue("~2"),
 			),
@@ -332,17 +331,17 @@ func TestAccFunctionApp_3264bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
 			),
 		},
 		{
 			Config: r.app64bit(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("false"),
 			),
@@ -354,10 +353,10 @@ func TestAccFunctionApp_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpsOnly(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_only").HasValue("true"),
 			),
@@ -369,10 +368,10 @@ func TestAccFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.consumptionPlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("daily_memory_time_quota").HasValue("0"),
 			),
@@ -380,7 +379,7 @@ func TestAccFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.dailyMemoryTimeQuota(data, 1000),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("daily_memory_time_quota").HasValue("1000"),
 			),
@@ -393,10 +392,10 @@ func TestAccFunctionApp_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.consumptionPlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasContentShareAppSetting(true)),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
@@ -409,10 +408,10 @@ func TestAccFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.consumptionPlanUppercaseName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasContentShareAppSetting(true)),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
@@ -426,15 +425,15 @@ func TestAccFunctionApp_createIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 			),
 		},
 	})
@@ -444,22 +443,22 @@ func TestAccFunctionApp_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
 			),
 		},
 		{
 			Config: r.basicIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 			),
 		},
 	})
@@ -469,10 +468,10 @@ func TestAccFunctionApp_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
@@ -483,7 +482,7 @@ func TestAccFunctionApp_userAssignedIdentity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.userAssignedIdentityUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("2"),
@@ -499,10 +498,10 @@ func TestAccFunctionApp_loggingDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.loggingDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasContentShareAppSetting(false)),
 				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("false"),
@@ -516,24 +515,24 @@ func TestAccFunctionApp_updateLogging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("true"),
 			),
 		},
 		{
 			Config: r.loggingDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("false"),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("true"),
 			),
@@ -546,10 +545,10 @@ func TestAccFunctionApp_authSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authSettings(data, tenantID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
@@ -573,10 +572,10 @@ func TestAccFunctionApp_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.corsSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.cors.0.support_credentials").HasValue("true"),
@@ -591,10 +590,10 @@ func TestAccFunctionApp_enableHttp2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableHttp2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
 			),
@@ -607,10 +606,10 @@ func TestAccFunctionApp_minTlsVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.minTlsVersion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.2"),
 			),
@@ -623,12 +622,27 @@ func TestAccFunctionApp_ftpsState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ftpsState(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ftps_state").HasValue("AllAllowed"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_javaVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.javaVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -639,10 +653,10 @@ func TestAccFunctionApp_preWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.preWarmedInstanceCount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
 			),
@@ -655,10 +669,10 @@ func TestAccAzureRMFunctionApp_computedPreWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.computedPreWarmedInstanceCount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
 			),
@@ -671,10 +685,10 @@ func TestAccFunctionApp_oneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
@@ -687,10 +701,10 @@ func TestAccFunctionApp_oneServiceTagIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneServiceTagIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.service_tag").HasValue("AzureEventGrid"),
 			),
@@ -703,24 +717,24 @@ func TestAccFunctionApp_changeIpToServiceTagIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
 		{
 			Config: r.oneServiceTagIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.service_tag").HasValue("AzureEventGrid"),
 			),
 		},
 		{
 			Config: r.oneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
@@ -732,10 +746,10 @@ func TestAccFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneVNetSubnetIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -747,11 +761,11 @@ func TestAccFunctionApp_ipRestrictionRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// This configuration includes a single explicit ip_restriction
 			Config: r.oneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
@@ -759,7 +773,7 @@ func TestAccFunctionApp_ipRestrictionRemoved(t *testing.T) {
 		{
 			// This configuration has no site_config blocks at all.
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
@@ -767,7 +781,7 @@ func TestAccFunctionApp_ipRestrictionRemoved(t *testing.T) {
 		{
 			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.ipRestrictionRemoved(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
@@ -779,10 +793,10 @@ func TestAccFunctionApp_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.manyIpRestrictions(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -794,10 +808,10 @@ func TestAccFunctionApp_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scmUseMainIPRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -809,10 +823,10 @@ func TestAccFunctionApp_scmOneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scmOneIpRestriction(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -824,24 +838,24 @@ func TestAccFunctionApp_updateStorageAccountKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateStorageAccountKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -853,10 +867,10 @@ func TestAccFunctionApp_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withSourceControl(data, "main"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -868,17 +882,17 @@ func TestAccFunctionApp_sourceControlUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withSourceControl(data, "main"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withSourceControl(data, "development"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -890,10 +904,10 @@ func TestAccFunctionApp_scm(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scm(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -905,31 +919,31 @@ func TestAccFunctionApp_clientCertMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
 			),
 		},
 		{
 			Config: r.clientCertMode(data, "Required"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Required"),
 			),
 		},
 		{
 			Config: r.clientCertMode(data, "Optional"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Optional"),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
 			),
@@ -938,7 +952,7 @@ func TestAccFunctionApp_clientCertMode(t *testing.T) {
 	})
 }
 
-func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FunctionAppID(state.ID)
 	if err != nil {
 		return nil, err
@@ -960,8 +974,8 @@ func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(true), nil
 }
 
-func (r FunctionAppResource) hasContentShareAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (r FunctionAppResource) hasContentShareAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.FunctionAppID(state.ID)
 		if err != nil {
 			return err
@@ -2329,6 +2343,53 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     ftps_state = "AllAllowed"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppResource) javaVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  version = "~3"
+
+  site_config {
+    java_version = "1.8"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)

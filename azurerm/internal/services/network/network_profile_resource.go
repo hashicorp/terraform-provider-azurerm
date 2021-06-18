@@ -5,23 +5,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const azureNetworkProfileResourceName = "azurerm_network_profile"
 
-func resourceNetworkProfile() *schema.Resource {
-	return &schema.Resource{
+func resourceNetworkProfile() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetworkProfileCreateUpdate,
 		Read:   resourceNetworkProfileRead,
 		Update: resourceNetworkProfileCreateUpdate,
@@ -29,16 +28,16 @@ func resourceNetworkProfile() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -49,28 +48,28 @@ func resourceNetworkProfile() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"container_network_interface": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"ip_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
@@ -82,10 +81,10 @@ func resourceNetworkProfile() *schema.Resource {
 			},
 
 			"container_network_interface_ids": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -94,7 +93,7 @@ func resourceNetworkProfile() *schema.Resource {
 	}
 }
 
-func resourceNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +159,7 @@ func resourceNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourceNetworkProfileRead(d, meta)
 }
 
-func resourceNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +203,7 @@ func resourceNetworkProfileRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, profile.Tags)
 }
 
-func resourceNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +247,7 @@ func resourceNetworkProfileDelete(d *schema.ResourceData, meta interface{}) erro
 	return err
 }
 
-func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) *[]network.ContainerNetworkInterfaceConfiguration {
+func expandNetworkProfileContainerNetworkInterface(d *pluginsdk.ResourceData) *[]network.ContainerNetworkInterfaceConfiguration {
 	cniConfigs := d.Get("container_network_interface").([]interface{})
 	retCNIConfigs := make([]network.ContainerNetworkInterfaceConfiguration, 0)
 
@@ -288,7 +287,7 @@ func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) *[]ne
 	return &retCNIConfigs
 }
 
-func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]string, *[]string, error) {
+func expandNetworkProfileVirtualNetworkSubnetNames(d *pluginsdk.ResourceData) (*[]string, *[]string, error) {
 	cniConfigs := d.Get("container_network_interface").([]interface{})
 	subnetNames := make([]string, 0)
 	vnetNames := make([]string, 0)

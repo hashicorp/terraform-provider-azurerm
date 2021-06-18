@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func testAccExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privatePeering(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
 				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
@@ -38,10 +37,10 @@ func testAccExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privatePeering(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +52,10 @@ func testAccExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeering(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("MicrosoftPeering"),
 				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
@@ -70,10 +69,10 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringIpv6(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,10 +84,10 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting(t *te
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringIpv6CustomerRouting(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -100,10 +99,10 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter(t *te
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringIpv6WithRouteFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -115,10 +114,10 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringCustomerRouting(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringCustomerRouting(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("MicrosoftPeering"),
 				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
@@ -134,10 +133,10 @@ func testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate(t *t
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privatePeering(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
 				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
@@ -145,7 +144,7 @@ func testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate(t *t
 		},
 		{
 			Config: r.privatePeeringWithCircuitUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
 				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
@@ -159,10 +158,10 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringWithRouteFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("MicrosoftPeering"),
 				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
@@ -173,7 +172,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testin
 	})
 }
 
-func (t ExpressRouteCircuitPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ExpressRouteCircuitPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

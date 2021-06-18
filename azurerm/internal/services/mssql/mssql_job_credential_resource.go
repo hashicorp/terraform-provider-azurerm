@@ -6,56 +6,55 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMsSqlJobCredential() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlJobCredential() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlJobCredentialCreateUpdate,
 		Read:   resourceMsSqlJobCredentialRead,
 		Update: resourceMsSqlJobCredentialCreateUpdate,
 		Delete: resourceMsSqlJobCredentialDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.JobCredentialID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"job_agent_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.JobAgentID,
 			},
 
 			"username": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				Sensitive: true,
 			},
@@ -63,7 +62,7 @@ func resourceMsSqlJobCredential() *schema.Resource {
 	}
 }
 
-func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,7 +108,7 @@ func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
 
-func resourceMsSqlJobCredentialRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +136,7 @@ func resourceMsSqlJobCredentialRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceMsSqlJobCredentialDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

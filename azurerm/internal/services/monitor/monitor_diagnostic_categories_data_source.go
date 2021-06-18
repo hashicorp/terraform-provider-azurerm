@@ -6,45 +6,45 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceMonitorDiagnosticCategories() *schema.Resource {
-	return &schema.Resource{
+func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceMonitorDiagnosticCategoriesRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"logs": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Type:     pluginsdk.TypeSet,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 				Computed: true,
 			},
 
 			"metrics": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Type:     pluginsdk.TypeSet,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func dataSourceMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	categoriesClient := meta.(*clients.Client).Monitor.DiagnosticSettingsCategoryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

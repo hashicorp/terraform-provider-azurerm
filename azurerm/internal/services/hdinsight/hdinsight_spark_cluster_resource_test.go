@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ type HDInsightSparkClusterResource struct {
 func TestAccHDInsightSparkCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -42,10 +41,10 @@ func TestAccHDInsightSparkCluster_basic(t *testing.T) {
 func TestAccHDInsightSparkCluster_gen2basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.gen2basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -64,10 +63,10 @@ func TestAccHDInsightSparkCluster_gen2basic(t *testing.T) {
 func TestAccHDInsightSparkCluster_privateLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateLink(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,10 +84,10 @@ func TestAccHDInsightSparkCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -101,10 +100,10 @@ func TestAccHDInsightSparkCluster_requiresImport(t *testing.T) {
 func TestAccHDInsightSparkCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -119,7 +118,7 @@ func TestAccHDInsightSparkCluster_update(t *testing.T) {
 			"storage_account"),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -138,10 +137,10 @@ func TestAccHDInsightSparkCluster_update(t *testing.T) {
 func TestAccHDInsightSparkCluster_sshKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshKeys(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -160,10 +159,10 @@ func TestAccHDInsightSparkCluster_sshKeys(t *testing.T) {
 func TestAccHDInsightSparkCluster_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualNetwork(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -182,10 +181,10 @@ func TestAccHDInsightSparkCluster_virtualNetwork(t *testing.T) {
 func TestAccHDInsightSparkCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -204,10 +203,10 @@ func TestAccHDInsightSparkCluster_complete(t *testing.T) {
 func TestAccHDInsightSparkCluster_tls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tls(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -226,10 +225,10 @@ func TestAccHDInsightSparkCluster_tls(t *testing.T) {
 func TestAccHDInsightSparkCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.allMetastores(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -251,10 +250,10 @@ func TestAccHDInsightSparkCluster_allMetastores(t *testing.T) {
 func TestAccHDInsightSparkCluster_hiveMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.hiveMetastore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -266,10 +265,10 @@ func TestAccHDInsightSparkCluster_hiveMetastore(t *testing.T) {
 func TestAccHDInsightSparkCluster_updateMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.hiveMetastore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -287,7 +286,7 @@ func TestAccHDInsightSparkCluster_updateMetastore(t *testing.T) {
 			"metastores.0.ambari.0.password"),
 		{
 			Config: r.allMetastores(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -309,10 +308,10 @@ func TestAccHDInsightSparkCluster_updateMetastore(t *testing.T) {
 func TestAccHDInsightSparkCluster_monitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.monitor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -331,11 +330,11 @@ func TestAccHDInsightSparkCluster_monitor(t *testing.T) {
 func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// No monitor
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -351,7 +350,7 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 		// Add monitor
 		{
 			Config: r.monitor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -370,7 +369,7 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 				data.RandomString += "new"
 			},
 			Config: r.monitor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -386,7 +385,7 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 		// Remove monitor
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
@@ -402,7 +401,59 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func (t HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccAzureRMHDInsightSparkCluster_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+	r := HDInsightSparkClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscale_capacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.autoscale_schedule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func (t HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1550,4 +1601,113 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r HDInsightSparkClusterResource) autoscale_capacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_hdinsight_spark_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    spark = "2.4"
+  }
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_A4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+      autoscale {
+        capacity {
+          min_instance_count = 2
+          max_instance_count = 3
+        }
+      }
+    }
+    zookeeper_node {
+      vm_size  = "Medium"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightSparkClusterResource) autoscale_schedule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_hdinsight_spark_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    spark = "2.4"
+  }
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_A4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+      autoscale {
+        recurrence {
+          timezone = "Pacific Standard Time"
+          schedule {
+            days                  = ["Monday"]
+            time                  = "10:00"
+            target_instance_count = 5
+          }
+          schedule {
+            days                  = ["Saturday", "Sunday"]
+            time                  = "10:00"
+            target_instance_count = 3
+          }
+        }
+      }
+    }
+    zookeeper_node {
+      vm_size  = "Medium"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

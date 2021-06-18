@@ -1,11 +1,11 @@
 package validate
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func TriggerRecurrenceTimeZone() schema.SchemaValidateFunc {
+func TriggerRecurrenceTimeZone() pluginsdk.SchemaValidateFunc {
 	// from https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values
 	timeZones := []string{
 		"Dateline Standard Time",

@@ -4,153 +4,152 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceBatchPool() *schema.Resource {
-	return &schema.Resource{
+func dataSourceBatchPool() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceBatchPoolRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PoolName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 			"display_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"vm_size": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"max_tasks_per_node": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 			"fixed_scale": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"target_dedicated_nodes": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 						"target_low_priority_nodes": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 						"resize_timeout": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
 			"auto_scale": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"evaluation_interval": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"formula": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
 			"storage_image_reference": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"offer": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"sku": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
 			"node_agent_sku_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"container_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"container_image_names": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"container_registries": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"registry_server": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"user_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"password": {
-										Type:      schema.TypeString,
+										Type:      pluginsdk.TypeString,
 										Computed:  true,
 										Sensitive: true,
 									},
@@ -161,17 +160,17 @@ func dataSourceBatchPool() *schema.Resource {
 				},
 			},
 			"certificate": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"store_location": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"CurrentUser",
@@ -179,71 +178,71 @@ func dataSourceBatchPool() *schema.Resource {
 							}, false),
 						},
 						"store_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"visibility": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
 				},
 			},
 			"start_task": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"command_line": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"max_task_retry_count": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Default:  1,
 						},
 
 						"wait_for_success": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"environment": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"user_identity": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"user_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"auto_user": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"elevation_level": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
 												"scope": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
 											},
@@ -254,32 +253,32 @@ func dataSourceBatchPool() *schema.Resource {
 						},
 
 						"resource_file": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"auto_storage_container_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"blob_prefix": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"file_mode": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"file_path": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"http_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"storage_container_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -289,59 +288,57 @@ func dataSourceBatchPool() *schema.Resource {
 				},
 			},
 			"metadata": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 			"network_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"endpoint_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"protocol": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"backend_port": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
 									"frontend_port_range": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"network_security_group_rules": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"priority": {
-													Type:     schema.TypeInt,
+													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
 												"access": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
 												"source_address_prefix": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
 											},
@@ -357,7 +354,7 @@ func dataSourceBatchPool() *schema.Resource {
 	}
 }
 
-func dataSourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

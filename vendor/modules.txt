@@ -8,12 +8,13 @@ cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 # cloud.google.com/go/storage v1.10.0
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v53.4.0+incompatible
+# github.com/Azure/azure-sdk-for-go v55.2.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
+github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
-github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement
+github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
 github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
@@ -24,11 +25,13 @@ github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute
+github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
-github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice
+github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice
+github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
-github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2019-08-01/databoxedge
+github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account
@@ -45,24 +48,24 @@ github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration
 github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
 github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot
-github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis
+github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
 github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices
-github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
+github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault
 github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices
-github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
+github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
-github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media
+github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media
+github.com/Azure/azure-sdk-for-go/services/mixedreality/mgmt/2021-01-01/mixedreality
 github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/msi/mgmt/2018-11-30/msi
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
@@ -74,15 +77,13 @@ github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-pr
 github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
 github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice
 github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry
-github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb
 github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders
-github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization
-github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid
+github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization
+github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid
 github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub
 github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules
 github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault
 github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance
-github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights
@@ -99,9 +100,9 @@ github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-0
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
+github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
-github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-02-01-preview/accesscontrol
-github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse
+github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
@@ -122,8 +123,8 @@ github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
-github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
+github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse
 github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web
@@ -142,6 +143,7 @@ github.com/Azure/go-autorest/autorest/azure/cli
 ## explicit
 github.com/Azure/go-autorest/autorest/date
 # github.com/Azure/go-autorest/autorest/to v0.4.0
+## explicit
 github.com/Azure/go-autorest/autorest/to
 # github.com/Azure/go-autorest/autorest/validation v0.3.1
 ## explicit
@@ -149,6 +151,7 @@ github.com/Azure/go-autorest/autorest/validation
 # github.com/Azure/go-autorest/logger v0.2.1
 github.com/Azure/go-autorest/logger
 # github.com/Azure/go-autorest/tracing v0.6.0
+## explicit
 github.com/Azure/go-autorest/tracing
 # github.com/Masterminds/goutils v1.1.0
 github.com/Masterminds/goutils
@@ -261,9 +264,12 @@ github.com/google/uuid
 github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.15.0
+# github.com/hashicorp/go-azure-helpers v0.16.5
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
+github.com/hashicorp/go-azure-helpers/formatting
+github.com/hashicorp/go-azure-helpers/polling
+github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/response
 github.com/hashicorp/go-azure-helpers/sender
@@ -272,16 +278,17 @@ github.com/hashicorp/go-azure-helpers/storage
 github.com/hashicorp/go-checkpoint
 # github.com/hashicorp/go-cleanhttp v0.5.2
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-getter v1.5.2
+# github.com/hashicorp/go-getter v1.5.3
 ## explicit
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
-# github.com/hashicorp/go-hclog v0.9.2
+# github.com/hashicorp/go-hclog v0.14.1
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
 ## explicit
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-plugin v1.3.0
+# github.com/hashicorp/go-plugin v1.4.0
+## explicit
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
 # github.com/hashicorp/go-safetemp v1.0.0
@@ -289,7 +296,7 @@ github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.1
 ## explicit
 github.com/hashicorp/go-uuid
-# github.com/hashicorp/go-version v1.2.1
+# github.com/hashicorp/go-version v1.3.0
 ## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl v1.0.0
@@ -319,13 +326,13 @@ github.com/hashicorp/hcl/v2/json
 github.com/hashicorp/logutils
 # github.com/hashicorp/terraform-config-inspect v0.0.0-20191212124732-c6ae6269b9d7
 github.com/hashicorp/terraform-config-inspect/tfconfig
-# github.com/hashicorp/terraform-exec v0.13.1
+# github.com/hashicorp/terraform-exec v0.13.3
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
 github.com/hashicorp/terraform-exec/tfinstall
-# github.com/hashicorp/terraform-json v0.9.0
+# github.com/hashicorp/terraform-json v0.10.0
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-sdk v1.17.1
+# github.com/hashicorp/terraform-plugin-sdk v1.17.2
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
@@ -374,7 +381,7 @@ github.com/hashicorp/terraform-plugin-sdk/internal/version
 github.com/hashicorp/terraform-plugin-sdk/meta
 github.com/hashicorp/terraform-plugin-sdk/plugin
 github.com/hashicorp/terraform-plugin-sdk/terraform
-# github.com/hashicorp/terraform-plugin-test/v2 v2.2.0
+# github.com/hashicorp/terraform-plugin-test/v2 v2.2.1
 github.com/hashicorp/terraform-plugin-test/v2
 # github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734
 github.com/hashicorp/terraform-svchost
@@ -384,7 +391,7 @@ github.com/hashicorp/terraform-svchost/disco
 github.com/hashicorp/yamux
 # github.com/huandu/xstrings v1.3.2
 github.com/huandu/xstrings
-# github.com/imdario/mergo v0.3.11
+# github.com/imdario/mergo v0.3.12
 github.com/imdario/mergo
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
@@ -398,9 +405,9 @@ github.com/klauspost/compress/huff0
 github.com/klauspost/compress/snappy
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/mattn/go-colorable v0.1.1
+# github.com/mattn/go-colorable v0.1.4
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.5
+# github.com/mattn/go-isatty v0.0.10
 github.com/mattn/go-isatty
 # github.com/mitchellh/cli v1.1.2
 github.com/mitchellh/cli
@@ -430,9 +437,12 @@ github.com/posener/complete/match
 github.com/rickb777/date/period
 # github.com/rickb777/plural v1.2.0
 github.com/rickb777/plural
-# github.com/sergi/go-diff v1.1.0
+# github.com/sergi/go-diff v1.2.0
 ## explicit
 github.com/sergi/go-diff/diffmatchpatch
+# github.com/shopspring/decimal v1.2.0
+## explicit
+github.com/shopspring/decimal
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -475,7 +485,7 @@ github.com/vmihailenco/msgpack/v4/codes
 github.com/vmihailenco/tagparser
 github.com/vmihailenco/tagparser/internal
 github.com/vmihailenco/tagparser/internal/parser
-# github.com/zclconf/go-cty v1.8.1
+# github.com/zclconf/go-cty v1.8.2
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
 github.com/zclconf/go-cty/cty/function
@@ -503,7 +513,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+# golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 ## explicit
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
@@ -532,7 +542,7 @@ golang.org/x/lint/golint
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+# golang.org/x/net v0.0.0-20210326060303-6b1517762897
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -548,7 +558,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
+# golang.org/x/sys v0.0.0-20210324051608-47abb6519492
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix

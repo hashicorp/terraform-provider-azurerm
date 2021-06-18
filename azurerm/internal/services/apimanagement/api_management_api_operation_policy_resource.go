@@ -6,21 +6,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementApiOperationPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Read:   resourceApiManagementAPIOperationPolicyRead,
 		Update: resourceApiManagementAPIOperationPolicyCreateUpdate,
@@ -28,14 +26,14 @@ func resourceApiManagementApiOperationPolicy() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
@@ -45,7 +43,7 @@ func resourceApiManagementApiOperationPolicy() *schema.Resource {
 			"operation_id": schemaz.SchemaApiManagementChildName(),
 
 			"xml_content": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
@@ -53,7 +51,7 @@ func resourceApiManagementApiOperationPolicy() *schema.Resource {
 			},
 
 			"xml_link": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"xml_content"},
 			},
@@ -61,7 +59,7 @@ func resourceApiManagementApiOperationPolicy() *schema.Resource {
 	}
 }
 
-func resourceApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,7 +121,7 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceData,
 	return resourceApiManagementAPIOperationPolicyRead(d, meta)
 }
 
-func resourceApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +160,7 @@ func resourceApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIOperationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

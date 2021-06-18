@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccKustoEventHubDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 	r := KustoEventHubDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccKustoEventHubDataConnection_eventSystemProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 	r := KustoEventHubDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventSystemProperties(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccKustoEventHubDataConnection_unboundMapping1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 	r := KustoEventHubDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.unboundMapping1(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +65,10 @@ func TestAccKustoEventHubDataConnection_unboundMapping2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 	r := KustoEventHubDataConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.unboundMapping2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -77,7 +76,7 @@ func TestAccKustoEventHubDataConnection_unboundMapping2(t *testing.T) {
 	})
 }
 
-func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataConnectionID(state.ID)
 	if err != nil {
 		return nil, err

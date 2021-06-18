@@ -5,45 +5,43 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var natGatewayResourceName = "azurerm_nat_gateway"
 
-func resourceNatGateway() *schema.Resource {
-	return &schema.Resource{
+func resourceNatGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNatGatewayCreate,
 		Read:   resourceNatGatewayRead,
 		Update: resourceNatGatewayUpdate,
 		Delete: resourceNatGatewayDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NatGatewayName,
@@ -54,46 +52,46 @@ func resourceNatGateway() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"idle_timeout_in_minutes": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      4,
 				ValidateFunc: validation.IntBetween(4, 120),
 			},
 
 			"public_ip_address_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Address ID Deprecations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
+				Deprecated: "Inline Public IP Address ID Deprecations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"public_ip_prefix_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.Standard),
+				Default:  string(network.NatGatewaySkuNameStandard),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Standard),
+					string(network.NatGatewaySkuNameStandard),
 				}, false),
 			},
 
 			"zones": azure.SchemaZones(),
 
 			"resource_guid": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -102,7 +100,7 @@ func resourceNatGateway() *schema.Resource {
 	}
 }
 
-func resourceNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,8 +123,8 @@ func resourceNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	idleTimeoutInMinutes := d.Get("idle_timeout_in_minutes").(int)
-	publicIpAddressIds := d.Get("public_ip_address_ids").(*schema.Set).List()
-	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*schema.Set).List()
+	publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
+	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
 	zones := d.Get("zones").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
@@ -165,7 +163,7 @@ func resourceNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceNatGatewayRead(d, meta)
 }
 
-func resourceNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,12 +215,12 @@ func resourceNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("public_ip_address_ids") {
-		publicIpAddressIds := d.Get("public_ip_address_ids").(*schema.Set).List()
+		publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
 		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
 	}
 
 	if d.HasChange("public_ip_prefix_ids") {
-		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*schema.Set).List()
+		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
 		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
 	}
 
@@ -242,7 +240,7 @@ func resourceNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceNatGatewayRead(d, meta)
 }
 
-func resourceNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +291,7 @@ func resourceNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

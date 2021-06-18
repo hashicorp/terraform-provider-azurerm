@@ -11,68 +11,68 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKeyVaultCertificate() *schema.Resource {
-	return &schema.Resource{
+func resourceKeyVaultCertificate() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		// TODO: support Updating once we have more information about what can be updated
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
 		Delete: resourceKeyVaultCertificateDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: nestedItemResourceImporter,
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"certificate": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"contents": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							ForceNew:  true,
 							Sensitive: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							ForceNew:  true,
 							Sensitive: true,
@@ -82,20 +82,20 @@ func resourceKeyVaultCertificate() *schema.Resource {
 			},
 
 			"certificate_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"issuer_parameters": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ForceNew: true,
 									},
@@ -103,33 +103,56 @@ func resourceKeyVaultCertificate() *schema.Resource {
 							},
 						},
 						"key_properties": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"curve": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.P256),
+											string(keyvault.P256K),
+											string(keyvault.P384),
+											string(keyvault.P521),
+										}, false),
+									},
 									"exportable": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Required: true,
 										ForceNew: true,
 									},
 									"key_size": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+										Computed: true,
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
+											256,
+											384,
+											521,
 											2048,
 											3072,
 											4096,
 										}),
 									},
 									"key_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.EC),
+											string(keyvault.ECHSM),
+											string(keyvault.RSA),
+											string(keyvault.RSAHSM),
+											string(keyvault.Oct),
+										}, true),
 									},
 									"reuse_key": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Required: true,
 										ForceNew: true,
 									},
@@ -137,18 +160,18 @@ func resourceKeyVaultCertificate() *schema.Resource {
 							},
 						},
 						"lifetime_action": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"action": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
@@ -161,18 +184,18 @@ func resourceKeyVaultCertificate() *schema.Resource {
 									},
 									//lintignore:XS003
 									"trigger": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"days_before_expiry": {
-													Type:     schema.TypeInt,
+													Type:     pluginsdk.TypeInt,
 													Optional: true,
 													ForceNew: true,
 												},
 												"lifetime_percentage": {
-													Type:     schema.TypeInt,
+													Type:     pluginsdk.TypeInt,
 													Optional: true,
 													ForceNew: true,
 												},
@@ -183,13 +206,13 @@ func resourceKeyVaultCertificate() *schema.Resource {
 							},
 						},
 						"secret_properties": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"content_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ForceNew: true,
 									},
@@ -198,28 +221,28 @@ func resourceKeyVaultCertificate() *schema.Resource {
 						},
 
 						"x509_certificate_properties": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"extended_key_usage": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Computed: true,
 										ForceNew: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"key_usage": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										ForceNew: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												string(keyvault.CRLSign),
 												string(keyvault.DataEncipherment),
@@ -234,52 +257,52 @@ func resourceKeyVaultCertificate() *schema.Resource {
 										},
 									},
 									"subject": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ForceNew: true,
 									},
 									"subject_alternative_names": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										ForceNew: true,
 										Computed: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"emails": {
-													Type:     schema.TypeSet,
+													Type:     pluginsdk.TypeSet,
 													Optional: true,
 													ForceNew: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
-													Set: schema.HashString,
+													Set: pluginsdk.HashString,
 													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
 												},
 												"dns_names": {
-													Type:     schema.TypeSet,
+													Type:     pluginsdk.TypeSet,
 													Optional: true,
 													ForceNew: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
-													Set: schema.HashString,
+													Set: pluginsdk.HashString,
 													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
 												},
 												"upns": {
-													Type:     schema.TypeSet,
+													Type:     pluginsdk.TypeSet,
 													Optional: true,
 													ForceNew: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
-													Set: schema.HashString,
+													Set: pluginsdk.HashString,
 													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
@@ -289,7 +312,7 @@ func resourceKeyVaultCertificate() *schema.Resource {
 										},
 									},
 									"validity_in_months": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Required: true,
 										ForceNew: true,
 									},
@@ -302,37 +325,37 @@ func resourceKeyVaultCertificate() *schema.Resource {
 
 			// Computed
 			"certificate_attribute": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"created": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
 						"expires": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"not_before": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"recovery_level": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"updated": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -340,27 +363,27 @@ func resourceKeyVaultCertificate() *schema.Resource {
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secret_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"certificate_data": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"certificate_data_base64": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"thumbprint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -369,7 +392,7 @@ func resourceKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -398,7 +421,10 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-	policy := expandKeyVaultCertificatePolicy(d)
+	policy, err := expandKeyVaultCertificatePolicy(d)
+	if err != nil {
+		return fmt.Errorf("expanding certificate policy: %s", err)
+	}
 
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
@@ -406,7 +432,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		importParameters := keyvault.CertificateImportParameters{
 			Base64EncodedCertificate: utils.String(certificate.CertificateData),
 			Password:                 utils.String(certificate.CertificatePassword),
-			CertificatePolicy:        &policy,
+			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
 		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
@@ -415,7 +441,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	} else {
 		// Generate new
 		parameters := keyvault.CertificateCreateParameters{
-			CertificatePolicy: &policy,
+			CertificatePolicy: policy,
 			Tags:              tags.Expand(t),
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -426,14 +452,14 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 				}
 				log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredCertificate.ID)
 				if certificate := recoveredCertificate.ID; certificate != nil {
-					stateConf := &resource.StateChangeConf{
+					stateConf := &pluginsdk.StateChangeConf{
 						Pending:                   []string{"pending"},
 						Target:                    []string{"available"},
 						Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
 						Delay:                     30 * time.Second,
 						PollInterval:              10 * time.Second,
 						ContinuousTargetOccurence: 10,
-						Timeout:                   d.Timeout(schema.TimeoutCreate),
+						Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 					}
 
 					if _, err := stateConf.WaitForState(); err != nil {
@@ -447,17 +473,17 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
-		stateConf := &resource.StateChangeConf{
+		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
 			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name),
 			MinTimeout: 15 * time.Second,
-			Timeout:    d.Timeout(schema.TimeoutCreate),
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
 		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
 		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
-		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+		if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
 			stateConf.PollInterval = 30 * time.Second
 			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
@@ -477,7 +503,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
-func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
+func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {
@@ -499,7 +525,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 	}
 }
 
-func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource
@@ -588,7 +614,7 @@ func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func resourceKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource
@@ -664,7 +690,7 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 	return resp.Response, err
 }
 
-func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.CertificatePolicy {
+func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
 	policyRaw := policies[0].(map[string]interface{})
 	policy := keyvault.CertificatePolicy{}
@@ -677,10 +703,37 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 	properties := policyRaw["key_properties"].([]interface{})
 	props := properties[0].(map[string]interface{})
+
+	curve := props["curve"].(string)
+	keyType := props["key_type"].(string)
+	keySize := props["key_size"].(int)
+
+	if keyType == string(keyvault.EC) || keyType == string(keyvault.ECHSM) {
+		if curve == "" {
+			return nil, fmt.Errorf("`curve` is required when creating an EC key")
+		}
+		// determine key_size if not specified
+		if keySize == 0 {
+			switch curve {
+			case string(keyvault.P256), string(keyvault.P256K):
+				keySize = 256
+			case string(keyvault.P384):
+				keySize = 384
+			case string(keyvault.P521):
+				keySize = 521
+			}
+		}
+	} else if keyType == string(keyvault.RSA) || keyType == string(keyvault.RSAHSM) {
+		if keySize == 0 {
+			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
+		}
+	}
+
 	policy.KeyProperties = &keyvault.KeyProperties{
+		Curve:      keyvault.JSONWebKeyCurveName(curve),
 		Exportable: utils.Bool(props["exportable"].(bool)),
-		KeySize:    utils.Int32(int32(props["key_size"].(int))),
-		KeyType:    utils.String(props["key_type"].(string)),
+		KeySize:    utils.Int32(int32(keySize)),
+		KeyType:    keyvault.JSONWebKeyType(keyType),
 		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
 	}
 
@@ -745,17 +798,17 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 				if sans[0] != nil {
 					san := sans[0].(map[string]interface{})
 
-					emails := san["emails"].(*schema.Set).List()
+					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
 						subjectAlternativeNames.Emails = utils.ExpandStringSlice(emails)
 					}
 
-					dnsNames := san["dns_names"].(*schema.Set).List()
+					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
 						subjectAlternativeNames.DNSNames = utils.ExpandStringSlice(dnsNames)
 					}
 
-					upns := san["upns"].(*schema.Set).List()
+					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
 						subjectAlternativeNames.Upns = utils.ExpandStringSlice(upns)
 					}
@@ -772,7 +825,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		}
 	}
 
-	return policy
+	return &policy, nil
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {
@@ -791,9 +844,10 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 	// key properties
 	if props := input.KeyProperties; props != nil {
 		keyProps := make(map[string]interface{})
+		keyProps["curve"] = string(props.Curve)
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
-		keyProps["key_type"] = *props.KeyType
+		keyProps["key_type"] = string(props.KeyType)
 		keyProps["reuse_key"] = *props.ReuseKey
 
 		policy["key_properties"] = []interface{}{keyProps}

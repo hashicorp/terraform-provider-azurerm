@@ -60,6 +60,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `node_labels` - A map of Kubernetes Labels applied to each Node in this Node Pool.
 
+* `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
+
 * `node_taints` - A map of Kubernetes Taints applied to each Node in this Node Pool.
 
 * `orchestrator_version` - The version of Kubernetes configured on each Node in this Node Pool.

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -18,12 +17,12 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.sitetosite(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
 			),
 		},
 	})
@@ -36,14 +35,14 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	data1.DataSourceTest(t, []resource.TestStep{
+	data1.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
-				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
-				resource.TestCheckResourceAttr(data1.ResourceName, "type", string(network.Vnet2Vnet)),
-				resource.TestCheckResourceAttr(data2.ResourceName, "type", string(network.Vnet2Vnet)),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
 			),
 		},
 	})
@@ -54,15 +53,15 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) 
 	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.ipsecpolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
 				check.That(data.ResourceName).Key("routing_weight").HasValue("20"),
-				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DHGroup14)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.AES256)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DhGroupDHGroup14)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.IkeEncryptionAES256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(network.IkeIntegritySHA256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(network.IpsecEncryptionAES256)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(network.IpsecIntegritySHA256)),

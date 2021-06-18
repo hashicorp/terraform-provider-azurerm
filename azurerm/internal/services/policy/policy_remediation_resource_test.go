@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atSubscription(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atSubscriptionWithDefinitionSet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atResourceGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +65,10 @@ func TestAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atResourceGroupWithDiscoveryMode(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -81,10 +80,10 @@ func TestAccAzureRMPolicyRemediation_atManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atManagementGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,10 +95,10 @@ func TestAccAzureRMPolicyRemediation_atResource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atResource(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -111,17 +110,17 @@ func TestAccAzureRMPolicyRemediation_updateLocation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atResourceGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateLocation(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -133,10 +132,10 @@ func TestAccAzureRMPolicyRemediation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.atResourceGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -144,7 +143,7 @@ func TestAccAzureRMPolicyRemediation_requiresImport(t *testing.T) {
 	})
 }
 
-func (r PolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PolicyRemediationID(state.ID)
 	if err != nil {
 		return nil, err

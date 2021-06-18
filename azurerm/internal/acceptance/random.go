@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
+const CharSetAlpha = acctest.CharSetAlpha
+
 func RandTimeInt() int {
 	// acctest.RantInt() returns a value of size:
 	// 000000000000000000
@@ -29,4 +31,8 @@ func RandTimeInt() int {
 // RandString generates a random alphanumeric string of the length specified
 func RandString(strlen int) string {
 	return acctest.RandString(strlen)
+}
+
+func RandStringFromCharSet(strlen int, charSet string) string {
+	return acctest.RandStringFromCharSet(strlen, charSet)
 }

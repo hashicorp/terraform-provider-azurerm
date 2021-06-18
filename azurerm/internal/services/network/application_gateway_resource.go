@@ -7,9 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -21,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,8 +42,8 @@ func base64EncodedStateFunc(v interface{}) string {
 	}
 }
 
-func resourceApplicationGateway() *schema.Resource {
-	return &schema.Resource{
+func resourceApplicationGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApplicationGatewayCreateUpdate,
 		Read:   resourceApplicationGatewayRead,
 		Update: resourceApplicationGatewayCreateUpdate,
@@ -54,16 +53,16 @@ func resourceApplicationGateway() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -73,18 +72,18 @@ func resourceApplicationGateway() *schema.Resource {
 			"zones": azure.SchemaZones(),
 
 			"resource_group_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  string(network.ResourceIdentityTypeUserAssigned),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -92,12 +91,12 @@ func resourceApplicationGateway() *schema.Resource {
 							}, false),
 						},
 						"identity_ids": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
 							MaxItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.NoZeroValues,
 							},
 						},
@@ -107,36 +106,36 @@ func resourceApplicationGateway() *schema.Resource {
 
 			// Required
 			"backend_address_pool": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"fqdns": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.NoZeroValues,
 							},
 						},
 
 						"ip_addresses": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.IPv4Address,
 							},
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -144,82 +143,82 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"backend_http_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"path": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"port": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validate.PortNumber,
 						},
 
 						"protocol": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTP),
-								string(network.HTTPS),
+								string(network.ProtocolHTTP),
+								string(network.ProtocolHTTPS),
 							}, true),
 						},
 
 						"cookie_based_affinity": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Enabled),
-								string(network.Disabled),
+								string(network.ApplicationGatewayCookieBasedAffinityEnabled),
+								string(network.ApplicationGatewayCookieBasedAffinityDisabled),
 							}, true),
 						},
 
 						"affinity_cookie_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"host_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"pick_host_name_from_backend_address": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"request_timeout": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
 						"authentication_certificate": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -227,27 +226,27 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"trusted_root_certificate_names": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"connection_draining": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Required: true,
 									},
 
 									"drain_timeout_sec": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 3600),
 									},
@@ -256,17 +255,17 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"probe_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"probe_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -274,47 +273,47 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"frontend_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"public_ip_address_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"private_ip_address_allocation": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
+								string(network.IPAllocationMethodDynamic),
+								string(network.IPAllocationMethodStatic),
 							}, true),
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -322,23 +321,23 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"frontend_port": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"port": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validate.PortNumber,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -346,24 +345,24 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"gateway_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 2,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -371,99 +370,99 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"http_listener": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"frontend_ip_configuration_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"frontend_port_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"protocol": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTP),
-								string(network.HTTPS),
+								string(network.ProtocolHTTP),
+								string(network.ProtocolHTTPS),
 							}, true),
 						},
 
 						"host_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"host_names": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"ssl_certificate_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"require_sni": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"frontend_ip_configuration_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"frontend_port_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"ssl_certificate_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"custom_error_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"status_code": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.HTTPStatus403),
-											string(network.HTTPStatus502),
+											string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus403),
+											string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus502),
 										}, false),
 									},
 
 									"custom_error_page_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -471,7 +470,7 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"firewall_policy_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -480,89 +479,89 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"request_routing_rule": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"rule_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Basic),
-								string(network.PathBasedRouting),
+								string(network.ApplicationGatewayRequestRoutingRuleTypeBasic),
+								string(network.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting),
 							}, false),
 						},
 
 						"http_listener_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"backend_address_pool_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"backend_http_settings_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"url_path_map_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"redirect_configuration_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"rewrite_rule_set_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"backend_address_pool_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"backend_http_settings_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"http_listener_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"url_path_map_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"redirect_configuration_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"rewrite_rule_set_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -570,76 +569,76 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"redirect_configuration": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"redirect_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Permanent),
-								string(network.Temporary),
-								string(network.Found),
-								string(network.SeeOther),
+								string(network.ApplicationGatewayRedirectTypePermanent),
+								string(network.ApplicationGatewayRedirectTypeTemporary),
+								string(network.ApplicationGatewayRedirectTypeFound),
+								string(network.ApplicationGatewayRedirectTypeSeeOther),
 							}, false),
 						},
 
 						"target_listener_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"target_url": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"include_path": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"include_query_string": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"target_listener_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
 			"autoscale_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"max_capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(2, 125),
 						},
@@ -647,28 +646,28 @@ func resourceApplicationGateway() *schema.Resource {
 				},
 			},
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.StandardSmall),
-								string(network.StandardMedium),
-								string(network.StandardLarge),
-								string(network.StandardV2),
-								string(network.WAFLarge),
-								string(network.WAFMedium),
-								string(network.WAFV2),
+								string(network.ApplicationGatewaySkuNameStandardSmall),
+								string(network.ApplicationGatewaySkuNameStandardMedium),
+								string(network.ApplicationGatewaySkuNameStandardLarge),
+								string(network.ApplicationGatewaySkuNameStandardV2),
+								string(network.ApplicationGatewaySkuNameWAFLarge),
+								string(network.ApplicationGatewaySkuNameWAFMedium),
+								string(network.ApplicationGatewaySkuNameWAFV2),
 							}, true),
 						},
 
 						"tier": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -680,7 +679,7 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 						},
 					},
@@ -689,25 +688,25 @@ func resourceApplicationGateway() *schema.Resource {
 
 			// Optional
 			"authentication_certificate": {
-				Type:     schema.TypeList, // todo this should probably be a map
+				Type:     pluginsdk.TypeList, // todo this should probably be a map
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"data": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -715,18 +714,18 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"trusted_root_certificate": {
-				Type:     schema.TypeList, // todo this should probably be a map
+				Type:     pluginsdk.TypeList, // todo this should probably be a map
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"data": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
@@ -734,13 +733,13 @@ func resourceApplicationGateway() *schema.Resource {
 
 						// TODO required soft delete on the keyvault
 						/*"key_vault_secret_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateKeyVaultChildId,
 						},*/
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -749,54 +748,54 @@ func resourceApplicationGateway() *schema.Resource {
 
 			//lintignore:XS003
 			"ssl_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disabled_protocols": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(network.TLSv10),
-									string(network.TLSv11),
-									string(network.TLSv12),
+									string(network.ApplicationGatewaySslProtocolTLSv10),
+									string(network.ApplicationGatewaySslProtocolTLSv11),
+									string(network.ApplicationGatewaySslProtocolTLSv12),
 								}, false),
 							},
 						},
 
 						"policy_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Custom),
-								string(network.Predefined),
+								string(network.ApplicationGatewaySslPolicyTypeCustom),
+								string(network.ApplicationGatewaySslPolicyTypePredefined),
 							}, false),
 						},
 
 						"policy_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"cipher_suites": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
 							},
 						},
 
 						"min_protocol_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.TLSv10),
-								string(network.TLSv11),
-								string(network.TLSv12),
+								string(network.ApplicationGatewaySslProtocolTLSv10),
+								string(network.ApplicationGatewaySslProtocolTLSv11),
+								string(network.ApplicationGatewaySslProtocolTLSv12),
 							}, false),
 						},
 					},
@@ -804,91 +803,91 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"enable_http2": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"probe": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"protocol": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTP),
-								string(network.HTTPS),
+								string(network.ProtocolHTTP),
+								string(network.ProtocolHTTPS),
 							}, true),
 						},
 
 						"path": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"host": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"interval": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"timeout": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"unhealthy_threshold": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"port": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validate.PortNumber,
 						},
 
 						"pick_host_name_from_backend_http_settings": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"minimum_servers": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Default:  0,
 						},
 
 						//lintignore:XS003
 						"match": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"body": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 
 									"status_code": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -896,7 +895,7 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -904,53 +903,53 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"rewrite_rule_set": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"rewrite_rule": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"rule_sequence": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 1000),
 									},
 
 									"condition": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"variable": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 												"pattern": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 												"ignore_case": {
-													Type:     schema.TypeBool,
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
 													Default:  false,
 												},
 												"negate": {
-													Type:     schema.TypeBool,
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
 													Default:  false,
 												},
@@ -959,16 +958,16 @@ func resourceApplicationGateway() *schema.Resource {
 									},
 
 									"request_header_configuration": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"header_name": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 												"header_value": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 											},
@@ -976,16 +975,16 @@ func resourceApplicationGateway() *schema.Resource {
 									},
 
 									"response_header_configuration": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"header_name": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 												"header_value": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 											},
@@ -993,21 +992,21 @@ func resourceApplicationGateway() *schema.Resource {
 									},
 
 									"url": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"path": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Optional: true,
 												},
 												"query_string": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Optional: true,
 												},
 												"reroute": {
-													Type:     schema.TypeBool,
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
 													Default:  false,
 												},
@@ -1019,7 +1018,7 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -1028,41 +1027,41 @@ func resourceApplicationGateway() *schema.Resource {
 
 			"ssl_certificate": {
 				// TODO: should this become a Set?
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"data": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
 							StateFunc: base64EncodedStateFunc,
 						},
 
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
 
 						"key_vault_secret_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"public_cert_data": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -1070,104 +1069,104 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"url_path_map": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"default_backend_address_pool_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"default_backend_http_settings_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"default_redirect_configuration_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"default_rewrite_rule_set_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"path_rule": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 
 									"paths": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 
 									"backend_address_pool_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 
 									"backend_http_settings_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 
 									"redirect_configuration_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"rewrite_rule_set_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"backend_address_pool_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"backend_http_settings_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"redirect_configuration_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"rewrite_rule_set_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"firewall_policy_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
 									},
@@ -1176,27 +1175,27 @@ func resourceApplicationGateway() *schema.Resource {
 						},
 
 						"default_backend_address_pool_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"default_backend_http_settings_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"default_redirect_configuration_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"default_rewrite_rule_set_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -1204,71 +1203,71 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"waf_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"firewall_mode": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Detection),
-								string(network.Prevention),
+								string(network.ApplicationGatewayFirewallModeDetection),
+								string(network.ApplicationGatewayFirewallModePrevention),
 							}, true),
 						},
 
 						"rule_set_type": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "OWASP",
 							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetType,
 						},
 
 						"rule_set_version": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 						},
 						"file_upload_limit_mb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"request_body_check": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 						"max_request_body_size_kb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 128),
 							Default:      128,
 						},
 						"disabled_rule_group": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"rule_group_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 									},
 
 									"rules": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeInt,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
 											ValidateFunc: validation.IntAtLeast(1),
 										},
 									},
@@ -1276,22 +1275,22 @@ func resourceApplicationGateway() *schema.Resource {
 							},
 						},
 						"exclusion": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.RequestArgNames),
-											string(network.RequestCookieNames),
-											string(network.RequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
 										}, false),
 									},
 
 									"selector_match_operator": {
-										Type: schema.TypeString,
+										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
@@ -1303,7 +1302,7 @@ func resourceApplicationGateway() *schema.Resource {
 									},
 									"selector": {
 										ValidateFunc: validation.StringIsNotEmpty,
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 									},
 								},
@@ -1314,32 +1313,32 @@ func resourceApplicationGateway() *schema.Resource {
 			},
 
 			"firewall_policy_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"custom_error_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"status_code": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.HTTPStatus403),
-								string(network.HTTPStatus502),
+								string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus403),
+								string(network.ApplicationGatewayCustomErrorStatusCodeHTTPStatus502),
 							}, false),
 						},
 
 						"custom_error_page_url": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -1353,7 +1352,7 @@ func resourceApplicationGateway() *schema.Resource {
 	}
 }
 
-func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -1483,8 +1482,8 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 	appGWSkuTier := d.Get("sku.0.tier").(string)
 	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
 
-	if appGWSkuTier != string(network.WAFV2) && wafFileUploadLimit > 500 {
-		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.WAFV2)
+	if appGWSkuTier != string(network.ApplicationGatewayTierWAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.ApplicationGatewayTierWAFV2)
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
@@ -1529,7 +1528,7 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceApplicationGatewayRead(d, meta)
 }
 
-func resourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1673,7 +1672,7 @@ func resourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, applicationGateway.Tags)
 }
 
-func resourceApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1695,7 +1694,7 @@ func resourceApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmApplicationGatewayIdentity(d *schema.ResourceData) *network.ManagedServiceIdentity {
+func expandAzureRmApplicationGatewayIdentity(d *pluginsdk.ResourceData) *network.ManagedServiceIdentity {
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
@@ -1792,7 +1791,7 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) *[]net
 	return &results
 }
 
-func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *schema.ResourceData) []interface{} {
+func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if certs == nil {
 		return results
@@ -1829,7 +1828,7 @@ func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.Applic
 	return results
 }
 
-func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.ApplicationGatewayTrustedRootCertificate, d *schema.ResourceData) []interface{} {
+func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if certs == nil {
 		return results
@@ -1874,7 +1873,7 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 	return results
 }
 
-func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
+func expandApplicationGatewayBackendAddressPools(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
 	vs := d.Get("backend_address_pool").([]interface{})
 	results := make([]network.ApplicationGatewayBackendAddressPool, 0)
 
@@ -1948,7 +1947,7 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 	return results
 }
 
-func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
+func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
 	results := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
 	vs := d.Get("backend_http_settings").([]interface{})
 
@@ -2172,7 +2171,7 @@ func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatew
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
+func expandApplicationGatewaySslPolicy(d *pluginsdk.ResourceData) *network.ApplicationGatewaySslPolicy {
 	policy := network.ApplicationGatewaySslPolicy{}
 	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
 
@@ -2186,13 +2185,13 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
 		}
 
-		if policyType == network.Predefined {
+		if policyType == network.ApplicationGatewaySslPolicyTypePredefined {
 			policyName := network.ApplicationGatewaySslPolicyName(v["policy_name"].(string))
 			policy = network.ApplicationGatewaySslPolicy{
 				PolicyType: policyType,
 				PolicyName: policyName,
 			}
-		} else if policyType == network.Custom {
+		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom {
 			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
 			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
 
@@ -2249,7 +2248,7 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	return results
 }
 
-func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayHTTPListener, error) {
+func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayHTTPListener, error) {
 	vs := d.Get("http_listener").([]interface{})
 	results := make([]network.ApplicationGatewayHTTPListener, 0)
 
@@ -2284,7 +2283,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 		}
 
 		host := v["host_name"].(string)
-		hosts := v["host_names"].(*schema.Set).List()
+		hosts := v["host_names"].(*pluginsdk.Set).List()
 
 		if host != "" && len(hosts) > 0 {
 			return nil, fmt.Errorf("`host_name` and `host_names` cannot be specified together")
@@ -2399,7 +2398,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 	return results, nil
 }
 
-func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]network.ApplicationGatewayIPConfiguration, bool) {
+func expandApplicationGatewayIPConfigurations(d *pluginsdk.ResourceData) (*[]network.ApplicationGatewayIPConfiguration, bool) {
 	vs := d.Get("gateway_ip_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayIPConfiguration, 0)
 	stopApplicationGateway := false
@@ -2483,8 +2482,8 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 	return results
 }
 
-func expandApplicationGatewayFrontendPorts(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendPort {
-	vs := d.Get("frontend_port").(*schema.Set).List()
+func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayFrontendPort {
+	vs := d.Get("frontend_port").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayFrontendPort, 0)
 
 	for _, raw := range vs {
@@ -2534,7 +2533,7 @@ func flattenApplicationGatewayFrontendPorts(input *[]network.ApplicationGatewayF
 	return results
 }
 
-func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
+func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
 	vs := d.Get("frontend_ip_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
 
@@ -2613,7 +2612,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.Applicat
 	return results
 }
 
-func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
+func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayProbe {
 	vs := d.Get("probe").([]interface{})
 	results := make([]network.ApplicationGatewayProbe, 0)
 
@@ -2752,8 +2751,8 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 	return results
 }
 
-func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRequestRoutingRule, error) {
-	vs := d.Get("request_routing_rule").(*schema.Set).List()
+func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRequestRoutingRule, error) {
+	vs := d.Get("request_routing_rule").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayRequestRoutingRule, 0)
 
 	for _, raw := range vs {
@@ -2925,7 +2924,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	return results, nil
 }
 
-func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) (*[]network.ApplicationGatewayRewriteRuleSet, error) {
+func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]network.ApplicationGatewayRewriteRuleSet, error) {
 	vs := d.Get("rewrite_rule_set").([]interface{})
 	ruleSets := make([]network.ApplicationGatewayRewriteRuleSet, 0)
 
@@ -3147,8 +3146,8 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 	return results
 }
 
-func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
-	vs := d.Get("redirect_configuration").(*schema.Set).List()
+func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
+	vs := d.Get("redirect_configuration").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayRedirectConfiguration, 0)
 
 	for _, raw := range vs {
@@ -3246,7 +3245,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	return results, nil
 }
 
-func expandApplicationGatewayAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
+func expandApplicationGatewayAutoscaleConfiguration(d *pluginsdk.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
 	vs := d.Get("autoscale_configuration").([]interface{})
 	if len(vs) == 0 {
 		return nil
@@ -3282,7 +3281,7 @@ func flattenApplicationGatewayAutoscaleConfiguration(input *network.ApplicationG
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
+func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *network.ApplicationGatewaySku {
 	vs := d.Get("sku").([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -3314,7 +3313,7 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
+func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
 	vs := d.Get("ssl_certificate").([]interface{})
 	results := make([]network.ApplicationGatewaySslCertificate, 0)
 
@@ -3358,7 +3357,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 	return &results, nil
 }
 
-func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate, d *schema.ResourceData) []interface{} {
+func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -3414,7 +3413,7 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 	return results
 }
 
-func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayURLPathMap, error) {
+func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayURLPathMap, error) {
 	vs := d.Get("url_path_map").([]interface{})
 	results := make([]network.ApplicationGatewayURLPathMap, 0)
 
@@ -3680,7 +3679,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 	return results, nil
 }
 
-func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
+func expandApplicationGatewayWafConfig(d *pluginsdk.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
 	vs := d.Get("waf_configuration").([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -3887,7 +3886,7 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	return results
 }
 
-func applicationGatewayCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)

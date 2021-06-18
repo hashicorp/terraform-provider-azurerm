@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,38 +28,38 @@ type BackendAddressPoolAddressModel struct {
 	IPAddress            string `tfschema:"ip_address"`
 }
 
-func (r BackendAddressPoolAddressResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"backend_address_pool_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.LoadBalancerBackendAddressPoolID,
 		},
 
 		"virtual_network_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: networkValidate.VirtualNetworkID,
 		},
 
 		"ip_address": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPAddress,
 		},
 	}
 }
 
-func (r BackendAddressPoolAddressResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (r BackendAddressPoolAddressResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r BackendAddressPoolAddressResource) ModelObject() interface{} {

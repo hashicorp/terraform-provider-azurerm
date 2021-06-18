@@ -3,7 +3,6 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -18,6 +17,7 @@ type Client struct {
 	FirewallRulesClient                                *sql.FirewallRulesClient
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
+	ReplicationLinksClient                             *sql.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
@@ -62,6 +62,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	replicationLinksClient := sql.NewReplicationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&replicationLinksClient.Client, o.ResourceManagerAuthorizer)
 
 	restorableDroppedDatabasesClient := sql.NewRestorableDroppedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDroppedDatabasesClient.Client, o.ResourceManagerAuthorizer)
@@ -111,6 +114,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		JobAgentsClient:                                    &jobAgentsClient,
 		JobCredentialsClient:                               &jobCredentialsClient,
 		FirewallRulesClient:                                &firewallRulesClient,
+		ReplicationLinksClient:                             &replicationLinksClient,
 		RestorableDroppedDatabasesClient:                   &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,
 		ServersClient:                                      &serversClient,

@@ -2,23 +2,21 @@ package datafactory
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryDatasetAzureBlob() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryDatasetAzureBlob() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryDatasetAzureBlobCreateUpdate,
 		Read:   resourceDataFactoryDatasetAzureBlobRead,
 		Update: resourceDataFactoryDatasetAzureBlobCreateUpdate,
@@ -27,23 +25,23 @@ func resourceDataFactoryDatasetAzureBlob() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -54,73 +52,85 @@ func resourceDataFactoryDatasetAzureBlob() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"linked_service_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Blob Storage Specific field
 			"path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Blob Storage Specific field
 			"filename": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"parameters": {
-				Type:     schema.TypeMap,
+			"dynamic_path_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Default:  false,
+			},
+
+			"dynamic_filename_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"parameters": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"folder": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"additional_properties": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"schema_column": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Byte",
@@ -141,7 +151,7 @@ func resourceDataFactoryDatasetAzureBlob() *schema.Resource {
 							}, false),
 						},
 						"description": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -152,7 +162,7 @@ func resourceDataFactoryDatasetAzureBlob() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,15 +191,13 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, met
 		Type:          &linkedServiceType,
 	}
 
-	description := d.Get("description").(string)
-
 	azureBlobTableset := datafactory.AzureBlobDataset{
 		AzureBlobDatasetTypeProperties: &datafactory.AzureBlobDatasetTypeProperties{
-			FolderPath: d.Get("path").(string),
-			FileName:   d.Get("filename").(string),
+			FolderPath: expandDataFactoryExpressionResultType(d.Get("path").(string), d.Get("dynamic_path_enabled").(bool)),
+			FileName:   expandDataFactoryExpressionResultType(d.Get("filename").(string), d.Get("dynamic_filename_enabled").(bool)),
 		},
 		LinkedServiceName: linkedService,
-		Description:       &description,
+		Description:       utils.String(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -216,7 +224,7 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, met
 		azureBlobTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeAzureBlob)
+	datasetType := string(datafactory.TypeBasicDatasetTypeAzureBlob)
 	dataset := datafactory.DatasetResource{
 		Properties: &azureBlobTableset,
 		Type:       &datasetType,
@@ -240,7 +248,7 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, met
 	return resourceDataFactoryDatasetAzureBlobRead(d, meta)
 }
 
-func resourceDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +277,7 @@ func resourceDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interf
 
 	azureBlobTable, ok := resp.Properties.AsAzureBlobDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeAzureBlob, *resp.Type)
 	}
 
 	d.Set("additional_properties", azureBlobTable.AdditionalProperties)
@@ -295,18 +303,12 @@ func resourceDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interf
 	}
 
 	if properties := azureBlobTable.AzureBlobDatasetTypeProperties; properties != nil {
-		filename, ok := properties.FileName.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `filename` since it's not a string")
-		} else {
-			d.Set("filename", filename)
-		}
-		path, ok := properties.FolderPath.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `path` since it's not a string")
-		} else {
-			d.Set("path", path)
-		}
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(properties.FileName)
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(properties.FolderPath)
+		d.Set("filename", filename)
+		d.Set("path", path)
+		d.Set("dynamic_filename_enabled", dynamicFilenameEnabled)
+		d.Set("dynamic_path_enabled", dynamicPathEnabled)
 	}
 
 	if folder := azureBlobTable.Folder; folder != nil {
@@ -323,7 +325,7 @@ func resourceDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceDataFactoryDatasetAzureBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetAzureBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
