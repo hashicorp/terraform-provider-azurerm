@@ -83,6 +83,20 @@ func TestAccCosmosDbGremlinGraph_indexPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.indexPolicySpatialIndex(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -257,6 +271,61 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 }
 
 func (CosmosGremlinGraphResource) indexPolicyCompositeIndex(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
+  throughput          = 400
+
+  index_policy {
+    automatic     = true
+    indexing_mode = "Consistent"
+
+    composite_index {
+      index {
+        path  = "/path1"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path2"
+        order = "Descending"
+      }
+    }
+
+    composite_index {
+      index {
+        path  = "/path3"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path4"
+        order = "Descending"
+      }
+    }
+
+    spatial_index {
+      path = "/path/*"
+    }
+
+    spatial_index {
+      path = "/test/to/all/?"
+    }
+  }
+
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+}
+`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosGremlinGraphResource) indexPolicySpatialIndex(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

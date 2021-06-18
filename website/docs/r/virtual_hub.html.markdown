@@ -29,7 +29,7 @@ resource "azurerm_virtual_hub" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   virtual_wan_id      = azurerm_virtual_wan.example.id
-  address_prefix      = "10.0.1.0/24"
+  address_prefix      = "10.0.0.0/23"
 }
 ```
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 ---
 
-* `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created.
+* `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
 
 * `route` - (Optional) One or more `route` blocks as defined below.
 
