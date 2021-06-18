@@ -31,7 +31,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* migrate azurerm_synapse_role_assignment to support new roles and scopes #11690
+* `azurerm_synapse_role_assignment` - support new roles and scopes [GH-11690]
 * `azurerm_lb` - fix zone behaviour bug introduced in recent API upgrade [GH-12208]
 
 ## 2.63.0 (June 11, 2021)
