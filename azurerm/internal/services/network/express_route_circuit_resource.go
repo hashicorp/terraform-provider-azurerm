@@ -130,6 +130,7 @@ func resourceExpressRouteCircuit() *schema.Resource {
 			"express_route_port_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				ForceNew:      true,
 				RequiredWith:  []string{"bandwidth_in_gbps"},
 				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
 				ValidateFunc:  azure.ValidateResourceID,
@@ -180,6 +181,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interf
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := expandExpressRouteCircuitSku(d)
 	t := d.Get("tags").(map[string]interface{})
+	allowRdfeOps := d.Get("allow_classic_operations").(bool)
 	expandedTags := tags.Expand(t)
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
@@ -211,49 +213,48 @@ func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interf
 	erc.Sku = sku
 	erc.Tags = expandedTags
 
-	if erc.ExpressRouteCircuitPropertiesFormat == nil {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
-			ServiceProviderProperties: &network.ExpressRouteCircuitServiceProviderProperties{},
+	if erc.ExpressRouteCircuitPropertiesFormat != nil {
+		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
+
+		//ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
+		if _, ok := d.GetOk("express_route_port_id"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = &network.SubResource{}
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties = &network.ExpressRouteCircuitServiceProviderProperties{}
 		}
 	}
 
-	if v, ok := d.GetOk("service_provider_name"); ok {
-		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(v.(string))
-	} else {
-		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = nil
-	}
+	if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
+		if v, ok := d.GetOk("service_provider_name"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(v.(string))
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = nil
+		}
 
-	if v, ok := d.GetOk("peering_location"); ok {
-		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(v.(string))
-	} else {
-		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = nil
-	}
+		if v, ok := d.GetOk("peering_location"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(v.(string))
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = nil
+		}
 
-	if v, ok := d.GetOk("bandwidth_in_mbps"); ok {
-		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(v.(int)))
-	} else {
-		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = nil
-	}
-
-	if v, ok := d.GetOk("express_route_port_id"); ok {
-		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = &network.SubResource{
-			ID: utils.String(v.(string)),
+		if v, ok := d.GetOk("bandwidth_in_mbps"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(v.(int)))
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = nil
 		}
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = nil
-	}
+		if v, ok := d.GetOk("express_route_port_id"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = utils.String(v.(string))
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = nil
+		}
 
-	if v, ok := d.GetOk("bandwidth_in_gbps"); ok {
-		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(v.(float64))
-	} else {
-		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = nil
-	}
-
-	if v, ok := d.GetOk("allow_classic_operations"); ok {
-		if erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort == nil {
-			erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = utils.Bool(v.(bool))
-		} else if ok {
-			return fmt.Errorf("`allow_classic_operations` shouldn't be set while using the Express Route Port")
+		if v, ok := d.GetOk("bandwidth_in_gbps"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(v.(float64))
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = nil
 		}
 	}
 

@@ -601,20 +601,11 @@ resource "azurerm_express_route_port" "test" {
   encapsulation       = "Dot1Q"
 }
 
-resource "azurerm_express_route_port" "test2" {
-  name                = "acctest-ERP2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
-  bandwidth_in_gbps   = 10
-  encapsulation       = "Dot1Q"
-}
-
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-ExpressRouteCircuit-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  express_route_port_id = azurerm_express_route_port.test2.id
+  express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 10
 
   sku {
@@ -622,5 +613,5 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
