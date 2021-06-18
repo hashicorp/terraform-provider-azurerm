@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -47,8 +48,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			1: migration.AccountV1ToV2{},
 		}),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ServiceID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -244,6 +247,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
 			"network_rules": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -874,8 +878,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountName := d.Get("name").(string)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resourceGroupName := d.Get("resource_group_name").(string)
+	storageAccountName := d.Get("name").(string)
+
+	id := parse.NewServiceID(subscriptionId, resourceGroupName, storageAccountName)
 
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
@@ -1016,17 +1023,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
 
-	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
-	}
-
-	if account.ID == nil {
-		return fmt.Errorf("Cannot read Storage Account %q (resource group %q) ID",
-			storageAccountName, resourceGroupName)
-	}
-	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
-	d.SetId(*account.ID)
+	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, id)
+	d.SetId(id.ID())
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
@@ -1131,12 +1129,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	storageAccountName := id.Path["storageAccounts"]
-	resourceGroupName := id.ResourceGroup
+	resourceGroupName := d.Get("resource_group_name").(string)
+	storageAccountName := d.Get("name").(string)
 
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
@@ -1497,12 +1491,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	name := id.Path["storageAccounts"]
-	resGroup := id.ResourceGroup
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
@@ -1754,12 +1744,8 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	name := id.Path["storageAccounts"]
-	resourceGroup := id.ResourceGroup
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	locks.ByName(name, storageAccountResourceName)
 	defer locks.UnlockByName(name, storageAccountResourceName)
