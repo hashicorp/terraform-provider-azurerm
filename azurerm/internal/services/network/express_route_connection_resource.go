@@ -158,12 +158,9 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
 			},
 			EnableInternetSecurity: utils.Bool(d.Get("enable_internet_security").(bool)),
+			RoutingConfiguration:   expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:          utils.Int32(int32(d.Get("routing_weight").(int))),
 		},
-	}
-
-	if v, ok := d.GetOk("routing"); ok {
-		parameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
@@ -250,12 +247,9 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
 			},
 			EnableInternetSecurity: utils.Bool(d.Get("enable_internet_security").(bool)),
+			RoutingConfiguration:   expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:          utils.Int32(int32(d.Get("routing_weight").(int))),
 		},
-	}
-
-	if v, ok := d.GetOk("routing"); ok {
-		parameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
