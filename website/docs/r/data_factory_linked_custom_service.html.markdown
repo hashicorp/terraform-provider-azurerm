@@ -3,12 +3,12 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_custom_service"
 description: |-
-  Manages a Linked Service (connection) between a resource and Azure Data Factory. This is a generic resource that supports all different Linked Service Type.
+  Manages a Linked Service (connection) between a resource and Azure Data Factory. This is a generic resource that supports all different Linked Service Types.
 ---
 
 # azurerm_data_factory_linked_custom_service
 
-Manages a Linked Service (connection) between a resource and Azure Data Factory. This is a generic resource that supports all different Linked Service Type.
+Manages a Linked Service (connection) between a resource and Azure Data Factory. This is a generic resource that supports all different Linked Service Types.
 
 ## Example Usage
 
@@ -37,11 +37,11 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_data_factory_linked_custom_service" "example" {
-  name               = "example"
-  data_factory_id    = azurerm_data_factory.example.id
-  type               = "AzureBlobStorage"
-  description        = "test description"
-  type_property_json = <<JSON
+  name                 = "example"
+  data_factory_id      = azurerm_data_factory.example.id
+  type                 = "AzureBlobStorage"
+  description          = "test description"
+  type_properties_json = <<JSON
 {
   "connectionString":"${azurerm_storage_account.test.primary_connection_string}"
 }
@@ -62,14 +62,13 @@ JSON
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `type` - (Required) The type of data stores that will be connected to Data Factory. For full list of supported data stores, please refer to [Azure Data Factory connector](https://docs.microsoft.com/en-us/azure/data-factory/connector-overview).
 
-* `type_property_json` - (Optional) A JSON object that contains the properties of the Data Factory Linked Service.
+* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Linked Service.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 

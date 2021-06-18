@@ -56,9 +56,9 @@ func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"type_property_json": {
+			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Required:         true,
 				StateFunc:        utils.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
@@ -148,11 +148,9 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 		"connectVia": expandDataFactoryLinkedServiceIntegrationRuntimeV2(d.Get("integration_runtime").([]interface{})),
 	}
 
-	if v, ok := d.GetOk("type_property_json"); ok {
-		jsonData := fmt.Sprintf(`{ "typeProperties": %s }`, v.(string))
-		if err = json.Unmarshal([]byte(jsonData), &props); err != nil {
-			return err
-		}
+	jsonDataStr := fmt.Sprintf(`{ "typeProperties": %s }`, d.Get("type_properties_json").(string))
+	if err = json.Unmarshal([]byte(jsonDataStr), &props); err != nil {
+		return err
 	}
 
 	if v, ok := d.GetOk("description"); ok {

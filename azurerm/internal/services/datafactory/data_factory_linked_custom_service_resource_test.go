@@ -27,7 +27,7 @@ func TestAccDataFactoryLinkedCustomService_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 	})
 }
 
@@ -57,7 +57,7 @@ func TestAccDataFactoryLinkedCustomService_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 	})
 }
 
@@ -72,21 +72,21 @@ func TestAccDataFactoryLinkedCustomService_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 	})
 }
 
@@ -101,7 +101,7 @@ func TestAccDataFactoryLinkedCustomService_web(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 	})
 }
 
@@ -116,7 +116,7 @@ func TestAccDataFactoryLinkedCustomService_search(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type_property_json"),
+		data.ImportStep("type_properties_json"),
 	})
 }
 
@@ -139,10 +139,10 @@ func (r LinkedCustomServiceResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
-  name               = "acctestls%d"
-  data_factory_id    = azurerm_data_factory.test.id
-  type               = "AzureBlobStorage"
-  type_property_json = <<JSON
+  name                 = "acctestls%d"
+  data_factory_id      = azurerm_data_factory.test.id
+  type                 = "AzureBlobStorage"
+  type_properties_json = <<JSON
 {
   "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
 }
@@ -156,10 +156,10 @@ func (r LinkedCustomServiceResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_data_factory_linked_custom_service" "import" {
-  name               = azurerm_data_factory_linked_custom_service.test.name
-  data_factory_id    = azurerm_data_factory_linked_custom_service.test.data_factory_id
-  type               = azurerm_data_factory_linked_custom_service.test.type
-  type_property_json = azurerm_data_factory_linked_custom_service.test.type_property_json
+  name                 = azurerm_data_factory_linked_custom_service.test.name
+  data_factory_id      = azurerm_data_factory_linked_custom_service.test.data_factory_id
+  type                 = azurerm_data_factory_linked_custom_service.test.type
+  type_properties_json = azurerm_data_factory_linked_custom_service.test.type_properties_json
 }
 `, r.basic(data))
 }
@@ -169,11 +169,11 @@ func (r LinkedCustomServiceResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
-  name               = "acctestls%d"
-  data_factory_id    = azurerm_data_factory.test.id
-  type               = "AzureBlobStorage"
-  description        = "test description"
-  type_property_json = <<JSON
+  name                 = "acctestls%d"
+  data_factory_id      = azurerm_data_factory.test.id
+  type                 = "AzureBlobStorage"
+  description          = "test description"
+  type_properties_json = <<JSON
 {
   "connectionString":"${azurerm_storage_account.test.primary_connection_string}"
 }
@@ -221,10 +221,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
-  name               = "acctestls%d"
-  data_factory_id    = azurerm_data_factory.test.id
-  type               = "Web"
-  type_property_json = <<JSON
+  name                 = "acctestls%d"
+  data_factory_id      = azurerm_data_factory.test.id
+  type                 = "Web"
+  type_properties_json = <<JSON
 {
   "authenticationType": "Anonymous",
   "url": "http://www.bing.com"
@@ -259,10 +259,10 @@ resource "azurerm_search_service" "test" {
 }
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
-  name               = "acctestls%d"
-  data_factory_id    = azurerm_data_factory.test.id
-  type               = "AzureSearch"
-  type_property_json = <<JSON
+  name                 = "acctestls%d"
+  data_factory_id      = azurerm_data_factory.test.id
+  type                 = "AzureSearch"
+  type_properties_json = <<JSON
 {
   "url": "https://${azurerm_search_service.test.name}.search.windows.net",
   "key": {
