@@ -17,9 +17,9 @@ import (
 
 func resourceExpressRouteConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteConnectionCreateUpdate,
+		Create: resourceExpressRouteConnectionCreate,
 		Read:   resourceExpressRouteConnectionRead,
-		Update: resourceExpressRouteConnectionCreateUpdate,
+		Update: resourceExpressRouteConnectionUpdate,
 		Delete: resourceExpressRouteConnectionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -128,9 +128,9 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	expressRouteGatewayId, err := parse.ExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
@@ -140,17 +140,15 @@ func resourceExpressRouteConnectionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	id := parse.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroup, expressRouteGatewayId.Name, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 	}
 
 	parameters := network.ExpressRouteConnection{
@@ -174,11 +172,11 @@ func resourceExpressRouteConnectionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -233,6 +231,47 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ExpressRouteConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := network.ExpressRouteConnection{
+		Name: utils.String(id.Name),
+		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
+			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
+				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
+			},
+			EnableInternetSecurity: utils.Bool(d.Get("enable_internet_security").(bool)),
+			RoutingWeight:          utils.Int32(int32(d.Get("routing_weight").(int))),
+		},
+	}
+
+	if v, ok := d.GetOk("routing"); ok {
+		parameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("authorization_key"); ok {
+		parameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
+	return resourceExpressRouteConnectionRead(d, meta)
 }
 
 func resourceExpressRouteConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -291,7 +330,7 @@ func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *netw
 		result.Labels = utils.ExpandStringSlice(labels)
 	}
 
-	if routeTableIds := v["route_table_ids"].(*pluginsdk.Set).List(); len(routeTableIds) != 0 {
+	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
 		result.Ids = expandIDsToSubResources(routeTableIds)
 	}
 
