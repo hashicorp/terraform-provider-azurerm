@@ -76,11 +76,11 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	locks.ByName(subnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetName, SubnetResourceName)
-
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
+
+	locks.ByName(subnetName, SubnetResourceName)
+	defer locks.UnlockByName(subnetName, SubnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
