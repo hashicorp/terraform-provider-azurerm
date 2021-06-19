@@ -15,7 +15,8 @@ import (
 	"net/http"
 )
 
-// VNetPeeringClient is the ARM Databricks
+// VNetPeeringClient is the the Microsoft Azure management APIs allow end users to operate on Azure Databricks
+// Workspace resources.
 type VNetPeeringClient struct {
 	BaseClient
 }

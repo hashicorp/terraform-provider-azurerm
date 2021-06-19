@@ -19,7 +19,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 
 // AddressSpace addressSpace contains an array of IP address ranges that can be used by subnets of the
 // virtual network.
@@ -46,7 +46,7 @@ func (cb CreatedBy) MarshalJSON() ([]byte, error) {
 
 // Encryption the object that contains details of encryption used on the workspace.
 type Encryption struct {
-	// KeySource - The encryption keySource (provider). Possible values (case-insensitive):  Default, Microsoft.Keyvault. Possible values include: 'Default', 'MicrosoftKeyvault'
+	// KeySource - The encryption keySource (provider). Possible values (case-insensitive):  Default, Microsoft.Keyvault. Possible values include: 'KeySourceDefault', 'KeySourceMicrosoftKeyvault'
 	KeySource KeySource `json:"keySource,omitempty"`
 	// KeyName - The name of KeyVault key.
 	KeyName *string `json:"KeyName,omitempty"`
@@ -54,6 +54,30 @@ type Encryption struct {
 	KeyVersion *string `json:"keyversion,omitempty"`
 	// KeyVaultURI - The Uri of KeyVault.
 	KeyVaultURI *string `json:"keyvaulturi,omitempty"`
+}
+
+// EncryptionEntitiesDefinition encryption entities for databricks workspace resource.
+type EncryptionEntitiesDefinition struct {
+	// ManagedServices - Encryption properties for the databricks managed services.
+	ManagedServices *EncryptionV2 `json:"managedServices,omitempty"`
+}
+
+// EncryptionV2 the object that contains details of encryption used on the workspace.
+type EncryptionV2 struct {
+	// KeySource - The encryption keySource (provider). Possible values (case-insensitive):  Microsoft.Keyvault
+	KeySource *string `json:"keySource,omitempty"`
+	// KeyVaultProperties - Key Vault input properties for encryption.
+	KeyVaultProperties *EncryptionV2KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+}
+
+// EncryptionV2KeyVaultProperties key Vault input properties for encryption.
+type EncryptionV2KeyVaultProperties struct {
+	// KeyVaultURI - The Uri of KeyVault.
+	KeyVaultURI *string `json:"keyVaultUri,omitempty"`
+	// KeyName - The name of KeyVault key.
+	KeyName *string `json:"keyName,omitempty"`
+	// KeyVersion - The version of KeyVault key.
+	KeyVersion *string `json:"keyVersion,omitempty"`
 }
 
 // ErrorDetail ...
@@ -82,6 +106,38 @@ type ErrorInfo struct {
 type ErrorResponse struct {
 	// Error - The error details.
 	Error *ErrorInfo `json:"error,omitempty"`
+}
+
+// GroupIDInformation the group information for creating a private endpoint on a workspace
+type GroupIDInformation struct {
+	autorest.Response `json:"-"`
+	// Properties - The group id properties.
+	Properties *GroupIDInformationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupIDInformation.
+func (gii GroupIDInformation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gii.Properties != nil {
+		objectMap["properties"] = gii.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// GroupIDInformationProperties the properties for a group information object
+type GroupIDInformationProperties struct {
+	// GroupID - The group id
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - The required members for a specific group id
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The required DNS zones for a specific group id
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
 }
 
 // ManagedIdentityConfiguration the Managed Identity details for storage account.
@@ -278,6 +334,459 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// PrivateEndpoint the private endpoint property of a private endpoint connection
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnection the private endpoint connection of a workspace
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// Properties - The private endpoint connection properties.
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.Properties != nil {
+		objectMap["properties"] = pec.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionProperties the properties of a private endpoint connection
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - Private endpoint
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - Private endpoint connection state
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - Provisioning state of the private endpoint connection. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateUpdating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateEndpointConnectionsCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsCreateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (PrivateEndpointConnection, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PrivateEndpointConnectionsCreateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PrivateEndpointConnectionsCreateFuture.Result.
+func (future *PrivateEndpointConnectionsCreateFuture) result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsCreateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		pec.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("databricks.PrivateEndpointConnectionsCreateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.CreateResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsCreateFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PrivateEndpointConnectionsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PrivateEndpointConnectionsDeleteFuture.Result.
+func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("databricks.PrivateEndpointConnectionsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// PrivateEndpointConnectionsList list of private link connections.
+type PrivateEndpointConnectionsList struct {
+	autorest.Response `json:"-"`
+	// Value - The list of returned private endpoint connection.
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of endpoint connections.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// PrivateEndpointConnectionsListIterator provides access to a complete listing of
+// PrivateEndpointConnection values.
+type PrivateEndpointConnectionsListIterator struct {
+	i    int
+	page PrivateEndpointConnectionsListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateEndpointConnectionsListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateEndpointConnectionsListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateEndpointConnectionsListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateEndpointConnectionsListIterator) Response() PrivateEndpointConnectionsList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateEndpointConnectionsListIterator) Value() PrivateEndpointConnection {
+	if !iter.page.NotDone() {
+		return PrivateEndpointConnection{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateEndpointConnectionsListIterator type.
+func NewPrivateEndpointConnectionsListIterator(page PrivateEndpointConnectionsListPage) PrivateEndpointConnectionsListIterator {
+	return PrivateEndpointConnectionsListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (pecl PrivateEndpointConnectionsList) IsEmpty() bool {
+	return pecl.Value == nil || len(*pecl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (pecl PrivateEndpointConnectionsList) hasNextLink() bool {
+	return pecl.NextLink != nil && len(*pecl.NextLink) != 0
+}
+
+// privateEndpointConnectionsListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (pecl PrivateEndpointConnectionsList) privateEndpointConnectionsListPreparer(ctx context.Context) (*http.Request, error) {
+	if !pecl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(pecl.NextLink)))
+}
+
+// PrivateEndpointConnectionsListPage contains a page of PrivateEndpointConnection values.
+type PrivateEndpointConnectionsListPage struct {
+	fn   func(context.Context, PrivateEndpointConnectionsList) (PrivateEndpointConnectionsList, error)
+	pecl PrivateEndpointConnectionsList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateEndpointConnectionsListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.pecl)
+		if err != nil {
+			return err
+		}
+		page.pecl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateEndpointConnectionsListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateEndpointConnectionsListPage) NotDone() bool {
+	return !page.pecl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateEndpointConnectionsListPage) Response() PrivateEndpointConnectionsList {
+	return page.pecl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateEndpointConnectionsListPage) Values() []PrivateEndpointConnection {
+	if page.pecl.IsEmpty() {
+		return nil
+	}
+	return *page.pecl.Value
+}
+
+// Creates a new instance of the PrivateEndpointConnectionsListPage type.
+func NewPrivateEndpointConnectionsListPage(cur PrivateEndpointConnectionsList, getNextPage func(context.Context, PrivateEndpointConnectionsList) (PrivateEndpointConnectionsList, error)) PrivateEndpointConnectionsListPage {
+	return PrivateEndpointConnectionsListPage{
+		fn:   getNextPage,
+		pecl: cur,
+	}
+}
+
+// PrivateLinkResourcesList the available private link resources for a workspace
+type PrivateLinkResourcesList struct {
+	autorest.Response `json:"-"`
+	// Value - The list of available private link resources for a workspace
+	Value *[]GroupIDInformation `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of private link resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// PrivateLinkResourcesListIterator provides access to a complete listing of GroupIDInformation values.
+type PrivateLinkResourcesListIterator struct {
+	i    int
+	page PrivateLinkResourcesListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateLinkResourcesListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateLinkResourcesListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateLinkResourcesListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateLinkResourcesListIterator) Response() PrivateLinkResourcesList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateLinkResourcesListIterator) Value() GroupIDInformation {
+	if !iter.page.NotDone() {
+		return GroupIDInformation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateLinkResourcesListIterator type.
+func NewPrivateLinkResourcesListIterator(page PrivateLinkResourcesListPage) PrivateLinkResourcesListIterator {
+	return PrivateLinkResourcesListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (plrl PrivateLinkResourcesList) IsEmpty() bool {
+	return plrl.Value == nil || len(*plrl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (plrl PrivateLinkResourcesList) hasNextLink() bool {
+	return plrl.NextLink != nil && len(*plrl.NextLink) != 0
+}
+
+// privateLinkResourcesListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (plrl PrivateLinkResourcesList) privateLinkResourcesListPreparer(ctx context.Context) (*http.Request, error) {
+	if !plrl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(plrl.NextLink)))
+}
+
+// PrivateLinkResourcesListPage contains a page of GroupIDInformation values.
+type PrivateLinkResourcesListPage struct {
+	fn   func(context.Context, PrivateLinkResourcesList) (PrivateLinkResourcesList, error)
+	plrl PrivateLinkResourcesList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateLinkResourcesListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.plrl)
+		if err != nil {
+			return err
+		}
+		page.plrl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateLinkResourcesListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateLinkResourcesListPage) NotDone() bool {
+	return !page.plrl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateLinkResourcesListPage) Response() PrivateLinkResourcesList {
+	return page.plrl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateLinkResourcesListPage) Values() []GroupIDInformation {
+	if page.plrl.IsEmpty() {
+		return nil
+	}
+	return *page.plrl.Value
+}
+
+// Creates a new instance of the PrivateLinkResourcesListPage type.
+func NewPrivateLinkResourcesListPage(cur PrivateLinkResourcesList, getNextPage func(context.Context, PrivateLinkResourcesList) (PrivateLinkResourcesList, error)) PrivateLinkResourcesListPage {
+	return PrivateLinkResourcesListPage{
+		fn:   getNextPage,
+		plrl: cur,
+	}
+}
+
+// PrivateLinkServiceConnectionState the current state of a private endpoint connection
+type PrivateLinkServiceConnectionState struct {
+	// Status - The status of a private endpoint connection. Possible values include: 'PrivateLinkServiceConnectionStatusPending', 'PrivateLinkServiceConnectionStatusApproved', 'PrivateLinkServiceConnectionStatusRejected', 'PrivateLinkServiceConnectionStatusDisconnected'
+	Status PrivateLinkServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The description for the current state of a private endpoint connection
+	Description *string `json:"description,omitempty"`
+	// ActionRequired - Actions required for a private endpoint connection
+	ActionRequired *string `json:"actionRequired,omitempty"`
+}
+
 // Resource the core properties of ARM resources
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -300,6 +809,22 @@ type Sku struct {
 	Name *string `json:"name,omitempty"`
 	// Tier - The SKU tier.
 	Tier *string `json:"tier,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TrackedResource the resource model definition for a ARM tracked top level resource
@@ -578,9 +1103,9 @@ type VirtualNetworkPeeringPropertiesFormat struct {
 	RemoteVirtualNetwork *VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork `json:"remoteVirtualNetwork,omitempty"`
 	// RemoteAddressSpace - The reference to the remote virtual network address space.
 	RemoteAddressSpace *AddressSpace `json:"remoteAddressSpace,omitempty"`
-	// PeeringState - READ-ONLY; The status of the virtual network peering. Possible values include: 'Initiated', 'Connected', 'Disconnected'
+	// PeeringState - READ-ONLY; The status of the virtual network peering. Possible values include: 'PeeringStateInitiated', 'PeeringStateConnected', 'PeeringStateDisconnected'
 	PeeringState PeeringState `json:"peeringState,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioning state of the virtual network peering resource. Possible values include: 'Succeeded', 'Updating', 'Deleting', 'Failed'
+	// ProvisioningState - READ-ONLY; The provisioning state of the virtual network peering resource. Possible values include: 'PeeringProvisioningStateSucceeded', 'PeeringProvisioningStateUpdating', 'PeeringProvisioningStateDeleting', 'PeeringProvisioningStateFailed'
 	ProvisioningState PeeringProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -717,6 +1242,8 @@ type Workspace struct {
 	*WorkspaceProperties `json:"properties,omitempty"`
 	// Sku - The SKU of the resource.
 	Sku *Sku `json:"sku,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
@@ -774,6 +1301,15 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 				}
 				w.Sku = &sku
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				w.SystemData = &systemData
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -827,7 +1363,7 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 
 // WorkspaceCustomBooleanParameter the value which should be used for this field.
 type WorkspaceCustomBooleanParameter struct {
-	// Type - The type of variable that this is. Possible values include: 'Bool', 'Object', 'String'
+	// Type - The type of variable that this is. Possible values include: 'CustomParameterTypeBool', 'CustomParameterTypeObject', 'CustomParameterTypeString'
 	Type CustomParameterType `json:"type,omitempty"`
 	// Value - The value which should be used for this field.
 	Value *bool `json:"value,omitempty"`
@@ -835,7 +1371,7 @@ type WorkspaceCustomBooleanParameter struct {
 
 // WorkspaceCustomObjectParameter the value which should be used for this field.
 type WorkspaceCustomObjectParameter struct {
-	// Type - The type of variable that this is. Possible values include: 'Bool', 'Object', 'String'
+	// Type - The type of variable that this is. Possible values include: 'CustomParameterTypeBool', 'CustomParameterTypeObject', 'CustomParameterTypeString'
 	Type CustomParameterType `json:"type,omitempty"`
 	// Value - The value which should be used for this field.
 	Value interface{} `json:"value,omitempty"`
@@ -853,17 +1389,84 @@ type WorkspaceCustomParameters struct {
 	CustomPrivateSubnetName *WorkspaceCustomStringParameter `json:"customPrivateSubnetName,omitempty"`
 	// EnableNoPublicIP - Should the Public IP be Disabled?
 	EnableNoPublicIP *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp,omitempty"`
+	// LoadBalancerBackendPoolName - Name of the outbound Load Balancer Backend Pool for Secure Cluster Connectivity (No Public IP).
+	LoadBalancerBackendPoolName *WorkspaceCustomStringParameter `json:"loadBalancerBackendPoolName,omitempty"`
+	// LoadBalancerID - Resource URI of Outbound Load balancer for Secure Cluster Connectivity (No Public IP) workspace.
+	LoadBalancerID *WorkspaceCustomStringParameter `json:"loadBalancerId,omitempty"`
+	// NatGatewayName - Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets.
+	NatGatewayName *WorkspaceCustomStringParameter `json:"natGatewayName,omitempty"`
+	// PublicIPName - Name of the Public IP for No Public IP workspace with managed vNet.
+	PublicIPName *WorkspaceCustomStringParameter `json:"publicIpName,omitempty"`
 	// PrepareEncryption - Prepare the workspace for encryption. Enables the Managed Identity for managed storage account.
 	PrepareEncryption *WorkspaceCustomBooleanParameter `json:"prepareEncryption,omitempty"`
 	// Encryption - Contains the encryption details for Customer-Managed Key (CMK) enabled workspace.
 	Encryption *WorkspaceEncryptionParameter `json:"encryption,omitempty"`
 	// RequireInfrastructureEncryption - A boolean indicating whether or not the DBFS root file system will be enabled with secondary layer of encryption with platform managed keys for data at rest.
 	RequireInfrastructureEncryption *WorkspaceCustomBooleanParameter `json:"requireInfrastructureEncryption,omitempty"`
+	// StorageAccountName - Default DBFS storage account name.
+	StorageAccountName *WorkspaceCustomStringParameter `json:"storageAccountName,omitempty"`
+	// StorageAccountSkuName - Storage account SKU name, ex: Standard_GRS, Standard_LRS. Refer https://aka.ms/storageskus for valid inputs.
+	StorageAccountSkuName *WorkspaceCustomStringParameter `json:"storageAccountSkuName,omitempty"`
+	// VnetAddressPrefix - Address prefix for Managed virtual network. Default value for this input is 10.139.
+	VnetAddressPrefix *WorkspaceCustomStringParameter `json:"vnetAddressPrefix,omitempty"`
+	// ResourceTags - READ-ONLY; Tags applied to resources under Managed resource group. These can be updated by updating tags at workspace level.
+	ResourceTags *WorkspaceCustomObjectParameter `json:"resourceTags,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkspaceCustomParameters.
+func (wcp WorkspaceCustomParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wcp.AmlWorkspaceID != nil {
+		objectMap["amlWorkspaceId"] = wcp.AmlWorkspaceID
+	}
+	if wcp.CustomVirtualNetworkID != nil {
+		objectMap["customVirtualNetworkId"] = wcp.CustomVirtualNetworkID
+	}
+	if wcp.CustomPublicSubnetName != nil {
+		objectMap["customPublicSubnetName"] = wcp.CustomPublicSubnetName
+	}
+	if wcp.CustomPrivateSubnetName != nil {
+		objectMap["customPrivateSubnetName"] = wcp.CustomPrivateSubnetName
+	}
+	if wcp.EnableNoPublicIP != nil {
+		objectMap["enableNoPublicIp"] = wcp.EnableNoPublicIP
+	}
+	if wcp.LoadBalancerBackendPoolName != nil {
+		objectMap["loadBalancerBackendPoolName"] = wcp.LoadBalancerBackendPoolName
+	}
+	if wcp.LoadBalancerID != nil {
+		objectMap["loadBalancerId"] = wcp.LoadBalancerID
+	}
+	if wcp.NatGatewayName != nil {
+		objectMap["natGatewayName"] = wcp.NatGatewayName
+	}
+	if wcp.PublicIPName != nil {
+		objectMap["publicIpName"] = wcp.PublicIPName
+	}
+	if wcp.PrepareEncryption != nil {
+		objectMap["prepareEncryption"] = wcp.PrepareEncryption
+	}
+	if wcp.Encryption != nil {
+		objectMap["encryption"] = wcp.Encryption
+	}
+	if wcp.RequireInfrastructureEncryption != nil {
+		objectMap["requireInfrastructureEncryption"] = wcp.RequireInfrastructureEncryption
+	}
+	if wcp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = wcp.StorageAccountName
+	}
+	if wcp.StorageAccountSkuName != nil {
+		objectMap["storageAccountSkuName"] = wcp.StorageAccountSkuName
+	}
+	if wcp.VnetAddressPrefix != nil {
+		objectMap["vnetAddressPrefix"] = wcp.VnetAddressPrefix
+	}
+	return json.Marshal(objectMap)
 }
 
 // WorkspaceCustomStringParameter the Value.
 type WorkspaceCustomStringParameter struct {
-	// Type - The type of variable that this is. Possible values include: 'Bool', 'Object', 'String'
+	// Type - The type of variable that this is. Possible values include: 'CustomParameterTypeBool', 'CustomParameterTypeObject', 'CustomParameterTypeString'
 	Type CustomParameterType `json:"type,omitempty"`
 	// Value - The value which should be used for this field.
 	Value *string `json:"value,omitempty"`
@@ -871,7 +1474,7 @@ type WorkspaceCustomStringParameter struct {
 
 // WorkspaceEncryptionParameter the object that contains details of encryption used on the workspace.
 type WorkspaceEncryptionParameter struct {
-	// Type - The type of variable that this is. Possible values include: 'Bool', 'Object', 'String'
+	// Type - The type of variable that this is. Possible values include: 'CustomParameterTypeBool', 'CustomParameterTypeObject', 'CustomParameterTypeString'
 	Type CustomParameterType `json:"type,omitempty"`
 	// Value - The value which should be used for this field.
 	Value *Encryption `json:"value,omitempty"`
@@ -1060,6 +1663,14 @@ type WorkspaceProperties struct {
 	WorkspaceURL *string `json:"workspaceUrl,omitempty"`
 	// StorageAccountIdentity - The details of Managed Identity of Storage Account
 	StorageAccountIdentity *ManagedIdentityConfiguration `json:"storageAccountIdentity,omitempty"`
+	// Encryption - Encryption properties for databricks workspace
+	Encryption *WorkspacePropertiesEncryption `json:"encryption,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; Private endpoint connections created on the workspace
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// PublicNetworkAccess - The network access type for accessing workspace. Set value to disabled to access workspace only via private link. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// RequiredNsgRules - Gets or sets a value indicating whether data plane (clusters) to control plane communication happen over private endpoint. Supported values are 'AllRules' and 'NoAzureDatabricksRules'. 'NoAzureServiceRules' value is for internal use only. Possible values include: 'RequiredNsgRulesAllRules', 'RequiredNsgRulesNoAzureDatabricksRules', 'RequiredNsgRulesNoAzureServiceRules'
+	RequiredNsgRules RequiredNsgRules `json:"requiredNsgRules,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WorkspaceProperties.
@@ -1089,7 +1700,22 @@ func (wp WorkspaceProperties) MarshalJSON() ([]byte, error) {
 	if wp.StorageAccountIdentity != nil {
 		objectMap["storageAccountIdentity"] = wp.StorageAccountIdentity
 	}
+	if wp.Encryption != nil {
+		objectMap["encryption"] = wp.Encryption
+	}
+	if wp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = wp.PublicNetworkAccess
+	}
+	if wp.RequiredNsgRules != "" {
+		objectMap["requiredNsgRules"] = wp.RequiredNsgRules
+	}
 	return json.Marshal(objectMap)
+}
+
+// WorkspacePropertiesEncryption encryption properties for databricks workspace
+type WorkspacePropertiesEncryption struct {
+	// Entities - Encryption entities definition for the workspace.
+	Entities *EncryptionEntitiesDefinition `json:"entities,omitempty"`
 }
 
 // WorkspaceProviderAuthorization the workspace provider authorization.

@@ -14,7 +14,8 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the ARM Databricks
+// OperationsClient is the the Microsoft Azure management APIs allow end users to operate on Azure Databricks Workspace
+// resources.
 type OperationsClient struct {
 	BaseClient
 }
@@ -71,7 +72,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-04-01"
+	const APIVersion = "2021-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
