@@ -1,7 +1,7 @@
 package containers
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,21 +19,25 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_kubernetes_service_versions":  dataSourceKubernetesServiceVersions(),
 		"azurerm_container_registry":           dataSourceContainerRegistry(),
+		"azurerm_container_registry_token":     dataSourceContainerRegistryToken(),
+		"azurerm_container_registry_scope_map": dataSourceContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":           dataSourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": dataSourceKubernetesClusterNodePool(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_container_group":              resourceContainerGroup(),
 		"azurerm_container_registry_webhook":   resourceContainerRegistryWebhook(),
 		"azurerm_container_registry":           resourceContainerRegistry(),
+		"azurerm_container_registry_token":     resourceContainerRegistryToken(),
+		"azurerm_container_registry_scope_map": resourceContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":           resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": resourceKubernetesClusterNodePool(),
 	}

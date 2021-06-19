@@ -1,55 +1,40 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/web/resource-manager/readme.md tag: `package-2020-06`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *AppServiceCertificateOrdersCreateOrUpdateCertificateFuture.UnmarshalJSON([]byte) error
-1. *AppServiceCertificateOrdersCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsChangeVnetAllFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsChangeVnetFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsDeleteFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsResumeAllFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsResumeFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsSuspendAllFuture.UnmarshalJSON([]byte) error
-1. *AppServiceEnvironmentsSuspendFuture.UnmarshalJSON([]byte) error
-1. *AppServicePlansCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *AppsApproveOrRejectPrivateEndpointConnectionFuture.UnmarshalJSON([]byte) error
-1. *AppsCopyProductionSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsCopySlotSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateFunctionFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateInstanceFunctionSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateInstanceMSDeployOperationFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateInstanceMSDeployOperationSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateMSDeployOperationFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateMSDeployOperationSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateOrUpdateSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateOrUpdateSourceControlFuture.UnmarshalJSON([]byte) error
-1. *AppsCreateOrUpdateSourceControlSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsDeletePrivateEndpointConnectionFuture.UnmarshalJSON([]byte) error
-1. *AppsInstallSiteExtensionFuture.UnmarshalJSON([]byte) error
-1. *AppsInstallSiteExtensionSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsListPublishingCredentialsFuture.UnmarshalJSON([]byte) error
-1. *AppsListPublishingCredentialsSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsMigrateMySQLFuture.UnmarshalJSON([]byte) error
-1. *AppsMigrateStorageFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreFromBackupBlobFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreFromBackupBlobSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreFromDeletedAppFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreFromDeletedAppSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreSnapshotFuture.UnmarshalJSON([]byte) error
-1. *AppsRestoreSnapshotSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsStartNetworkTraceFuture.UnmarshalJSON([]byte) error
-1. *AppsStartNetworkTraceSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsStartWebSiteNetworkTraceOperationFuture.UnmarshalJSON([]byte) error
-1. *AppsStartWebSiteNetworkTraceOperationSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsSwapSlotSlotFuture.UnmarshalJSON([]byte) error
-1. *AppsSwapSlotWithProductionFuture.UnmarshalJSON([]byte) error
-1. *DomainsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
+1. AnalysisDefinitionProperties.MarshalJSON() ([]byte, error)
+1. ArmIDWrapper.MarshalJSON() ([]byte, error)
+1. BackupItemProperties.MarshalJSON() ([]byte, error)
+1. CertificateDetails.MarshalJSON() ([]byte, error)
+1. CertificateOrderActionProperties.MarshalJSON() ([]byte, error)
+1. DefaultErrorResponse.MarshalJSON() ([]byte, error)
+1. DefaultErrorResponseErrorDetailsItem.MarshalJSON() ([]byte, error)
+1. DeletedSiteProperties.MarshalJSON() ([]byte, error)
+1. DetectorDefinitionProperties.MarshalJSON() ([]byte, error)
+1. DetectorInfo.MarshalJSON() ([]byte, error)
+1. DiagnosticCategoryProperties.MarshalJSON() ([]byte, error)
+1. DomainControlCenterSsoRequest.MarshalJSON() ([]byte, error)
+1. GeoRegionProperties.MarshalJSON() ([]byte, error)
+1. HybridConnectionKeyProperties.MarshalJSON() ([]byte, error)
+1. HybridConnectionLimitsProperties.MarshalJSON() ([]byte, error)
+1. MSDeployLogEntry.MarshalJSON() ([]byte, error)
+1. MSDeployLogProperties.MarshalJSON() ([]byte, error)
+1. MSDeployStatusProperties.MarshalJSON() ([]byte, error)
+1. ManagedServiceIdentityUserAssignedIdentitiesValue.MarshalJSON() ([]byte, error)
+1. MigrateMySQLStatusProperties.MarshalJSON() ([]byte, error)
+1. NetworkFeaturesProperties.MarshalJSON() ([]byte, error)
+1. PrivateLinkResourceProperties.MarshalJSON() ([]byte, error)
+1. ResourceMetricAvailability.MarshalJSON() ([]byte, error)
+1. SiteConfigurationSnapshotInfoProperties.MarshalJSON() ([]byte, error)
+1. SlotDifferenceProperties.MarshalJSON() ([]byte, error)
+1. SlotSwapStatus.MarshalJSON() ([]byte, error)
+1. SnapshotProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteBuildARMResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteCustomDomainOverviewARMResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteFunctionOverviewARMResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSiteUserInvitationResponseResourceProperties.MarshalJSON() ([]byte, error)
+1. StaticSitesWorkflowPreviewProperties.MarshalJSON() ([]byte, error)
+1. StorageMigrationResponseProperties.MarshalJSON() ([]byte, error)
+1. UsageProperties.MarshalJSON() ([]byte, error)

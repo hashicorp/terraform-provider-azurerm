@@ -1,11 +1,16 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/138759b8a5987252fd66658078907e1d93969c85//specification/purview/resource-manager/readme.md tag: `package-2020-12-01-preview`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *AccountsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *AccountsDeleteFuture.UnmarshalJSON([]byte) error
-1. *AccountsUpdateFuture.UnmarshalJSON([]byte) error
-1. *PrivateEndpointConnectionsDeleteFuture.UnmarshalJSON([]byte) error
+1. AccountEndpoints.MarshalJSON() ([]byte, error)
+1. AccountPropertiesEndpoints.MarshalJSON() ([]byte, error)
+1. AccountPropertiesManagedResources.MarshalJSON() ([]byte, error)
+1. CloudConnectors.MarshalJSON() ([]byte, error)
+1. ErrorModel.MarshalJSON() ([]byte, error)
+1. ErrorResponseModel.MarshalJSON() ([]byte, error)
+1. ErrorResponseModelError.MarshalJSON() ([]byte, error)
+1. ManagedResources.MarshalJSON() ([]byte, error)
+1. PrivateLinkResourceProperties.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)

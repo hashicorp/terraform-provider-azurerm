@@ -5,40 +5,39 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceWebApplicationFirewallPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceWebApplicationFirewallPolicyCreateUpdate,
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyCreateUpdate,
 		Delete: resourceWebApplicationFirewallPolicyDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -49,12 +48,12 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"custom_rules": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"action": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.WebApplicationFirewallActionAllow),
@@ -63,45 +62,45 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 							}, false),
 						},
 						"match_conditions": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"match_values": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"match_variables": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"variable_name": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(network.RemoteAddr),
-														string(network.RequestMethod),
-														string(network.QueryString),
-														string(network.PostArgs),
-														string(network.RequestURI),
-														string(network.RequestHeaders),
-														string(network.RequestBody),
-														string(network.RequestCookies),
+														string(network.WebApplicationFirewallMatchVariableRemoteAddr),
+														string(network.WebApplicationFirewallMatchVariableRequestMethod),
+														string(network.WebApplicationFirewallMatchVariableQueryString),
+														string(network.WebApplicationFirewallMatchVariablePostArgs),
+														string(network.WebApplicationFirewallMatchVariableRequestURI),
+														string(network.WebApplicationFirewallMatchVariableRequestHeaders),
+														string(network.WebApplicationFirewallMatchVariableRequestBody),
+														string(network.WebApplicationFirewallMatchVariableRequestCookies),
 													}, false),
 												},
 												"selector": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Optional: true,
 												},
 											},
 										},
 									},
 									"operator": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.WebApplicationFirewallOperatorIPMatch),
@@ -118,21 +117,21 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 										}, false),
 									},
 									"negation_condition": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
 									"transforms": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(network.HTMLEntityDecode),
-												string(network.Lowercase),
-												string(network.RemoveNulls),
-												string(network.Trim),
-												string(network.URLDecode),
-												string(network.URLEncode),
+												string(network.WebApplicationFirewallTransformHTMLEntityDecode),
+												string(network.WebApplicationFirewallTransformLowercase),
+												string(network.WebApplicationFirewallTransformRemoveNulls),
+												string(network.WebApplicationFirewallTransformTrim),
+												string(network.WebApplicationFirewallTransformURLDecode),
+												string(network.WebApplicationFirewallTransformURLEncode),
 											}, false),
 										},
 									},
@@ -140,11 +139,11 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 							},
 						},
 						"priority": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 						"rule_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.WebApplicationFirewallRuleTypeMatchRule),
@@ -152,7 +151,7 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 							}, false),
 						},
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -160,32 +159,32 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 			},
 
 			"managed_rules": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"exclusion": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.RequestArgNames),
-											string(network.RequestCookieNames),
-											string(network.RequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
 										}, false),
 									},
 									"selector": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.NoZeroValues,
 									},
 									"selector_match_operator": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
@@ -199,36 +198,36 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 							},
 						},
 						"managed_rule_set": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"type": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "OWASP",
 										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
 									},
 									"version": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 									},
 									"rule_group_override": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"rule_group_name": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 												},
 												"disabled_rules": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Required: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
 												},
 											},
@@ -242,38 +241,38 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 			},
 
 			"policy_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 						"mode": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Prevention),
-								string(network.Detection),
+								string(network.WebApplicationFirewallModePrevention),
+								string(network.WebApplicationFirewallModeDetection),
 							}, false),
-							Default: string(network.Prevention),
+							Default: string(network.WebApplicationFirewallModePrevention),
 						},
 						"request_body_check": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 						"file_upload_limit_in_mb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"max_request_body_size_in_kb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(8, 128),
 							Default:      128,
@@ -283,15 +282,15 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 			},
 
 			"http_listener_ids": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"path_based_rule_ids": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": tags.Schema(),
@@ -299,7 +298,7 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 	}
 }
 
-func resourceWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -351,7 +350,7 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, me
 	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
 
-func resourceWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -399,7 +398,7 @@ func resourceWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceWebApplicationFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -574,7 +573,7 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) *[]ne
 		operator := v["operator"].(string)
 		negationCondition := v["negation_condition"].(bool)
 		matchValues := v["match_values"].([]interface{})
-		transformsRaw := v["transforms"].(*schema.Set).List()
+		transformsRaw := v["transforms"].(*pluginsdk.Set).List()
 
 		var transforms []network.WebApplicationFirewallTransform
 		for _, trans := range transformsRaw {

@@ -1,12 +1,42 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/datamigration/resource-manager/readme.md tag: `package-2018-04-19`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *ServicesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServicesDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServicesStartFuture.UnmarshalJSON([]byte) error
-1. *ServicesStopFuture.UnmarshalJSON([]byte) error
-1. *ServicesUpdateFuture.UnmarshalJSON([]byte) error
+1. ConnectToSourceNonSQLTaskOutput.MarshalJSON() ([]byte, error)
+1. ConnectToSourcePostgreSQLSyncTaskOutput.MarshalJSON() ([]byte, error)
+1. ConnectToTargetAzureDbForMySQLTaskOutput.MarshalJSON() ([]byte, error)
+1. ConnectToTargetAzureDbForPostgreSQLSyncTaskOutput.MarshalJSON() ([]byte, error)
+1. ConnectToTargetSQLMISyncTaskOutput.MarshalJSON() ([]byte, error)
+1. ConnectToTargetSQLMITaskOutput.MarshalJSON() ([]byte, error)
+1. DataItemMigrationSummaryResult.MarshalJSON() ([]byte, error)
+1. Database.MarshalJSON() ([]byte, error)
+1. DatabaseBackupInfo.MarshalJSON() ([]byte, error)
+1. DatabaseSummaryResult.MarshalJSON() ([]byte, error)
+1. DatabaseTable.MarshalJSON() ([]byte, error)
+1. MigrateSyncCompleteCommandOutput.MarshalJSON() ([]byte, error)
+1. MigrationEligibilityInfo.MarshalJSON() ([]byte, error)
+1. MigrationReportResult.MarshalJSON() ([]byte, error)
+1. MigrationTableMetadata.MarshalJSON() ([]byte, error)
+1. MigrationValidationDatabaseSummaryResult.MarshalJSON() ([]byte, error)
+1. NameAvailabilityResponse.MarshalJSON() ([]byte, error)
+1. NonSQLDataMigrationTableResult.MarshalJSON() ([]byte, error)
+1. ODataError.MarshalJSON() ([]byte, error)
+1. ProjectMetadata.MarshalJSON() ([]byte, error)
+1. QueryAnalysisValidationResult.MarshalJSON() ([]byte, error)
+1. QueryExecutionResult.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)
+1. ResourceSku.MarshalJSON() ([]byte, error)
+1. ResourceSkuCapabilities.MarshalJSON() ([]byte, error)
+1. ResourceSkuCapacity.MarshalJSON() ([]byte, error)
+1. ResourceSkuCosts.MarshalJSON() ([]byte, error)
+1. ResourceSkuRestrictions.MarshalJSON() ([]byte, error)
+1. SchemaComparisonValidationResultType.MarshalJSON() ([]byte, error)
+1. ServerProperties.MarshalJSON() ([]byte, error)
+1. StartMigrationScenarioServerRoleResult.MarshalJSON() ([]byte, error)
+1. SyncMigrationDatabaseErrorEvent.MarshalJSON() ([]byte, error)
+1. ValidateMigrationInputSQLServerSQLMISyncTaskOutput.MarshalJSON() ([]byte, error)
+1. ValidateSyncMigrationInputSQLServerTaskOutput.MarshalJSON() ([]byte, error)
+1. ValidationError.MarshalJSON() ([]byte, error)
+1. WaitStatistics.MarshalJSON() ([]byte, error)

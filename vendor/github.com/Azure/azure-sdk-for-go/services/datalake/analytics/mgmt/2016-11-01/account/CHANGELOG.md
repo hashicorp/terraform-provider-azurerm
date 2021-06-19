@@ -1,10 +1,27 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/datalake-analytics/resource-manager/readme.md tag: `package-2016-11`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *AccountsCreateFutureType.UnmarshalJSON([]byte) error
-1. *AccountsDeleteFutureType.UnmarshalJSON([]byte) error
-1. *AccountsUpdateFutureType.UnmarshalJSON([]byte) error
+1. CapabilityInformation.MarshalJSON() ([]byte, error)
+1. ComputePolicyListResult.MarshalJSON() ([]byte, error)
+1. ComputePolicyProperties.MarshalJSON() ([]byte, error)
+1. DataLakeAnalyticsAccountListResult.MarshalJSON() ([]byte, error)
+1. DataLakeAnalyticsAccountProperties.MarshalJSON() ([]byte, error)
+1. DataLakeAnalyticsAccountPropertiesBasic.MarshalJSON() ([]byte, error)
+1. DataLakeStoreAccountInformationListResult.MarshalJSON() ([]byte, error)
+1. DataLakeStoreAccountInformationProperties.MarshalJSON() ([]byte, error)
+1. FirewallRuleListResult.MarshalJSON() ([]byte, error)
+1. FirewallRuleProperties.MarshalJSON() ([]byte, error)
+1. NameAvailabilityInformation.MarshalJSON() ([]byte, error)
+1. Operation.MarshalJSON() ([]byte, error)
+1. OperationDisplay.MarshalJSON() ([]byte, error)
+1. OperationListResult.MarshalJSON() ([]byte, error)
+1. SasTokenInformation.MarshalJSON() ([]byte, error)
+1. SasTokenInformationListResult.MarshalJSON() ([]byte, error)
+1. StorageAccountInformationListResult.MarshalJSON() ([]byte, error)
+1. StorageAccountInformationProperties.MarshalJSON() ([]byte, error)
+1. StorageContainerListResult.MarshalJSON() ([]byte, error)
+1. StorageContainerProperties.MarshalJSON() ([]byte, error)
+1. SubResource.MarshalJSON() ([]byte, error)

@@ -26,6 +26,12 @@ type ApplicationInsightsAgentVersions struct {
 	Java *string `json:"java,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsAgentVersions.
+func (aiav ApplicationInsightsAgentVersions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AppResource app resource payload
 type AppResource struct {
 	autorest.Response `json:"-"`
@@ -298,6 +304,7 @@ func (future *AppsCreateOrUpdateFuture) result(client AppsClient) (ar AppResourc
 		return
 	}
 	if !done {
+		ar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.AppsCreateOrUpdateFuture")
 		return
 	}
@@ -339,6 +346,7 @@ func (future *AppsDeleteFuture) result(client AppsClient) (ar autorest.Response,
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.AppsDeleteFuture")
 		return
 	}
@@ -374,6 +382,7 @@ func (future *AppsUpdateFuture) result(client AppsClient) (ar AppResource, err e
 		return
 	}
 	if !done {
+		ar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.AppsUpdateFuture")
 		return
 	}
@@ -552,6 +561,12 @@ type AvailableRuntimeVersions struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; A list of all supported runtime versions.
 	Value *[]SupportedRuntimeVersion `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AvailableRuntimeVersions.
+func (arv AvailableRuntimeVersions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BindingResource binding resource payload
@@ -801,6 +816,7 @@ func (future *BindingsCreateOrUpdateFuture) result(client BindingsClient) (br Bi
 		return
 	}
 	if !done {
+		br.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.BindingsCreateOrUpdateFuture")
 		return
 	}
@@ -843,6 +859,7 @@ func (future *BindingsDeleteFuture) result(client BindingsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.BindingsDeleteFuture")
 		return
 	}
@@ -879,6 +896,7 @@ func (future *BindingsUpdateFuture) result(client BindingsClient) (br BindingRes
 		return
 	}
 	if !done {
+		br.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.BindingsUpdateFuture")
 		return
 	}
@@ -1143,6 +1161,7 @@ func (future *CertificatesCreateOrUpdateFuture) result(client CertificatesClient
 		return
 	}
 	if !done {
+		cr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.CertificatesCreateOrUpdateFuture")
 		return
 	}
@@ -1185,6 +1204,7 @@ func (future *CertificatesDeleteFuture) result(client CertificatesClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.CertificatesDeleteFuture")
 		return
 	}
@@ -1353,6 +1373,7 @@ func (future *ConfigServersUpdatePatchFuture) result(client ConfigServersClient)
 		return
 	}
 	if !done {
+		csr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersUpdatePatchFuture")
 		return
 	}
@@ -1395,6 +1416,7 @@ func (future *ConfigServersUpdatePutFuture) result(client ConfigServersClient) (
 		return
 	}
 	if !done {
+		csr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersUpdatePutFuture")
 		return
 	}
@@ -1437,6 +1459,7 @@ func (future *ConfigServersValidateFuture) result(client ConfigServersClient) (c
 		return
 	}
 	if !done {
+		cssvr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersValidateFuture")
 		return
 	}
@@ -1684,6 +1707,7 @@ func (future *CustomDomainsCreateOrUpdateFuture) result(client CustomDomainsClie
 		return
 	}
 	if !done {
+		cdr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsCreateOrUpdateFuture")
 		return
 	}
@@ -1726,6 +1750,7 @@ func (future *CustomDomainsDeleteFuture) result(client CustomDomainsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsDeleteFuture")
 		return
 	}
@@ -1762,6 +1787,7 @@ func (future *CustomDomainsUpdateFuture) result(client CustomDomainsClient) (cdr
 		return
 	}
 	if !done {
+		cdr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsUpdateFuture")
 		return
 	}
@@ -1802,6 +1828,12 @@ type DeploymentInstance struct {
 	DiscoveryStatus *string `json:"discoveryStatus,omitempty"`
 	// StartTime - READ-ONLY; Start time of the deployment instance
 	StartTime *string `json:"startTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeploymentInstance.
+func (di DeploymentInstance) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DeploymentResource deployment resource payload
@@ -2053,6 +2085,7 @@ func (future *DeploymentsCreateOrUpdateFuture) result(client DeploymentsClient) 
 		return
 	}
 	if !done {
+		dr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsCreateOrUpdateFuture")
 		return
 	}
@@ -2095,6 +2128,7 @@ func (future *DeploymentsDeleteFuture) result(client DeploymentsClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsDeleteFuture")
 		return
 	}
@@ -2171,6 +2205,7 @@ func (future *DeploymentsRestartFuture) result(client DeploymentsClient) (ar aut
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsRestartFuture")
 		return
 	}
@@ -2207,6 +2242,7 @@ func (future *DeploymentsStartFuture) result(client DeploymentsClient) (ar autor
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsStartFuture")
 		return
 	}
@@ -2243,6 +2279,7 @@ func (future *DeploymentsStopFuture) result(client DeploymentsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsStopFuture")
 		return
 	}
@@ -2279,6 +2316,7 @@ func (future *DeploymentsUpdateFuture) result(client DeploymentsClient) (dr Depl
 		return
 	}
 	if !done {
+		dr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsUpdateFuture")
 		return
 	}
@@ -2473,6 +2511,7 @@ func (future *MonitoringSettingsUpdatePatchFuture) result(client MonitoringSetti
 		return
 	}
 	if !done {
+		msr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.MonitoringSettingsUpdatePatchFuture")
 		return
 	}
@@ -2515,6 +2554,7 @@ func (future *MonitoringSettingsUpdatePutFuture) result(client MonitoringSetting
 		return
 	}
 	if !done {
+		msr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.MonitoringSettingsUpdatePutFuture")
 		return
 	}
@@ -2592,6 +2632,12 @@ type NetworkProfileOutboundIPs struct {
 	PublicIPs *[]string `json:"publicIPs,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for NetworkProfileOutboundIPs.
+func (npP NetworkProfileOutboundIPs) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationDetail operation detail payload
 type OperationDetail struct {
 	// Name - Name of the operation
@@ -2657,6 +2703,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RegenerateTestKeyRequestPayload regenerate test key request payload
 type RegenerateTestKeyRequestPayload struct {
 	// KeyType - Type of the test key. Possible values include: 'Primary', 'Secondary'
@@ -2677,6 +2729,12 @@ type RequiredTraffic struct {
 	Direction TrafficDirection `json:"direction,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RequiredTraffic.
+func (rt RequiredTraffic) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Resource the core properties of ARM resources.
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
@@ -2685,6 +2743,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSku describes an available Azure Spring Cloud SKU.
@@ -3151,6 +3215,7 @@ func (future *ServicesCreateOrUpdateFuture) result(client ServicesClient) (sr Se
 		return
 	}
 	if !done {
+		sr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.ServicesCreateOrUpdateFuture")
 		return
 	}
@@ -3193,6 +3258,7 @@ func (future *ServicesDeleteFuture) result(client ServicesClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.ServicesDeleteFuture")
 		return
 	}
@@ -3237,6 +3303,7 @@ func (future *ServicesUpdateFuture) result(client ServicesClient) (sr ServiceRes
 		return
 	}
 	if !done {
+		sr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.ServicesUpdateFuture")
 		return
 	}

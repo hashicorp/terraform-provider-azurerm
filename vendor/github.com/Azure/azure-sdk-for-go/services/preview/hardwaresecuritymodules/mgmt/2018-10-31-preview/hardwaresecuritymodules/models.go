@@ -183,6 +183,7 @@ func (future *DedicatedHsmCreateOrUpdateFuture) result(client DedicatedHsmClient
 		return
 	}
 	if !done {
+		dh.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture")
 		return
 	}
@@ -225,6 +226,7 @@ func (future *DedicatedHsmDeleteFuture) result(client DedicatedHsmClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmDeleteFuture")
 		return
 	}
@@ -236,6 +238,12 @@ func (future *DedicatedHsmDeleteFuture) result(client DedicatedHsmClient) (ar au
 type DedicatedHsmError struct {
 	// Error - READ-ONLY
 	Error *Error `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHsmError.
+func (dhe DedicatedHsmError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DedicatedHsmListResult list of dedicated HSMs
@@ -506,6 +514,7 @@ func (future *DedicatedHsmUpdateFuture) result(client DedicatedHsmClient) (dh De
 		return
 	}
 	if !done {
+		dh.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmUpdateFuture")
 		return
 	}
@@ -527,6 +536,12 @@ type Error struct {
 	Message *string `json:"message,omitempty"`
 	// InnerError - READ-ONLY
 	InnerError *Error `json:"innererror,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Error.
+func (e Error) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // NetworkInterface the network interface definition.

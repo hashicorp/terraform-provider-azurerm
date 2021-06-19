@@ -6,44 +6,39 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var expressRoutePortSchema = &schema.Schema{
-	Type: schema.TypeList,
+var expressRoutePortSchema = &pluginsdk.Schema{
+	Type: pluginsdk.TypeList,
 	// Service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
 	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
 	Optional: true,
 	Computed: true,
 	MinItems: 1,
 	MaxItems: 1,
-	Elem: &schema.Resource{
-		Schema: map[string]*schema.Schema{
+	Elem: &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"admin_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 			"macsec_cipher": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 
 				// TODO: The following hardcode can be replaced by SDK types once following is merged:
@@ -61,65 +56,65 @@ var expressRoutePortSchema = &schema.Schema{
 				}, false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"macsec_cak_keyvault_secret_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"router_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"interface_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"patch_panel_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"rack_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"connector_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	},
 }
 
-func resourceArmExpressRoutePort() *schema.Resource {
-	return &schema.Resource{
+func resourceArmExpressRoutePort() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmExpressRoutePortCreateUpdate,
 		Read:   resourceArmExpressRoutePortRead,
 		Update: resourceArmExpressRoutePortCreateUpdate,
 		Delete: resourceArmExpressRoutePortDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ExpressRoutePortID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ExpressRoutePortName,
@@ -130,48 +125,48 @@ func resourceArmExpressRoutePort() *schema.Resource {
 			"location": location.Schema(),
 
 			"peering_location": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"bandwidth_in_gbps": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"encapsulation": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Dot1Q),
-					string(network.QinQ),
+					string(network.ExpressRoutePortsEncapsulationDot1Q),
+					string(network.ExpressRoutePortsEncapsulationQinQ),
 				}, false),
 			},
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"identity_ids": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:             schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
 								ValidateFunc:     validation.NoZeroValues,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
 						},
 
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							// TODO: The "ignoreCase" and diff suppression function can be removed once
 							// following issue get resolved:
@@ -190,17 +185,17 @@ func resourceArmExpressRoutePort() *schema.Resource {
 			"link2": expressRoutePortSchema,
 
 			"ethertype": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"guid": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"mtu": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -209,7 +204,7 @@ func resourceArmExpressRoutePort() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRoutePortCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePortsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -273,7 +268,7 @@ func resourceArmExpressRoutePortCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceArmExpressRoutePortRead(d, meta)
 }
 
-func resourceArmExpressRoutePortRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePortsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,7 +319,7 @@ func resourceArmExpressRoutePortRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmExpressRoutePortDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePortsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

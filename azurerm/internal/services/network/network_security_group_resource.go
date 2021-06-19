@@ -4,47 +4,46 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
-func resourceNetworkSecurityGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceNetworkSecurityGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetworkSecurityGroupCreateUpdate,
 		Read:   resourceNetworkSecurityGroupRead,
 		Update: resourceNetworkSecurityGroupCreateUpdate,
 		Delete: resourceNetworkSecurityGroupDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NetworkSecurityGroupID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -54,25 +53,25 @@ func resourceNetworkSecurityGroup() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"security_rule": {
-				Type:       schema.TypeSet,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:       pluginsdk.TypeSet,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"description": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
 
 						"protocol": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleProtocolAsterisk),
@@ -84,69 +83,69 @@ func resourceNetworkSecurityGroup() *schema.Resource {
 						},
 
 						"source_port_range": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"source_port_ranges": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"destination_port_range": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"destination_port_ranges": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"source_address_prefix": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"source_address_prefixes": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"destination_address_prefix": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"destination_address_prefixes": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"destination_application_security_group_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"source_application_security_group_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"access": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleAccessAllow),
@@ -156,13 +155,13 @@ func resourceNetworkSecurityGroup() *schema.Resource {
 						},
 
 						"priority": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(100, 4096),
 						},
 
 						"direction": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleDirectionInbound),
@@ -179,7 +178,7 @@ func resourceNetworkSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -242,7 +241,7 @@ func resourceNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceNetworkSecurityGroupRead(d, meta)
 }
 
-func resourceNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +276,7 @@ func resourceNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -299,8 +298,8 @@ func resourceNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}
 	return err
 }
 
-func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule, error) {
-	sgRules := d.Get("security_rule").(*schema.Set).List()
+func expandAzureRmSecurityRules(d *pluginsdk.ResourceData) ([]network.SecurityRule, error) {
+	sgRules := d.Get("security_rule").(*pluginsdk.Set).List()
 	rules := make([]network.SecurityRule, 0)
 
 	for _, sgRaw := range sgRules {
@@ -335,7 +334,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.Description = &v
 		}
 
-		if r, ok := sgRule["source_port_ranges"].(*schema.Set); ok && r.Len() > 0 {
+		if r, ok := sgRule["source_port_ranges"].(*pluginsdk.Set); ok && r.Len() > 0 {
 			var sourcePortRanges []string
 			for _, v := range r.List() {
 				s := v.(string)
@@ -344,7 +343,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.SourcePortRanges = &sourcePortRanges
 		}
 
-		if r, ok := sgRule["destination_port_ranges"].(*schema.Set); ok && r.Len() > 0 {
+		if r, ok := sgRule["destination_port_ranges"].(*pluginsdk.Set); ok && r.Len() > 0 {
 			var destinationPortRanges []string
 			for _, v := range r.List() {
 				s := v.(string)
@@ -353,7 +352,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.DestinationPortRanges = &destinationPortRanges
 		}
 
-		if r, ok := sgRule["source_address_prefixes"].(*schema.Set); ok && r.Len() > 0 {
+		if r, ok := sgRule["source_address_prefixes"].(*pluginsdk.Set); ok && r.Len() > 0 {
 			var sourceAddressPrefixes []string
 			for _, v := range r.List() {
 				s := v.(string)
@@ -362,7 +361,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.SourceAddressPrefixes = &sourceAddressPrefixes
 		}
 
-		if r, ok := sgRule["destination_address_prefixes"].(*schema.Set); ok && r.Len() > 0 {
+		if r, ok := sgRule["destination_address_prefixes"].(*pluginsdk.Set); ok && r.Len() > 0 {
 			var destinationAddressPrefixes []string
 			for _, v := range r.List() {
 				s := v.(string)
@@ -371,7 +370,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.DestinationAddressPrefixes = &destinationAddressPrefixes
 		}
 
-		if r, ok := sgRule["source_application_security_group_ids"].(*schema.Set); ok && r.Len() > 0 {
+		if r, ok := sgRule["source_application_security_group_ids"].(*pluginsdk.Set); ok && r.Len() > 0 {
 			var sourceApplicationSecurityGroups []network.ApplicationSecurityGroup
 			for _, v := range r.List() {
 				sg := network.ApplicationSecurityGroup{
@@ -382,7 +381,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.SourceApplicationSecurityGroups = &sourceApplicationSecurityGroups
 		}
 
-		if r, ok := sgRule["destination_application_security_group_ids"].(*schema.Set); ok && r.Len() > 0 {
+		if r, ok := sgRule["destination_application_security_group_ids"].(*pluginsdk.Set); ok && r.Len() > 0 {
 			var destinationApplicationSecurityGroups []network.ApplicationSecurityGroup
 			for _, v := range r.List() {
 				sg := network.ApplicationSecurityGroup{
@@ -475,13 +474,13 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 	var err *multierror.Error
 
 	sourcePortRange := sgRule["source_port_range"].(string)
-	sourcePortRanges := sgRule["source_port_ranges"].(*schema.Set)
+	sourcePortRanges := sgRule["source_port_ranges"].(*pluginsdk.Set)
 	destinationPortRange := sgRule["destination_port_range"].(string)
-	destinationPortRanges := sgRule["destination_port_ranges"].(*schema.Set)
+	destinationPortRanges := sgRule["destination_port_ranges"].(*pluginsdk.Set)
 	sourceAddressPrefix := sgRule["source_address_prefix"].(string)
-	sourceAddressPrefixes := sgRule["source_address_prefixes"].(*schema.Set)
+	sourceAddressPrefixes := sgRule["source_address_prefixes"].(*pluginsdk.Set)
 	destinationAddressPrefix := sgRule["destination_address_prefix"].(string)
-	destinationAddressPrefixes := sgRule["destination_address_prefixes"].(*schema.Set)
+	destinationAddressPrefixes := sgRule["destination_address_prefixes"].(*pluginsdk.Set)
 
 	if sourcePortRange != "" && sourcePortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(

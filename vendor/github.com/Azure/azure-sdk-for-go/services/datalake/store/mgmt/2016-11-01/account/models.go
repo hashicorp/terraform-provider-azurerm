@@ -50,6 +50,7 @@ func (future *AccountsCreateFutureType) result(client AccountsClient) (dlsa Data
 		return
 	}
 	if !done {
+		dlsa.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("account.AccountsCreateFutureType")
 		return
 	}
@@ -92,6 +93,7 @@ func (future *AccountsDeleteFutureType) result(client AccountsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("account.AccountsDeleteFutureType")
 		return
 	}
@@ -128,6 +130,7 @@ func (future *AccountsUpdateFutureType) result(client AccountsClient) (dlsa Data
 		return
 	}
 	if !done {
+		dlsa.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("account.AccountsUpdateFutureType")
 		return
 	}
@@ -154,6 +157,12 @@ type CapabilityInformation struct {
 	AccountCount *int32 `json:"accountCount,omitempty"`
 	// MigrationState - READ-ONLY; The Boolean value of true or false to indicate the maintenance state.
 	MigrationState *bool `json:"migrationState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CapabilityInformation.
+func (ci CapabilityInformation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CheckNameAvailabilityParameters data Lake Store account name availability check parameters.
@@ -774,6 +783,12 @@ type DataLakeStoreAccountListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DataLakeStoreAccountListResult.
+func (dlsalr DataLakeStoreAccountListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DataLakeStoreAccountListResultIterator provides access to a complete listing of
 // DataLakeStoreAccountBasic values.
 type DataLakeStoreAccountListResultIterator struct {
@@ -965,6 +980,12 @@ type DataLakeStoreAccountProperties struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DataLakeStoreAccountProperties.
+func (dlsap DataLakeStoreAccountProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DataLakeStoreAccountPropertiesBasic the basic account specific properties that are associated with an
 // underlying Data Lake Store account.
 type DataLakeStoreAccountPropertiesBasic struct {
@@ -980,6 +1001,12 @@ type DataLakeStoreAccountPropertiesBasic struct {
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Endpoint - READ-ONLY; The full CName endpoint for this account.
 	Endpoint *string `json:"endpoint,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataLakeStoreAccountPropertiesBasic.
+func (dlsapb DataLakeStoreAccountPropertiesBasic) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EncryptionConfig the encryption configuration for the account.
@@ -1086,6 +1113,12 @@ type FirewallRuleListResult struct {
 	Value *[]FirewallRule `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FirewallRuleListResult.
+func (frlr FirewallRuleListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // FirewallRuleListResultIterator provides access to a complete listing of FirewallRule values.
@@ -1246,6 +1279,12 @@ type FirewallRuleProperties struct {
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FirewallRuleProperties.
+func (frp FirewallRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // KeyVaultMetaInfo metadata information used by account encryption.
 type KeyVaultMetaInfo struct {
 	// KeyVaultResourceID - The resource identifier for the user managed Key Vault being used to encrypt.
@@ -1265,6 +1304,12 @@ type NameAvailabilityInformation struct {
 	Reason *string `json:"reason,omitempty"`
 	// Message - READ-ONLY; The message describing why the Data Lake Store account name is not available, if nameAvailable is false.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NameAvailabilityInformation.
+func (nai NameAvailabilityInformation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Operation an available operation for Data Lake Store.
@@ -1298,6 +1343,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (od OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult the list of available operations for Data Lake Store.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
@@ -1305,6 +1356,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Resource the resource model definition.
@@ -1335,6 +1392,12 @@ type SubResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubResource.
+func (sr SubResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrustedIDProvider data Lake Store trusted identity provider information.
@@ -1414,6 +1477,12 @@ type TrustedIDProviderListResult struct {
 	Value *[]TrustedIDProvider `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrustedIDProviderListResult.
+func (tiplr TrustedIDProviderListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrustedIDProviderListResultIterator provides access to a complete listing of TrustedIDProvider values.
@@ -1570,6 +1639,12 @@ func NewTrustedIDProviderListResultPage(cur TrustedIDProviderListResult, getNext
 type TrustedIDProviderProperties struct {
 	// IDProvider - READ-ONLY; The URL of this trusted identity provider.
 	IDProvider *string `json:"idProvider,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrustedIDProviderProperties.
+func (tipp TrustedIDProviderProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UpdateDataLakeStoreAccountParameters data Lake Store account information to update.
@@ -1974,6 +2049,12 @@ type Usage struct {
 	Name *UsageName `json:"name,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Usage.
+func (u Usage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UsageListResult the response from the List Usages operation.
 type UsageListResult struct {
 	autorest.Response `json:"-"`
@@ -1987,6 +2068,12 @@ type UsageName struct {
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - READ-ONLY; Gets a localized string describing the resource name.
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UsageName.
+func (un UsageName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkRule data Lake Store virtual network rule information.
@@ -2066,6 +2153,12 @@ type VirtualNetworkRuleListResult struct {
 	Value *[]VirtualNetworkRule `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkRuleListResult.
+func (vnrlr VirtualNetworkRuleListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkRuleListResultIterator provides access to a complete listing of VirtualNetworkRule values.
@@ -2222,4 +2315,10 @@ func NewVirtualNetworkRuleListResultPage(cur VirtualNetworkRuleListResult, getNe
 type VirtualNetworkRuleProperties struct {
 	// SubnetID - READ-ONLY; The resource identifier for the subnet.
 	SubnetID *string `json:"subnetId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkRuleProperties.
+func (vnrp VirtualNetworkRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }

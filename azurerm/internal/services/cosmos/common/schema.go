@@ -1,47 +1,47 @@
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func CassandraTableSchemaPropertySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func CassandraTableSchemaPropertySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"column": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MinItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"name": {
 								Required:     true,
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
 								Required:     true,
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
 				},
 				"partition_key": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"name": {
 								Required:     true,
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -49,16 +49,16 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 				},
 				"cluster_key": {
 					Optional: true,
-					Type:     schema.TypeList,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Type:     pluginsdk.TypeList,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"name": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"order_by": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Asc",
@@ -73,15 +73,16 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 	}
 }
 
-func DatabaseAutoscaleSettingsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
+	//lintignore:XS003
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"max_throughput": {
-					Type:          schema.TypeInt,
+					Type:          pluginsdk.TypeInt,
 					Optional:      true,
 					Computed:      true,
 					ConflictsWith: []string{"throughput"},
@@ -92,48 +93,43 @@ func DatabaseAutoscaleSettingsSchema() *schema.Schema {
 	}
 }
 
-func ContainerAutoscaleSettingsSchema() *schema.Schema {
-	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
-	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"partition_key_path"}
-
-	return autoscaleSettingsDatabaseSchema
-}
-
-func MongoCollectionAutoscaleSettingsSchema() *schema.Schema {
+func MongoCollectionAutoscaleSettingsSchema() *pluginsdk.Schema {
 	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
 	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"shard_key"}
 
 	return autoscaleSettingsDatabaseSchema
 }
 
-func CosmosDbIndexingPolicySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
+				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
+				// todo: change to SDK constants and remove translation code in 3.0
 				"indexing_mode": {
-					Type:             schema.TypeString,
+					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					Default:          documentdb.Consistent,
 					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 					ValidateFunc: validation.StringInSlice([]string{
-						string(documentdb.Consistent),
-						string(documentdb.None),
+						"Consistent",
+						"None",
 					}, false),
 				},
 
 				"included_path": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"path": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
@@ -141,50 +137,116 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 					},
 				},
 				"excluded_path": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"path": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
 				},
-				"composite_index": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"index": {
-								Type:     schema.TypeList,
-								MinItems: 1,
+				"composite_index": CosmosDbIndexingPolicyCompositeIndexSchema(),
+
+				"spatial_index": CosmosDbIndexingPolicySpatialIndexSchema(),
+			},
+		},
+	}
+}
+
+func ConflictResolutionPolicy() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"mode": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(documentdb.LastWriterWins),
+						string(documentdb.Custom),
+					}, false),
+				},
+
+				"conflict_resolution_path": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"conflict_resolution_procedure": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"index": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Required: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
+							// todo: change to SDK constants and remove translation code in 3.0
+							"order": {
+								Type:     pluginsdk.TypeString,
 								Required: true,
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										"path": {
-											Type:         schema.TypeString,
-											Required:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-										"order": {
-											Type:     schema.TypeString,
-											Required: true,
-											// Workaround for Azure/azure-rest-api-specs#11222
-											DiffSuppressFunc: suppress.CaseDifference,
-											ValidateFunc: validation.StringInSlice(
-												[]string{
-													string(documentdb.Ascending),
-													string(documentdb.Descending),
-												}, false),
-										},
-									},
-								},
+								// Workaround for Azure/azure-rest-api-specs#11222
+								DiffSuppressFunc: suppress.CaseDifference,
+								ValidateFunc: validation.StringInSlice(
+									[]string{
+										"Ascending",
+										"Descending",
+									}, false),
 							},
 						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbIndexingPolicySpatialIndexSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"path": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"types": {
+					Type:     pluginsdk.TypeSet,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 			},

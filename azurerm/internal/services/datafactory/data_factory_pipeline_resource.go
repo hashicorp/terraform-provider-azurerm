@@ -6,42 +6,42 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryPipeline() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryPipeline() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryPipelineCreateUpdate,
 		Read:   resourceDataFactoryPipelineRead,
 		Update: resourceDataFactoryPipelineCreateUpdate,
 		Delete: resourceDataFactoryPipelineDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -52,45 +52,51 @@ func resourceDataFactoryPipeline() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"variables": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"activities_json": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				StateFunc:        utils.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"folder": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
 
-func resourceDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,6 +143,13 @@ func resourceDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interf
 		pipeline.Annotations = &annotations
 	}
 
+	if v, ok := d.GetOk("folder"); ok {
+		name := v.(string)
+		pipeline.Folder = &datafactory.PipelineFolder{
+			Name: &name,
+		}
+	}
+
 	config := datafactory.PipelineResource{
 		Pipeline: pipeline,
 	}
@@ -159,7 +172,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceDataFactoryPipelineRead(d, meta)
 }
 
-func resourceDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,6 +211,12 @@ func resourceDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
+		if folder := props.Folder; folder != nil {
+			if folder.Name != nil {
+				d.Set("folder", folder.Name)
+			}
+		}
+
 		variables := flattenDataFactoryVariables(props.Variables)
 		if err := d.Set("variables", variables); err != nil {
 			return fmt.Errorf("setting `variables`: %+v", err)
@@ -217,7 +236,7 @@ func resourceDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

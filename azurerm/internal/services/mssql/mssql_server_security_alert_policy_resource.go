@@ -6,55 +6,53 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO 3.0 - this may want to be put into the mssql_server resource now that it exists.
 
-func resourceMsSqlServerSecurityAlertPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerSecurityAlertPolicyCreateUpdate,
 		Read:   resourceMsSqlServerSecurityAlertPolicyRead,
 		Update: resourceMsSqlServerSecurityAlertPolicyCreateUpdate,
 		Delete: resourceMsSqlServerSecurityAlertPolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServerSecurityAlertPolicyID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"disabled_alerts": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Set:      schema.HashString,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Set:      pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"Sql_Injection",
 						"Sql_Injection_Vulnerability",
@@ -66,29 +64,29 @@ func resourceMsSqlServerSecurityAlertPolicy() *schema.Resource {
 			},
 
 			"email_account_admins": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"email_addresses": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"retention_days": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.SecurityAlertPolicyStateDisabled),
@@ -98,14 +96,14 @@ func resourceMsSqlServerSecurityAlertPolicy() *schema.Resource {
 			},
 
 			"storage_account_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -113,7 +111,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *schema.Resource {
 	}
 }
 
-func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +146,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +176,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta int
 		d.Set("state", string(props.State))
 
 		if props.DisabledAlerts != nil {
-			disabledAlerts := schema.NewSet(schema.HashString, []interface{}{})
+			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 			for _, v := range *props.DisabledAlerts {
 				if v != "" {
 					disabledAlerts.Add(v)
@@ -193,7 +191,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta int
 		}
 
 		if props.EmailAddresses != nil {
-			emailAddresses := schema.NewSet(schema.HashString, []interface{}{})
+			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 			for _, v := range *props.EmailAddresses {
 				if v != "" {
 					emailAddresses.Add(v)
@@ -219,7 +217,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceMsSqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +251,7 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func expandSecurityAlertPolicy(d *schema.ResourceData) *sql.ServerSecurityAlertPolicy {
+func expandSecurityAlertPolicy(d *pluginsdk.ResourceData) *sql.ServerSecurityAlertPolicy {
 	state := sql.SecurityAlertPolicyState(d.Get("state").(string))
 
 	policy := sql.ServerSecurityAlertPolicy{
@@ -266,7 +264,7 @@ func expandSecurityAlertPolicy(d *schema.ResourceData) *sql.ServerSecurityAlertP
 
 	if v, ok := d.GetOk("disabled_alerts"); ok {
 		disabledAlerts := make([]string, 0)
-		for _, v := range v.(*schema.Set).List() {
+		for _, v := range v.(*pluginsdk.Set).List() {
 			disabledAlerts = append(disabledAlerts, v.(string))
 		}
 		props.DisabledAlerts = &disabledAlerts
@@ -274,7 +272,7 @@ func expandSecurityAlertPolicy(d *schema.ResourceData) *sql.ServerSecurityAlertP
 
 	if v, ok := d.GetOk("email_addresses"); ok {
 		emailAddresses := make([]string, 0)
-		for _, v := range v.(*schema.Set).List() {
+		for _, v := range v.(*pluginsdk.Set).List() {
 			emailAddresses = append(emailAddresses, v.(string))
 		}
 		props.EmailAddresses = &emailAddresses

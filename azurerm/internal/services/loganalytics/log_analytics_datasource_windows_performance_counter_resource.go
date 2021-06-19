@@ -8,42 +8,40 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resource {
-	return &schema.Resource{
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
 		Read:   resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead,
 		Update: resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
 		Delete: resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LogAnalyticsDataSourceID(id)
 			return err
 		}, importLogAnalyticsDataSource(operationalinsights.WindowsPerformanceCounter)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -52,7 +50,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resource 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -60,25 +58,25 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resource 
 			},
 
 			"counter_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"instance_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"interval_seconds": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(10, math.MaxInt32),
 			},
 
 			"object_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -94,7 +92,7 @@ type dataSourceWindowsPerformanceCounterProperty struct {
 	ObjectName      string `json:"objectName"`
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +144,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *sche
 	return resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +169,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.Resou
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_name", id.Workspace)
 	if props := resp.Properties; props != nil {
-		propStr, err := structure.FlattenJsonToString(props.(map[string]interface{}))
+		propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
 			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
@@ -190,7 +188,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.Resou
 	return nil
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

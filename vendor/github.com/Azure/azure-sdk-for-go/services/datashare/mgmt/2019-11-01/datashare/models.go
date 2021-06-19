@@ -306,6 +306,12 @@ type AccountProperties struct {
 	UserName *string `json:"userName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountProperties.
+func (ap AccountProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFuture struct {
@@ -335,6 +341,7 @@ func (future *AccountsCreateFuture) result(client AccountsClient) (a Account, er
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.AccountsCreateFuture")
 		return
 	}
@@ -377,6 +384,7 @@ func (future *AccountsDeleteFuture) result(client AccountsClient) (or OperationR
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.AccountsDeleteFuture")
 		return
 	}
@@ -3606,6 +3614,12 @@ type ConsumerSourceDataSetProperties struct {
 	DataSetType DataSetType `json:"dataSetType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConsumerSourceDataSetProperties.
+func (csdsp ConsumerSourceDataSetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BasicDataSet a DataSet data transfer object.
 type BasicDataSet interface {
 	AsADLSGen1FileDataSet() (*ADLSGen1FileDataSet, bool)
@@ -4413,6 +4427,7 @@ func (future *DataSetsDeleteFuture) result(client DataSetsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.DataSetsDeleteFuture")
 		return
 	}
@@ -6034,6 +6049,12 @@ type ProviderShareSubscriptionProperties struct {
 	ShareSubscriptionStatus ShareSubscriptionStatus `json:"shareSubscriptionStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProviderShareSubscriptionProperties.
+func (pssp ProviderShareSubscriptionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ProviderShareSubscriptionsRevokeFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ProviderShareSubscriptionsRevokeFuture struct {
@@ -6063,6 +6084,7 @@ func (future *ProviderShareSubscriptionsRevokeFuture) result(client ProviderShar
 		return
 	}
 	if !done {
+		pss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ProviderShareSubscriptionsRevokeFuture")
 		return
 	}
@@ -6084,6 +6106,12 @@ type ProxyDto struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the azure resource
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyDto.
+func (pd ProxyDto) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ScheduledSourceShareSynchronizationSettingProperties a Scheduled source synchronization setting data
@@ -6720,6 +6748,7 @@ func (future *SharesDeleteFuture) result(client SharesClient) (or OperationRespo
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.SharesDeleteFuture")
 		return
 	}
@@ -7038,6 +7067,7 @@ func (future *ShareSubscriptionsCancelSynchronizationFuture) result(client Share
 		return
 	}
 	if !done {
+		sss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsCancelSynchronizationFuture")
 		return
 	}
@@ -7080,6 +7110,7 @@ func (future *ShareSubscriptionsDeleteFuture) result(client ShareSubscriptionsCl
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsDeleteFuture")
 		return
 	}
@@ -7122,6 +7153,7 @@ func (future *ShareSubscriptionsSynchronizeMethodFuture) result(client ShareSubs
 		return
 	}
 	if !done {
+		sss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsSynchronizeMethodFuture")
 		return
 	}
@@ -8590,6 +8622,12 @@ type SynchronizationDetails struct {
 	VCore *int64 `json:"vCore,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SynchronizationDetails.
+func (sd SynchronizationDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SynchronizationDetailsList details of synchronization
 type SynchronizationDetailsList struct {
 	autorest.Response `json:"-"`
@@ -9069,6 +9107,7 @@ func (future *SynchronizationSettingsDeleteFuture) result(client Synchronization
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.SynchronizationSettingsDeleteFuture")
 		return
 	}
@@ -9406,6 +9445,7 @@ func (future *TriggersCreateFuture) result(client TriggersClient) (tm TriggerMod
 		return
 	}
 	if !done {
+		tm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.TriggersCreateFuture")
 		return
 	}
@@ -9448,6 +9488,7 @@ func (future *TriggersDeleteFuture) result(client TriggersClient) (or OperationR
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.TriggersDeleteFuture")
 		return
 	}

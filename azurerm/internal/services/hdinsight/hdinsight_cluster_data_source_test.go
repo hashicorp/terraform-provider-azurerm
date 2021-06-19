@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +14,10 @@ type HDInsightClusterDataSourceResource struct {
 func TestAccDataSourceHDInsightCluster_hadoop(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.hadoop(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("hadoop"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
@@ -32,10 +31,10 @@ func TestAccDataSourceHDInsightCluster_hadoop(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_hbase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.hbase(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("hbase"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
@@ -49,10 +48,10 @@ func TestAccDataSourceHDInsightCluster_hbase(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_interactiveQuery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.interactiveQuery(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("interactivehive"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
@@ -66,10 +65,10 @@ func TestAccDataSourceHDInsightCluster_interactiveQuery(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_kafka(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.kafka(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("kafka"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
@@ -83,10 +82,10 @@ func TestAccDataSourceHDInsightCluster_kafka(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.kafkaWithRestProxy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("kafka"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
@@ -101,10 +100,10 @@ func TestAccDataSourceHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_mlServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.mlServices(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("mlservices"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
@@ -118,10 +117,10 @@ func TestAccDataSourceHDInsightCluster_mlServices(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_rserver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.rserver(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("rserver"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
@@ -135,10 +134,10 @@ func TestAccDataSourceHDInsightCluster_rserver(t *testing.T) {
 func TestAccDataSourceHDInsightCluster_spark(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.spark(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("spark"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
@@ -153,10 +152,10 @@ func TestAccDataSourceHDInsightCluster_storm(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.storm(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("storm"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),

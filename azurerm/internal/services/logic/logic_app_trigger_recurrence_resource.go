@@ -5,44 +5,44 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func resourceLogicAppTriggerRecurrence() *schema.Resource {
-	return &schema.Resource{
+func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogicAppTriggerRecurrenceCreateUpdate,
 		Read:   resourceLogicAppTriggerRecurrenceRead,
 		Update: resourceLogicAppTriggerRecurrenceCreateUpdate,
 		Delete: resourceLogicAppTriggerRecurrenceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"logic_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"frequency": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Month",
@@ -56,46 +56,46 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 			},
 
 			"interval": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"start_time": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"schedule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"at_these_hours": {
-							Type:         schema.TypeSet,
+							Type:         pluginsdk.TypeSet,
 							Optional:     true,
 							AtLeastOneOf: []string{"schedule.0.at_these_hours", "schedule.0.at_these_minutes", "schedule.0.on_these_days"},
-							Elem: &schema.Schema{
-								Type:         schema.TypeInt,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 23),
 							},
 						},
 						"at_these_minutes": {
-							Type:         schema.TypeSet,
+							Type:         pluginsdk.TypeSet,
 							Optional:     true,
 							AtLeastOneOf: []string{"schedule.0.at_these_hours", "schedule.0.at_these_minutes", "schedule.0.on_these_days"},
-							Elem: &schema.Schema{
-								Type:         schema.TypeInt,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 59),
 							},
 						},
 						"on_these_days": {
-							Type:         schema.TypeSet,
+							Type:         pluginsdk.TypeSet,
 							Optional:     true,
 							AtLeastOneOf: []string{"schedule.0.at_these_hours", "schedule.0.at_these_minutes", "schedule.0.on_these_days"},
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Monday",
 									"Tuesday",
@@ -112,16 +112,16 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 			},
 
 			"time_zone": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateLogicAppTriggerRecurrenceTimeZone(),
+				ValidateFunc: validate.TriggerRecurrenceTimeZone(),
 			},
 		},
 	}
 }
 
-func resourceLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	trigger := map[string]interface{}{
 		"recurrence": map[string]interface{}{
 			"frequency": d.Get("frequency").(string),
@@ -152,7 +152,7 @@ func resourceLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta 
 	return resourceLogicAppTriggerRecurrenceRead(d, meta)
 }
 
-func resourceLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -211,7 +211,7 @@ func resourceLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -229,107 +229,6 @@ func resourceLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func validateLogicAppTriggerRecurrenceTimeZone() schema.SchemaValidateFunc {
-	// from https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values
-	timeZones := []string{
-		"Dateline Standard Time",
-		"Samoa Standard Time",
-		"Hawaiian Standard Time",
-		"Alaskan Standard Time",
-		"Pacific Standard Time",
-		"Mountain Standard Time",
-		"Mexico Standard Time",
-		"US Mountain Standard Time",
-		"Central Standard Time",
-		"Canada Central Standard Time",
-		"Mexico Standard Time",
-		"Central America Standard Time",
-		"Eastern Standard Time",
-		"US Eastern Standard Time",
-		"SA Pacific Standard Time",
-		"Atlantic Standard Time",
-		"SA Western Standard Time",
-		"Pacific SA Standard Time",
-		"Newfoundland and Labrador Standard Time",
-		"E South America Standard Time",
-		"SA Eastern Standard Time",
-		"Greenland Standard Time",
-		"Mid-Atlantic Standard Time",
-		"Azores Standard Time",
-		"Cape Verde Standard Time",
-		"GMT Standard Time",
-		"Greenwich Standard Time",
-		"Central Europe Standard Time",
-		"Central European Standard Time",
-		"Romance Standard Time",
-		"W Europe Standard Time",
-		"W Central Africa Standard Time",
-		"E Europe Standard Time",
-		"Egypt Standard Time",
-		"FLE Standard Time",
-		"GTB Standard Time",
-		"Israel Standard Time",
-		"South Africa Standard Time",
-		"Russian Standard Time",
-		"Arab Standard Time",
-		"E Africa Standard Time",
-		"Arabic Standard Time",
-		"Iran Standard Time",
-		"Arabian Standard Time",
-		"Caucasus Standard Time",
-		"Transitional Islamic State of Afghanistan Standard Time",
-		"Ekaterinburg Standard Time",
-		"West Asia Standard Time",
-		"India Standard Time",
-		"Nepal Standard Time",
-		"Central Asia Standard Time",
-		"Sri Lanka Standard Time",
-		"N Central Asia Standard Time",
-		"Myanmar Standard Time",
-		"SE Asia Standard Time",
-		"North Asia Standard Time",
-		"China Standard Time",
-		"Singapore Standard Time",
-		"Taipei Standard Time",
-		"W Australia Standard Time",
-		"North Asia East Standard Time",
-		"Korea Standard Time",
-		"Tokyo Standard Time",
-		"Yakutsk Standard Time",
-		"AUS Central Standard Time",
-		"Cen Australia Standard Time",
-		"AUS Eastern Standard Time",
-		"E Australia Standard Time",
-		"Tasmania Standard Time",
-		"Vladivostok Standard Time",
-		"West Pacific Standard Time",
-		"Central Pacific Standard Time",
-		"Fiji Islands Standard Time",
-		"New Zealand Standard Time",
-		"Tonga Standard Time",
-		"Azerbaijan Standard Time",
-		"Middle East Standard Time",
-		"Jordan Standard Time",
-		"Central Standard Time (Mexico)",
-		"Mountain Standard Time (Mexico)",
-		"Pacific Standard Time (Mexico)",
-		"Namibia Standard Time",
-		"Georgian Standard Time",
-		"Central Brazilian Standard Time",
-		"Montevideo Standard Time",
-		"Armenian Standard Time",
-		"Venezuela Standard Time",
-		"Argentina Standard Time",
-		"Morocco Standard Time",
-		"Pakistan Standard Time",
-		"Mauritius Standard Time",
-		"UTC",
-		"Paraguay Standard Time",
-		"Kamchatka Standard Time",
-	}
-	return validation.StringInSlice(timeZones, false)
-}
-
 func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]interface{} {
 	output := make(map[string]interface{})
 	if len(input) == 0 || input[0] == nil {
@@ -338,7 +237,7 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 
 	attrs := input[0].(map[string]interface{})
 	if hoursRaw, ok := attrs["at_these_hours"]; ok {
-		hoursSet := hoursRaw.(*schema.Set).List()
+		hoursSet := hoursRaw.(*pluginsdk.Set).List()
 		hours := make([]int, 0)
 		for _, hour := range hoursSet {
 			hours = append(hours, hour.(int))
@@ -348,7 +247,7 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 		}
 	}
 	if minutesRaw, ok := attrs["at_these_minutes"]; ok {
-		minutesSet := minutesRaw.(*schema.Set).List()
+		minutesSet := minutesRaw.(*pluginsdk.Set).List()
 		minutes := make([]int, 0)
 		for _, minute := range minutesSet {
 			minutes = append(minutes, minute.(int))
@@ -358,7 +257,7 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 		}
 	}
 	if daysRaw, ok := attrs["on_these_days"]; ok {
-		daysSet := daysRaw.(*schema.Set).List()
+		daysSet := daysRaw.(*pluginsdk.Set).List()
 		days := make([]string, 0)
 		for _, day := range daysSet {
 			days = append(days, day.(string))

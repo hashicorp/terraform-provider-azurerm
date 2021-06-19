@@ -32,6 +32,12 @@ type AdminCredentials struct {
 	VcenterPassword *string `json:"vcenterPassword,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AdminCredentials.
+func (ac AdminCredentials) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AuthorizationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AuthorizationsCreateOrUpdateFuture struct {
@@ -61,6 +67,7 @@ func (future *AuthorizationsCreateOrUpdateFuture) result(client AuthorizationsCl
 		return
 	}
 	if !done {
+		era.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsCreateOrUpdateFuture")
 		return
 	}
@@ -103,6 +110,7 @@ func (future *AuthorizationsDeleteFuture) result(client AuthorizationsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsDeleteFuture")
 		return
 	}
@@ -120,6 +128,12 @@ type Circuit struct {
 	ExpressRouteID *string `json:"expressRouteID,omitempty"`
 	// ExpressRoutePrivatePeeringID - READ-ONLY; ExpressRoute Circuit private peering identifier
 	ExpressRoutePrivatePeeringID *string `json:"expressRoutePrivatePeeringID,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Circuit.
+func (c Circuit) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudError API error response
@@ -222,6 +236,12 @@ type ClusterList struct {
 	Value *[]Cluster `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next page if any
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterList.
+func (cl ClusterList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ClusterListIterator provides access to a complete listing of Cluster values.
@@ -427,6 +447,7 @@ func (future *ClustersCreateOrUpdateFuture) result(client ClustersClient) (c Clu
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.ClustersCreateOrUpdateFuture")
 		return
 	}
@@ -469,6 +490,7 @@ func (future *ClustersDeleteFuture) result(client ClustersClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.ClustersDeleteFuture")
 		return
 	}
@@ -505,6 +527,7 @@ func (future *ClustersUpdateFuture) result(client ClustersClient) (c Cluster, er
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.ClustersUpdateFuture")
 		return
 	}
@@ -573,12 +596,24 @@ type Endpoints struct {
 	HcxCloudManager *string `json:"hcxCloudManager,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Endpoints.
+func (e Endpoints) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorAdditionalInfo the resource management error additional info.
 type ErrorAdditionalInfo struct {
 	// Type - READ-ONLY; The additional info type.
 	Type *string `json:"type,omitempty"`
 	// Info - READ-ONLY; The additional info.
 	Info interface{} `json:"info,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
@@ -594,6 +629,12 @@ type ErrorResponse struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExpressRouteAuthorization expressRoute Circuit Authorization
@@ -673,6 +714,12 @@ type ExpressRouteAuthorizationList struct {
 	Value *[]ExpressRouteAuthorization `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next page if any
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExpressRouteAuthorizationList.
+func (eral ExpressRouteAuthorizationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExpressRouteAuthorizationListIterator provides access to a complete listing of ExpressRouteAuthorization
@@ -836,6 +883,12 @@ type ExpressRouteAuthorizationProperties struct {
 	ExpressRouteAuthorizationKey *string `json:"expressRouteAuthorizationKey,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ExpressRouteAuthorizationProperties.
+func (erap ExpressRouteAuthorizationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // HcxEnterpriseSite an HCX Enterprise Site resource
 type HcxEnterpriseSite struct {
 	autorest.Response `json:"-"`
@@ -913,6 +966,12 @@ type HcxEnterpriseSiteList struct {
 	Value *[]HcxEnterpriseSite `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next page if any
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HcxEnterpriseSiteList.
+func (hesl HcxEnterpriseSiteList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // HcxEnterpriseSiteListIterator provides access to a complete listing of HcxEnterpriseSite values.
@@ -1073,6 +1132,12 @@ type HcxEnterpriseSiteProperties struct {
 	Status HcxEnterpriseSiteStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for HcxEnterpriseSiteProperties.
+func (hesp HcxEnterpriseSiteProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // IdentitySource vCenter Single Sign On Identity Source
 type IdentitySource struct {
 	// Name - The name of the identity source
@@ -1210,6 +1275,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (o OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationList pageable list of operations
 type OperationList struct {
 	autorest.Response `json:"-"`
@@ -1217,6 +1288,12 @@ type OperationList struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next page if any
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationList.
+func (ol OperationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListIterator provides access to a complete listing of Operation values.
@@ -1499,6 +1576,12 @@ type PrivateCloudList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateCloudList.
+func (pcl PrivateCloudList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateCloudListIterator provides access to a complete listing of PrivateCloud values.
 type PrivateCloudListIterator struct {
 	i    int
@@ -1737,6 +1820,7 @@ func (future *PrivateCloudsCreateOrUpdateFuture) result(client PrivateCloudsClie
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsCreateOrUpdateFuture")
 		return
 	}
@@ -1779,6 +1863,7 @@ func (future *PrivateCloudsDeleteFuture) result(client PrivateCloudsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsDeleteFuture")
 		return
 	}
@@ -1815,6 +1900,7 @@ func (future *PrivateCloudsUpdateFuture) result(client PrivateCloudsClient) (pc 
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsUpdateFuture")
 		return
 	}
@@ -1916,6 +2002,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServiceSpecification service specification payload
 type ServiceSpecification struct {
 	// LogSpecifications - Specifications of the Log for Azure Monitoring
@@ -1963,4 +2055,10 @@ type Trial struct {
 	Status TrialStatus `json:"status,omitempty"`
 	// AvailableHosts - READ-ONLY; Number of trial hosts available
 	AvailableHosts *int32 `json:"availableHosts,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Trial.
+func (t Trial) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }

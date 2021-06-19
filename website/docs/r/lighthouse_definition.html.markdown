@@ -54,9 +54,11 @@ An `authorization` block supports the following:
 
 * `principal_id` - (Required) Principal ID of the security group/service principal/user that would be assigned permissions to the projected subscription.
 
-* `principal_display_name` - (Optional) The display name of the security group/service principal/user that would be assigned permissions to the projected subscription.
-
 * `role_definition_id` - (Required) The role definition identifier. This role will define the permissions that are granted to the principal. This cannot be an `Owner` role.
+
+* `delegated_role_definition_ids` - (Optional) The set of role definition ids which define all the permissions that the principal id can assign.
+  
+* `principal_display_name` - (Optional) The display name of the security group/service principal/user that would be assigned permissions to the projected subscription.
 
 ## Attributes Reference
 

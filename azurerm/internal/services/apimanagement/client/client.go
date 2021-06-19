@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -15,6 +15,7 @@ type Client struct {
 	ApiVersionSetClient        *apimanagement.APIVersionSetClient
 	AuthorizationServersClient *apimanagement.AuthorizationServerClient
 	BackendClient              *apimanagement.BackendClient
+	CacheClient                *apimanagement.CacheClient
 	CertificatesClient         *apimanagement.CertificateClient
 	DiagnosticClient           *apimanagement.DiagnosticClient
 	EmailTemplateClient        *apimanagement.EmailTemplateClient
@@ -64,6 +65,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	backendClient := apimanagement.NewBackendClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backendClient.Client, o.ResourceManagerAuthorizer)
+
+	cacheClient := apimanagement.NewCacheClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&cacheClient.Client, o.ResourceManagerAuthorizer)
 
 	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
@@ -135,6 +139,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApiVersionSetClient:        &apiVersionSetClient,
 		AuthorizationServersClient: &authorizationServersClient,
 		BackendClient:              &backendClient,
+		CacheClient:                &cacheClient,
 		CertificatesClient:         &certificatesClient,
 		DiagnosticClient:           &diagnosticClient,
 		EmailTemplateClient:        &emailTemplateClient,

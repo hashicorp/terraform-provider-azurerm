@@ -1,15 +1,16 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func customizeHttpsConfigurationCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
 		id, err := parse.FrontendEndpointID(v.(string))
 		if err != nil {
@@ -24,60 +25,85 @@ func customizeHttpsConfigurationCustomizeDiff(d *schema.ResourceDiff, v interfac
 	return nil
 }
 
-func customHttpsSettings(d *schema.ResourceDiff) error {
-	frontendId := d.Get("frontend_endpoint_id").(string)
+func customHttpsSettings(d *pluginsdk.ResourceDiff) error {
 	frontendEndpointCustomHttpsConfig := d.Get("custom_https_configuration").([]interface{})
 	customHttpsEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 
 	if len(frontendEndpointCustomHttpsConfig) > 0 {
 		if !customHttpsEnabled {
-			return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`, frontendId)
+			return fmt.Errorf(`"custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`)
 		}
 
 		// Verify frontend endpoints custom https configuration is valid if defined
-		if err := verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig, frontendId); err != nil {
+		if err := verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig); err != nil {
 			return err
 		}
 	} else if customHttpsEnabled {
-		return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`, frontendId)
+		return fmt.Errorf(`"custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`)
 	}
 
 	return nil
 }
 
-func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interface{}, frontendId string) error {
+func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interface{}) error {
 	if len(frontendEndpointCustomHttpsConfig) > 0 {
 		customHttpsConfiguration := frontendEndpointCustomHttpsConfig[0].(map[string]interface{})
-		certificateSource := customHttpsConfiguration["certificate_source"]
-		if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
-			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
-				return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, frontendId)
+		certificateSource := customHttpsConfiguration["certificate_source"].(string)
+		certificateVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
+
+		if certificateSource == string(frontdoor.CertificateSourceFrontDoor) {
+			if azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
+				return fmt.Errorf(`a Front Door managed "custom_https_configuration" block does not support the following keys. Please remove the following keys from your configuration file: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
 			}
-		} else if azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
-			return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, frontendId)
+		} else {
+			// The latest secret version is no longer valid for key vaults
+			if strings.EqualFold(certificateVersion, "latest") {
+				return fmt.Errorf(`"azure_key_vault_certificate_secret_version" can not be set to "latest" please remove this attribute from the configuration file. Removing the value has the same functionality as setting it to "latest"`)
+			}
+
+			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
+				if certificateVersion == "" {
+					// If using latest, empty string is now equivalent to using the keyword latest
+					return fmt.Errorf(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
+				} else {
+					// If using a specific version of the secret
+					return fmt.Errorf(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
+				}
+			}
 		}
 	}
 
 	return nil
 }
 
-func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]interface{}, matchAllKeys bool) bool {
-	certificateSecretName := customHttpsConfiguration["azure_key_vault_certificate_secret_name"]
-	certificateSecretVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"]
-	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"]
+func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]interface{}, isFrontDoorManaged bool) bool {
+	certificateSecretName := customHttpsConfiguration["azure_key_vault_certificate_secret_name"].(string)
+	certificateSecretVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
+	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"].(string)
 
-	if matchAllKeys {
-		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateSecretVersion.(string)) != "" && strings.TrimSpace(certificateVaultId.(string)) != "" {
+	if isFrontDoorManaged {
+		// if any of these keys have values it is invalid
+		if strings.TrimSpace(certificateSecretName) != "" || strings.TrimSpace(certificateSecretVersion) != "" || strings.TrimSpace(certificateVaultId) != "" {
 			return true
 		}
-	} else if strings.TrimSpace(certificateSecretName.(string)) != "" || strings.TrimSpace(certificateSecretVersion.(string)) != "" || strings.TrimSpace(certificateVaultId.(string)) != "" {
-		return true
+	} else {
+		if certificateSecretVersion == "" {
+			// using latest ignore certificate secret version
+			if strings.TrimSpace(certificateSecretName) != "" && strings.TrimSpace(certificateVaultId) != "" {
+				return true
+			}
+		} else {
+			// not using latest make sure all keys have values
+			if strings.TrimSpace(certificateSecretName) != "" && strings.TrimSpace(certificateSecretVersion) != "" && strings.TrimSpace(certificateVaultId) != "" {
+				return true
+			}
+		}
 	}
 
 	return false
 }
 
-func frontDoorCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 	if err := frontDoorSettings(d); err != nil {
 		return fmt.Errorf("validating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 	}
@@ -85,7 +111,7 @@ func frontDoorCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
 	return nil
 }
 
-func frontDoorSettings(d *schema.ResourceDiff) error {
+func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 	routingRules := d.Get("routing_rule").([]interface{})
 	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPools := d.Get("backend_pool").([]interface{})

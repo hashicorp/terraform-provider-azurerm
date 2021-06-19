@@ -5,86 +5,86 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
-func SchemaResourceGroupName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameDeprecated() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameDeprecated() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}
 }
 
-func SchemaResourceGroupNameDeprecatedComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameDeprecatedComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}
 }
 
-func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
+func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ForceNew:         true,
 		DiffSuppressFunc: suppress.CaseDifference,
-		ValidateFunc:     validateResourceGroupName,
+		ValidateFunc:     ValidateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameOptionalComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		ForceNew:     true,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameOptional() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameOptional() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameSetOptional() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
+func SchemaResourceGroupNameSetOptional() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
-			ValidateFunc: validateResourceGroupName,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: ValidateResourceGroupName,
 		},
 	}
 }
 
-func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) > 90 {
@@ -95,8 +95,10 @@ func validateResourceGroupName(v interface{}, k string) (warnings []string, erro
 		errors = append(errors, fmt.Errorf("%q may not end with a period", k))
 	}
 
-	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-	if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
+	if len(value) == 0 {
+		errors = append(errors, fmt.Errorf("%q cannot be blank", k))
+	} else if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
+		// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 

@@ -5,47 +5,46 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceFirewallNatRuleCollection() *schema.Resource {
-	return &schema.Resource{
+func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceFirewallNatRuleCollectionCreateUpdate,
 		Read:   resourceFirewallNatRuleCollectionRead,
 		Update: resourceFirewallNatRuleCollectionCreateUpdate,
 		Delete: resourceFirewallNatRuleCollectionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FirewallName,
 			},
 
 			"azure_firewall_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FirewallName,
@@ -54,80 +53,80 @@ func resourceFirewallNatRuleCollection() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"priority": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(100, 65000),
 			},
 
 			"action": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Dnat),
-					string(network.Snat),
+					string(network.AzureFirewallNatRCActionTypeDnat),
+					string(network.AzureFirewallNatRCActionTypeSnat),
 				}, false),
 			},
 
 			"rule": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"description": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"translated_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"translated_port": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"source_addresses": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"source_ip_groups": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"destination_addresses": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"destination_ports": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"protocols": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(network.Any),
-									string(network.ICMP),
-									string(network.TCP),
-									string(network.UDP),
+									string(network.AzureFirewallNetworkRuleProtocolAny),
+									string(network.AzureFirewallNetworkRuleProtocolICMP),
+									string(network.AzureFirewallNetworkRuleProtocolTCP),
+									string(network.AzureFirewallNetworkRuleProtocolUDP),
 								}, false),
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 					},
 				},
@@ -136,7 +135,7 @@ func resourceFirewallNatRuleCollection() *schema.Resource {
 	}
 }
 
-func resourceFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +162,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	ruleCollections := *props.NatRuleCollections
-	natRules, err := expandFirewallNatRules(d.Get("rule").(*schema.Set))
+	natRules, err := expandFirewallNatRules(d.Get("rule").(*pluginsdk.Set))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall NAT Rules: %+v", err)
 	}
@@ -248,7 +247,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, meta 
 	return resourceFirewallNatRuleCollectionRead(d, meta)
 }
 
-func resourceFirewallNatRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -321,7 +320,7 @@ func resourceFirewallNatRuleCollectionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceFirewallNatRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallNatRuleCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -380,7 +379,7 @@ func resourceFirewallNatRuleCollectionDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func expandFirewallNatRules(input *schema.Set) (*[]network.AzureFirewallNatRule, error) {
+func expandFirewallNatRules(input *pluginsdk.Set) (*[]network.AzureFirewallNatRule, error) {
 	nwRules := input.List()
 	rules := make([]network.AzureFirewallNatRule, 0)
 
@@ -391,12 +390,12 @@ func expandFirewallNatRules(input *schema.Set) (*[]network.AzureFirewallNatRule,
 		description := rule["description"].(string)
 
 		sourceAddresses := make([]string, 0)
-		for _, v := range rule["source_addresses"].(*schema.Set).List() {
+		for _, v := range rule["source_addresses"].(*pluginsdk.Set).List() {
 			sourceAddresses = append(sourceAddresses, v.(string))
 		}
 
 		sourceIpGroups := make([]string, 0)
-		for _, v := range rule["source_ip_groups"].(*schema.Set).List() {
+		for _, v := range rule["source_ip_groups"].(*pluginsdk.Set).List() {
 			sourceIpGroups = append(sourceIpGroups, v.(string))
 		}
 
@@ -405,12 +404,12 @@ func expandFirewallNatRules(input *schema.Set) (*[]network.AzureFirewallNatRule,
 		}
 
 		destinationAddresses := make([]string, 0)
-		for _, v := range rule["destination_addresses"].(*schema.Set).List() {
+		for _, v := range rule["destination_addresses"].(*pluginsdk.Set).List() {
 			destinationAddresses = append(destinationAddresses, v.(string))
 		}
 
 		destinationPorts := make([]string, 0)
-		for _, v := range rule["destination_ports"].(*schema.Set).List() {
+		for _, v := range rule["destination_ports"].(*pluginsdk.Set).List() {
 			destinationPorts = append(destinationPorts, v.(string))
 		}
 
@@ -429,7 +428,7 @@ func expandFirewallNatRules(input *schema.Set) (*[]network.AzureFirewallNatRule,
 		}
 
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
-		protocols := rule["protocols"].(*schema.Set)
+		protocols := rule["protocols"].(*pluginsdk.Set)
 		for _, v := range protocols.List() {
 			s := network.AzureFirewallNetworkRuleProtocol(v.(string))
 			nrProtocols = append(nrProtocols, s)

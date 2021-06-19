@@ -38,6 +38,12 @@ type CreatedBy struct {
 	ApplicationID *uuid.UUID `json:"applicationId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CreatedBy.
+func (cb CreatedBy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Encryption the object that contains details of encryption used on the workspace.
 type Encryption struct {
 	// KeySource - The encryption keySource (provider). Possible values (case-insensitive):  Default, Microsoft.Keyvault. Possible values include: 'Default', 'MicrosoftKeyvault'
@@ -86,6 +92,12 @@ type ManagedIdentityConfiguration struct {
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
 	// Type - READ-ONLY; The type of Identity created. It can be either SystemAssigned or UserAssigned.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedIdentityConfiguration.
+func (mic ManagedIdentityConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Operation REST API operation
@@ -274,6 +286,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Sku SKU for the resource.
@@ -641,6 +659,7 @@ func (future *VNetPeeringCreateOrUpdateFuture) result(client VNetPeeringClient) 
 		return
 	}
 	if !done {
+		vnp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringCreateOrUpdateFuture")
 		return
 	}
@@ -683,6 +702,7 @@ func (future *VNetPeeringDeleteFuture) result(client VNetPeeringClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringDeleteFuture")
 		return
 	}
@@ -1109,6 +1129,7 @@ func (future *WorkspacesCreateOrUpdateFuture) result(client WorkspacesClient) (w
 		return
 	}
 	if !done {
+		w.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesCreateOrUpdateFuture")
 		return
 	}
@@ -1151,6 +1172,7 @@ func (future *WorkspacesDeleteFuture) result(client WorkspacesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesDeleteFuture")
 		return
 	}
@@ -1187,6 +1209,7 @@ func (future *WorkspacesUpdateFuture) result(client WorkspacesClient) (w Workspa
 		return
 	}
 	if !done {
+		w.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesUpdateFuture")
 		return
 	}

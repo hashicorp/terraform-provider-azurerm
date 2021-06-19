@@ -9,10 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 type KustoClusterCustomerManagedKeyResource struct {
@@ -22,10 +20,10 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
@@ -36,10 +34,10 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 		{
 			// Delete the encryption settings resource and verify it is gone
 			Config: r.template(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// Then ensure the encryption settings on the Kusto cluster
 				// have been reverted to their default state
-				data.CheckWithClient(r.clusterIsNotUsingCustomerManagedKey),
+				check.That("azurerm_kusto_cluster.test").DoesNotExistInAzure(r),
 			),
 		},
 	})
@@ -49,10 +47,10 @@ func TestAccKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
@@ -67,10 +65,10 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
@@ -80,7 +78,7 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,7 +86,22 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	})
 }
 
-func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccKustoClusterCustomerManagedKey_userIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -100,32 +113,10 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 	}
 
 	if resp.ClusterProperties == nil || resp.ClusterProperties.KeyVaultProperties == nil {
-		return nil, fmt.Errorf("properties nil for %s", id.String())
+		return utils.Bool(false), nil
 	}
 
 	return utils.Bool(true), nil
-}
-
-func (r KustoClusterCustomerManagedKeyResource) clusterIsNotUsingCustomerManagedKey(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-	id, err := parse.ClusterID(state.ID)
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %v", id.String(), err)
-	}
-
-	if resp.ClusterProperties == nil {
-		return fmt.Errorf("properties nil for %s", id.String())
-	}
-
-	if resp.ClusterProperties.KeyVaultProperties != nil {
-		return fmt.Errorf("keyVaultProperties was non-nil")
-	}
-
-	return nil
 }
 
 func (KustoClusterCustomerManagedKeyResource) basic(data acceptance.TestData) string {
@@ -181,6 +172,101 @@ resource "azurerm_kusto_cluster_customer_managed_key" "test" {
   key_version  = azurerm_key_vault_key.second.version
 }
 `, template)
+}
+
+func (KustoClusterCustomerManagedKeyResource) userIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "acctestkv%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "cluster" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions = ["get", "unwrapkey", "wrapkey"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "list",
+    "purge",
+    "recover",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "test"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.cluster,
+  ]
+}
+
+resource "azurerm_kusto_cluster_customer_managed_key" "test" {
+  cluster_id    = azurerm_kusto_cluster.test.id
+  key_vault_id  = azurerm_key_vault.test.id
+  key_name      = azurerm_key_vault_key.test.name
+  key_version   = azurerm_key_vault_key.test.version
+  user_identity = azurerm_user_assigned_identity.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (KustoClusterCustomerManagedKeyResource) template(data acceptance.TestData) string {

@@ -7,36 +7,35 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorScheduledQueryRulesLogCreateUpdate,
 		Read:   resourceMonitorScheduledQueryRulesLogRead,
 		Update: resourceMonitorScheduledQueryRulesLogCreateUpdate,
 		Delete: resourceMonitorScheduledQueryRulesLogDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringDoesNotContainAny("<>*%&:\\?+/"),
@@ -47,32 +46,32 @@ func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"authorized_resource_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 
 			"criteria": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"operator": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										Default:  "Include",
 										ValidateFunc: validation.StringInSlice([]string{
@@ -80,10 +79,10 @@ func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
 										}, false),
 									},
 									"values": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -91,7 +90,7 @@ func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
 							},
 						},
 						"metric_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -99,17 +98,17 @@ func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
 				},
 			},
 			"data_source_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 4096),
 			},
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -119,7 +118,7 @@ func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
 	}
 }
 
-func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesLogToMetricAction(d)
 
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -184,7 +183,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData, m
 	return resourceMonitorScheduledQueryRulesLogRead(d, meta)
 }
 
-func resourceMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +238,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMonitorScheduledQueryRulesLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +275,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) *[]insight
 		}
 
 		dimensions := make([]insights.Dimension, 0)
-		for _, dimension := range v["dimension"].(*schema.Set).List() {
+		for _, dimension := range v["dimension"].(*pluginsdk.Set).List() {
 			if dimension == nil {
 				continue
 			}
@@ -299,7 +298,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) *[]insight
 	return &criteria
 }
 
-func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *insights.LogToMetricAction {
+func expandMonitorScheduledQueryRulesLogToMetricAction(d *pluginsdk.ResourceData) *insights.LogToMetricAction {
 	criteriaRaw := d.Get("criteria").([]interface{})
 	criteria := expandMonitorScheduledQueryRulesLogCriteria(criteriaRaw)
 

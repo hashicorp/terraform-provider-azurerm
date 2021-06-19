@@ -1,9 +1,10 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/timeseriesinsights/resource-manager/readme.md tag: `package-2020-05-15`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *EnvironmentsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *EnvironmentsUpdateFuture.UnmarshalJSON([]byte) error
+1. Operation.MarshalJSON() ([]byte, error)
+1. OperationDisplay.MarshalJSON() ([]byte, error)
+1. OperationListResult.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)

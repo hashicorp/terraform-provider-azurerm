@@ -3,44 +3,43 @@ package hpccache
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHPCCache() *schema.Resource {
-	return &schema.Resource{
+func resourceHPCCache() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHPCCacheCreateOrUpdate,
 		Update: resourceHPCCacheCreateOrUpdate,
 		Read:   resourceHPCCacheRead,
 		Delete: resourceHPCCacheDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CacheID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -51,7 +50,7 @@ func resourceHPCCache() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cache_size_in_gb": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.IntInSlice([]int{
@@ -64,14 +63,14 @@ func resourceHPCCache() *schema.Resource {
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -82,37 +81,37 @@ func resourceHPCCache() *schema.Resource {
 			},
 
 			"mtu": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1500,
 				ValidateFunc: validation.IntBetween(576, 1500),
 			},
 
 			"ntp_server": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "time.windows.com",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"dns": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"servers": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 3,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.IsIPAddress,
 							},
 						},
 
 						"search_domain": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -120,32 +119,161 @@ func resourceHPCCache() *schema.Resource {
 				},
 			},
 
+			"directory_active_directory": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"dns_primary_ip": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"domain_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"cache_netbios_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+						},
+						"domain_netbios_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+						},
+						"username": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dns_secondary_ip": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+					},
+				},
+				ConflictsWith: []string{"directory_flat_file", "directory_ldap"},
+			},
+
+			"directory_flat_file": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"group_file_uri": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password_file_uri": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+				ConflictsWith: []string{"directory_active_directory", "directory_ldap"},
+			},
+
+			"directory_ldap": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"server": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"base_dn": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"encrypted": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"certificate_validation_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"download_certificate_automatically": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
+						},
+
+						"bind": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"dn": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"password": {
+										Type:         pluginsdk.TypeString,
+										Sensitive:    true,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+				ConflictsWith: []string{"directory_active_directory", "directory_flat_file"},
+			},
+
 			// TODO 3.0: remove this property
 			"root_squash_enabled": {
-				Type:       schema.TypeBool,
+				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Computed:   true,
 				Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
 			},
 
 			"default_access_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
 				// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"access_rule": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							MinItems: 1,
 							MaxItems: 3,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"scope": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(storagecache.Default),
@@ -155,7 +283,7 @@ func resourceHPCCache() *schema.Resource {
 									},
 
 									"access": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(storagecache.NfsAccessRuleAccessRw),
@@ -165,34 +293,34 @@ func resourceHPCCache() *schema.Resource {
 									},
 
 									"filter": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"suid_enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
 
 									"submount_access_enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
 
 									"root_squash_enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
 
 									"anonymous_uid": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 
 									"anonymous_gid": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 									},
@@ -204,9 +332,9 @@ func resourceHPCCache() *schema.Resource {
 			},
 
 			"mount_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": tags.Schema(),
@@ -214,7 +342,7 @@ func resourceHPCCache() *schema.Resource {
 	}
 }
 
-func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -267,6 +395,8 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	directorySetting := expandStorageCacheDirectorySettings(d)
+
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
 		Location: utils.String(location),
@@ -277,6 +407,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 			SecuritySettings: &storagecache.CacheSecuritySettings{
 				AccessPolicies: &accessPolicies,
 			},
+			DirectoryServicesSettings: directorySetting,
 		},
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
@@ -293,19 +424,49 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
+	// There are situations that the LRO succeeded, whilst ends up with a non-functional cache (e.g. providing some invalid flat file setting).
+	if directorySetting != nil {
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		prop := resp.CacheProperties
+		if prop == nil {
+			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
+		}
+		ds := prop.DirectoryServicesSettings
+		if ds == nil {
+			return fmt.Errorf("Unexpected nil `directoryServicesSettings` in response")
+		}
+
+		// In case the user uses active directory service, we
+		if directorySetting.ActiveDirectory != nil {
+			ad := ds.ActiveDirectory
+			if ad == nil {
+				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
+			}
+			if ad.DomainJoined != storagecache.Yes {
+				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
+			}
+		} else {
+			ud := ds.UsernameDownload
+			if ud == nil {
+				return fmt.Errorf("Unexpected nil `usernameDownload` in response")
+			}
+			if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
+				return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
+			}
+		}
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+
+	d.SetId(id.ID())
 
 	return resourceHPCCacheRead(d, meta)
 }
 
-func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -342,6 +503,23 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `dns`: %v", err)
 		}
 
+		ad, flatFile, ldap, err := flattenStorageCacheDirectorySettings(d, props.DirectoryServicesSettings)
+		if err != nil {
+			return err
+		}
+
+		if err := d.Set("directory_active_directory", ad); err != nil {
+			return fmt.Errorf("setting `directory_active_directory`: %v", err)
+		}
+
+		if err := d.Set("directory_flat_file", flatFile); err != nil {
+			return fmt.Errorf("setting `directory_flat_file`: %v", err)
+		}
+
+		if err := d.Set("directory_ldap", ldap); err != nil {
+			return fmt.Errorf("setting `directory_ldap`: %v", err)
+		}
+
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
 			if securitySettings.AccessPolicies != nil {
 				defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
@@ -370,7 +548,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -399,7 +577,7 @@ func expandStorageCacheDefaultAccessPolicy(input []interface{}) *storagecache.Nf
 
 	return &storagecache.NfsAccessPolicy{
 		Name:        utils.String("default"),
-		AccessRules: expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*schema.Set).List()),
+		AccessRules: expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -494,7 +672,7 @@ func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]i
 	return rules, nil
 }
 
-func expandStorageCacheNetworkSettings(d *schema.ResourceData) *storagecache.CacheNetworkSettings {
+func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *storagecache.CacheNetworkSettings {
 	out := &storagecache.CacheNetworkSettings{
 		Mtu:       utils.Int32(int32(d.Get("mtu").(int))),
 		NtpServer: utils.String(d.Get("ntp_server").(string)),
@@ -540,4 +718,202 @@ func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSetti
 		}
 	}
 	return
+}
+
+func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecache.CacheDirectorySettings {
+	if raw := d.Get("directory_active_directory").([]interface{}); len(raw) != 0 {
+		b := raw[0].(map[string]interface{})
+
+		var secondaryDNSPtr *string
+		if secondaryDNS := b["dns_secondary_ip"].(string); secondaryDNS != "" {
+			secondaryDNSPtr = &secondaryDNS
+		}
+
+		return &storagecache.CacheDirectorySettings{
+			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
+				ExtendedGroups: utils.Bool(true),
+				UsernameSource: storagecache.UsernameSourceAD,
+			},
+			ActiveDirectory: &storagecache.CacheActiveDirectorySettings{
+				PrimaryDNSIPAddress:   utils.String(b["dns_primary_ip"].(string)),
+				SecondaryDNSIPAddress: secondaryDNSPtr,
+				DomainName:            utils.String(b["domain_name"].(string)),
+				CacheNetBiosName:      utils.String(b["cache_netbios_name"].(string)),
+				DomainNetBiosName:     utils.String(b["domain_netbios_name"].(string)),
+				Credentials: &storagecache.CacheActiveDirectorySettingsCredentials{
+					Username: utils.String(b["username"].(string)),
+					Password: utils.String(b["password"].(string)),
+				},
+			},
+		}
+	}
+
+	if raw := d.Get("directory_flat_file").([]interface{}); len(raw) != 0 {
+		b := raw[0].(map[string]interface{})
+		return &storagecache.CacheDirectorySettings{
+			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
+				ExtendedGroups: utils.Bool(true),
+				UsernameSource: storagecache.UsernameSourceFile,
+				GroupFileURI:   utils.String(b["group_file_uri"].(string)),
+				UserFileURI:    utils.String(b["password_file_uri"].(string)),
+			},
+		}
+	}
+
+	if raw := d.Get("directory_ldap").([]interface{}); len(raw) != 0 {
+		b := raw[0].(map[string]interface{})
+		var certValidationUriPtr *string
+		certValidationUri := b["certificate_validation_uri"].(string)
+		if certValidationUri != "" {
+			certValidationUriPtr = &certValidationUri
+		}
+		return &storagecache.CacheDirectorySettings{
+			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
+				ExtendedGroups:          utils.Bool(true),
+				UsernameSource:          storagecache.UsernameSourceLDAP,
+				LdapServer:              utils.String(b["server"].(string)),
+				LdapBaseDN:              utils.String(b["base_dn"].(string)),
+				EncryptLdapConnection:   utils.Bool(b["encrypted"].(bool)),
+				RequireValidCertificate: utils.Bool(certValidationUriPtr != nil),
+				AutoDownloadCertificate: utils.Bool(b["download_certificate_automatically"].(bool)),
+				CaCertificateURI:        certValidationUriPtr,
+				Credentials:             expandStorageCacheDirectoryLdapBind(b["bind"].([]interface{})),
+			},
+		}
+	}
+
+	return nil
+}
+
+func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *storagecache.CacheDirectorySettings) (ad, flatFile, ldap []interface{}, err error) {
+	if input == nil || input.UsernameDownload == nil {
+		return nil, nil, nil, nil
+	}
+
+	ud := input.UsernameDownload
+	switch ud.UsernameSource {
+	case storagecache.UsernameSourceAD:
+		var (
+			primaryDNS        string
+			domainName        string
+			cacheNetBiosName  string
+			username          string
+			password          string
+			domainNetBiosName string
+			secondaryDNS      string
+		)
+
+		if ad := input.ActiveDirectory; ad != nil {
+			if ad.PrimaryDNSIPAddress != nil {
+				primaryDNS = *ad.PrimaryDNSIPAddress
+			}
+			if ad.DomainName != nil {
+				domainName = *ad.DomainName
+			}
+			if ad.CacheNetBiosName != nil {
+				cacheNetBiosName = *ad.CacheNetBiosName
+			}
+			if ad.DomainNetBiosName != nil {
+				domainNetBiosName = *ad.DomainNetBiosName
+			}
+			if ad.SecondaryDNSIPAddress != nil {
+				secondaryDNS = *ad.SecondaryDNSIPAddress
+			}
+		}
+		// Since the credentials are never returned from response. We will set whatever specified in the config back to state as the best effort.
+		ad := d.Get("directory_active_directory").([]interface{})
+		if len(ad) == 1 {
+			b := ad[0].(map[string]interface{})
+			username = b["username"].(string)
+			password = b["password"].(string)
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"dns_primary_ip":      primaryDNS,
+				"domain_name":         domainName,
+				"cache_netbios_name":  cacheNetBiosName,
+				"domain_netbios_name": domainNetBiosName,
+				"dns_secondary_ip":    secondaryDNS,
+				"username":            username,
+				"password":            password,
+			},
+		}, nil, nil, nil
+
+	case storagecache.UsernameSourceFile:
+		var groupFileUri string
+		if ud.GroupFileURI != nil {
+			groupFileUri = *ud.GroupFileURI
+		}
+
+		var passwdFileUri string
+		if ud.UserFileURI != nil {
+			passwdFileUri = *ud.UserFileURI
+		}
+
+		return nil, []interface{}{
+			map[string]interface{}{
+				"group_file_uri":    groupFileUri,
+				"password_file_uri": passwdFileUri,
+			},
+		}, nil, nil
+	case storagecache.UsernameSourceLDAP:
+		var server string
+		if ud.LdapServer != nil {
+			server = *ud.LdapServer
+		}
+
+		var baseDn string
+		if ud.LdapBaseDN != nil {
+			baseDn = *ud.LdapBaseDN
+		}
+
+		var connEncrypted bool
+		if ud.EncryptLdapConnection != nil {
+			connEncrypted = *ud.EncryptLdapConnection
+		}
+
+		var certValidationUri string
+		if ud.CaCertificateURI != nil {
+			certValidationUri = *ud.CaCertificateURI
+		}
+
+		var downloadCert bool
+		if ud.AutoDownloadCertificate != nil {
+			downloadCert = *ud.AutoDownloadCertificate
+		}
+
+		return nil, nil, []interface{}{
+			map[string]interface{}{
+				"server":                             server,
+				"base_dn":                            baseDn,
+				"encrypted":                          connEncrypted,
+				"certificate_validation_uri":         certValidationUri,
+				"download_certificate_automatically": downloadCert,
+				"bind":                               flattenStorageCacheDirectoryLdapBind(d),
+			},
+		}, nil
+	default:
+		return nil, nil, nil, fmt.Errorf("source type %q is not supported", ud.UsernameSource)
+	}
+}
+
+func flattenStorageCacheDirectoryLdapBind(d *pluginsdk.ResourceData) []interface{} {
+	// Since the credentials are never returned from response. We will set whatever specified in the config back to state as the best effort.
+	ldap := d.Get("directory_ldap").([]interface{})
+	if len(ldap) == 0 {
+		return nil
+	}
+	return ldap[0].(map[string]interface{})["bind"].([]interface{})
+}
+
+func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.CacheUsernameDownloadSettingsCredentials {
+	if len(input) == 0 {
+		return nil
+	}
+	b := input[0].(map[string]interface{})
+	return &storagecache.CacheUsernameDownloadSettingsCredentials{
+		BindDn:       utils.String(b["dn"].(string)),
+		BindPassword: utils.String(b["password"].(string)),
+	}
 }

@@ -1,71 +1,90 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/sql/resource-manager/readme.md tag: `package-2017-03-preview`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *DatabasesCreateImportOperationFuture.UnmarshalJSON([]byte) error
-1. *DatabasesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *DatabasesExportFuture.UnmarshalJSON([]byte) error
-1. *DatabasesImportFuture.UnmarshalJSON([]byte) error
-1. *DatabasesPauseFuture.UnmarshalJSON([]byte) error
-1. *DatabasesResumeFuture.UnmarshalJSON([]byte) error
-1. *DatabasesUpdateFuture.UnmarshalJSON([]byte) error
-1. *ElasticPoolsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ElasticPoolsUpdateFuture.UnmarshalJSON([]byte) error
-1. *EncryptionProtectorsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *EncryptionProtectorsRevalidateFuture.UnmarshalJSON([]byte) error
-1. *ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *FailoverGroupsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *FailoverGroupsDeleteFuture.UnmarshalJSON([]byte) error
-1. *FailoverGroupsFailoverFuture.UnmarshalJSON([]byte) error
-1. *FailoverGroupsForceFailoverAllowDataLossFuture.UnmarshalJSON([]byte) error
-1. *FailoverGroupsUpdateFuture.UnmarshalJSON([]byte) error
-1. *JobAgentsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *JobAgentsDeleteFuture.UnmarshalJSON([]byte) error
-1. *JobAgentsUpdateFuture.UnmarshalJSON([]byte) error
-1. *JobExecutionsCreateFuture.UnmarshalJSON([]byte) error
-1. *JobExecutionsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedBackupShortTermRetentionPoliciesUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedDatabasesCompleteRestoreFuture.UnmarshalJSON([]byte) error
-1. *ManagedDatabasesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedDatabasesDeleteFuture.UnmarshalJSON([]byte) error
-1. *ManagedDatabasesUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedInstanceAdministratorsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedInstanceAdministratorsDeleteFuture.UnmarshalJSON([]byte) error
-1. *ManagedInstancesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ManagedInstancesDeleteFuture.UnmarshalJSON([]byte) error
-1. *ManagedInstancesUpdateFuture.UnmarshalJSON([]byte) error
-1. *ReplicationLinksFailoverAllowDataLossFuture.UnmarshalJSON([]byte) error
-1. *ReplicationLinksFailoverFuture.UnmarshalJSON([]byte) error
-1. *ReplicationLinksUnlinkFuture.UnmarshalJSON([]byte) error
-1. *RestorePointsCreateFuture.UnmarshalJSON([]byte) error
-1. *ServerAzureADAdministratorsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerAzureADAdministratorsDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServerBlobAuditingPoliciesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerCommunicationLinksCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerDNSAliasesAcquireFuture.UnmarshalJSON([]byte) error
-1. *ServerDNSAliasesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerDNSAliasesDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServerKeysCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerKeysDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServerSecurityAlertPoliciesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServersCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServersDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServersUpdateFuture.UnmarshalJSON([]byte) error
-1. *SyncAgentsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *SyncAgentsDeleteFuture.UnmarshalJSON([]byte) error
-1. *SyncGroupsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *SyncGroupsDeleteFuture.UnmarshalJSON([]byte) error
-1. *SyncGroupsRefreshHubSchemaFuture.UnmarshalJSON([]byte) error
-1. *SyncGroupsUpdateFuture.UnmarshalJSON([]byte) error
-1. *SyncMembersCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *SyncMembersDeleteFuture.UnmarshalJSON([]byte) error
-1. *SyncMembersRefreshMemberSchemaFuture.UnmarshalJSON([]byte) error
-1. *SyncMembersUpdateFuture.UnmarshalJSON([]byte) error
-1. *VirtualClustersDeleteFuture.UnmarshalJSON([]byte) error
-1. *VirtualClustersUpdateFuture.UnmarshalJSON([]byte) error
-1. *VirtualNetworkRulesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *VirtualNetworkRulesDeleteFuture.UnmarshalJSON([]byte) error
+1. CheckNameAvailabilityResponse.MarshalJSON() ([]byte, error)
+1. DataWarehouseUserActivitiesProperties.MarshalJSON() ([]byte, error)
+1. DatabaseBlobAuditingPolicyListResult.MarshalJSON() ([]byte, error)
+1. DatabaseOperationListResult.MarshalJSON() ([]byte, error)
+1. DatabaseOperationProperties.MarshalJSON() ([]byte, error)
+1. DatabaseUsage.MarshalJSON() ([]byte, error)
+1. DatabaseVulnerabilityAssessmentListResult.MarshalJSON() ([]byte, error)
+1. EditionCapability.MarshalJSON() ([]byte, error)
+1. ElasticPoolActivityProperties.MarshalJSON() ([]byte, error)
+1. ElasticPoolDatabaseActivityProperties.MarshalJSON() ([]byte, error)
+1. ElasticPoolDtuCapability.MarshalJSON() ([]byte, error)
+1. ElasticPoolEditionCapability.MarshalJSON() ([]byte, error)
+1. ElasticPoolPerDatabaseMaxDtuCapability.MarshalJSON() ([]byte, error)
+1. ElasticPoolPerDatabaseMinDtuCapability.MarshalJSON() ([]byte, error)
+1. EncryptionProtectorListResult.MarshalJSON() ([]byte, error)
+1. ExtendedDatabaseBlobAuditingPolicyListResult.MarshalJSON() ([]byte, error)
+1. ExtendedServerBlobAuditingPolicyListResult.MarshalJSON() ([]byte, error)
+1. FailoverGroupListResult.MarshalJSON() ([]byte, error)
+1. ImportExportResponseProperties.MarshalJSON() ([]byte, error)
+1. JobAgentListResult.MarshalJSON() ([]byte, error)
+1. JobCredentialListResult.MarshalJSON() ([]byte, error)
+1. JobExecutionListResult.MarshalJSON() ([]byte, error)
+1. JobExecutionTarget.MarshalJSON() ([]byte, error)
+1. JobListResult.MarshalJSON() ([]byte, error)
+1. JobStepListResult.MarshalJSON() ([]byte, error)
+1. JobTargetGroupListResult.MarshalJSON() ([]byte, error)
+1. JobVersion.MarshalJSON() ([]byte, error)
+1. JobVersionListResult.MarshalJSON() ([]byte, error)
+1. LocationCapabilities.MarshalJSON() ([]byte, error)
+1. LogicalServerSecurityAlertPolicyListResult.MarshalJSON() ([]byte, error)
+1. ManagedBackupShortTermRetentionPolicyListResult.MarshalJSON() ([]byte, error)
+1. ManagedDatabaseListResult.MarshalJSON() ([]byte, error)
+1. ManagedInstanceAdministratorListResult.MarshalJSON() ([]byte, error)
+1. ManagedInstanceListResult.MarshalJSON() ([]byte, error)
+1. MaxSizeCapability.MarshalJSON() ([]byte, error)
+1. Metric.MarshalJSON() ([]byte, error)
+1. MetricAvailability.MarshalJSON() ([]byte, error)
+1. MetricDefinition.MarshalJSON() ([]byte, error)
+1. MetricName.MarshalJSON() ([]byte, error)
+1. MetricValue.MarshalJSON() ([]byte, error)
+1. OperationDisplay.MarshalJSON() ([]byte, error)
+1. OperationImpact.MarshalJSON() ([]byte, error)
+1. OperationListResult.MarshalJSON() ([]byte, error)
+1. PerformanceLevel.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)
+1. RecommendedIndexProperties.MarshalJSON() ([]byte, error)
+1. RecoverableDatabaseProperties.MarshalJSON() ([]byte, error)
+1. ReplicationLinkProperties.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)
+1. RestorableDroppedDatabaseProperties.MarshalJSON() ([]byte, error)
+1. RestorableDroppedManagedDatabaseListResult.MarshalJSON() ([]byte, error)
+1. RestorableDroppedManagedDatabaseProperties.MarshalJSON() ([]byte, error)
+1. RestorePointListResult.MarshalJSON() ([]byte, error)
+1. RestorePointProperties.MarshalJSON() ([]byte, error)
+1. SensitivityLabelListResult.MarshalJSON() ([]byte, error)
+1. ServerBlobAuditingPolicyListResult.MarshalJSON() ([]byte, error)
+1. ServerDNSAliasListResult.MarshalJSON() ([]byte, error)
+1. ServerDNSAliasProperties.MarshalJSON() ([]byte, error)
+1. ServerKeyListResult.MarshalJSON() ([]byte, error)
+1. ServerListResult.MarshalJSON() ([]byte, error)
+1. ServerUsage.MarshalJSON() ([]byte, error)
+1. ServerVersionCapability.MarshalJSON() ([]byte, error)
+1. ServiceObjectiveProperties.MarshalJSON() ([]byte, error)
+1. ServiceTierAdvisorProperties.MarshalJSON() ([]byte, error)
+1. SloUsageMetric.MarshalJSON() ([]byte, error)
+1. SubscriptionUsageListResult.MarshalJSON() ([]byte, error)
+1. SubscriptionUsageProperties.MarshalJSON() ([]byte, error)
+1. SyncAgentKeyProperties.MarshalJSON() ([]byte, error)
+1. SyncAgentLinkedDatabaseListResult.MarshalJSON() ([]byte, error)
+1. SyncAgentLinkedDatabaseProperties.MarshalJSON() ([]byte, error)
+1. SyncAgentListResult.MarshalJSON() ([]byte, error)
+1. SyncDatabaseIDListResult.MarshalJSON() ([]byte, error)
+1. SyncDatabaseIDProperties.MarshalJSON() ([]byte, error)
+1. SyncFullSchemaProperties.MarshalJSON() ([]byte, error)
+1. SyncFullSchemaPropertiesListResult.MarshalJSON() ([]byte, error)
+1. SyncFullSchemaTable.MarshalJSON() ([]byte, error)
+1. SyncFullSchemaTableColumn.MarshalJSON() ([]byte, error)
+1. SyncGroupListResult.MarshalJSON() ([]byte, error)
+1. SyncGroupLogListResult.MarshalJSON() ([]byte, error)
+1. SyncGroupLogProperties.MarshalJSON() ([]byte, error)
+1. SyncMemberListResult.MarshalJSON() ([]byte, error)
+1. TransparentDataEncryptionActivityProperties.MarshalJSON() ([]byte, error)
+1. VirtualClusterListResult.MarshalJSON() ([]byte, error)
+1. VirtualNetworkRuleListResult.MarshalJSON() ([]byte, error)

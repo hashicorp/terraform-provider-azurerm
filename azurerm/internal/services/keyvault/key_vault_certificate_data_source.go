@@ -8,80 +8,84 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceKeyVaultCertificate() *schema.Resource {
-	return &schema.Resource{
+func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceKeyVaultCertificateRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			// Computed
 			"certificate_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"issuer_parameters": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
 							},
 						},
 						"key_properties": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"curve": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
 									"exportable": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Computed: true,
 									},
 									"key_size": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
 									"key_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"reuse_key": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Computed: true,
 									},
 								},
@@ -89,33 +93,33 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 						},
 
 						"lifetime_action": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"action": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
 											},
 										},
 									},
 									"trigger": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"days_before_expiry": {
-													Type:     schema.TypeInt,
+													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
 												"lifetime_percentage": {
-													Type:     schema.TypeInt,
+													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
 											},
@@ -126,12 +130,12 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 						},
 
 						"secret_properties": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"content_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -139,59 +143,59 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 						},
 
 						"x509_certificate_properties": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"extended_key_usage": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"key_usage": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"subject": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"subject_alternative_names": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"emails": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Computed: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
 												},
 												"dns_names": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Computed: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
 												},
 												"upns": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Computed: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
 												},
 											},
 										},
 									},
 									"validity_in_months": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
 								},
@@ -202,22 +206,22 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 			},
 
 			"secret_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"certificate_data": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"certificate_data_base64": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"thumbprint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -226,7 +230,7 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -323,9 +327,10 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
+		var curve, keyType string
 		var exportable, reuseKey bool
 		var keySize int
-		var keyType string
+		curve = string(props.Curve)
 		if props.Exportable != nil {
 			exportable = *props.Exportable
 		}
@@ -335,12 +340,13 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 		if props.KeySize != nil {
 			keySize = int(*props.KeySize)
 		}
-		if props.KeyType != nil {
-			keyType = *props.KeyType
+		if props.KeyType != "" {
+			keyType = string(props.KeyType)
 		}
 
 		policy["key_properties"] = []interface{}{
 			map[string]interface{}{
+				"curve":      curve,
 				"exportable": exportable,
 				"key_size":   keySize,
 				"key_type":   keyType,

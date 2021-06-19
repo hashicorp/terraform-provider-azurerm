@@ -27,6 +27,12 @@ type AccessURI struct {
 	AccessSAS *string `json:"accessSAS,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccessURI.
+func (au AccessURI) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AdditionalCapabilities enables or disables a capability on the virtual machine or virtual machine scale
 // set.
 type AdditionalCapabilities struct {
@@ -503,6 +509,12 @@ type AvailablePatchSummary struct {
 	Error *APIError `json:"error,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AvailablePatchSummary.
+func (aps AvailablePatchSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BillingProfile specifies the billing related details of a Azure Spot VM or VMSS. <br><br>Minimum
 // api-version: 2019-03-01.
 type BillingProfile struct {
@@ -528,6 +540,12 @@ type BootDiagnosticsInstanceView struct {
 	SerialConsoleLogBlobURI *string `json:"serialConsoleLogBlobUri,omitempty"`
 	// Status - READ-ONLY; The boot diagnostics status information for the VM. <br><br> NOTE: It will be set only if there are errors encountered in enabling boot diagnostics.
 	Status *InstanceViewStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BootDiagnosticsInstanceView.
+func (bdiv BootDiagnosticsInstanceView) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudError an error response from the Compute service.
@@ -660,6 +678,12 @@ func (dd DataDisk) MarshalJSON() ([]byte, error) {
 type DataDiskImage struct {
 	// Lun - READ-ONLY; Specifies the logical unit number of the data disk. This value is used to identify data disks within the VM and therefore must be unique for each data disk attached to a VM.
 	Lun *int32 `json:"lun,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataDiskImage.
+func (ddi DataDiskImage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DataDiskImageEncryption contains encryption settings for a data disk image.
@@ -1441,6 +1465,7 @@ func (future *DedicatedHostsCreateOrUpdateFuture) result(client DedicatedHostsCl
 		return
 	}
 	if !done {
+		dh.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DedicatedHostsCreateOrUpdateFuture")
 		return
 	}
@@ -1483,6 +1508,7 @@ func (future *DedicatedHostsDeleteFuture) result(client DedicatedHostsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DedicatedHostsDeleteFuture")
 		return
 	}
@@ -1519,6 +1545,7 @@ func (future *DedicatedHostsUpdateFuture) result(client DedicatedHostsClient) (d
 		return
 	}
 	if !done {
+		dh.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DedicatedHostsUpdateFuture")
 		return
 	}
@@ -1905,6 +1932,7 @@ func (future *DiskAccessesCreateOrUpdateFuture) result(client DiskAccessesClient
 		return
 	}
 	if !done {
+		da.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesCreateOrUpdateFuture")
 		return
 	}
@@ -1947,6 +1975,7 @@ func (future *DiskAccessesDeleteAPrivateEndpointConnectionFuture) result(client 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesDeleteAPrivateEndpointConnectionFuture")
 		return
 	}
@@ -1983,6 +2012,7 @@ func (future *DiskAccessesDeleteFuture) result(client DiskAccessesClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesDeleteFuture")
 		return
 	}
@@ -2019,6 +2049,7 @@ func (future *DiskAccessesUpdateAPrivateEndpointConnectionFuture) result(client 
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesUpdateAPrivateEndpointConnectionFuture")
 		return
 	}
@@ -2061,6 +2092,7 @@ func (future *DiskAccessesUpdateFuture) result(client DiskAccessesClient) (da Di
 		return
 	}
 	if !done {
+		da.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesUpdateFuture")
 		return
 	}
@@ -2241,6 +2273,12 @@ type DiskAccessProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// TimeCreated - READ-ONLY; The time when the disk access was created.
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DiskAccessProperties.
+func (dap DiskAccessProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DiskAccessUpdate used for updating a disk access resource.
@@ -2567,6 +2605,7 @@ func (future *DiskEncryptionSetsCreateOrUpdateFuture) result(client DiskEncrypti
 		return
 	}
 	if !done {
+		desVar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskEncryptionSetsCreateOrUpdateFuture")
 		return
 	}
@@ -2609,6 +2648,7 @@ func (future *DiskEncryptionSetsDeleteFuture) result(client DiskEncryptionSetsCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskEncryptionSetsDeleteFuture")
 		return
 	}
@@ -2645,6 +2685,7 @@ func (future *DiskEncryptionSetsUpdateFuture) result(client DiskEncryptionSetsCl
 		return
 	}
 	if !done {
+		desVar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DiskEncryptionSetsUpdateFuture")
 		return
 	}
@@ -3331,6 +3372,7 @@ func (future *DisksCreateOrUpdateFuture) result(client DisksClient) (d Disk, err
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DisksCreateOrUpdateFuture")
 		return
 	}
@@ -3372,6 +3414,7 @@ func (future *DisksDeleteFuture) result(client DisksClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DisksDeleteFuture")
 		return
 	}
@@ -3414,6 +3457,7 @@ func (future *DisksGrantAccessFuture) result(client DisksClient) (au AccessURI, 
 		return
 	}
 	if !done {
+		au.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DisksGrantAccessFuture")
 		return
 	}
@@ -3474,6 +3518,7 @@ func (future *DisksRevokeAccessFuture) result(client DisksClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DisksRevokeAccessFuture")
 		return
 	}
@@ -3509,6 +3554,7 @@ func (future *DisksUpdateFuture) result(client DisksClient) (d Disk, err error) 
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.DisksUpdateFuture")
 		return
 	}
@@ -3796,6 +3842,7 @@ func (future *GalleriesCreateOrUpdateFuture) result(client GalleriesClient) (g G
 		return
 	}
 	if !done {
+		g.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleriesCreateOrUpdateFuture")
 		return
 	}
@@ -3838,6 +3885,7 @@ func (future *GalleriesDeleteFuture) result(client GalleriesClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleriesDeleteFuture")
 		return
 	}
@@ -3874,6 +3922,7 @@ func (future *GalleriesUpdateFuture) result(client GalleriesClient) (g Gallery, 
 		return
 	}
 	if !done {
+		g.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleriesUpdateFuture")
 		return
 	}
@@ -4292,6 +4341,7 @@ func (future *GalleryApplicationsCreateOrUpdateFuture) result(client GalleryAppl
 		return
 	}
 	if !done {
+		ga.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryApplicationsCreateOrUpdateFuture")
 		return
 	}
@@ -4334,6 +4384,7 @@ func (future *GalleryApplicationsDeleteFuture) result(client GalleryApplications
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryApplicationsDeleteFuture")
 		return
 	}
@@ -4370,6 +4421,7 @@ func (future *GalleryApplicationsUpdateFuture) result(client GalleryApplications
 		return
 	}
 	if !done {
+		ga.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryApplicationsUpdateFuture")
 		return
 	}
@@ -4827,6 +4879,7 @@ func (future *GalleryApplicationVersionsCreateOrUpdateFuture) result(client Gall
 		return
 	}
 	if !done {
+		gav.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryApplicationVersionsCreateOrUpdateFuture")
 		return
 	}
@@ -4869,6 +4922,7 @@ func (future *GalleryApplicationVersionsDeleteFuture) result(client GalleryAppli
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryApplicationVersionsDeleteFuture")
 		return
 	}
@@ -4905,6 +4959,7 @@ func (future *GalleryApplicationVersionsUpdateFuture) result(client GalleryAppli
 		return
 	}
 	if !done {
+		gav.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryApplicationVersionsUpdateFuture")
 		return
 	}
@@ -5103,6 +5158,12 @@ func (gdi GalleryDiskImage) MarshalJSON() ([]byte, error) {
 type GalleryIdentifier struct {
 	// UniqueName - READ-ONLY; The unique name of the Shared Image Gallery. This name is generated automatically by Azure.
 	UniqueName *string `json:"uniqueName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GalleryIdentifier.
+func (gi GalleryIdentifier) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // GalleryImage specifies information about the gallery Image Definition that you want to create or update.
@@ -5471,6 +5532,7 @@ func (future *GalleryImagesCreateOrUpdateFuture) result(client GalleryImagesClie
 		return
 	}
 	if !done {
+		gi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryImagesCreateOrUpdateFuture")
 		return
 	}
@@ -5513,6 +5575,7 @@ func (future *GalleryImagesDeleteFuture) result(client GalleryImagesClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryImagesDeleteFuture")
 		return
 	}
@@ -5549,6 +5612,7 @@ func (future *GalleryImagesUpdateFuture) result(client GalleryImagesClient) (gi 
 		return
 	}
 	if !done {
+		gi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryImagesUpdateFuture")
 		return
 	}
@@ -5995,6 +6059,7 @@ func (future *GalleryImageVersionsCreateOrUpdateFuture) result(client GalleryIma
 		return
 	}
 	if !done {
+		giv.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryImageVersionsCreateOrUpdateFuture")
 		return
 	}
@@ -6037,6 +6102,7 @@ func (future *GalleryImageVersionsDeleteFuture) result(client GalleryImageVersio
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryImageVersionsDeleteFuture")
 		return
 	}
@@ -6081,6 +6147,7 @@ func (future *GalleryImageVersionsUpdateFuture) result(client GalleryImageVersio
 		return
 	}
 	if !done {
+		giv.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.GalleryImageVersionsUpdateFuture")
 		return
 	}
@@ -6929,6 +6996,7 @@ func (future *ImagesCreateOrUpdateFuture) result(client ImagesClient) (i Image, 
 		return
 	}
 	if !done {
+		i.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.ImagesCreateOrUpdateFuture")
 		return
 	}
@@ -6970,6 +7038,7 @@ func (future *ImagesDeleteFuture) result(client ImagesClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.ImagesDeleteFuture")
 		return
 	}
@@ -7015,6 +7084,7 @@ func (future *ImagesUpdateFuture) result(client ImagesClient) (i Image, err erro
 		return
 	}
 	if !done {
+		i.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.ImagesUpdateFuture")
 		return
 	}
@@ -7168,6 +7238,12 @@ type LastPatchInstallationSummary struct {
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
 	Error *APIError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LastPatchInstallationSummary.
+func (lpis LastPatchInstallationSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // LinuxConfiguration specifies the Linux operating system settings on the virtual machine. <br><br>For a
@@ -7404,6 +7480,7 @@ func (future *LogAnalyticsExportRequestRateByIntervalFuture) result(client LogAn
 		return
 	}
 	if !done {
+		laor.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.LogAnalyticsExportRequestRateByIntervalFuture")
 		return
 	}
@@ -7446,6 +7523,7 @@ func (future *LogAnalyticsExportThrottledRequestsFuture) result(client LogAnalyt
 		return
 	}
 	if !done {
+		laor.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.LogAnalyticsExportThrottledRequestsFuture")
 		return
 	}
@@ -7486,10 +7564,22 @@ type LogAnalyticsOperationResult struct {
 	Properties *LogAnalyticsOutput `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LogAnalyticsOperationResult.
+func (laor LogAnalyticsOperationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LogAnalyticsOutput logAnalytics output properties
 type LogAnalyticsOutput struct {
 	// Output - READ-ONLY; Output file Uri path to blob container.
 	Output *string `json:"output,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LogAnalyticsOutput.
+func (lao LogAnalyticsOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MaintenanceRedeployStatus maintenance Operation Status.
@@ -7597,6 +7687,12 @@ type OperationListResult struct {
 	Value *[]OperationValue `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationValue describes the properties of a Compute Operation value.
 type OperationValue struct {
 	// Origin - READ-ONLY; The origin of the compute operation.
@@ -7669,6 +7765,12 @@ type OperationValueDisplay struct {
 	Provider *string `json:"provider,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationValueDisplay.
+func (ovd OperationValueDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OrchestrationServiceStateInput the input for OrchestrationServiceState
 type OrchestrationServiceStateInput struct {
 	// ServiceName - The name of the service. Possible values include: 'AutomaticRepairs'
@@ -7683,6 +7785,12 @@ type OrchestrationServiceSummary struct {
 	ServiceName OrchestrationServiceNames `json:"serviceName,omitempty"`
 	// ServiceState - READ-ONLY; The current state of the service. Possible values include: 'NotRunning', 'Running', 'Suspended'
 	ServiceState OrchestrationServiceState `json:"serviceState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OrchestrationServiceSummary.
+func (oss OrchestrationServiceSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OSDisk specifies information about the operating system disk used by the virtual machine. <br><br> For
@@ -7765,6 +7873,12 @@ type PatchInstallationDetail struct {
 	InstallationState PatchInstallationState `json:"installationState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PatchInstallationDetail.
+func (pid PatchInstallationDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PatchSettings specifies settings related to VM Guest Patching on Windows.
 type PatchSettings struct {
 	// PatchMode - Specifies the mode of VM Guest Patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of patches to a virtual machine. You do this by applying patches manually inside the VM. In this mode, automatic updates are disabled; the property WindowsConfiguration.enableAutomaticUpdates must be false<br /><br /> **AutomaticByOS** - The virtual machine will automatically be updated by the OS. The property WindowsConfiguration.enableAutomaticUpdates must be true. <br /><br /> **AutomaticByPlatform** - the virtual machine will automatically updated by the platform. The properties provisionVMAgent and WindowsConfiguration.enableAutomaticUpdates must be true. Possible values include: 'WindowsVMGuestPatchModeManual', 'WindowsVMGuestPatchModeAutomaticByOS', 'WindowsVMGuestPatchModeAutomaticByPlatform'
@@ -7793,6 +7907,12 @@ type Plan struct {
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; The ARM identifier for Private Endpoint
 	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnection the Private Endpoint Connection resource.
@@ -8477,6 +8597,12 @@ type ProxyOnlyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyOnlyResource.
+func (por ProxyOnlyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PurchasePlan used for establishing the purchase context of any 3rd Party artifact through MarketPlace.
 type PurchasePlan struct {
 	// Publisher - The publisher ID.
@@ -8505,6 +8631,12 @@ type RecoveryWalkResponse struct {
 	NextPlatformUpdateDomain *int32 `json:"nextPlatformUpdateDomain,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecoveryWalkResponse.
+func (rwr RecoveryWalkResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RegionalReplicationStatus this is the regional replication status.
 type RegionalReplicationStatus struct {
 	// Region - READ-ONLY; The region to which the gallery Image Version is being replicated to.
@@ -8517,12 +8649,24 @@ type RegionalReplicationStatus struct {
 	Progress *int32 `json:"progress,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegionalReplicationStatus.
+func (rrs RegionalReplicationStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReplicationStatus this is the replication status of the gallery Image Version.
 type ReplicationStatus struct {
 	// AggregatedState - READ-ONLY; This is the aggregated replication status based on all the regional replication status flags. Possible values include: 'Unknown', 'InProgress', 'Completed', 'Failed'
 	AggregatedState AggregatedReplicationState `json:"aggregatedState,omitempty"`
 	// Summary - READ-ONLY; This is a summary of replication status for each region.
 	Summary *[]RegionalReplicationStatus `json:"summary,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReplicationStatus.
+func (rs ReplicationStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RequestRateByIntervalInput api request input for LogAnalytics getRequestRateByInterval Api.
@@ -8611,12 +8755,24 @@ type ResourceSku struct {
 	Restrictions *[]ResourceSkuRestrictions `json:"restrictions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSku.
+func (rs ResourceSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuCapabilities describes The SKU capabilities object.
 type ResourceSkuCapabilities struct {
 	// Name - READ-ONLY; An invariant to describe the feature.
 	Name *string `json:"name,omitempty"`
 	// Value - READ-ONLY; An invariant if the feature is measured by quantity.
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuCapabilities.
+func (rsc ResourceSkuCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuCapacity describes scaling information of a SKU.
@@ -8631,6 +8787,12 @@ type ResourceSkuCapacity struct {
 	ScaleType ResourceSkuCapacityScaleType `json:"scaleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuCapacity.
+func (rsc ResourceSkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuCosts describes metadata for retrieving price info.
 type ResourceSkuCosts struct {
 	// MeterID - READ-ONLY; Used for querying price from commerce.
@@ -8639,6 +8801,12 @@ type ResourceSkuCosts struct {
 	Quantity *int64 `json:"quantity,omitempty"`
 	// ExtendedUnit - READ-ONLY; An invariant to show the extended unit.
 	ExtendedUnit *string `json:"extendedUnit,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuCosts.
+func (rsc ResourceSkuCosts) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuLocationInfo ...
@@ -8651,12 +8819,24 @@ type ResourceSkuLocationInfo struct {
 	ZoneDetails *[]ResourceSkuZoneDetails `json:"zoneDetails,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuLocationInfo.
+func (rsli ResourceSkuLocationInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuRestrictionInfo ...
 type ResourceSkuRestrictionInfo struct {
 	// Locations - READ-ONLY; Locations where the SKU is restricted
 	Locations *[]string `json:"locations,omitempty"`
 	// Zones - READ-ONLY; List of availability zones where the SKU is restricted.
 	Zones *[]string `json:"zones,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictionInfo.
+func (rsri ResourceSkuRestrictionInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuRestrictions describes scaling information of a SKU.
@@ -8669,6 +8849,12 @@ type ResourceSkuRestrictions struct {
 	RestrictionInfo *ResourceSkuRestrictionInfo `json:"restrictionInfo,omitempty"`
 	// ReasonCode - READ-ONLY; The reason for restriction. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
 	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictions.
+func (rsr ResourceSkuRestrictions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkusResult the List Resource Skus operation response.
@@ -8836,6 +9022,12 @@ type ResourceSkuZoneDetails struct {
 	Name *[]string `json:"name,omitempty"`
 	// Capabilities - READ-ONLY; A list of capabilities that are available for the SKU in the specified list of zones.
 	Capabilities *[]ResourceSkuCapabilities `json:"capabilities,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuZoneDetails.
+func (rszd ResourceSkuZoneDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceURIList the List resources which are encrypted with the disk encryption set.
@@ -9006,6 +9198,12 @@ type RetrieveBootDiagnosticsDataResult struct {
 	SerialConsoleLogBlobURI *string `json:"serialConsoleLogBlobUri,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RetrieveBootDiagnosticsDataResult.
+func (rbddr RetrieveBootDiagnosticsDataResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RollbackStatusInfo information about rollback on failed VM instances after a OS Upgrade operation.
 type RollbackStatusInfo struct {
 	// SuccessfullyRolledbackInstanceCount - READ-ONLY; The number of instances which have been successfully rolled back.
@@ -9014,6 +9212,12 @@ type RollbackStatusInfo struct {
 	FailedRolledbackInstanceCount *int32 `json:"failedRolledbackInstanceCount,omitempty"`
 	// RollbackError - READ-ONLY; Error details if OS rollback failed.
 	RollbackError *APIError `json:"rollbackError,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RollbackStatusInfo.
+func (rsi RollbackStatusInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RollingUpgradePolicy the configuration parameters used while performing a rolling upgrade.
@@ -9045,6 +9249,12 @@ type RollingUpgradeProgressInfo struct {
 	PendingInstanceCount *int32 `json:"pendingInstanceCount,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RollingUpgradeProgressInfo.
+func (rupi RollingUpgradeProgressInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RollingUpgradeRunningStatus information about the current running state of the overall upgrade.
 type RollingUpgradeRunningStatus struct {
 	// Code - READ-ONLY; Code indicating the current status of the upgrade. Possible values include: 'RollingUpgradeStatusCodeRollingForward', 'RollingUpgradeStatusCodeCancelled', 'RollingUpgradeStatusCodeCompleted', 'RollingUpgradeStatusCodeFaulted'
@@ -9055,6 +9265,12 @@ type RollingUpgradeRunningStatus struct {
 	LastAction RollingUpgradeActionType `json:"lastAction,omitempty"`
 	// LastActionTime - READ-ONLY; Last action time of the upgrade.
 	LastActionTime *date.Time `json:"lastActionTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RollingUpgradeRunningStatus.
+func (rurs RollingUpgradeRunningStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RollingUpgradeStatusInfo the status of the latest virtual machine scale set rolling upgrade.
@@ -9167,6 +9383,12 @@ type RollingUpgradeStatusInfoProperties struct {
 	Progress *RollingUpgradeProgressInfo `json:"progress,omitempty"`
 	// Error - READ-ONLY; Error details for this upgrade, if there are any.
 	Error *APIError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RollingUpgradeStatusInfoProperties.
+func (rusip RollingUpgradeStatusInfoProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RunCommandDocument describes the properties of a Run Command.
@@ -9425,6 +9647,12 @@ type SecurityProfile struct {
 type ShareInfoElement struct {
 	// VMURI - READ-ONLY; A relative URI containing the ID of the VM that has the disk attached.
 	VMURI *string `json:"vmUri,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ShareInfoElement.
+func (sie ShareInfoElement) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Sku describes a virtual machine scale set sku. NOTE: If the new VM SKU is not supported on the hardware
@@ -9843,6 +10071,7 @@ func (future *SnapshotsCreateOrUpdateFuture) result(client SnapshotsClient) (s S
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.SnapshotsCreateOrUpdateFuture")
 		return
 	}
@@ -9885,6 +10114,7 @@ func (future *SnapshotsDeleteFuture) result(client SnapshotsClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.SnapshotsDeleteFuture")
 		return
 	}
@@ -9921,6 +10151,7 @@ func (future *SnapshotsGrantAccessFuture) result(client SnapshotsClient) (au Acc
 		return
 	}
 	if !done {
+		au.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.SnapshotsGrantAccessFuture")
 		return
 	}
@@ -9982,6 +10213,7 @@ func (future *SnapshotsRevokeAccessFuture) result(client SnapshotsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.SnapshotsRevokeAccessFuture")
 		return
 	}
@@ -10018,6 +10250,7 @@ func (future *SnapshotsUpdateFuture) result(client SnapshotsClient) (s Snapshot,
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.SnapshotsUpdateFuture")
 		return
 	}
@@ -10489,6 +10722,12 @@ type SubResourceReadOnly struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubResourceReadOnly.
+func (srro SubResourceReadOnly) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SubResourceWithColocationStatus ...
 type SubResourceWithColocationStatus struct {
 	// ColocationStatus - Describes colocation status of a resource in the Proximity Placement Group.
@@ -10591,6 +10830,12 @@ type UpgradeOperationHistoricalStatusInfo struct {
 	Location *string `json:"location,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UpgradeOperationHistoricalStatusInfo.
+func (uohsi UpgradeOperationHistoricalStatusInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UpgradeOperationHistoricalStatusInfoProperties describes each OS upgrade on the Virtual Machine Scale
 // Set.
 type UpgradeOperationHistoricalStatusInfoProperties struct {
@@ -10608,6 +10853,12 @@ type UpgradeOperationHistoricalStatusInfoProperties struct {
 	RollbackInfo *RollbackStatusInfo `json:"rollbackInfo,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UpgradeOperationHistoricalStatusInfoProperties.
+func (uohsip UpgradeOperationHistoricalStatusInfoProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UpgradeOperationHistoryStatus information about the current running state of the overall upgrade.
 type UpgradeOperationHistoryStatus struct {
 	// Code - READ-ONLY; Code indicating the current status of the upgrade. Possible values include: 'UpgradeStateRollingForward', 'UpgradeStateCancelled', 'UpgradeStateCompleted', 'UpgradeStateFaulted'
@@ -10616,6 +10867,12 @@ type UpgradeOperationHistoryStatus struct {
 	StartTime *date.Time `json:"startTime,omitempty"`
 	// EndTime - READ-ONLY; End time of the upgrade.
 	EndTime *date.Time `json:"endTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UpgradeOperationHistoryStatus.
+func (uohs UpgradeOperationHistoryStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UpgradePolicy describes an upgrade policy - automatic, manual, or rolling.
@@ -10885,6 +11142,12 @@ type VirtualMachineAssessPatchesResult struct {
 	AvailablePatches *[]VirtualMachineSoftwarePatchProperties `json:"availablePatches,omitempty"`
 	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
 	Error *APIError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineAssessPatchesResult.
+func (vmapr VirtualMachineAssessPatchesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineCaptureParameters capture Virtual Machine parameters.
@@ -11245,6 +11508,7 @@ func (future *VirtualMachineExtensionsCreateOrUpdateFuture) result(client Virtua
 		return
 	}
 	if !done {
+		vme.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineExtensionsCreateOrUpdateFuture")
 		return
 	}
@@ -11287,6 +11551,7 @@ func (future *VirtualMachineExtensionsDeleteFuture) result(client VirtualMachine
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineExtensionsDeleteFuture")
 		return
 	}
@@ -11330,6 +11595,7 @@ func (future *VirtualMachineExtensionsUpdateFuture) result(client VirtualMachine
 		return
 	}
 	if !done {
+		vme.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineExtensionsUpdateFuture")
 		return
 	}
@@ -11421,6 +11687,12 @@ type VirtualMachineHealthStatus struct {
 	Status *InstanceViewStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineHealthStatus.
+func (vmhs VirtualMachineHealthStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineIdentity identity for the virtual machine.
 type VirtualMachineIdentity struct {
 	// PrincipalID - READ-ONLY; The principal id of virtual machine identity. This property will only be provided for a system assigned identity.
@@ -11451,6 +11723,12 @@ type VirtualMachineIdentityUserAssignedIdentitiesValue struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The client id of user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineIdentityUserAssignedIdentitiesValue.
+func (vmiAiv VirtualMachineIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineImage describes a Virtual Machine Image.
@@ -11657,6 +11935,12 @@ type VirtualMachineInstallPatchesResult struct {
 	StartDateTime *date.Time `json:"startDateTime,omitempty"`
 	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
 	Error *APIError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineInstallPatchesResult.
+func (vmipr VirtualMachineInstallPatchesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineInstanceView the instance view of a virtual machine.
@@ -12246,6 +12530,7 @@ func (future *VirtualMachineRunCommandsCreateOrUpdateFuture) result(client Virtu
 		return
 	}
 	if !done {
+		vmrc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineRunCommandsCreateOrUpdateFuture")
 		return
 	}
@@ -12298,6 +12583,7 @@ func (future *VirtualMachineRunCommandsDeleteFuture) result(client VirtualMachin
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineRunCommandsDeleteFuture")
 		return
 	}
@@ -12494,6 +12780,7 @@ func (future *VirtualMachineRunCommandsUpdateFuture) result(client VirtualMachin
 		return
 	}
 	if !done {
+		vmrc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineRunCommandsUpdateFuture")
 		return
 	}
@@ -12588,6 +12875,7 @@ func (future *VirtualMachinesAssessPatchesFuture) result(client VirtualMachinesC
 		return
 	}
 	if !done {
+		vmapr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesAssessPatchesFuture")
 		return
 	}
@@ -13123,6 +13411,7 @@ func (future *VirtualMachineScaleSetExtensionsCreateOrUpdateFuture) result(clien
 		return
 	}
 	if !done {
+		vmsse.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetExtensionsCreateOrUpdateFuture")
 		return
 	}
@@ -13165,6 +13454,7 @@ func (future *VirtualMachineScaleSetExtensionsDeleteFuture) result(client Virtua
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetExtensionsDeleteFuture")
 		return
 	}
@@ -13201,6 +13491,7 @@ func (future *VirtualMachineScaleSetExtensionsUpdateFuture) result(client Virtua
 		return
 	}
 	if !done {
+		vmsse.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetExtensionsUpdateFuture")
 		return
 	}
@@ -13317,6 +13608,12 @@ type VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue struct {
 	ClientID *string `json:"clientId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue.
+func (vmssiAiv VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineScaleSetInstanceView the instance view of a virtual machine scale set.
 type VirtualMachineScaleSetInstanceView struct {
 	autorest.Response `json:"-"`
@@ -13344,6 +13641,12 @@ func (vmssiv VirtualMachineScaleSetInstanceView) MarshalJSON() ([]byte, error) {
 type VirtualMachineScaleSetInstanceViewStatusesSummary struct {
 	// StatusesSummary - READ-ONLY; The extensions information.
 	StatusesSummary *[]VirtualMachineStatusCodeCount `json:"statusesSummary,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetInstanceViewStatusesSummary.
+func (vmssivss VirtualMachineScaleSetInstanceViewStatusesSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineScaleSetIPConfiguration describes a virtual machine scale set network profile's IP
@@ -14426,6 +14729,7 @@ func (future *VirtualMachineScaleSetRollingUpgradesCancelFuture) result(client V
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetRollingUpgradesCancelFuture")
 		return
 	}
@@ -14462,6 +14766,7 @@ func (future *VirtualMachineScaleSetRollingUpgradesStartExtensionUpgradeFuture) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetRollingUpgradesStartExtensionUpgradeFuture")
 		return
 	}
@@ -14498,6 +14803,7 @@ func (future *VirtualMachineScaleSetRollingUpgradesStartOSUpgradeFuture) result(
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetRollingUpgradesStartOSUpgradeFuture")
 		return
 	}
@@ -14534,6 +14840,7 @@ func (future *VirtualMachineScaleSetsCreateOrUpdateFuture) result(client Virtual
 		return
 	}
 	if !done {
+		vmss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsCreateOrUpdateFuture")
 		return
 	}
@@ -14576,6 +14883,7 @@ func (future *VirtualMachineScaleSetsDeallocateFuture) result(client VirtualMach
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsDeallocateFuture")
 		return
 	}
@@ -14612,6 +14920,7 @@ func (future *VirtualMachineScaleSetsDeleteFuture) result(client VirtualMachineS
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsDeleteFuture")
 		return
 	}
@@ -14648,6 +14957,7 @@ func (future *VirtualMachineScaleSetsDeleteInstancesFuture) result(client Virtua
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsDeleteInstancesFuture")
 		return
 	}
@@ -14665,6 +14975,12 @@ type VirtualMachineScaleSetSku struct {
 	Capacity *VirtualMachineScaleSetSkuCapacity `json:"capacity,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetSku.
+func (vmsss VirtualMachineScaleSetSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineScaleSetSkuCapacity describes scaling information of a sku.
 type VirtualMachineScaleSetSkuCapacity struct {
 	// Minimum - READ-ONLY; The minimum capacity.
@@ -14675,6 +14991,12 @@ type VirtualMachineScaleSetSkuCapacity struct {
 	DefaultCapacity *int64 `json:"defaultCapacity,omitempty"`
 	// ScaleType - READ-ONLY; The scale type applicable to the sku. Possible values include: 'VirtualMachineScaleSetSkuScaleTypeAutomatic', 'VirtualMachineScaleSetSkuScaleTypeNone'
 	ScaleType VirtualMachineScaleSetSkuScaleType `json:"scaleType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetSkuCapacity.
+func (vmsssc VirtualMachineScaleSetSkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineScaleSetsPerformMaintenanceFuture an abstraction for monitoring and retrieving the results
@@ -14706,6 +15028,7 @@ func (future *VirtualMachineScaleSetsPerformMaintenanceFuture) result(client Vir
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsPerformMaintenanceFuture")
 		return
 	}
@@ -14742,6 +15065,7 @@ func (future *VirtualMachineScaleSetsPowerOffFuture) result(client VirtualMachin
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsPowerOffFuture")
 		return
 	}
@@ -14778,6 +15102,7 @@ func (future *VirtualMachineScaleSetsRedeployFuture) result(client VirtualMachin
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsRedeployFuture")
 		return
 	}
@@ -14814,6 +15139,7 @@ func (future *VirtualMachineScaleSetsReimageAllFuture) result(client VirtualMach
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsReimageAllFuture")
 		return
 	}
@@ -14850,6 +15176,7 @@ func (future *VirtualMachineScaleSetsReimageFuture) result(client VirtualMachine
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsReimageFuture")
 		return
 	}
@@ -14886,6 +15213,7 @@ func (future *VirtualMachineScaleSetsRestartFuture) result(client VirtualMachine
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsRestartFuture")
 		return
 	}
@@ -14922,6 +15250,7 @@ func (future *VirtualMachineScaleSetsSetOrchestrationServiceStateFuture) result(
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsSetOrchestrationServiceStateFuture")
 		return
 	}
@@ -14958,6 +15287,7 @@ func (future *VirtualMachineScaleSetsStartFuture) result(client VirtualMachineSc
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsStartFuture")
 		return
 	}
@@ -15004,6 +15334,7 @@ func (future *VirtualMachineScaleSetsUpdateFuture) result(client VirtualMachineS
 		return
 	}
 	if !done {
+		vmss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsUpdateFuture")
 		return
 	}
@@ -15046,6 +15377,7 @@ func (future *VirtualMachineScaleSetsUpdateInstancesFuture) result(client Virtua
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetsUpdateInstancesFuture")
 		return
 	}
@@ -15735,6 +16067,7 @@ func (future *VirtualMachineScaleSetVMExtensionsCreateOrUpdateFuture) result(cli
 		return
 	}
 	if !done {
+		vmssve.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMExtensionsCreateOrUpdateFuture")
 		return
 	}
@@ -15777,6 +16110,7 @@ func (future *VirtualMachineScaleSetVMExtensionsDeleteFuture) result(client Virt
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMExtensionsDeleteFuture")
 		return
 	}
@@ -15798,6 +16132,12 @@ type VirtualMachineScaleSetVMExtensionsSummary struct {
 	Name *string `json:"name,omitempty"`
 	// StatusesSummary - READ-ONLY; The extensions information.
 	StatusesSummary *[]VirtualMachineStatusCodeCount `json:"statusesSummary,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetVMExtensionsSummary.
+func (vmssves VirtualMachineScaleSetVMExtensionsSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineScaleSetVMExtensionsUpdateFuture an abstraction for monitoring and retrieving the results
@@ -15829,6 +16169,7 @@ func (future *VirtualMachineScaleSetVMExtensionsUpdateFuture) result(client Virt
 		return
 	}
 	if !done {
+		vmssve.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMExtensionsUpdateFuture")
 		return
 	}
@@ -16304,6 +16645,7 @@ func (future *VirtualMachineScaleSetVMRunCommandsCreateOrUpdateFuture) result(cl
 		return
 	}
 	if !done {
+		vmrc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMRunCommandsCreateOrUpdateFuture")
 		return
 	}
@@ -16346,6 +16688,7 @@ func (future *VirtualMachineScaleSetVMRunCommandsDeleteFuture) result(client Vir
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMRunCommandsDeleteFuture")
 		return
 	}
@@ -16382,6 +16725,7 @@ func (future *VirtualMachineScaleSetVMRunCommandsUpdateFuture) result(client Vir
 		return
 	}
 	if !done {
+		vmrc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMRunCommandsUpdateFuture")
 		return
 	}
@@ -16424,6 +16768,7 @@ func (future *VirtualMachineScaleSetVMsDeallocateFuture) result(client VirtualMa
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsDeallocateFuture")
 		return
 	}
@@ -16460,6 +16805,7 @@ func (future *VirtualMachineScaleSetVMsDeleteFuture) result(client VirtualMachin
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsDeleteFuture")
 		return
 	}
@@ -16496,6 +16842,7 @@ func (future *VirtualMachineScaleSetVMsPerformMaintenanceFuture) result(client V
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsPerformMaintenanceFuture")
 		return
 	}
@@ -16532,6 +16879,7 @@ func (future *VirtualMachineScaleSetVMsPowerOffFuture) result(client VirtualMach
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsPowerOffFuture")
 		return
 	}
@@ -16568,6 +16916,7 @@ func (future *VirtualMachineScaleSetVMsRedeployFuture) result(client VirtualMach
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsRedeployFuture")
 		return
 	}
@@ -16604,6 +16953,7 @@ func (future *VirtualMachineScaleSetVMsReimageAllFuture) result(client VirtualMa
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsReimageAllFuture")
 		return
 	}
@@ -16640,6 +16990,7 @@ func (future *VirtualMachineScaleSetVMsReimageFuture) result(client VirtualMachi
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsReimageFuture")
 		return
 	}
@@ -16676,6 +17027,7 @@ func (future *VirtualMachineScaleSetVMsRestartFuture) result(client VirtualMachi
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsRestartFuture")
 		return
 	}
@@ -16712,6 +17064,7 @@ func (future *VirtualMachineScaleSetVMsRunCommandFuture) result(client VirtualMa
 		return
 	}
 	if !done {
+		rcr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsRunCommandFuture")
 		return
 	}
@@ -16754,6 +17107,7 @@ func (future *VirtualMachineScaleSetVMsStartFuture) result(client VirtualMachine
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsStartFuture")
 		return
 	}
@@ -16790,6 +17144,7 @@ func (future *VirtualMachineScaleSetVMsUpdateFuture) result(client VirtualMachin
 		return
 	}
 	if !done {
+		vmssv.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineScaleSetVMsUpdateFuture")
 		return
 	}
@@ -16832,6 +17187,7 @@ func (future *VirtualMachinesCaptureFuture) result(client VirtualMachinesClient)
 		return
 	}
 	if !done {
+		vmcr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesCaptureFuture")
 		return
 	}
@@ -16874,6 +17230,7 @@ func (future *VirtualMachinesConvertToManagedDisksFuture) result(client VirtualM
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesConvertToManagedDisksFuture")
 		return
 	}
@@ -16910,6 +17267,7 @@ func (future *VirtualMachinesCreateOrUpdateFuture) result(client VirtualMachines
 		return
 	}
 	if !done {
+		VM.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesCreateOrUpdateFuture")
 		return
 	}
@@ -16952,6 +17310,7 @@ func (future *VirtualMachinesDeallocateFuture) result(client VirtualMachinesClie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesDeallocateFuture")
 		return
 	}
@@ -16988,6 +17347,7 @@ func (future *VirtualMachinesDeleteFuture) result(client VirtualMachinesClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesDeleteFuture")
 		return
 	}
@@ -17024,6 +17384,7 @@ func (future *VirtualMachinesInstallPatchesFuture) result(client VirtualMachines
 		return
 	}
 	if !done {
+		vmipr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesInstallPatchesFuture")
 		return
 	}
@@ -17084,6 +17445,12 @@ type VirtualMachineSoftwarePatchProperties struct {
 	AssessmentState PatchAssessmentState `json:"assessmentState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineSoftwarePatchProperties.
+func (vmspp VirtualMachineSoftwarePatchProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachinesPerformMaintenanceFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesPerformMaintenanceFuture struct {
@@ -17113,6 +17480,7 @@ func (future *VirtualMachinesPerformMaintenanceFuture) result(client VirtualMach
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesPerformMaintenanceFuture")
 		return
 	}
@@ -17149,6 +17517,7 @@ func (future *VirtualMachinesPowerOffFuture) result(client VirtualMachinesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesPowerOffFuture")
 		return
 	}
@@ -17185,6 +17554,7 @@ func (future *VirtualMachinesReapplyFuture) result(client VirtualMachinesClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesReapplyFuture")
 		return
 	}
@@ -17221,6 +17591,7 @@ func (future *VirtualMachinesRedeployFuture) result(client VirtualMachinesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesRedeployFuture")
 		return
 	}
@@ -17257,6 +17628,7 @@ func (future *VirtualMachinesReimageFuture) result(client VirtualMachinesClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesReimageFuture")
 		return
 	}
@@ -17293,6 +17665,7 @@ func (future *VirtualMachinesRestartFuture) result(client VirtualMachinesClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesRestartFuture")
 		return
 	}
@@ -17329,6 +17702,7 @@ func (future *VirtualMachinesRunCommandFuture) result(client VirtualMachinesClie
 		return
 	}
 	if !done {
+		rcr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesRunCommandFuture")
 		return
 	}
@@ -17371,6 +17745,7 @@ func (future *VirtualMachinesStartFuture) result(client VirtualMachinesClient) (
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesStartFuture")
 		return
 	}
@@ -17385,6 +17760,12 @@ type VirtualMachineStatusCodeCount struct {
 	Code *string `json:"code,omitempty"`
 	// Count - READ-ONLY; The number of instances having a particular status code.
 	Count *int32 `json:"count,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineStatusCodeCount.
+func (vmscc VirtualMachineStatusCodeCount) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachinesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -17416,6 +17797,7 @@ func (future *VirtualMachinesUpdateFuture) result(client VirtualMachinesClient) 
 		return
 	}
 	if !done {
+		VM.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesUpdateFuture")
 		return
 	}

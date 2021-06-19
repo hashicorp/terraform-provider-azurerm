@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // nolint: deadcode unused
@@ -150,7 +150,7 @@ func retrievePublicIPAddress(ctx context.Context, client *network.PublicIPAddres
 // to connect to the Virtual Machine. A Public IP Address is used if one is available
 // but this falls back to a Private IP Address (which should always exist)
 // nolint: deadcode unused
-func setConnectionInformation(d *schema.ResourceData, input connectionInfo, isWindows bool) {
+func setConnectionInformation(d *pluginsdk.ResourceData, input connectionInfo, isWindows bool) {
 	provisionerType := "ssh"
 	if isWindows {
 		provisionerType = "winrm"

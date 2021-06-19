@@ -5,37 +5,35 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementAuthorizationServer() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementAuthorizationServerCreateUpdate,
 		Read:   resourceApiManagementAuthorizationServerRead,
 		Update: resourceApiManagementAuthorizationServerCreateUpdate,
 		Delete: resourceApiManagementAuthorizationServerDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementChildName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
@@ -43,16 +41,16 @@ func resourceApiManagementAuthorizationServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"authorization_endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"authorization_methods": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.DELETE),
 						string(apimanagement.GET),
@@ -64,32 +62,32 @@ func resourceApiManagementAuthorizationServer() *schema.Resource {
 						string(apimanagement.TRACE),
 					}, false),
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"client_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"client_registration_endpoint": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"grant_types": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.AuthorizationCode),
 						string(apimanagement.ClientCredentials),
@@ -97,80 +95,80 @@ func resourceApiManagementAuthorizationServer() *schema.Resource {
 						string(apimanagement.ResourceOwnerPassword),
 					}, false),
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			// Optional
 			"bearer_token_sending_methods": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.AuthorizationHeader),
 						string(apimanagement.Query),
 					}, false),
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"client_authentication_method": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.Basic),
 						string(apimanagement.Body),
 					}, false),
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"client_secret": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Sensitive: true,
 			},
 
 			"default_scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"resource_owner_username": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"resource_owner_password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Sensitive: true,
 			},
 
 			"support_state": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"token_body_parameter": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"value": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -179,14 +177,14 @@ func resourceApiManagementAuthorizationServer() *schema.Resource {
 			},
 
 			"token_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 		},
 	}
 }
 
-func resourceApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -212,10 +210,10 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData
 	clientId := d.Get("client_id").(string)
 	clientRegistrationEndpoint := d.Get("client_registration_endpoint").(string)
 	displayName := d.Get("display_name").(string)
-	grantTypesRaw := d.Get("grant_types").(*schema.Set).List()
+	grantTypesRaw := d.Get("grant_types").(*pluginsdk.Set).List()
 	grantTypes := expandApiManagementAuthorizationServerGrantTypes(grantTypesRaw)
 
-	clientAuthenticationMethodsRaw := d.Get("client_authentication_method").(*schema.Set).List()
+	clientAuthenticationMethodsRaw := d.Get("client_authentication_method").(*pluginsdk.Set).List()
 	clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(clientAuthenticationMethodsRaw)
 	clientSecret := d.Get("client_secret").(string)
 	defaultScope := d.Get("default_scope").(string)
@@ -247,13 +245,13 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	authorizationMethodsRaw := d.Get("authorization_methods").(*schema.Set).List()
+	authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List()
 	if len(authorizationMethodsRaw) > 0 {
 		authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
 		params.AuthorizationServerContractProperties.AuthorizationMethods = authorizationMethods
 	}
 
-	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*schema.Set).List()
+	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List()
 	if len(bearerTokenSendingMethodsRaw) > 0 {
 		bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
 		params.AuthorizationServerContractProperties.BearerTokenSendingMethods = bearerTokenSendingMethods
@@ -280,7 +278,7 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData
 	return resourceApiManagementAuthorizationServerRead(d, meta)
 }
 
-func resourceApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,10 +314,12 @@ func resourceApiManagementAuthorizationServerRead(d *schema.ResourceData, meta i
 		d.Set("default_scope", props.DefaultScope)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("resource_owner_password", props.ResourceOwnerPassword)
-		d.Set("resource_owner_username", props.ResourceOwnerUsername)
 		d.Set("support_state", props.SupportState)
 		d.Set("token_endpoint", props.TokenEndpoint)
+
+		// TODO: Read properties from api, https://github.com/Azure/azure-rest-api-specs/issues/14128
+		d.Set("resource_owner_password", d.Get("resource_owner_password").(string))
+		d.Set("resource_owner_username", d.Get("resource_owner_username").(string))
 
 		if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
 			return fmt.Errorf("flattening `authorization_methods`: %+v", err)
@@ -345,7 +345,7 @@ func resourceApiManagementAuthorizationServerRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -4,32 +4,32 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func additionalUnattendContentSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func additionalUnattendContentSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		// whilst the SDK supports updating, the API doesn't:
 		//   Code="PropertyChangeNotAllowed"
 		//   Message="Changing property 'windowsConfiguration.additionalUnattendContent' is not allowed."
 		//   Target="windowsConfiguration.additionalUnattendContent
 		ForceNew: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"content": {
-					Type:      schema.TypeString,
+					Type:      pluginsdk.TypeString,
 					Required:  true,
 					ForceNew:  true,
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -61,7 +61,7 @@ func expandAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalU
 	return &output
 }
 
-func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent, d *schema.ResourceData) []interface{} {
+func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -95,16 +95,17 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 	return output
 }
 
-func bootDiagnosticsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func bootDiagnosticsSchema() *pluginsdk.Schema {
+	//lintignore:XS003
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// TODO: should this be `storage_account_endpoint`?
 				"storage_account_uri": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// TODO: validation
 				},
@@ -162,15 +163,15 @@ func flattenBootDiagnostics(input *compute.DiagnosticsProfile) []interface{} {
 	}
 }
 
-func linuxSecretSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func linuxSecretSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
 				"key_vault_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: azure.ValidateResourceID, // TODO: more granular validation
 				},
@@ -178,13 +179,13 @@ func linuxSecretSchema() *schema.Schema {
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
 				// closer to the Windows VMSS resource, which will also take a `store` param
 				"certificate": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Required: true,
 					MinItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"url": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: keyVaultValidate.NestedItemId,
 							},
@@ -203,7 +204,7 @@ func expandLinuxSecrets(input []interface{}) *[]compute.VaultSecretGroup {
 		v := raw.(map[string]interface{})
 
 		keyVaultId := v["key_vault_id"].(string)
-		certificatesRaw := v["certificate"].(*schema.Set).List()
+		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
 		certificates := make([]compute.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
 			certificateV := certificateRaw.(map[string]interface{})
@@ -261,28 +262,28 @@ func flattenLinuxSecrets(input *[]compute.VaultSecretGroup) []interface{} {
 	return output
 }
 
-func planSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func planSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
 
 				"product": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
 
 				"publisher": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
@@ -334,39 +335,39 @@ func flattenPlan(input *compute.Plan) []interface{} {
 	}
 }
 
-func sourceImageReferenceSchema(isVirtualMachine bool) *schema.Schema {
+func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// whilst originally I was hoping we could use the 'id' from `azurerm_platform_image' unfortunately Azure doesn't
 	// like this as a value for the 'id' field:
 	// Id /...../Versions/16.04.201909091 is not a valid resource reference."
 	// as such the image is split into two fields (source_image_id and source_image_reference) to provide better validation
-	return &schema.Schema{
-		Type:          schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		Optional:      true,
 		ForceNew:      isVirtualMachine,
 		MaxItems:      1,
 		ConflictsWith: []string{"source_image_id"},
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"version": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -427,19 +428,19 @@ func flattenSourceImageReference(input *compute.ImageReference) []interface{} {
 	}
 }
 
-func winRmListenerSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
+func winRmListenerSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
 		//   Code="PropertyChangeNotAllowed"
 		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
 		//   Target="windowsConfiguration.winRM.listeners"
 		ForceNew: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -449,7 +450,7 @@ func winRmListenerSchema() *schema.Schema {
 				},
 
 				"certificate_url": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: keyVaultValidate.NestedItemId,
@@ -504,31 +505,31 @@ func flattenWinRMListener(input *compute.WinRMConfiguration) []interface{} {
 	return output
 }
 
-func windowsSecretSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func windowsSecretSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
 				"key_vault_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 
 				"certificate": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Required: true,
 					MinItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"store": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
 							"url": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: keyVaultValidate.NestedItemId,
 							},
@@ -547,7 +548,7 @@ func expandWindowsSecrets(input []interface{}) *[]compute.VaultSecretGroup {
 		v := raw.(map[string]interface{})
 
 		keyVaultId := v["key_vault_id"].(string)
-		certificatesRaw := v["certificate"].(*schema.Set).List()
+		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
 		certificates := make([]compute.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
 			certificateV := certificateRaw.(map[string]interface{})

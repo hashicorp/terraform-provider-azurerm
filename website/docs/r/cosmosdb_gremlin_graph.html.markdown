@@ -64,7 +64,9 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the Cosmos DB Graph Database in which the Cosmos DB Gremlin Graph is created. Changing this forces a new resource to be created.
 
-* `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
+* `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
+
+* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
 
 * `throughput` - (Optional) The throughput of the Gremlin graph (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
@@ -76,7 +78,7 @@ The following arguments are supported:
 
 * `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below. Changing this forces a new resource to be created.
 
-* `conflict_resolution_policy` - (Required) The conflict resolution policy for the graph. One or more `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
+* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
 * `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -98,6 +100,18 @@ An `index_policy` block supports the following:
 
 * `excluded_paths` - (Optional) List of paths to exclude from indexing. Required if `indexing_mode` is `Consistent` or `Lazy`.
 
+* `composite_index` - (Optional) One or more `composite_index` blocks as defined below.
+
+* `spatial_index` - (Optional) One or more `spatial_index` blocks as defined below.
+
+---
+
+A `spatial_index` block supports the following:
+
+* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path. 
+
+---
+
 An `conflict_resolution_policy` block supports the following:
 
 * `mode` - (Required) Indicates the conflict resolution mode. Possible values include: `LastWriterWins`, `Custom`.
@@ -106,9 +120,26 @@ An `conflict_resolution_policy` block supports the following:
 
 * `conflict_resolution_procedure` - (Optional) The procedure to resolve conflicts in the case of custom mode.
 
+---
+
 An `unique_key` block supports the following:
 
 * `paths` - (Required) A list of paths to use for this unique key.
+
+---
+
+A `composite_index` block supports the following:
+
+* `index` - One or more `index` blocks as defined below.
+
+---
+
+An `index` block supports the following:
+
+* `path` - Path for which the indexing behaviour applies to.
+
+* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+
 
 ## Attributes Reference
 

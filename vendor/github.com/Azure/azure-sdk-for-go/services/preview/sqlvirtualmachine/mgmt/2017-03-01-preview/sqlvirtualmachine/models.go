@@ -148,6 +148,12 @@ type AvailabilityGroupListenerListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AvailabilityGroupListenerListResult.
+func (agllr AvailabilityGroupListenerListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AvailabilityGroupListenerListResultIterator provides access to a complete listing of
 // AvailabilityGroupListener values.
 type AvailabilityGroupListenerListResultIterator struct {
@@ -360,6 +366,7 @@ func (future *AvailabilityGroupListenersCreateOrUpdateFuture) result(client Avai
 		return
 	}
 	if !done {
+		agl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture")
 		return
 	}
@@ -402,6 +409,7 @@ func (future *AvailabilityGroupListenersDeleteFuture) result(client Availability
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture")
 		return
 	}
@@ -517,6 +525,12 @@ type GroupListResult struct {
 	Value *[]Group `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupListResult.
+func (glr GroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // GroupListResultIterator provides access to a complete listing of Group values.
@@ -731,6 +745,7 @@ func (future *GroupsCreateOrUpdateFuture) result(client GroupsClient) (g Group, 
 		return
 	}
 	if !done {
+		g.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsCreateOrUpdateFuture")
 		return
 	}
@@ -772,6 +787,7 @@ func (future *GroupsDeleteFuture) result(client GroupsClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsDeleteFuture")
 		return
 	}
@@ -807,6 +823,7 @@ func (future *GroupsUpdateFuture) result(client GroupsClient) (g Group, err erro
 		return
 	}
 	if !done {
+		g.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsUpdateFuture")
 		return
 	}
@@ -857,6 +874,12 @@ type ListResult struct {
 	Value *[]SQLVirtualMachine `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListResult.
+func (lr ListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListResultIterator provides access to a complete listing of SQLVirtualMachine values.
@@ -1053,6 +1076,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (od OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult result of the request to list SQL operations.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
@@ -1060,6 +1089,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -1302,6 +1337,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Resource ARM resource.
 type Resource struct {
 	// ID - READ-ONLY; Resource ID.
@@ -1310,6 +1351,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceIdentity azure Active Directory identity configuration for a resource.
@@ -1517,6 +1564,7 @@ func (future *SQLVirtualMachinesCreateOrUpdateFutureType) result(client SQLVirtu
 		return
 	}
 	if !done {
+		svm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesCreateOrUpdateFutureType")
 		return
 	}
@@ -1559,6 +1607,7 @@ func (future *SQLVirtualMachinesDeleteFutureType) result(client SQLVirtualMachin
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesDeleteFutureType")
 		return
 	}
@@ -1595,6 +1644,7 @@ func (future *SQLVirtualMachinesUpdateFutureType) result(client SQLVirtualMachin
 		return
 	}
 	if !done {
+		svm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesUpdateFutureType")
 		return
 	}

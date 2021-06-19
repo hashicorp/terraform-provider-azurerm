@@ -6,42 +6,41 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceEventGridDomain() *schema.Resource {
-	return &schema.Resource{
+func resourceEventGridDomain() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventGridDomainCreateUpdate,
 		Read:   resourceEventGridDomainRead,
 		Update: resourceEventGridDomainCreateUpdate,
 		Delete: resourceEventGridDomainDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DomainID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
@@ -60,7 +59,7 @@ func resourceEventGridDomain() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"input_schema": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(eventgrid.InputSchemaEventGridSchema),
 				ForceNew: true,
@@ -71,40 +70,41 @@ func resourceEventGridDomain() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"topic": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"event_time": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"event_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"subject": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"data_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
@@ -112,25 +112,26 @@ func resourceEventGridDomain() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"event_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"subject": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
 						"data_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
@@ -143,18 +144,18 @@ func resourceEventGridDomain() *schema.Resource {
 			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"primary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -162,7 +163,7 @@ func resourceEventGridDomain() *schema.Resource {
 	}
 }
 
-func resourceEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +224,7 @@ func resourceEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{
 	return resourceEventGridDomainRead(d, meta)
 }
 
-func resourceEventGridDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +293,7 @@ func resourceEventGridDomainRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -320,7 +321,7 @@ func resourceEventGridDomainDelete(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func expandAzureRmEventgridDomainInputMapping(d *schema.ResourceData) *eventgrid.JSONInputSchemaMapping {
+func expandAzureRmEventgridDomainInputMapping(d *pluginsdk.ResourceData) *eventgrid.JSONInputSchemaMapping {
 	imf, imfok := d.GetOk("input_mapping_fields")
 
 	imdv, imdvok := d.GetOk("input_mapping_default_values")
@@ -333,47 +334,51 @@ func expandAzureRmEventgridDomainInputMapping(d *schema.ResourceData) *eventgrid
 
 	if imfok {
 		mappings := imf.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if id := mapping["id"].(string); id != "" {
-			jismp.ID = &eventgrid.JSONField{SourceField: &id}
-		}
+			if id := mapping["id"].(string); id != "" {
+				jismp.ID = &eventgrid.JSONField{SourceField: &id}
+			}
 
-		if eventTime := mapping["event_time"].(string); eventTime != "" {
-			jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
-		}
+			if eventTime := mapping["event_time"].(string); eventTime != "" {
+				jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
+			}
 
-		if topic := mapping["topic"].(string); topic != "" {
-			jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
-		}
+			if topic := mapping["topic"].(string); topic != "" {
+				jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
+			}
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			}
 		}
 	}
 
 	if imdvok {
 		mappings := imdv.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			}
 		}
 	}
 
