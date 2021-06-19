@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,9 +26,27 @@ func TestAccSubscriptionResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEnrollmentAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionResource_basicWithTag(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
+	r := SubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTagsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
@@ -43,10 +62,10 @@ func TestAccSubscriptionResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEnrollmentAccount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -60,23 +79,71 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEnrollmentAccount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
 		data.ImportStep("billing_scope_id"),
 		{
 			Config: r.basicEnrollmentAccountUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
 		data.ImportStep("billing_scope_id"),
 	})
 }
 
-func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccSubscriptionResource_updateWithTags(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
+	r := SubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTagsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep("billing_scope_id"),
+		{
+			Config: r.withTagsUpdatedConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
+		},
+		data.ImportStep("billing_scope_id"),
+	})
+}
+
+func TestAccSubscriptionResource_devTest(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
+	r := SubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEnrollmentAccountDevTest(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionAliasID(state.ID)
 	if err != nil {
 		return nil, err
@@ -131,6 +198,35 @@ resource "azurerm_subscription" "test" {
   alias             = "testAcc-%[3]d"
   subscription_name = "testAccSubscription Renamed %[3]d"
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+  tags = {
+    environment = "staging"
+  }
+}
+`, billingAccount, enrollmentAccount, data.RandomInteger)
+}
+
+func (SubscriptionResource) basicEnrollmentAccountDevTest(data acceptance.TestData) string {
+	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
+	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_billing_enrollment_account_scope" "test" {
+  billing_account_name    = "%s"
+  enrollment_account_name = "%s"
+}
+
+resource "azurerm_subscription" "test" {
+  alias             = "testAcc-%[3]d"
+  subscription_name = "testAccSubscription Renamed %[3]d"
+  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+  workload          = "DevTest"
+  tags = {
+	  environment = "Production"
+	  cost_center = "MSFT"
+  }
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
 }

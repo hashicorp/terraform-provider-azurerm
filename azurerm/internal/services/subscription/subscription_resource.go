@@ -9,9 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -19,42 +16,44 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 )
 
 var SubscriptionResourceName = "azurerm_subscription"
 
-func resourceSubscription() *schema.Resource {
-	return &schema.Resource{
+func resourceSubscription() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSubscriptionCreate,
 		Update: resourceSubscriptionUpdate,
 		Read:   resourceSubscriptionRead,
 		Delete: resourceSubscriptionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SubscriptionAliasID(id)
 			return err
 		}, importSubscriptionByAlias()),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"subscription_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Description:  "The Display Name for the Subscription.",
 				ValidateFunc: validate.SubscriptionName,
 			},
 
 			"alias": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -63,7 +62,7 @@ func resourceSubscription() *schema.Resource {
 			},
 
 			"billing_scope_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ExactlyOneOf: []string{
 					"subscription_id",
@@ -77,7 +76,7 @@ func resourceSubscription() *schema.Resource {
 
 			// Optional
 			"workload": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Optional:    true,
 				ForceNew:    true,
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
@@ -87,13 +86,13 @@ func resourceSubscription() *schema.Resource {
 					string(subscriptionAlias.DevTest),
 				}, false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return old == ""
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					return new == ""
 				},
 			},
 
 			"subscription_id": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Description: "The GUID of the Subscription.",
 				ForceNew:    true,
 				Optional:    true,
@@ -106,27 +105,30 @@ func resourceSubscription() *schema.Resource {
 			},
 
 			"tenant_id": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Description: "The Tenant ID to which the subscription belongs",
 				Computed:    true,
 			},
-
+			
 			"tags": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
+				Description: "The tags of the resource",
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	defer cancel()
 
 	aliasName := ""
@@ -154,7 +156,8 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
 
 	workload := subscriptionAlias.Production
-	if workloadRaw := d.Get("workload").(string); workloadRaw != "" {
+	workloadRaw := d.Get("workload").(string)
+	if workloadRaw != "" {
 		workload = subscriptionAlias.Workload(workloadRaw)
 	}
 
@@ -231,13 +234,33 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 
 	d.SetId(id.ID())
 
+	// create or update tag values in subscription
+
+	if d.HasChange("tags") {
+		tagsDetails := d.Get("tags").(map[string]interface{})
+		resource_tags := resources.Tags{
+			Tags: tags.Expand(tagsDetails),
+		}
+		locks.ByID(subscriptionId)
+		defer locks.UnlockByID(subscriptionId)
+		tagParameters := resources.TagsPatchResource{ Operation: "Merge", Properties: &resource_tags}
+		updateTags, updateErr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagParameters)
+		if updateErr != nil {
+			if !utils.ResponseWasNotFound(updateTags.Response) {
+				return fmt.Errorf("Adding tag value %q for subscription %q: %+v")
+			}
+		}
+		d.Set("tags", *updateTags.ID)
+	}
+
 	return resourceSubscriptionRead(d, meta)
 }
 
-func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	defer cancel()
 
 	id, err := parse.SubscriptionAliasID(d.Id())
@@ -268,15 +291,36 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
 		}
 	}
+    // Modify/update tags 
 
-	return nil
+	if d.HasChange("tags") {
+		tagsDetails := d.Get("tags").(map[string]interface{})
+		resource_tags := resources.Tags{
+			Tags: tags.Expand(tagsDetails),
+		}
+		locks.ByID(*subscriptionId)
+		defer locks.UnlockByID(*subscriptionId)
+		tagParameters := resources.TagsPatchResource{ Operation: "Replace",Properties: &resource_tags,}
+		updateTags, updateErr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+*subscriptionId, tagParameters)
+		if updateErr != nil {
+			if !utils.ResponseWasNotFound(updateTags.Response) {
+			return fmt.Errorf("Updating tag value %q for subscription %q: %+v", tags.Flatten(resource_tags.Tags), *subscriptionId, updateErr)
+			}
+		}
+		d.Set("tags", *updateTags.ID)
+	}
+
+	return resourceSubscriptionRead(d, meta)
 }
 
-func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.Client
+	// tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	
 	defer cancel()
+
 
 	id, err := parse.SubscriptionAliasID(d.Id())
 	if err != nil {
@@ -315,6 +359,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		t = resp.Tags
+		fmt.Println("Read resp tags %q",t)
 	}
 
 	// (@jackofallops) A subscription's billing scope is not exposed in any way in the API/SDK so we cannot read it back here
@@ -322,6 +367,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("subscription_id", subscriptionId)
 	d.Set("subscription_name", subscriptionName)
 	d.Set("tenant_id", tenantId)
+	d.Set("tags", t)
 	if err := tags.FlattenAndSet(d, t); err != nil {
 		return err
 	}
@@ -335,10 +381,11 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 // used and purged from active use it can never be recovered nor the UUID reused.
 // Note Cancelling a Subscription leaves it in one of several states, `Disabled` for a Subscription with no Resources or
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
-func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
+	tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -382,6 +429,22 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
+	if d.HasChange("tags") {
+		tagsDetails := d.Get("tags").(map[string]interface{})
+		resource_tags := resources.Tags {
+			Tags: tags.Expand(tagsDetails),
+		}
+		locks.ByID(subscriptionId)
+		defer locks.UnlockByID(subscriptionId)
+		tagPatchParamter := resources.TagsPatchResource{ Operation: "Delete", Properties: &resource_tags}
+		updateTags, delerr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagPatchParamter)
+		if delerr != nil {
+			return fmt.Errorf("Failed to Remove tags %q from subscription %q: %+v", tags.Flatten(resource_tags.Tags), subscriptionId, delerr)
+		}
+		d.Set("tags", *updateTags.ID)
+	}
+	
+
 	resp, err := aliasClient.Delete(ctx, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
@@ -401,11 +464,11 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.Name, err)
 	}
 
-	return nil
+	return resourceSubscriptionRead(d, meta)
 }
 
 func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Client, subscriptionId string, targetState string, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Refresh: func() (result interface{}, state string, err error) {
 			status, err := clients.Subscription.Client.Get(ctx, subscriptionId)
 			return status, string(status.State), err
