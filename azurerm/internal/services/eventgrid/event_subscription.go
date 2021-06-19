@@ -650,7 +650,6 @@ func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 								MaxItems: 25,
 								Elem: &pluginsdk.Schema{
 									Type:     pluginsdk.TypeList,
-									Required: true,
 									MinItems: 2,
 									MaxItems: 2,
 									Elem: &pluginsdk.Schema{
@@ -678,7 +677,6 @@ func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 								MaxItems: 25,
 								Elem: &pluginsdk.Schema{
 									Type:     pluginsdk.TypeList,
-									Required: true,
 									MinItems: 2,
 									MaxItems: 2,
 									Elem: &pluginsdk.Schema{
@@ -1266,19 +1264,19 @@ func flattenEventGridEventSubscriptionAdvancedFilter(input *eventgrid.EventSubsc
 			stringBeginsWith = append(stringBeginsWith, flattenValues(f.Key, &v))
 		case eventgrid.StringNotBeginsWithAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
-			stringNotBeginsWith = append(stringBeginsWith, flattenValues(f.Key, &v))
+			stringNotBeginsWith = append(stringNotBeginsWith, flattenValues(f.Key, &v))
 		case eventgrid.StringEndsWithAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringEndsWith = append(stringEndsWith, flattenValues(f.Key, &v))
 		case eventgrid.StringNotEndsWithAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
-			stringNotEndsWith = append(stringEndsWith, flattenValues(f.Key, &v))
+			stringNotEndsWith = append(stringNotEndsWith, flattenValues(f.Key, &v))
 		case eventgrid.StringContainsAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringContains = append(stringContains, flattenValues(f.Key, &v))
 		case eventgrid.StringNotContainsAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
-			stringNotContains = append(stringContains, flattenValues(f.Key, &v))
+			stringNotContains = append(stringNotContains, flattenValues(f.Key, &v))
 		case eventgrid.StringInAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringIn = append(stringIn, flattenValues(f.Key, &v))
