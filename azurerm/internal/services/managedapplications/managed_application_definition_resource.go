@@ -6,9 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceManagedApplicationDefinition() *schema.Resource {
-	return &schema.Resource{
+func resourceManagedApplicationDefinition() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceManagedApplicationDefinitionCreateUpdate,
 		Read:   resourceManagedApplicationDefinitionRead,
 		Update: resourceManagedApplicationDefinitionCreateUpdate,
@@ -33,16 +31,16 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ApplicationDefinitionName,
@@ -53,13 +51,13 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ApplicationDefinitionDisplayName,
 			},
 
 			"lock_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -70,18 +68,18 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			},
 
 			"authorization": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"role_definition_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 						"service_principal_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
@@ -90,35 +88,35 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			},
 
 			"create_ui_definition": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ApplicationDefinitionDescription,
 			},
 
 			"main_template": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
 			},
 
 			"package_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"package_file_uri": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
@@ -128,7 +126,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 	}
 }
 
-func resourceManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +149,7 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData, me
 	parameters := managedapplications.ApplicationDefinition{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		ApplicationDefinitionProperties: &managedapplications.ApplicationDefinitionProperties{
-			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
+			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List()),
 			Description:    utils.String(d.Get("description").(string)),
 			DisplayName:    utils.String(d.Get("display_name").(string)),
 			IsEnabled:      utils.Bool(d.Get("package_enabled").(bool)),
@@ -196,7 +194,7 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData, me
 	return resourceManagedApplicationDefinitionRead(d, meta)
 }
 
-func resourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,7 +242,7 @@ func resourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceManagedApplicationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

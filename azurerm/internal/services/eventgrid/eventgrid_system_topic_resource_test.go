@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccEventGridSystemTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
 				check.That(data.ResourceName).Key("topic_type").Exists(),
@@ -39,10 +38,10 @@ func TestAccEventGridSystemTopic_policyStates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.policyStates(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
 				check.That(data.ResourceName).Key("topic_type").Exists(),
@@ -57,10 +56,10 @@ func TestAccEventGridSystemTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -75,10 +74,10 @@ func TestAccEventGridSystemTopic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Foo").HasValue("Bar"),
@@ -91,7 +90,7 @@ func TestAccEventGridSystemTopic_complete(t *testing.T) {
 	})
 }
 
-func (EventGridSystemTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (EventGridSystemTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SystemTopicID(state.ID)
 	if err != nil {
 		return nil, err

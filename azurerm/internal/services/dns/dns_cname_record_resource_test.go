@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccDnsCNameRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 			),
@@ -38,10 +37,10 @@ func TestAccDnsCNameRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -56,10 +55,10 @@ func TestAccDnsCNameRecord_subdomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subdomain(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("record").HasValue("test.contoso.com"),
 			),
@@ -72,16 +71,16 @@ func TestAccDnsCNameRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateRecords(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -92,17 +91,17 @@ func TestAccDnsCNameRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
@@ -117,19 +116,19 @@ func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
 	targetResourceName := "azurerm_dns_cname_record.target"
 	targetResourceName2 := "azurerm_dns_cname_record.target2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAlias(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
+				acceptance.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 			),
 		},
 		{
 			Config: r.withAliasUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName2, "id"),
+				acceptance.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName2, "id"),
 			),
 		},
 		data.ImportStep(),
@@ -141,18 +140,18 @@ func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.AliasToRecordUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.AliasToRecord(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
+				acceptance.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 				check.That(data.ResourceName).Key("record").HasValue(""),
 			),
 		},
@@ -165,17 +164,17 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.AliasToRecord(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
+				acceptance.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 			),
 		},
 		{
 			Config: r.AliasToRecordUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_resource_id").HasValue(""),
 			),
@@ -184,7 +183,7 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 	})
 }
 
-func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CnameRecordID(state.ID)
 	if err != nil {
 		return nil, err

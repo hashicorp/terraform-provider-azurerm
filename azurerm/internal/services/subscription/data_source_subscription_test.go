@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type SubscriptionDataSource struct{}
 func TestAccDataSourceSubscription_current(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "current")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: SubscriptionDataSource{}.currentConfig(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
@@ -30,10 +29,10 @@ func TestAccDataSourceSubscription_current(t *testing.T) {
 func TestAccDataSourceSubscription_specific(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "specific")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: SubscriptionDataSource{}.specificConfig(data.Client().SubscriptionID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),

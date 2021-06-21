@@ -67,11 +67,17 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 * `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Data Lake Storage Gen2 account. Incompatible with `service_principal_id` and `service_principal_key`  
 
-* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Data Lake Storage Gen2 account. Required if `use_managed_identity` is true.
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Data Lake Storage Gen2 account.
 
-* `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure Data Lake Storage Gen2 account.  Required if `use_managed_identity` is true.
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure Data Lake Storage Gen2 account.
+
+~> **NOTE** If `service_principal_id` is used, `service_principal_key` is also required.
+
+* `storage_account_key` - (Optional) The Storage Account Key in which to authenticate against the Azure Data Lake Storage Gen2 account.
 
 * `tenant` - (Required) The tenant id or name in which to authenticate against the Azure Data Lake Storage Gen2 account.
+
+~> **NOTE** Users should specify one of the three authentication way: storage account key, service principal, managed identity.
 
 ## Attributes Reference
 

@@ -5,20 +5,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryLinkedServiceCosmosDb() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceCosmosDbRead,
 		Update: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
@@ -27,23 +26,23 @@ func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -54,7 +53,7 @@ func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Sensitive:        true,
 				ConflictsWith:    []string{"account_endpoint", "account_key"},
@@ -63,14 +62,14 @@ func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 			},
 
 			"account_endpoint": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"connection_string"},
 				ValidateFunc:  validation.StringIsNotEmpty,
 			},
 
 			"account_key": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
 				ConflictsWith: []string{"connection_string"},
@@ -78,51 +77,51 @@ func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 			},
 
 			"database": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"integration_runtime_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"additional_properties": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +154,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData
 	if isAccountDetailUsed {
 		accountKeySecureString := datafactory.SecureString{
 			Value: &accountKey,
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 		cosmosdbProperties.AccountEndpoint = endpoint
 		cosmosdbProperties.AccountKey = accountKeySecureString
@@ -164,7 +163,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData
 		connectionString := d.Get("connection_string").(string)
 		connectionStringSecureString := datafactory.SecureString{
 			Value: &connectionString,
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 		cosmosdbProperties.ConnectionString = connectionStringSecureString
 		cosmosdbProperties.Database = databaseName
@@ -217,7 +216,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData
 	return resourceDataFactoryLinkedServiceCosmosDbRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +275,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

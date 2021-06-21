@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccIotHubConsumerGroup_events(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 	r := IotHubConsumerGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "events"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_endpoint_name").HasValue("events"),
 			),
@@ -37,10 +36,10 @@ func TestAccIotHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 	r := IotHubConsumerGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "events"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_endpoint_name").HasValue("events"),
 			),
@@ -56,10 +55,10 @@ func TestAccIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 	r := IotHubConsumerGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "operationsMonitoringEvents"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_endpoint_name").HasValue("operationsMonitoringEvents"),
 			),
@@ -71,10 +70,10 @@ func TestAccIotHubConsumerGroup_withSharedAccessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 	r := IotHubConsumerGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withSharedAccessPolicy(data, "events"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -82,7 +81,7 @@ func TestAccIotHubConsumerGroup_withSharedAccessPolicy(t *testing.T) {
 	})
 }
 
-func (t IotHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t IotHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

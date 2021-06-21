@@ -222,6 +222,12 @@ type ErrorDefinition struct {
 	Details *[]ErrorDefinition `json:"details,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorDefinition.
+func (ed ErrorDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorResponse error response.
 type ErrorResponse struct {
 	// Error - The error details.
@@ -265,6 +271,12 @@ type ProxyOnlyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyOnlyResource.
+func (por ProxyOnlyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RetentionPolicy specifies the retention policy for the log.

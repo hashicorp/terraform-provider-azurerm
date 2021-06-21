@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMediaTransform_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 				check.That(data.ResourceName).Key("output.#").HasValue("1"),
 			),
@@ -37,10 +36,10 @@ func TestAccMediaTransform_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 				check.That(data.ResourceName).Key("output.#").HasValue("1"),
 			),
@@ -53,10 +52,10 @@ func TestAccMediaTransform_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Transform description"),
 				check.That(data.ResourceName).Key("output.#").HasValue("4"),
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
@@ -70,10 +69,10 @@ func TestAccMediaTransform_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 				check.That(data.ResourceName).Key("output.#").HasValue("1"),
 			),
@@ -81,7 +80,7 @@ func TestAccMediaTransform_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Transform description"),
 				check.That(data.ResourceName).Key("output.#").HasValue("4"),
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
@@ -90,7 +89,7 @@ func TestAccMediaTransform_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 				check.That(data.ResourceName).Key("output.#").HasValue("1"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -100,7 +99,7 @@ func TestAccMediaTransform_update(t *testing.T) {
 	})
 }
 
-func (r MediaTransformResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MediaTransformResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TransformID(state.ID)
 	if err != nil {
 		return nil, err

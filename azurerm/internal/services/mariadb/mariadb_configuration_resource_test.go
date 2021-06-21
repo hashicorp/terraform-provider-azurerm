@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,17 +21,17 @@ func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.characterSetServer(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(checkValueIs("hebrew")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				srv.CheckWithClient(checkValueIsReset("character_set_server")),
 			),
@@ -45,17 +44,17 @@ func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.interactiveTimeout(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(checkValueIs("30")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				srv.CheckWithClient(checkValueIsReset("interactive_timeout")),
 			),
@@ -68,17 +67,17 @@ func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.logSlowAdminStatements(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(checkValueIs("On")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				srv.CheckWithClient(checkValueIsReset("log_slow_admin_statements")),
 			),
@@ -86,7 +85,7 @@ func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 	})
 }
 
-func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -104,7 +103,7 @@ func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients
 }
 
 func checkValueIs(value string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := azure.ParseAzureResourceID(state.ID)
 		if err != nil {
 			return err
@@ -133,7 +132,7 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 }
 
 func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.ServerID(state.ID)
 		if err != nil {
 			return err

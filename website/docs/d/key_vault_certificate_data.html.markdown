@@ -49,6 +49,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
+* `certificates_count` - Amount of certificates in the chain in case Key Vault Certificate is a bundle (e.g. has an intermediate certificate).
+
 * `hex` - The raw Key Vault Certificate data represented as a hexadecimal string. 
 
 * `pem` - The Key Vault Certificate in PEM format. 

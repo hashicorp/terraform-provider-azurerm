@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	mysqlValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,8 +22,8 @@ const (
 	springCloudAppMysqlAssociationKeyUsername = "username"
 )
 
-func resourceSpringCloudAppMysqlAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSpringCloudAppMysqlAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppMysqlAssociationRead,
 		Update: resourceSpringCloudAppMysqlAssociationCreateUpdate,
@@ -35,49 +34,49 @@ func resourceSpringCloudAppMysqlAssociation() *schema.Resource {
 			return err
 		}, importSpringCloudAppAssociation(springCloudAppAssociationTypeMysql)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppAssociationName,
 			},
 
 			"spring_cloud_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
 			"mysql_server_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: mysqlValidate.ServerID,
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"username": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"password": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -86,7 +85,7 @@ func resourceSpringCloudAppMysqlAssociation() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,7 +127,7 @@ func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *schema.ResourceData, 
 	return resourceSpringCloudAppMysqlAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppMysqlAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppMysqlAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +167,7 @@ func resourceSpringCloudAppMysqlAssociationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceSpringCloudAppMysqlAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppMysqlAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

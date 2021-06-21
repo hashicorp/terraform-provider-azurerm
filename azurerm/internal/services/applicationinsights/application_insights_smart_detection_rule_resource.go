@@ -6,34 +6,33 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApplicationInsightsSmartDetectionRule() *schema.Resource {
-	return &schema.Resource{
+func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApplicationInsightsSmartDetectionRuleUpdate,
 		Read:   resourceApplicationInsightsSmartDetectionRuleRead,
 		Update: resourceApplicationInsightsSmartDetectionRuleUpdate,
 		Delete: resourceApplicationInsightsSmartDetectionRuleDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -45,34 +44,34 @@ func resourceApplicationInsightsSmartDetectionRule() *schema.Resource {
 			},
 
 			"application_insights_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"send_emails_to_subscription_owners": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"additional_email_recipients": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 		},
 	}
 }
 
-func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -93,7 +92,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData,
 		Name:                           &name,
 		Enabled:                        utils.Bool(d.Get("enabled").(bool)),
 		SendEmailsToSubscriptionOwners: utils.Bool(d.Get("send_emails_to_subscription_owners").(bool)),
-		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*schema.Set).List()),
+		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
 	_, err = client.Update(ctx, id.ResourceGroup, id.Name, name, smartDetectionRuleProperties)
@@ -106,7 +105,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData,
 	return resourceApplicationInsightsSmartDetectionRuleRead(d, meta)
 }
 
-func resourceApplicationInsightsSmartDetectionRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +135,7 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceApplicationInsightsSmartDetectionRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +178,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *schema.ResourceData,
 
 // The Smart Detection Rule name from the UI doesn't match what the API accepts.
 // This Diff checks that the name UI name matches the API name when spaces are removed
-func smartDetectionRuleNameDiff(_, old string, new string, _ *schema.ResourceData) bool {
+func smartDetectionRuleNameDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
 	trimmedNew := strings.Join(strings.Split(strings.ToLower(new), " "), "")
 
 	return strings.EqualFold(old, trimmedNew)

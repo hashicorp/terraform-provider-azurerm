@@ -6,15 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func resourceLogicAppTriggerCustom() *schema.Resource {
-	return &schema.Resource{
+func resourceLogicAppTriggerCustom() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogicAppTriggerCustomCreateUpdate,
 		Read:   resourceLogicAppTriggerCustomRead,
 		Update: resourceLogicAppTriggerCustomCreateUpdate,
@@ -22,38 +20,38 @@ func resourceLogicAppTriggerCustom() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"logic_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"body": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 		},
 	}
 }
 
-func resourceLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
 	bodyRaw := d.Get("body").(string)
@@ -70,7 +68,7 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceLogicAppTriggerCustomRead(d, meta)
 }
 
-func resourceLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -108,7 +106,7 @@ func resourceLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceLogicAppTriggerCustomDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

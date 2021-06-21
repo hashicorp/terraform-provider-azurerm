@@ -5,16 +5,15 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceApplicationInsightsAnalyticsItem() *schema.Resource {
-	return &schema.Resource{
+func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApplicationInsightsAnalyticsItemCreate,
 		Read:   resourceApplicationInsightsAnalyticsItemRead,
 		Update: resourceApplicationInsightsAnalyticsItemUpdate,
@@ -22,40 +21,40 @@ func resourceApplicationInsightsAnalyticsItem() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"application_insights_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"content": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,7 +64,7 @@ func resourceApplicationInsightsAnalyticsItem() *schema.Resource {
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -77,32 +76,32 @@ func resourceApplicationInsightsAnalyticsItem() *schema.Resource {
 			},
 
 			"function_alias": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"time_created": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"time_modified": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceApplicationInsightsAnalyticsItemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceApplicationInsightsAnalyticsItemCreateUpdate(d, meta, false)
 }
 
-func resourceApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
 }
 
-func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
+func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, overwrite bool) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +163,7 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData
 	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +197,7 @@ func resourceApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
-	return &schema.Resource{
+func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceOrchestratedVirtualMachineScaleSetCreateUpdate,
 		Read:   resourceOrchestratedVirtualMachineScaleSetRead,
 		Update: resourceOrchestratedVirtualMachineScaleSetCreateUpdate,
@@ -33,16 +32,16 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			return err
 		}, importOrchestratedVirtualMachineScaleSet),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualMachineName,
@@ -53,7 +52,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"platform_fault_domain_count": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 				ForceNew: true,
 				// The range of this value varies in different locations
@@ -61,7 +60,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"proximity_placement_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ProximityPlacementGroupID,
@@ -70,7 +69,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"single_placement_group": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 				Default:  false,
@@ -80,7 +79,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			"zones": azure.SchemaSingleZone(),
 
 			"unique_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -89,7 +88,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceOrchestratedVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +147,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.ResourceDa
 	return resourceOrchestratedVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +190,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +200,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	// @ArcturusZhang (mimicking from linux_virtual_machine_resource.go): sending `nil` here omits this value from being sent
+	// @ArcturusZhang (mimicking from linux_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	// TODO: support force deletion once it's out of Preview, if applicable
 	var forceDeletion *bool = nil

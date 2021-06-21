@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,12 +13,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStreamAnalyticsJob() *schema.Resource {
-	return &schema.Resource{
+func resourceStreamAnalyticsJob() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsJobCreateUpdate,
 		Read:   resourceStreamAnalyticsJobRead,
 		Update: resourceStreamAnalyticsJobCreateUpdate,
@@ -30,16 +29,16 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -50,7 +49,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"compatibility_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -64,7 +63,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			},
 
 			"data_locale": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -72,7 +71,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 
 			"events_late_arrival_max_delay_in_seconds": {
 				// portal allows for up to 20d 23h 59m 59s
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-1, 1814399),
 				Default:      5,
@@ -80,14 +79,14 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 
 			"events_out_of_order_max_delay_in_seconds": {
 				// portal allows for up to 9m 59s
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 599),
 				Default:      0,
 			},
 
 			"events_out_of_order_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.Adjust),
@@ -97,7 +96,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			},
 
 			"output_error_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.OutputErrorPolicyDrop),
@@ -107,19 +106,44 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 			},
 
 			"streaming_units": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
 			},
 
 			"transformation_query": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"job_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -128,7 +152,7 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 	}
 }
 
-func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -175,7 +199,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interfa
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		StreamingJobProperties: &streamanalytics.StreamingJobProperties{
-			Sku: &streamanalytics.Sku{
+			Sku: &streamanalytics.StreamingJobSku{
 				Name: streamanalytics.Standard,
 			},
 			CompatibilityLevel:                 streamanalytics.CompatibilityLevel(compatibilityLevel),
@@ -189,6 +213,10 @@ func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interfa
 
 	if dataLocale, ok := d.GetOk("data_locale"); ok {
 		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
+	}
+
+	if identity, ok := d.GetOk("identity"); ok {
+		props.Identity = expandStreamAnalyticsJobIdentity(identity.([]interface{}))
 	}
 
 	if d.IsNewResource() {
@@ -232,7 +260,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,6 +286,10 @@ func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) er
 
 	if resp.Location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
+	}
+
+	if err := d.Set("identity", flattenStreamAnalyticsJobIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %v", err)
 	}
 
 	if props := resp.StreamingJobProperties; props != nil {
@@ -286,7 +318,7 @@ func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,4 +338,40 @@ func resourceStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func expandStreamAnalyticsJobIdentity(identity []interface{}) *streamanalytics.Identity {
+	b := identity[0].(map[string]interface{})
+	return &streamanalytics.Identity{
+		Type: utils.String(b["type"].(string)),
+	}
+}
+
+func flattenStreamAnalyticsJobIdentity(identity *streamanalytics.Identity) []interface{} {
+	if identity == nil {
+		return nil
+	}
+
+	var t string
+	if identity.Type != nil {
+		t = *identity.Type
+	}
+
+	var tenantId string
+	if identity.TenantID != nil {
+		tenantId = *identity.TenantID
+	}
+
+	var principalId string
+	if identity.PrincipalID != nil {
+		principalId = *identity.PrincipalID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         t,
+			"tenant_id":    tenantId,
+			"principal_id": principalId,
+		},
+	}
 }

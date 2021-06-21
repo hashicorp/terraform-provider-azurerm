@@ -4,33 +4,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func dataSourceBillingMCAAccountScope() *schema.Resource {
-	return &schema.Resource{
+func dataSourceBillingMCAAccountScope() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceBillingMCAAccountRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"billing_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"billing_profile_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"invoice_section_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -38,7 +38,7 @@ func dataSourceBillingMCAAccountScope() *schema.Resource {
 	}
 }
 
-func dataSourceBillingMCAAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBillingMCAAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	// (@jackofallops) - This is a helper Data Source until the Billing API is usable in the Azure SDK
 	billingScopeMCAFmt := "/providers/Microsoft.Billing/billingAccounts/%s/billingProfiles/%s/invoiceSections/%s"
 

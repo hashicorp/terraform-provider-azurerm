@@ -11,6 +11,7 @@ type Client struct {
 	DatabasesClient                   *postgresql.DatabasesClient
 	FirewallRulesClient               *postgresql.FirewallRulesClient
 	FlexibleServersClient             *postgresqlflexibleservers.ServersClient
+	FlexibleServerFirewallRuleClient  *postgresqlflexibleservers.FirewallRulesClient
 	ServersClient                     *postgresql.ServersClient
 	ServerKeysClient                  *postgresql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient *postgresql.ServerSecurityAlertPoliciesClient
@@ -50,11 +51,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	flexibleServersClient := postgresqlflexibleservers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&flexibleServersClient.Client, o.ResourceManagerAuthorizer)
 
+	FlexibleServerFirewallRuleClient := postgresqlflexibleservers.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FlexibleServerFirewallRuleClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ConfigurationsClient:              &configurationsClient,
 		DatabasesClient:                   &databasesClient,
 		FirewallRulesClient:               &firewallRulesClient,
 		FlexibleServersClient:             &flexibleServersClient,
+		FlexibleServerFirewallRuleClient:  &FlexibleServerFirewallRuleClient,
 		ServersClient:                     &serversClient,
 		ServerKeysClient:                  &serverKeysClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,

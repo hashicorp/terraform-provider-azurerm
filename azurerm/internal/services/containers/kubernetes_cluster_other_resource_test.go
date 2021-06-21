@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,6 +14,8 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"basicVMSS":                         testAccKubernetesCluster_basicVMSS,
 	"requiresImport":                    testAccKubernetesCluster_requiresImport,
 	"criticalAddonsTaint":               testAccKubernetesCluster_criticalAddonsTaint,
+	"kubeletAndLinuxOSConfig":           testAccKubernetesCluster_kubeletAndLinuxOSConfig,
+	"kubeletAndLinuxOSConfig_partial":   testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial,
 	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
 	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
 	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
@@ -46,10 +47,10 @@ func testAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAvailabilitySetConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
@@ -73,10 +74,10 @@ func testAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sameSize(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
@@ -105,10 +106,10 @@ func testAccKubernetesCluster_basicVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVMSSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
@@ -137,10 +138,10 @@ func testAccKubernetesCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVMSSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -160,12 +161,52 @@ func testAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.criticalAddonsTaintConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.only_critical_addons_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_kubeletAndLinuxOSConfig(t)
+}
+
+func testAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t)
+}
+
+func testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -181,10 +222,10 @@ func testAccKubernetesCluster_linuxProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.linuxProfileConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
@@ -211,26 +252,26 @@ func testAccKubernetesCluster_nodeLabels(t *testing.T) {
 	labels2 := map[string]string{"key2": "value2"}
 	labels3 := map[string]string{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodeLabelsConfig(data, labels1),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_labels.key").HasValue("value"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_labels.key2").HasValue("value2"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels3),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckNoResourceAttr(data.ResourceName, "default_node_pool.0.node_labels"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "default_node_pool.0.node_labels"),
 			),
 		},
 	})
@@ -245,10 +286,10 @@ func testAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodeResourceGroupConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -265,17 +306,17 @@ func testAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.freeSkuConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.paidSkuConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -292,10 +333,10 @@ func testAccKubernetesCluster_paidSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.paidSkuConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -312,17 +353,17 @@ func testAccKubernetesCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeConfig(data, olderKubernetesVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 			),
 		},
 		{
 			Config: r.upgradeConfig(data, currentKubernetesVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersion),
 			),
@@ -339,17 +380,17 @@ func testAccKubernetesCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tagsConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tagsUpdatedConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -366,10 +407,10 @@ func testAccKubernetesCluster_windowsProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsProfileConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
@@ -397,10 +438,10 @@ func testAccKubernetesCluster_diskEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.diskEncryptionConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disk_encryption_set_id").Exists(),
 			),
@@ -420,10 +461,10 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "rapid"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
@@ -432,7 +473,7 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
@@ -442,7 +483,7 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 		{
 			// unset = none
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
@@ -451,7 +492,7 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
@@ -766,6 +807,131 @@ resource "azurerm_kubernetes_cluster" "test" {
     type                         = "AvailabilitySet"
     vm_size                      = "Standard_DS2_v2"
     only_critical_addons_enabled = true
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) kubeletAndLinuxOSConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    kubelet_config {
+      cpu_manager_policy        = "static"
+      cpu_cfs_quota_enabled     = true
+      cpu_cfs_quota_period      = "10ms"
+      image_gc_high_threshold   = 90
+      image_gc_low_threshold    = 70
+      topology_manager_policy   = "best-effort"
+      allowed_unsafe_sysctls    = ["kernel.msg*", "net.core.somaxconn"]
+      container_log_max_size_mb = 100
+      container_log_max_line    = 100000
+      pod_max_pid               = 12345
+    }
+
+    linux_os_config {
+      transparent_huge_page_enabled = "always"
+      transparent_huge_page_defrag  = "always"
+      swap_file_size_mb             = 300
+
+      sysctl_config {
+        fs_aio_max_nr                      = 65536
+        fs_file_max                        = 100000
+        fs_inotify_max_user_watches        = 1000000
+        fs_nr_open                         = 1048576
+        kernel_threads_max                 = 200000
+        net_core_netdev_max_backlog        = 1800
+        net_core_optmem_max                = 30000
+        net_core_rmem_max                  = 300000
+        net_core_rmem_default              = 300000
+        net_core_somaxconn                 = 5000
+        net_core_wmem_default              = 300000
+        net_core_wmem_max                  = 300000
+        net_ipv4_ip_local_port_range_min   = 32768
+        net_ipv4_ip_local_port_range_max   = 60000
+        net_ipv4_neigh_default_gc_thresh1  = 128
+        net_ipv4_neigh_default_gc_thresh2  = 512
+        net_ipv4_neigh_default_gc_thresh3  = 1024
+        net_ipv4_tcp_fin_timeout           = 60
+        net_ipv4_tcp_keepalive_probes      = 9
+        net_ipv4_tcp_keepalive_time        = 6000
+        net_ipv4_tcp_max_syn_backlog       = 2048
+        net_ipv4_tcp_max_tw_buckets        = 100000
+        net_ipv4_tcp_tw_reuse              = true
+        net_ipv4_tcp_keepalive_intvl       = 70
+        net_netfilter_nf_conntrack_buckets = 65536
+        net_netfilter_nf_conntrack_max     = 200000
+        vm_max_map_count                   = 65536
+        vm_swappiness                      = 45
+        vm_vfs_cache_pressure              = 80
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    kubelet_config {
+      cpu_manager_policy    = "static"
+      cpu_cfs_quota_enabled = true
+      cpu_cfs_quota_period  = "10ms"
+    }
+
+    linux_os_config {
+      transparent_huge_page_enabled = "always"
+
+      sysctl_config {
+        fs_aio_max_nr               = 65536
+        fs_file_max                 = 100000
+        fs_inotify_max_user_watches = 1000000
+      }
+    }
   }
 
   identity {

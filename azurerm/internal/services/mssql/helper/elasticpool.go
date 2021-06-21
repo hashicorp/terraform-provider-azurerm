@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type skuType int
@@ -186,7 +186,7 @@ var getTierFromName = map[string]string{
 	"bc_gen5":      "BusinessCritical",
 }
 
-func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
+func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	name := diff.Get("sku.0.name")
 	tier := diff.Get("sku.0.tier")
 	capacity := diff.Get("sku.0.capacity")

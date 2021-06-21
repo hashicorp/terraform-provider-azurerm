@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type SqlDatabaseDataSource struct{}
 func TestAccDataSourceSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: SqlDatabaseDataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("collation").Exists(),
 				check.That(data.ResourceName).Key("edition").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
@@ -34,10 +33,10 @@ func TestAccDataSourceSqlDatabase_basic(t *testing.T) {
 func TestAccDataSourceSqlDatabase_elasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: SqlDatabaseDataSource{}.elasticPool(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("elastic_pool_name").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
@@ -51,10 +50,10 @@ func TestAccDataSourceSqlDatabase_elasticPool(t *testing.T) {
 func TestAccDataSourceSqlDatabase_readScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: SqlDatabaseDataSource{}.readScale(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
