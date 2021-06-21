@@ -78,18 +78,21 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 
 			"table_name": {
 				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
 				Optional:     true,
 				ValidateFunc: validate.EntityName,
 			},
 
 			"mapping_rule_name": {
 				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
 				Optional:     true,
 				ValidateFunc: validate.EntityName,
 			},
 
 			"data_format": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(kusto.IotHubDataFormatAPACHEAVRO),
