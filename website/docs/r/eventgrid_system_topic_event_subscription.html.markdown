@@ -152,19 +152,26 @@ A `advanced_filter` supports the following nested blocks:
 * `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
 * `number_in` - Compares a value of an event using multiple floating point numbers.
 * `number_not_in` - Compares a value of an event using multiple floating point numbers.
+* `number_in_range` - Compares a value of an event using multiple floating point number ranges.
+* `number_not_in_range` - Compares a value of an event using multiple floating point number ranges.
 * `string_begins_with` - Compares a value of an event using multiple string values.
+* `string_not_begins_with` - Compares a value of an event using multiple string values.
 * `string_ends_with` - Compares a value of an event using multiple string values.
+* `string_not_ends_with` - Compares a value of an event using multiple string values.
 * `string_contains` - Compares a value of an event using multiple string values.
+* `string_not_contains` - Compares a value of an event using multiple string values.
 * `string_in` - Compares a value of an event using multiple string values.
 * `string_not_in` - Compares a value of an event using multiple string values.
+* `is_not_null` - Evaluates if a value of an event isn't NULL or undefined.
+* `is_null_or_undefined` - Evaluates if a value of an event is NULL or undefined.
 
 Each nested block consists of a key and a value(s) element.
 
 * `key` - (Required) Specifies the field within the event data that you want to use for filtering. Type of the field can be a number, boolean, or string.
 
-* `value` - (Required) Specifies a single value to compare to when using a single value operator. 
+* `value` - (Required) Specifies a single value to compare to when using a single value operator.
 
-**OR** 
+**OR**
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
@@ -188,7 +195,7 @@ A `retry_policy` supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the EventGrid System Topic.
 
