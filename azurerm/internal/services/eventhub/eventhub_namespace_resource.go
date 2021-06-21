@@ -355,7 +355,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -429,7 +429,7 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -601,8 +601,8 @@ func expandEventHubIdentity(input []interface{}) *namespaces.Identity {
 
 	v := input[0].(map[string]interface{})
 	return &namespaces.Identity{
-		Type: func() *namespaces.IdentityType {
-			v := namespaces.IdentityType(v["type"].(string))
+		Type: func() *namespaces.ManagedServiceIdentityType {
+			v := namespaces.ManagedServiceIdentityType(v["type"].(string))
 			return &v
 		}(),
 	}
