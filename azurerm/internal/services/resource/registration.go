@@ -5,6 +5,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
+
 type Registration struct{}
 
 // Name is the name of this Service

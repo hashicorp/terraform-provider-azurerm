@@ -76,10 +76,7 @@ func Index(collection, key cty.Value, srcRange *Range) (cty.Value, Diagnostics) 
 			}
 		}
 
-		// Here we drop marks from HasIndex result, in order to allow basic
-		// traversal of a marked list, tuple, or map in the same way we can
-		// traverse a marked object
-		has, _ := collection.HasIndex(key).Unmark()
+		has := collection.HasIndex(key)
 		if !has.IsKnown() {
 			if ty.IsTupleType() {
 				return cty.DynamicVal, nil
@@ -220,12 +217,7 @@ func GetAttr(obj cty.Value, attrName string, srcRange *Range) (cty.Value, Diagno
 		}
 
 		idx := cty.StringVal(attrName)
-
-		// Here we drop marks from HasIndex result, in order to allow basic
-		// traversal of a marked map in the same way we can traverse a marked
-		// object
-		hasIndex, _ := obj.HasIndex(idx).Unmark()
-		if hasIndex.False() {
+		if obj.HasIndex(idx).False() {
 			return cty.DynamicVal, Diagnostics{
 				{
 					Severity: DiagError,

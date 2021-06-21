@@ -738,7 +738,7 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := state.WaitForState()
+	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
 		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
@@ -756,7 +756,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	resp, err := state.WaitForState()
+	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
 		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}

@@ -1,11 +1,12 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestValidateResourceIDPriorToImport(t *testing.T) {
@@ -37,7 +38,7 @@ func TestValidateResourceIDPriorToImport(t *testing.T) {
 		f := ValidateResourceIDPriorToImport(v.validator)
 		resourceData := &schema.ResourceData{}
 		resourceData.SetId("hello")
-		_, err := f.State(resourceData, nil)
+		_, err := f.StateContext(context.TODO(), resourceData, nil)
 		wasImported := err == nil
 
 		if v.shouldBeImported != wasImported {

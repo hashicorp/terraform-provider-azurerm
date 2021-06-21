@@ -109,7 +109,7 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 

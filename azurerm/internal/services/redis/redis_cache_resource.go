@@ -395,7 +395,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %s", id.RediName, id.ResourceGroup, err)
 	}
 
@@ -486,7 +486,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
 	}
 

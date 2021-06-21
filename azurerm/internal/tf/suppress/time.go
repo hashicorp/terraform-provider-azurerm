@@ -3,7 +3,7 @@ package suppress
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func RFC3339Time(_, old, new string, _ *schema.ResourceData) bool {

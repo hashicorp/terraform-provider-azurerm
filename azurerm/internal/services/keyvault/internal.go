@@ -57,7 +57,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		PollInterval:              5 * time.Second,
 		Timeout:                   time.Until(timeout),
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", description, err)
 	}
 	log.Printf("[DEBUG] Deleted %s.", description)
@@ -102,7 +102,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		PollInterval:              5 * time.Second,
 		Timeout:                   time.Until(timeout),
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish purging: %+v", description, err)
 	}
 	log.Printf("[DEBUG] Purged %s.", description)

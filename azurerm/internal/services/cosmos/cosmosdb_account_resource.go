@@ -957,7 +957,7 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for CosmosDB Account %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -1017,7 +1017,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := stateConf.WaitForState()
+	resp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
 	}

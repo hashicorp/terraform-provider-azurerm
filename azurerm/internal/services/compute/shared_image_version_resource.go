@@ -282,7 +282,7 @@ func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{
 		Timeout:                   time.Until(timeout),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 

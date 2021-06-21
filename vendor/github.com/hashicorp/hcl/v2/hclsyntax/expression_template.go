@@ -26,9 +26,6 @@ func (e *TemplateExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) 
 	var diags hcl.Diagnostics
 	isKnown := true
 
-	// Maintain a set of marks for values used in the template
-	marks := make(cty.ValueMarks)
-
 	for _, part := range e.Parts {
 		partVal, partDiags := part.Value(ctx)
 		diags = append(diags, partDiags...)
@@ -74,24 +71,14 @@ func (e *TemplateExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) 
 			continue
 		}
 
-		// Unmark the part and merge its marks into the set
-		unmarked, partMarks := strVal.Unmark()
-		for k, v := range partMarks {
-			marks[k] = v
-		}
-
-		buf.WriteString(unmarked.AsString())
+		buf.WriteString(strVal.AsString())
 	}
 
-	var ret cty.Value
 	if !isKnown {
-		ret = cty.UnknownVal(cty.String)
-	} else {
-		ret = cty.StringVal(buf.String())
+		return cty.UnknownVal(cty.String), diags
 	}
 
-	// Apply the full set of marks to the returned value
-	return ret.WithMarks(marks), diags
+	return cty.StringVal(buf.String()), diags
 }
 
 func (e *TemplateExpr) Range() hcl.Range {
@@ -152,8 +139,6 @@ func (e *TemplateJoinExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 		return cty.UnknownVal(cty.String), diags
 	}
 
-	tuple, marks := tuple.Unmark()
-	allMarks := []cty.ValueMarks{marks}
 	buf := &bytes.Buffer{}
 	it := tuple.ElementIterator()
 	for it.Next() {
@@ -173,7 +158,7 @@ func (e *TemplateJoinExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 			continue
 		}
 		if val.Type() == cty.DynamicPseudoType {
-			return cty.UnknownVal(cty.String).WithMarks(marks), diags
+			return cty.UnknownVal(cty.String), diags
 		}
 		strVal, err := convert.Convert(val, cty.String)
 		if err != nil {
@@ -191,17 +176,13 @@ func (e *TemplateJoinExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 			continue
 		}
 		if !val.IsKnown() {
-			return cty.UnknownVal(cty.String).WithMarks(marks), diags
+			return cty.UnknownVal(cty.String), diags
 		}
 
-		strVal, strValMarks := strVal.Unmark()
-		if len(strValMarks) > 0 {
-			allMarks = append(allMarks, strValMarks)
-		}
 		buf.WriteString(strVal.AsString())
 	}
 
-	return cty.StringVal(buf.String()).WithMarks(allMarks...), diags
+	return cty.StringVal(buf.String()), diags
 }
 
 func (e *TemplateJoinExpr) Range() hcl.Range {

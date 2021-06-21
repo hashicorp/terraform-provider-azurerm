@@ -296,7 +296,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 		Timeout:                   time.Until(timeout),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 

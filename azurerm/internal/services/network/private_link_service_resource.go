@@ -216,7 +216,7 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 

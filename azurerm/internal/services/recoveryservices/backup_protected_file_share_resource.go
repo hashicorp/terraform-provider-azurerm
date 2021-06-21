@@ -309,7 +309,7 @@ func resourceBackupProtectedFileShareWaitForOperation(ctx context.Context, clien
 	}
 
 	log.Printf("[DEBUG] Waiting for backup operation %s (Vault %s) to complete", operationID, vaultName)
-	resp, err := state.WaitForState()
+	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
 		return resp.(backup.OperationStatus), err
 	}
