@@ -102,7 +102,8 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating or updating API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 
-	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError { //lintignore:R006
+	//lintignore:R006
+	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

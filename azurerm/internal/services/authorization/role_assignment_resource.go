@@ -307,7 +307,8 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string) func() *pluginsdk.RetryError { //lintignore:R006
+//lintignore:R006
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
