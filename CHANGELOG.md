@@ -2,7 +2,10 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v2.6.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-12209]
 * dependencies: upgrading to `v55.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-12263]
+* dependencies: updating to `v0.11.19` of `github.com/Azure/go-autorest/autorest` [GH-12209]
+* dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` [GH-12209]
 
 BUG FIXES:
 
