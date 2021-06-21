@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v55.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-12263]
 * dependencies: updating to `v0.11.19` of `github.com/Azure/go-autorest/autorest` [GH-12209]
 * dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` [GH-12209]
+* dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` [GH-12290]
 
 BUG FIXES:
 
