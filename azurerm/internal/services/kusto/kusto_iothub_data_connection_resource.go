@@ -76,6 +76,41 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				ValidateFunc: iothubValidate.IoTHubConsumerGroupName,
 			},
 
+			"table_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.EntityName,
+			},
+
+			"mapping_rule_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.EntityName,
+			},
+
+			"data_format": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.EventHubDataFormatAPACHEAVRO),
+					string(kusto.EventHubDataFormatAVRO),
+					string(kusto.EventHubDataFormatCSV),
+					string(kusto.EventHubDataFormatJSON),
+					string(kusto.EventHubDataFormatMULTIJSON),
+					string(kusto.EventHubDataFormatORC),
+					string(kusto.EventHubDataFormatPARQUET),
+					string(kusto.EventHubDataFormatPSV),
+					string(kusto.EventHubDataFormatRAW),
+					string(kusto.EventHubDataFormatSCSV),
+					string(kusto.EventHubDataFormatSINGLEJSON),
+					string(kusto.EventHubDataFormatSOHSV),
+					string(kusto.EventHubDataFormatTSV),
+					string(kusto.EventHubDataFormatTSVE),
+					string(kusto.EventHubDataFormatTXT),
+					string(kusto.EventHubDataFormatW3CLOGFILE),
+				}, false),
+			},
+
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -133,6 +168,9 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 		IotHubConnectionProperties: &kusto.IotHubConnectionProperties{
 			IotHubResourceID:       utils.String(d.Get("iothub_id").(string)),
 			ConsumerGroup:          utils.String(d.Get("consumer_group").(string)),
+			TableName :             utils.String(d.Get("table_name").(string)),
+			MappingRuleName :       utils.String(d.Get("mapping_rule_name").(string)),
+			DataFormat :            kusto.IotHubDataFormat(d.Get("data_format").(string)),
 			SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 		},
 	}
@@ -183,6 +221,9 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 		if props := dataConnection.IotHubConnectionProperties; props != nil {
 			d.Set("iothub_id", props.IotHubResourceID)
 			d.Set("consumer_group", props.ConsumerGroup)
+			d.Set("table_name", props.TableName)
+			d.Set("mapping_rule_name", props.MappingRuleName)
+			d.Set("data_format", props.DataFormat)
 			d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
 			d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
 		}
