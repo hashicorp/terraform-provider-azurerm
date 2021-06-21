@@ -59,6 +59,34 @@ func PossibleActionTypeValues() []ActionType {
 	return []ActionType{ActionTypeAutomationAction, ActionTypeEventHub, ActionTypeLogicApp, ActionTypeWorkspace}
 }
 
+// AdditionalWorkspaceDataType enumerates the values for additional workspace data type.
+type AdditionalWorkspaceDataType string
+
+const (
+	// Alerts ...
+	Alerts AdditionalWorkspaceDataType = "Alerts"
+	// RawEvents ...
+	RawEvents AdditionalWorkspaceDataType = "RawEvents"
+)
+
+// PossibleAdditionalWorkspaceDataTypeValues returns an array of possible values for the AdditionalWorkspaceDataType const type.
+func PossibleAdditionalWorkspaceDataTypeValues() []AdditionalWorkspaceDataType {
+	return []AdditionalWorkspaceDataType{Alerts, RawEvents}
+}
+
+// AdditionalWorkspaceType enumerates the values for additional workspace type.
+type AdditionalWorkspaceType string
+
+const (
+	// Sentinel ...
+	Sentinel AdditionalWorkspaceType = "Sentinel"
+)
+
+// PossibleAdditionalWorkspaceTypeValues returns an array of possible values for the AdditionalWorkspaceType const type.
+func PossibleAdditionalWorkspaceTypeValues() []AdditionalWorkspaceType {
+	return []AdditionalWorkspaceType{Sentinel}
+}
+
 // AlertIntent enumerates the values for alert intent.
 type AlertIntent string
 
@@ -293,25 +321,52 @@ func PossibleAutoProvisionValues() []AutoProvision {
 	return []AutoProvision{AutoProvisionOff, AutoProvisionOn}
 }
 
-// Category enumerates the values for category.
-type Category string
+// BundleType enumerates the values for bundle type.
+type BundleType string
+
+const (
+	// AppServices ...
+	AppServices BundleType = "AppServices"
+	// DNS ...
+	DNS BundleType = "DNS"
+	// KeyVaults ...
+	KeyVaults BundleType = "KeyVaults"
+	// KubernetesService ...
+	KubernetesService BundleType = "KubernetesService"
+	// ResourceManager ...
+	ResourceManager BundleType = "ResourceManager"
+	// SQLServers ...
+	SQLServers BundleType = "SqlServers"
+	// StorageAccounts ...
+	StorageAccounts BundleType = "StorageAccounts"
+	// VirtualMachines ...
+	VirtualMachines BundleType = "VirtualMachines"
+)
+
+// PossibleBundleTypeValues returns an array of possible values for the BundleType const type.
+func PossibleBundleTypeValues() []BundleType {
+	return []BundleType{AppServices, DNS, KeyVaults, KubernetesService, ResourceManager, SQLServers, StorageAccounts, VirtualMachines}
+}
+
+// Categories enumerates the values for categories.
+type Categories string
 
 const (
 	// Compute ...
-	Compute Category = "Compute"
+	Compute Categories = "Compute"
 	// Data ...
-	Data Category = "Data"
+	Data Categories = "Data"
 	// IdentityAndAccess ...
-	IdentityAndAccess Category = "IdentityAndAccess"
+	IdentityAndAccess Categories = "IdentityAndAccess"
 	// IoT ...
-	IoT Category = "IoT"
+	IoT Categories = "IoT"
 	// Networking ...
-	Networking Category = "Networking"
+	Networking Categories = "Networking"
 )
 
-// PossibleCategoryValues returns an array of possible values for the Category const type.
-func PossibleCategoryValues() []Category {
-	return []Category{Compute, Data, IdentityAndAccess, IoT, Networking}
+// PossibleCategoriesValues returns an array of possible values for the Categories const type.
+func PossibleCategoriesValues() []Categories {
+	return []Categories{Compute, Data, IdentityAndAccess, IoT, Networking}
 }
 
 // ConfigurationStatus enumerates the values for configuration status.
@@ -407,6 +462,25 @@ func PossibleControlTypeValues() []ControlType {
 	return []ControlType{ControlTypeBuiltIn, ControlTypeCustom}
 }
 
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
+
+const (
+	// Application ...
+	Application CreatedByType = "Application"
+	// Key ...
+	Key CreatedByType = "Key"
+	// ManagedIdentity ...
+	ManagedIdentity CreatedByType = "ManagedIdentity"
+	// User ...
+	User CreatedByType = "User"
+)
+
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{Application, Key, ManagedIdentity, User}
+}
+
 // DataSource enumerates the values for data source.
 type DataSource string
 
@@ -465,21 +539,42 @@ func PossibleDirectionValues() []Direction {
 	return []Direction{Inbound, Outbound}
 }
 
+// EndOfSupportStatus enumerates the values for end of support status.
+type EndOfSupportStatus string
+
+const (
+	// NoLongerSupported ...
+	NoLongerSupported EndOfSupportStatus = "noLongerSupported"
+	// None ...
+	None EndOfSupportStatus = "None"
+	// UpcomingNoLongerSupported ...
+	UpcomingNoLongerSupported EndOfSupportStatus = "upcomingNoLongerSupported"
+	// UpcomingVersionNoLongerSupported ...
+	UpcomingVersionNoLongerSupported EndOfSupportStatus = "upcomingVersionNoLongerSupported"
+	// VersionNoLongerSupported ...
+	VersionNoLongerSupported EndOfSupportStatus = "versionNoLongerSupported"
+)
+
+// PossibleEndOfSupportStatusValues returns an array of possible values for the EndOfSupportStatus const type.
+func PossibleEndOfSupportStatusValues() []EndOfSupportStatus {
+	return []EndOfSupportStatus{NoLongerSupported, None, UpcomingNoLongerSupported, UpcomingVersionNoLongerSupported, VersionNoLongerSupported}
+}
+
 // EnforcementMode enumerates the values for enforcement mode.
 type EnforcementMode string
 
 const (
-	// Audit ...
-	Audit EnforcementMode = "Audit"
-	// Enforce ...
-	Enforce EnforcementMode = "Enforce"
-	// None ...
-	None EnforcementMode = "None"
+	// EnforcementModeAudit ...
+	EnforcementModeAudit EnforcementMode = "Audit"
+	// EnforcementModeEnforce ...
+	EnforcementModeEnforce EnforcementMode = "Enforce"
+	// EnforcementModeNone ...
+	EnforcementModeNone EnforcementMode = "None"
 )
 
 // PossibleEnforcementModeValues returns an array of possible values for the EnforcementMode const type.
 func PossibleEnforcementModeValues() []EnforcementMode {
-	return []EnforcementMode{Audit, Enforce, None}
+	return []EnforcementMode{EnforcementModeAudit, EnforcementModeEnforce, EnforcementModeNone}
 }
 
 // EnforcementSupport enumerates the values for enforcement support.
@@ -503,21 +598,29 @@ func PossibleEnforcementSupportValues() []EnforcementSupport {
 type EventSource string
 
 const (
-	// Alerts ...
-	Alerts EventSource = "Alerts"
-	// Assessments ...
-	Assessments EventSource = "Assessments"
-	// SecureScoreControls ...
-	SecureScoreControls EventSource = "SecureScoreControls"
-	// SecureScores ...
-	SecureScores EventSource = "SecureScores"
-	// SubAssessments ...
-	SubAssessments EventSource = "SubAssessments"
+	// EventSourceAlerts ...
+	EventSourceAlerts EventSource = "Alerts"
+	// EventSourceAssessments ...
+	EventSourceAssessments EventSource = "Assessments"
+	// EventSourceRegulatoryComplianceAssessment ...
+	EventSourceRegulatoryComplianceAssessment EventSource = "RegulatoryComplianceAssessment"
+	// EventSourceRegulatoryComplianceAssessmentSnapshot ...
+	EventSourceRegulatoryComplianceAssessmentSnapshot EventSource = "RegulatoryComplianceAssessmentSnapshot"
+	// EventSourceSecureScoreControls ...
+	EventSourceSecureScoreControls EventSource = "SecureScoreControls"
+	// EventSourceSecureScoreControlsSnapshot ...
+	EventSourceSecureScoreControlsSnapshot EventSource = "SecureScoreControlsSnapshot"
+	// EventSourceSecureScores ...
+	EventSourceSecureScores EventSource = "SecureScores"
+	// EventSourceSecureScoresSnapshot ...
+	EventSourceSecureScoresSnapshot EventSource = "SecureScoresSnapshot"
+	// EventSourceSubAssessments ...
+	EventSourceSubAssessments EventSource = "SubAssessments"
 )
 
 // PossibleEventSourceValues returns an array of possible values for the EventSource const type.
 func PossibleEventSourceValues() []EventSource {
-	return []EventSource{Alerts, Assessments, SecureScoreControls, SecureScores, SubAssessments}
+	return []EventSource{EventSourceAlerts, EventSourceAssessments, EventSourceRegulatoryComplianceAssessment, EventSourceRegulatoryComplianceAssessmentSnapshot, EventSourceSecureScoreControls, EventSourceSecureScoreControlsSnapshot, EventSourceSecureScores, EventSourceSecureScoresSnapshot, EventSourceSubAssessments}
 }
 
 // Exe enumerates the values for exe.
@@ -586,13 +689,13 @@ func PossibleExpandEnumValues() []ExpandEnum {
 type ExportData string
 
 const (
-	// RawEvents Agent raw events
-	RawEvents ExportData = "RawEvents"
+	// ExportDataRawEvents Agent raw events
+	ExportDataRawEvents ExportData = "RawEvents"
 )
 
 // PossibleExportDataValues returns an array of possible values for the ExportData const type.
 func PossibleExportDataValues() []ExportData {
-	return []ExportData{RawEvents}
+	return []ExportData{ExportDataRawEvents}
 }
 
 // ExternalSecuritySolutionKind enumerates the values for external security solution kind.
@@ -809,6 +912,21 @@ func PossibleKindEnum1Values() []KindEnum1 {
 	return []KindEnum1{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
 }
 
+// KindEnum2 enumerates the values for kind enum 2.
+type KindEnum2 string
+
+const (
+	// KindAlertSimulatorRequestProperties ...
+	KindAlertSimulatorRequestProperties KindEnum2 = "AlertSimulatorRequestProperties"
+	// KindBundles ...
+	KindBundles KindEnum2 = "Bundles"
+)
+
+// PossibleKindEnum2Values returns an array of possible values for the KindEnum2 const type.
+func PossibleKindEnum2Values() []KindEnum2 {
+	return []KindEnum2{KindAlertSimulatorRequestProperties, KindBundles}
+}
+
 // MacSignificance enumerates the values for mac significance.
 type MacSignificance string
 
@@ -856,27 +974,42 @@ func PossibleMsiValues() []Msi {
 	return []Msi{MsiAudit, MsiEnforce, MsiNone}
 }
 
+// OnboardingKind enumerates the values for onboarding kind.
+type OnboardingKind string
+
+const (
+	// Default ...
+	Default OnboardingKind = "Default"
+	// MigratedToAzure ...
+	MigratedToAzure OnboardingKind = "MigratedToAzure"
+)
+
+// PossibleOnboardingKindValues returns an array of possible values for the OnboardingKind const type.
+func PossibleOnboardingKindValues() []OnboardingKind {
+	return []OnboardingKind{Default, MigratedToAzure}
+}
+
 // Operator enumerates the values for operator.
 type Operator string
 
 const (
-	// Contains ...
+	// Contains Applies only for non-decimal operands
 	Contains Operator = "Contains"
-	// EndsWith ...
+	// EndsWith Applies only for non-decimal operands
 	EndsWith Operator = "EndsWith"
-	// Equals ...
+	// Equals Applies for decimal and non-decimal operands
 	Equals Operator = "Equals"
-	// GreaterThan ...
+	// GreaterThan Applies only for decimal operands
 	GreaterThan Operator = "GreaterThan"
-	// GreaterThanOrEqualTo ...
+	// GreaterThanOrEqualTo Applies only for decimal operands
 	GreaterThanOrEqualTo Operator = "GreaterThanOrEqualTo"
-	// LesserThan ...
+	// LesserThan Applies only for decimal operands
 	LesserThan Operator = "LesserThan"
-	// LesserThanOrEqualTo ...
+	// LesserThanOrEqualTo Applies only for decimal operands
 	LesserThanOrEqualTo Operator = "LesserThanOrEqualTo"
-	// NotEquals ...
+	// NotEquals Applies  for decimal and non-decimal operands
 	NotEquals Operator = "NotEquals"
-	// StartsWith ...
+	// StartsWith Applies only for non-decimal operands
 	StartsWith Operator = "StartsWith"
 )
 
@@ -1336,6 +1469,8 @@ const (
 	RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "AmqpC2DRejectedMessagesNotInAllowedRange"
 	// RuleTypeAmqpD2CMessagesNotInAllowedRange ...
 	RuleTypeAmqpD2CMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "AmqpD2CMessagesNotInAllowedRange"
+	// RuleTypeConnectionFromIPNotAllowed ...
+	RuleTypeConnectionFromIPNotAllowed RuleTypeBasicCustomAlertRule = "ConnectionFromIpNotAllowed"
 	// RuleTypeConnectionToIPNotAllowed ...
 	RuleTypeConnectionToIPNotAllowed RuleTypeBasicCustomAlertRule = "ConnectionToIpNotAllowed"
 	// RuleTypeCustomAlertRule ...
@@ -1380,7 +1515,7 @@ const (
 
 // PossibleRuleTypeBasicCustomAlertRuleValues returns an array of possible values for the RuleTypeBasicCustomAlertRule const type.
 func PossibleRuleTypeBasicCustomAlertRuleValues() []RuleTypeBasicCustomAlertRule {
-	return []RuleTypeBasicCustomAlertRule{RuleTypeActiveConnectionsNotInAllowedRange, RuleTypeAllowlistCustomAlertRule, RuleTypeAmqpC2DMessagesNotInAllowedRange, RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange, RuleTypeAmqpD2CMessagesNotInAllowedRange, RuleTypeConnectionToIPNotAllowed, RuleTypeCustomAlertRule, RuleTypeDenylistCustomAlertRule, RuleTypeDirectMethodInvokesNotInAllowedRange, RuleTypeFailedLocalLoginsNotInAllowedRange, RuleTypeFileUploadsNotInAllowedRange, RuleTypeHTTPC2DMessagesNotInAllowedRange, RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange, RuleTypeHTTPD2CMessagesNotInAllowedRange, RuleTypeListCustomAlertRule, RuleTypeLocalUserNotAllowed, RuleTypeMqttC2DMessagesNotInAllowedRange, RuleTypeMqttC2DRejectedMessagesNotInAllowedRange, RuleTypeMqttD2CMessagesNotInAllowedRange, RuleTypeProcessNotAllowed, RuleTypeQueuePurgesNotInAllowedRange, RuleTypeThresholdCustomAlertRule, RuleTypeTimeWindowCustomAlertRule, RuleTypeTwinUpdatesNotInAllowedRange, RuleTypeUnauthorizedOperationsNotInAllowedRange}
+	return []RuleTypeBasicCustomAlertRule{RuleTypeActiveConnectionsNotInAllowedRange, RuleTypeAllowlistCustomAlertRule, RuleTypeAmqpC2DMessagesNotInAllowedRange, RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange, RuleTypeAmqpD2CMessagesNotInAllowedRange, RuleTypeConnectionFromIPNotAllowed, RuleTypeConnectionToIPNotAllowed, RuleTypeCustomAlertRule, RuleTypeDenylistCustomAlertRule, RuleTypeDirectMethodInvokesNotInAllowedRange, RuleTypeFailedLocalLoginsNotInAllowedRange, RuleTypeFileUploadsNotInAllowedRange, RuleTypeHTTPC2DMessagesNotInAllowedRange, RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange, RuleTypeHTTPD2CMessagesNotInAllowedRange, RuleTypeListCustomAlertRule, RuleTypeLocalUserNotAllowed, RuleTypeMqttC2DMessagesNotInAllowedRange, RuleTypeMqttC2DRejectedMessagesNotInAllowedRange, RuleTypeMqttD2CMessagesNotInAllowedRange, RuleTypeProcessNotAllowed, RuleTypeQueuePurgesNotInAllowedRange, RuleTypeThresholdCustomAlertRule, RuleTypeTimeWindowCustomAlertRule, RuleTypeTwinUpdatesNotInAllowedRange, RuleTypeUnauthorizedOperationsNotInAllowedRange}
 }
 
 // ScanningFunctionality enumerates the values for scanning functionality.
@@ -1464,6 +1599,21 @@ const (
 // PossibleSensorStatusValues returns an array of possible values for the SensorStatus const type.
 func PossibleSensorStatusValues() []SensorStatus {
 	return []SensorStatus{Disconnected, Ok, Unavailable}
+}
+
+// SensorType enumerates the values for sensor type.
+type SensorType string
+
+const (
+	// SensorTypeEnterprise ...
+	SensorTypeEnterprise SensorType = "Enterprise"
+	// SensorTypeOt ...
+	SensorTypeOt SensorType = "Ot"
+)
+
+// PossibleSensorTypeValues returns an array of possible values for the SensorType const type.
+func PossibleSensorTypeValues() []SensorType {
+	return []SensorType{SensorTypeEnterprise, SensorTypeOt}
 }
 
 // Severity enumerates the values for severity.
