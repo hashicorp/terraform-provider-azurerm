@@ -125,10 +125,10 @@ func TestAccWindowsVirtualMachine_scalingProximityPlacementGroupUpdate(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scalingProximityPlacementGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -137,7 +137,7 @@ func TestAccWindowsVirtualMachine_scalingProximityPlacementGroupUpdate(t *testin
 		),
 		{
 			Config: r.scalingProximityPlacementGroupUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -151,10 +151,10 @@ func TestAccWindowsVirtualMachine_scalingProximityPlacementGroupRemoved(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scalingProximityPlacementGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -163,7 +163,7 @@ func TestAccWindowsVirtualMachine_scalingProximityPlacementGroupRemoved(t *testi
 		),
 		{
 			Config: r.scalingProximityPlacementGroupRemoved(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
