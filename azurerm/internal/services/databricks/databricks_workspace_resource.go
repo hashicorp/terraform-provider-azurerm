@@ -84,7 +84,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew: true,
 							Optional: true,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id", "custom_parameters.0.prepare_encryption", "custom_parameters.0.infrastructure_encryption_enabled",
 							},
 						},
 
@@ -93,7 +93,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew: true,
 							Optional: true,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id", "custom_parameters.0.prepare_encryption", "custom_parameters.0.infrastructure_encryption_enabled",
 							},
 						},
 
@@ -102,7 +102,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew: true,
 							Optional: true,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id", "custom_parameters.0.prepare_encryption", "custom_parameters.0.infrastructure_encryption_enabled",
 							},
 						},
 
@@ -112,7 +112,25 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id", "custom_parameters.0.prepare_encryption", "custom_parameters.0.infrastructure_encryption_enabled",
+							},
+						},
+
+						"prepare_encryption": {
+							Type:     pluginsdk.TypeBool,
+							ForceNew: true,
+							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id", "custom_parameters.0.prepare_encryption", "custom_parameters.0.infrastructure_encryption_enabled",
+							},
+						},
+
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							ForceNew: true,
+							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id", "custom_parameters.0.prepare_encryption", "custom_parameters.0.infrastructure_encryption_enabled",
 							},
 						},
 					},
@@ -341,6 +359,18 @@ func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) [
 		}
 	}
 
+	if v := p.PrepareEncryption; v != nil {
+		if v.Value != nil {
+			parameters["prepare_encryption"] = *v.Value
+		}
+	}
+
+	if v := p.RequireInfrastructureEncryption; v != nil {
+		if v.Value != nil {
+			parameters["infrastructure_encryption_enabled"] = *v.Value
+		}
+	}
+
 	return []interface{}{parameters}
 }
 
@@ -372,6 +402,18 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 
 	if v := config["virtual_network_id"].(string); v != "" {
 		parameters.CustomVirtualNetworkID = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["prepare_encryption"].(bool); ok {
+		parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
+		parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
 			Value: &v,
 		}
 	}

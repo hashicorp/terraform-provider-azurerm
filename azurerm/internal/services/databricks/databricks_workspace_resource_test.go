@@ -62,6 +62,8 @@ func TestAccDatabricksWorkspace_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
 				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").Exists(),
+				check.That(data.ResourceName).Key("custom_parameters.0.prepare_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("custom_parameters.0.infrastructure_encryption_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
 				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
@@ -265,10 +267,12 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
-    no_public_ip        = true
-    public_subnet_name  = azurerm_subnet.public.name
-    private_subnet_name = azurerm_subnet.private.name
-    virtual_network_id  = azurerm_virtual_network.test.id
+    no_public_ip        			  = true
+    public_subnet_name  		      = azurerm_subnet.public.name
+    private_subnet_name 			  = azurerm_subnet.private.name
+    virtual_network_id  			  = azurerm_virtual_network.test.id
+	prepare_encryption  			  = true
+	infrastructure_encryption_enabled = true
   }
 
   tags = {
@@ -302,7 +306,9 @@ resource "azurerm_databricks_workspace" "test" {
   }
 
   custom_parameters {
-    no_public_ip = false
+    no_public_ip       				  = false
+	prepare_encryption 				  = true
+	infrastructure_encryption_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

@@ -64,6 +64,10 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
 
+* `prepare_encryption` - (Optional) Boolean value. If true, prepare the workspace for encryption. Enables the Managed Identity for managed storage account. 
+
+* `infrastructure_encryption_enabled` - (Optional) Boolean value. If true, DBFS root file system has secondary layer of encryption with platform managed keys enabled for data at rest.
+
 ~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
 
 ## Attributes Reference
