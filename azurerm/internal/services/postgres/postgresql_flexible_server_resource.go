@@ -114,9 +114,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"private_dns_zone_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				// This is `computed`, because there is a breaking change to require this field when setting vnet.
+				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
+				// We need to ignore the diff when remote is set private dns zone
 				ForceNew:     true,
 				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 			},
