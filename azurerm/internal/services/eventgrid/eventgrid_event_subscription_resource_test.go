@@ -637,7 +637,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.contentLength"
       values = [5, 8, 13, 21, 34]
     }
-	number_in_range {
+    number_in_range {
       key    = "data.contentLength"
       values = [[0, 1], [2, 3]]
     }
@@ -653,7 +653,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "subject"
       values = ["bar"]
     }
-	string_not_begins_with {
+    string_not_begins_with {
       key    = "subject"
       values = ["lorem"]
     }
@@ -665,7 +665,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.contentType"
       values = ["application", "octet-stream"]
     }
-	string_not_contains {
+    string_not_contains {
       key    = "data.contentType"
       values = ["text"]
     }
@@ -677,11 +677,11 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.blobType"
       values = ["Page"]
     }
-	is_not_null {
-      key    = "subject"
+    is_not_null {
+      key = "subject"
     }
-	is_null_or_undefined {
-      key    = "subject"
+    is_null_or_undefined {
+      key = "subject"
     }
   }
 
