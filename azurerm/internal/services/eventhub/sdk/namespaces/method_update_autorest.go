@@ -57,7 +57,7 @@ func (c NamespacesClient) preparerForUpdate(ctx context.Context, id NamespaceId,
 func (c NamespacesClient) responderForUpdate(resp *http.Response) (result UpdateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted, http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
