@@ -15,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type virtualMachineIdentity = identity.SystemAssignedUserAssigned
+
 func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -67,12 +69,8 @@ func flattenVirtualMachineAdditionalCapabilities(input *compute.AdditionalCapabi
 	}
 }
 
-func virtualMachineIdentitySchema() *pluginsdk.Schema {
-	return identity.SystemAssignedUserAssigned{}.Schema()
-}
-
 func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineIdentity, error) {
-	config, err := identity.SystemAssignedUserAssigned{}.Expand(input)
+	config, err := virtualMachineIdentity{}.Expand(input)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +109,7 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]int
 			UserAssignedIdentityIds: &identityIds,
 		}
 	}
-	return identity.SystemAssignedUserAssigned{}.Flatten(config), nil
+	return virtualMachineIdentity{}.Flatten(config), nil
 }
 
 func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []compute.NetworkInterfaceReference {

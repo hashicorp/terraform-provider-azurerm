@@ -174,7 +174,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentitySchema(),
+			"identity": virtualMachineIdentity{}.Schema(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
