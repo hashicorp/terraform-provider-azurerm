@@ -175,9 +175,9 @@ Each nested block consists of a key and a value(s) element.
 
 * `key` - (Required) Specifies the field within the event data that you want to use for filtering. Type of the field can be a number, boolean, or string.
 
-* `value` - (Required) Specifies a single value to compare to when using a single value operator. 
+* `value` - (Required) Specifies a single value to compare to when using a single value operator.
 
-**OR** 
+**OR**
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
