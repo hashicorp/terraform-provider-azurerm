@@ -168,9 +168,9 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 		IotHubConnectionProperties: &kusto.IotHubConnectionProperties{
 			IotHubResourceID:       utils.String(d.Get("iothub_id").(string)),
 			ConsumerGroup:          utils.String(d.Get("consumer_group").(string)),
-			TableName :             utils.String(d.Get("table_name").(string)),
-			MappingRuleName :       utils.String(d.Get("mapping_rule_name").(string)),
-			DataFormat :            kusto.IotHubDataFormat(d.Get("data_format").(string)),
+			TableName:              utils.String(d.Get("table_name").(string)),
+			MappingRuleName:        utils.String(d.Get("mapping_rule_name").(string)),
+			DataFormat:             kusto.IotHubDataFormat(d.Get("data_format").(string)),
 			SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 		},
 	}
