@@ -1,6 +1,7 @@
 package dataprotection
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/validate"
 	postgresParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	postgresValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -136,6 +138,18 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		return fmt.Errorf("waiting for creation/update of the DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(dataprotection.ConfiguringProtection), string(dataprotection.UpdatingProtection)},
+		Target:     []string{string(dataprotection.ProtectionConfigured)},
+		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for BackupInstance(%q) policy protection to be completed: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceDataProtectionBackupInstancePostgreSQLRead(d, meta)
 }
@@ -196,4 +210,15 @@ func resourceDataProtectionBackupInstancePostgreSQLDelete(d *schema.ResourceData
 		return fmt.Errorf("waiting for deletion of the DataProtection BackupInstance (%q): %+v", id.Name, err)
 	}
 	return nil
+}
+
+func policyProtectionStateRefreshFunc(ctx context.Context, client *dataprotection.BackupInstancesClient, id parse.BackupInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
+		}
+
+		return res, string(res.Properties.ProtectionStatus.Status), nil
+	}
 }
