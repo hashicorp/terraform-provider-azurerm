@@ -888,7 +888,9 @@ resource "azurerm_traffic_manager_endpoint" "nested" {
   priority            = 1
   profile_name        = azurerm_traffic_manager_profile.parent.name
   resource_group_name = azurerm_resource_group.test.name
-  min_child_endpoints = 1
+  min_child_endpoints = 5
+  min_child_endpoints_ipv4 = 2
+  min_child_endpoints_ipv6 = 2
 }
 
 resource "azurerm_traffic_manager_endpoint" "externalChild" {

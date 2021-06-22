@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -112,6 +112,16 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 			},
 
 			"min_child_endpoints": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+			},
+
+			"min_child_endpoints_ipv4": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+			},
+
+			"min_child_endpoints_ipv6": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
@@ -253,7 +263,10 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("priority", props.Priority)
 		d.Set("endpoint_location", props.EndpointLocation)
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
+
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
+		d.Set("min_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
+		d.Set("min_child_endpoints_ipv6", props.MinChildEndpointsIPv6)
 		d.Set("geo_mappings", props.GeoMapping)
 		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
 			return fmt.Errorf("setting `subnet`: %s", err)
@@ -324,8 +337,15 @@ func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *trafficm
 	}
 
 	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
-		mci64 := int64(minChildEndpoints)
-		endpointProps.MinChildEndpoints = &mci64
+		endpointProps.MinChildEndpoints = utils.Int64(int64(minChildEndpoints))
+	}
+
+	if minChildEndpoints := d.Get("min_child_endpoints_ipv4").(int); minChildEndpoints != 0 {
+		endpointProps.MinChildEndpointsIPv4 = utils.Int64(int64(minChildEndpoints))
+	}
+
+	if minChildEndpoints := d.Get("min_child_endpoints_ipv6").(int); minChildEndpoints != 0 {
+		endpointProps.MinChildEndpointsIPv6 = utils.Int64(int64(minChildEndpoints))
 	}
 
 	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)

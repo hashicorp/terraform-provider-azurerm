@@ -110,6 +110,18 @@ The following arguments are supported:
     profile. This argument only applies to Endpoints of type `nestedEndpoints`
     and defaults to `1`.
 
+* `min_child_endpoints_ipv4` - (Optional) This argument specifies the minimum number
+    of IPv4 (DNS record type A) endpoints that must be ‘online’ in the child profile in order for the
+    parent profile to direct traffic to any of the endpoints in that child
+    profile. This argument only applies to Endpoints of type `nestedEndpoints`
+    and defaults to `1`.
+
+* `min_child_endpoints_ipv6` - (Optional) This argument specifies the minimum number
+    of IPv6 (DNS record type AAAA) endpoints that must be ‘online’ in the child profile in order for the
+    parent profile to direct traffic to any of the endpoints in that child
+    profile. This argument only applies to Endpoints of type `nestedEndpoints`
+    and defaults to `1`.
+
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 * `custom_header` - (Optional) One or more `custom_header` blocks as defined below
