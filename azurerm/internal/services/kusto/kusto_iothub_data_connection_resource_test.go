@@ -98,8 +98,8 @@ resource "azurerm_kusto_iothub_data_connection" "test" {
   consumer_group            = azurerm_iothub_consumer_group.test.name
   shared_access_policy_name = azurerm_iothub_shared_access_policy.test.name
   event_system_properties   = ["message-id", "sequence-number", "to"]
-  mapping_rule_name = "Json_Mapping"
-  data_format       = "MULTIJSON"
+  mapping_rule_name         = "Json_Mapping"
+  data_format               = "MULTIJSON"
 }
 `, r.template(data), data.RandomInteger)
 }
