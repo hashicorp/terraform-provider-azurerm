@@ -39,13 +39,15 @@ The following arguments are supported:
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 
+* `workflow_parameters` - (Optional) Specifies a map of Key-Value pairs of the Parameter Definitions to use for this Logic App Workflow. The key is the parameter name, and the value is a json encoded string of the parameter definition (see: https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#parameters).
+  
 * `workflow_schema` - (Optional) Specifies the Schema to use for this Logic App Workflow. Defaults to `https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#`. Changing this forces a new resource to be created.
 
 * `workflow_version` - (Optional) Specifies the version of the Schema used for this Logic App Workflow. Defaults to `1.0.0.0`. Changing this forces a new resource to be created.
 
 * `parameters` - (Optional) A map of Key-Value pairs.
 
--> **NOTE:** Any parameters specified must exist in the Schema defined in `workflow_schema`.
+-> **NOTE:** Any parameters specified must exist in the Schema defined in `workflow_parameters`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
