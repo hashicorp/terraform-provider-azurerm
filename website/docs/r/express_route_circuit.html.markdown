@@ -59,11 +59,11 @@ The following arguments are supported:
 
 ~> **NOTE:** The `service_provider_name`, the `peering_location` and the `bandwidth_in_mbps` should be set together and they conflict with `express_route_port_id` and `bandwidth_in_gbps`.
 
-* `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources.
+* `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. Defaults to `false`.
 
 ~> **NOTE:** The `allow_classic_operations` cannot be set while using the Express Route Port.
 
-* `express_route_port_id` - (Optional) The ID of the Express Route Port which this circuit should be based on.
+* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on.
 
 * `bandwidth_in_gbps` - (Optional) The bandwidth in Gbps of the circuit being created on the Express Route Port.
 

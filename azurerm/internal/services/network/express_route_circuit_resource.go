@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -210,7 +211,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	erc.Sku = sku
 	erc.Tags = expandedTags
 
-	if erc.ExpressRouteCircuitPropertiesFormat != nil {
+	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
 	} else {
 		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
@@ -224,35 +225,13 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
-		if v, ok := d.GetOk("service_provider_name"); ok {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(v.(string))
-		} else {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = nil
-		}
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(d.Get("service_provider_name").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(d.Get("peering_location").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(d.Get("bandwidth_in_mbps").(int)))
 
-		if v, ok := d.GetOk("peering_location"); ok {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(v.(string))
-		} else {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = nil
-		}
-
-		if v, ok := d.GetOk("bandwidth_in_mbps"); ok {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(v.(int)))
-		} else {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = nil
-		}
 	} else {
-		if v, ok := d.GetOk("express_route_port_id"); ok {
-			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = utils.String(v.(string))
-		} else {
-			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = nil
-		}
-
-		if v, ok := d.GetOk("bandwidth_in_gbps"); ok {
-			erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(v.(float64))
-		} else {
-			erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = nil
-		}
+		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = utils.String(d.Get("express_route_port_id").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
@@ -329,24 +308,20 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if resp.BandwidthInGbps != nil {
-		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
-	}
-
 	if resp.ExpressRoutePort != nil {
-		d.Set("express_route_port_id", resp.ExpressRoutePort.ID)
+		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
+
+		portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+		if err != nil {
+			return err
+		}
+		d.Set("express_route_port_id", portID.ID())
 	}
 
 	if props := resp.ServiceProviderProperties; props != nil {
-		if props.ServiceProviderName != nil {
-			d.Set("service_provider_name", props.ServiceProviderName)
-		}
-		if props.PeeringLocation != nil {
-			d.Set("peering_location", props.PeeringLocation)
-		}
-		if props.BandwidthInMbps != nil {
-			d.Set("bandwidth_in_mbps", props.BandwidthInMbps)
-		}
+		d.Set("service_provider_name", props.ServiceProviderName)
+		d.Set("peering_location", props.PeeringLocation)
+		d.Set("bandwidth_in_mbps", props.BandwidthInMbps)
 	}
 
 	d.Set("service_provider_provisioning_state", string(resp.ServiceProviderProvisioningState))
