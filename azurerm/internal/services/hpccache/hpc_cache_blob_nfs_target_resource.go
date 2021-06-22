@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -29,7 +28,7 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 		Update: resourceHPCCacheBlobNFSTargetCreateUpdate,
 		Delete: resourceHPCCacheBlobNFSTargetDelete,
 
-		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StorageTargetID(id)
 			return err
 		}),
