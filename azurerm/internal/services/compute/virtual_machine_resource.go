@@ -1275,8 +1275,12 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, disksInfo [
 
 func flattenAzureRmVirtualMachineOsProfile(input *compute.OSProfile) []interface{} {
 	result := make(map[string]interface{})
-	result["computer_name"] = *input.ComputerName
-	result["admin_username"] = *input.AdminUsername
+	if input.ComputerName != nil {
+		result["computer_name"] = *input.ComputerName
+	}
+	if input.AdminUsername != nil {
+		result["admin_username"] = *input.AdminUsername
+	}
 	if input.CustomData != nil {
 		result["custom_data"] = *input.CustomData
 	}
@@ -1895,8 +1899,12 @@ func resourceVirtualMachineStorageOsProfileHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+		if m["admin_username"] != nil {
+			buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
+		}
+		if m["computer_name"] != nil {
+			buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
