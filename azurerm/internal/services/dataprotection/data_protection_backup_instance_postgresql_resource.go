@@ -218,6 +218,9 @@ func policyProtectionStateRefreshFunc(ctx context.Context, client *dataprotectio
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 		}
+		if res.Properties == nil || res.Properties.ProtectionStatus == nil {
+			return nil, "", fmt.Errorf("error reading DataProtection BackupInstance (%q) protection status: %+v", id, err)
+		}
 
 		return res, string(res.Properties.ProtectionStatus.Status), nil
 	}
