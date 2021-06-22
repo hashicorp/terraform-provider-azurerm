@@ -75,7 +75,6 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocationOptional(),
 
-			//lintignore:XS003
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -119,7 +118,9 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 			"not_scopes": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"metadata": {
@@ -163,19 +164,21 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	scope := d.Get("scope").(string)
+	id, err := parse.NewPolicyAssignmentId(d.Get("scope").(string), d.Get("name").(string))
+	if err != nil {
+		return err
+	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, name)
+		existing, err := client.Get(ctx, id.Scope, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Policy Assignment %q: %s", name, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_policy_assignment", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_policy_assignment", id.ID())
 		}
 	}
 
@@ -183,7 +186,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		AssignmentProperties: &policy.AssignmentProperties{
 			PolicyDefinitionID: utils.String(d.Get("policy_definition_id").(string)),
 			DisplayName:        utils.String(d.Get("display_name").(string)),
-			Scope:              utils.String(scope),
+			Scope:              utils.String(id.Scope),
 			EnforcementMode:    convertEnforcementMode(d.Get("enforcement_mode").(bool)),
 		},
 	}
@@ -192,15 +195,15 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		assignment.AssignmentProperties.Description = utils.String(v)
 	}
 
+	if v := d.Get("location").(string); v != "" {
+		assignment.Location = utils.String(azure.NormalizeLocation(v))
+	}
+
 	if v, ok := d.GetOk("identity"); ok {
-		if location := d.Get("location").(string); location == "" {
+		if assignment.Location == nil {
 			return fmt.Errorf("`location` must be set when `identity` is assigned")
 		}
 		assignment.Identity = expandAzureRmPolicyIdentity(v.([]interface{}))
-	}
-
-	if v := d.Get("location").(string); v != "" {
-		assignment.Location = utils.String(azure.NormalizeLocation(v))
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -224,16 +227,16 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		assignment.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
 	}
 
-	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
-		return fmt.Errorf("creating/updating Policy Assignment %q (Scope %q): %+v", name, scope, err)
+	if _, err := client.Create(ctx, id.Scope, id.Name, assignment); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", *id, err)
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
-	log.Printf("[DEBUG] Waiting for Policy Assignment %q to become available", name)
+	log.Printf("[DEBUG] Waiting for %s to become available", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policyAssignmentRefreshFunc(ctx, client, scope, name),
+		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -245,19 +248,10 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Policy Assignment %q to become available: %s", name, err)
+		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
-	resp, err := client.Get(ctx, scope, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Policy Assignment %q (Scope %q): %+v", name, scope, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Policy Assignment %q (Scope %q)", name, scope)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceArmPolicyAssignmentRead(d, meta)
 }
 
@@ -266,20 +260,24 @@ func resourceArmPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Id()
+	id, err := parse.PolicyAssignmentID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.GetByID(ctx, id)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Policy Assignment %q - removing from state", id)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Policy Assignment %q: %+v", id, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
+	d.Set("scope", id.Scope)
 
 	if err := d.Set("identity", flattenAzureRmPolicyIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -290,24 +288,18 @@ func resourceArmPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if props := resp.AssignmentProperties; props != nil {
-		d.Set("scope", props.Scope)
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
+		d.Set("metadata", flattenJSON(props.Metadata))
 
-		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
-			d.Set("metadata", metadataStr)
+		json, err := flattenParameterValuesValueToString(props.Parameters)
+		if err != nil {
+			return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 		}
 
-		if params := props.Parameters; params != nil {
-			json, err := flattenParameterValuesValueToString(params)
-			if err != nil {
-				return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
-			}
-
-			d.Set("parameters", json)
-		}
+		d.Set("parameters", json)
 
 		d.Set("not_scopes", props.NotScopes)
 	}
@@ -320,25 +312,25 @@ func resourceArmPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Id()
-
-	resp, err := client.DeleteByID(ctx, id)
+	id, err := parse.PolicyAssignmentID(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
+		return err
+	}
 
+	if _, err := client.Delete(ctx, id.Scope, id.Name); err != nil {
 		return fmt.Errorf("deleting Policy Assignment %q: %+v", id, err)
 	}
+
+	// TODO: presumably we want to wait for this to be fully gone too?
 
 	return nil
 }
 
-func policyAssignmentRefreshFunc(ctx context.Context, client *policy.AssignmentsClient, scope string, name string) pluginsdk.StateRefreshFunc {
+func policyAssignmentRefreshFunc(ctx context.Context, client *policy.AssignmentsClient, id parse.PolicyAssignmentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, scope, name)
+		res, err := client.Get(ctx, id.Scope, id.Name)
 		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q (Scope: %q): %s", name, scope, err)
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
@@ -347,7 +339,9 @@ func policyAssignmentRefreshFunc(ctx context.Context, client *policy.Assignments
 
 func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &policy.Identity{
+			Type: policy.None,
+		}
 	}
 
 	identity := input[0].(map[string]interface{})
