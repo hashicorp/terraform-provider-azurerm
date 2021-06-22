@@ -92,6 +92,20 @@ func TestAccKubernetesClusterMaintenanceConfiguration_update(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterMaintenanceConfiguration_multiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_maintenance_configuration", "first")
+	r := KubernetesClusterMaintenanceConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesClusterMaintenanceConfigurationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.MaintenanceConfigurationID(state.ID)
 	if err != nil {
@@ -190,6 +204,31 @@ resource "azurerm_kubernetes_cluster_maintenance_configuration" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r KubernetesClusterMaintenanceConfigurationResource) multiple(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster_maintenance_configuration" "first" {
+  name                  = "acctest-CMC1-%d"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  maintenance_allowed {
+    day        = "Monday"
+    hour_slots = [1, 2]
+  }
+}
+
+resource "azurerm_kubernetes_cluster_maintenance_configuration" "second" {
+  name                  = "acctest-CMC2-%d"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  maintenance_allowed {
+    day        = "Sunday"
+    hour_slots = [20, 21]
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesClusterMaintenanceConfigurationResource) template(data acceptance.TestData) string {
