@@ -316,10 +316,10 @@ resource "azurerm_logic_app_workflow" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workflow_parameters = {
     b = jsonencode({
-        type = "Bool"
+      type = "Bool"
     })
     str = jsonencode({
-        type = "String"
+      type = "String"
     })
     int = jsonencode({
       type = "Int"
@@ -331,7 +331,7 @@ resource "azurerm_logic_app_workflow" "test" {
       type = "Object"
     })
     secstr = jsonencode({
-        type = "SecureString"
+      type = "SecureString"
     })
     secobj = jsonencode({
       type = "SecureObject"
@@ -339,9 +339,9 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 
   parameters = {
-    b = "true"
-    str = "value"
-    int = "123"
+    b     = "true"
+    str   = "value"
+    int   = "123"
     float = "1.23"
     obj = jsonencode({
       foo = "bar"
