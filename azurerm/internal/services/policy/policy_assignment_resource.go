@@ -186,20 +186,19 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for %s to become available", *id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context was missing a deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
+		PollInterval:              5 * time.Second,
+		Timeout:                   time.Until(deadline),
 	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
@@ -250,7 +249,6 @@ func resourceArmPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		d.Set("parameters", json)
-
 		d.Set("not_scopes", props.NotScopes)
 	}
 
@@ -271,7 +269,24 @@ func resourceArmPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("deleting Policy Assignment %q: %+v", id, err)
 	}
 
-	// TODO: presumably we want to wait for this to be fully gone too?
+	// Policy Assignments are eventually consistent; wait for it to be gone
+	log.Printf("[DEBUG] Waiting for %s to finish deleting", *id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context was missing a deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"200"},
+		Target:                    []string{"404"},
+		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		PollInterval:              5 * time.Second,
+		Timeout:                   time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
 
 	return nil
 }
