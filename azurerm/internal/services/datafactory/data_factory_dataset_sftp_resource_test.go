@@ -156,6 +156,12 @@ resource "azurerm_data_factory_dataset_sftp" "test" {
   additional_properties = {
     foo = "test1"
   }
+
+  schema_column {
+    name        = "test1"
+    type        = "Byte"
+    description = "description"
+  }
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

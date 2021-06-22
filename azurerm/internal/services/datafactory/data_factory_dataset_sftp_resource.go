@@ -78,7 +78,7 @@ func resourceDataFactoryDatasetSFTP() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						//TarGZip, GZip, ZipDeflate
+						// TarGZip, GZip, ZipDeflate
 						"level": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -134,6 +134,46 @@ func resourceDataFactoryDatasetSFTP() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"schema_column": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Byte",
+								"Byte[]",
+								"Boolean",
+								"Date",
+								"DateTime",
+								"DateTimeOffset",
+								"Decimal",
+								"Double",
+								"Guid",
+								"Int16",
+								"Int32",
+								"Int64",
+								"Single",
+								"String",
+								"TimeSpan",
+							}, false),
+						},
+						"description": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
 				},
 			},
 		},
@@ -202,6 +242,10 @@ func resourceDataFactoryDatasetSFTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		fileShareDataset.AdditionalProperties = v.(map[string]interface{})
+	}
+
+	if v, ok := d.GetOk("schema_column"); ok {
+		fileShareDataset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
 	datasetType := string(datafactory.TypeBasicDatasetTypeFileShare)
@@ -299,13 +343,17 @@ func resourceDataFactoryDatasetSFTPRead(d *pluginsdk.ResourceData, meta interfac
 		if err := d.Set("compression", compression); err != nil {
 			return fmt.Errorf("setting `compression`: %+v", err)
 		}
-
 	}
 
 	if folder := fileShareDataSet.Folder; folder != nil {
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
+	}
+
+	structureColumns := flattenDataFactoryStructureColumns(fileShareDataSet.Structure)
+	if err := d.Set("schema_column", structureColumns); err != nil {
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
