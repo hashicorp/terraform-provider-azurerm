@@ -52,33 +52,10 @@ func resourceKubernetesClusterMaintenanceConfiguration() *pluginsdk.Resource {
 				ValidateFunc: containerValidate.ClusterID,
 			},
 
-			"maintenance_not_allowed_window": {
-				Type:         pluginsdk.TypeSet,
-				Optional:     true,
-				AtLeastOneOf: []string{"maintenance_not_allowed_window", "maintenance_allowed"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"end": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.RFC3339Time,
-							ValidateFunc:     validation.IsRFC3339Time,
-						},
-
-						"start": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.RFC3339Time,
-							ValidateFunc:     validation.IsRFC3339Time,
-						},
-					},
-				},
-			},
-
 			"maintenance_allowed": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				AtLeastOneOf: []string{"maintenance_not_allowed_window", "maintenance_allowed"},
+				AtLeastOneOf: []string{"maintenance_allowed", "maintenance_not_allowed_window"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
@@ -103,6 +80,29 @@ func resourceKubernetesClusterMaintenanceConfiguration() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 23),
 							},
+						},
+					},
+				},
+			},
+
+			"maintenance_not_allowed_window": {
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"maintenance_allowed", "maintenance_not_allowed_window"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"end": {
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.RFC3339Time,
+							ValidateFunc:     validation.IsRFC3339Time,
+						},
+
+						"start": {
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.RFC3339Time,
+							ValidateFunc:     validation.IsRFC3339Time,
 						},
 					},
 				},

@@ -40,14 +40,14 @@ resource "azurerm_kubernetes_cluster_maintenance_configuration" "example" {
   name                  = "example"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.example.id
 
-  maintenance_not_allowed_window {
-    end   = "2021-11-30T12:00:00Z"
-    start = "2021-11-26T03:00:00Z"
-  }
-
   maintenance_allowed {
     day        = "Monday"
     hour_slots = [1, 2]
+  }
+
+  maintenance_not_allowed_window {
+    end   = "2021-11-30T12:00:00Z"
+    start = "2021-11-26T03:00:00Z"
   }
 }
 ```
@@ -60,19 +60,11 @@ The following arguments are supported:
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster where this Maintenance Configuration should applies to. Changing this forces a new resource to be created.
 
-* `maintenance_not_allowed_window` - (Optional) One or more `maintenance_not_allowed_window` block as defined below.
-
 * `maintenance_allowed` - (Optional) One or more `maintenance_allowed` block as defined below.
 
+* `maintenance_not_allowed_window` - (Optional) One or more `maintenance_not_allowed_window` block as defined below.
+
 -> **Note:** At least one of `maintenance_not_allowed_window` and `maintenance_allowed` must be set.
-
----
-
-An `maintenance_not_allowed_window` block exports the following:
-
-* `end` - (Required) The end of a time span, formatted as an RFC3339 string.
-
-* `start` - (Required) The start of a time span, formatted as an RFC3339 string.
 
 ---
 
@@ -81,6 +73,14 @@ An `maintenance_allowed` block exports the following:
 * `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
 * `hour_slots` - (Required) An array of hour slots in a day. Possible values are between `0` and `23`.
+
+---
+
+An `maintenance_not_allowed_window` block exports the following:
+
+* `end` - (Required) The end of a time span, formatted as an RFC3339 string.
+
+* `start` - (Required) The start of a time span, formatted as an RFC3339 string.
 
 ## Attributes Reference
 
