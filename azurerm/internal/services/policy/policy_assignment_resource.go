@@ -79,7 +79,6 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -88,7 +87,6 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(policy.None),
 								string(policy.SystemAssigned),
 							}, false),
 						},
@@ -351,29 +349,35 @@ func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	identity := input[0].(map[string]interface{})
 
+	identity := input[0].(map[string]interface{})
 	return &policy.Identity{
 		Type: policy.ResourceIdentityType(identity["type"].(string)),
 	}
 }
 
 func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
-	if identity == nil {
+	if identity == nil || identity.Type == policy.None {
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
+	principalId := ""
 	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
+		principalId = *identity.PrincipalID
 	}
 
+	tenantId := ""
 	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
+		tenantId = *identity.TenantID
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }
 
 func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
