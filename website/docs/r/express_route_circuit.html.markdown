@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `service_provider_name` - (Optional) The name of the ExpressRoute Service Provider.
 
-* `peering_location` - (Optional) The name of the peering location and **not** the Azure resource location.
+* `peering_location` - (Optional) The name of the peering location and **not** the Azure resource location. Any change to the configuration will recreate the resource.
 
 * `bandwidth_in_mbps` - (Optional) The bandwidth in Mbps of the circuit being created on the Service Provider.
 
