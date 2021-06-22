@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -71,16 +70,14 @@ func TestAccDataProtectionBackupInstancePostgreSQL_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() { time.Sleep(3 * time.Minute) },
-			Config:    r.complete(data),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() { time.Sleep(3 * time.Minute) },
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
