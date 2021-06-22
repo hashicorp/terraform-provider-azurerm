@@ -138,13 +138,13 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	urlTemplate := d.Get("url_template").(string)
 
 	requestContractRaw := d.Get("request").([]interface{})
-	requestContract, err := expandApiManagementOperationRequestContract(d, requestContractRaw)
+	requestContract, err := expandApiManagementOperationRequestContract(d, "request", requestContractRaw)
 	if err != nil {
 		return err
 	}
 
 	responseContractsRaw := d.Get("response").([]interface{})
-	responseContracts, err := expandApiManagementOperationResponseContract(d, responseContractsRaw)
+	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", responseContractsRaw)
 	if err != nil {
 		return err
 	}
@@ -259,7 +259,7 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, input []interface{}) (*apimanagement.RequestContract, error) {
+func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*apimanagement.RequestContract, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -274,19 +274,19 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, inpu
 	if headersRaw == nil {
 		headersRaw = []interface{}{}
 	}
-	headers := schemaz.ExpandApiManagementOperationParameterContract(d, "request.0.header", headersRaw)
+	headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.header", schemaPath), headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]interface{})
 	if queryParametersRaw == nil {
 		queryParametersRaw = []interface{}{}
 	}
-	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "request.0.query_parameter", queryParametersRaw)
+	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.query_parameter", schemaPath), queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]interface{})
 	if representationsRaw == nil {
 		representationsRaw = []interface{}{}
 	}
-	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, representationsRaw)
+	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.0.representation", schemaPath), representationsRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 	return []interface{}{output}
 }
 
-func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, input []interface{}) (*[]apimanagement.ResponseContract, error) {
+func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.ResponseContract, error) {
 	if len(input) == 0 {
 		return &[]apimanagement.ResponseContract{}, nil
 	}
@@ -331,10 +331,10 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, inp
 		statusCode := vs["status_code"].(int)
 
 		headersRaw := vs["header"].([]interface{})
-		headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("response.%d.header", i), headersRaw)
+		headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.header", schemaPath, i), headersRaw)
 
 		representationsRaw := vs["representation"].([]interface{})
-		representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, representationsRaw)
+		representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.%d.representation", schemaPath, i), representationsRaw)
 		if err != nil {
 			return nil, err
 		}

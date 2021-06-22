@@ -110,7 +110,7 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 	}
 }
 
-func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
+func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
 	if len(input) == 0 {
 		return &[]apimanagement.RepresentationContract{}, nil
 	}
@@ -122,7 +122,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, input
 
 		contentType := vs["content_type"].(string)
 		formParametersRaw := vs["form_parameter"].([]interface{})
-		formParameters := ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("representation.%d.form_parameter", i), formParametersRaw)
+		formParameters := ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.form_parameter", schemaPath, i), formParametersRaw)
 		sample := vs["sample"].(string)
 		schemaId := vs["schema_id"].(string)
 		typeName := vs["type_name"].(string)
