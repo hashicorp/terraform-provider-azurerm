@@ -24,11 +24,11 @@ func ExpandFloatSlice(input []interface{}) *[]float64 {
 	return &result
 }
 
-func ExpandFloatRangeSlice(input [][]interface{}) *[][]float64 {
+func ExpandFloatRangeSlice(input []interface{}) *[][]float64 {
 	result := make([][]float64, 0)
 	for _, item := range input {
 		if item != nil {
-			result = append(result, *ExpandFloatSlice(item))
+			result = append(result, *ExpandFloatSlice(item.([]interface{})))
 		}
 	}
 	return &result
