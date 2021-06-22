@@ -76,6 +76,13 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				ValidateFunc: iothubValidate.IoTHubConsumerGroupName,
 			},
 
+			"shared_access_policy_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: iothubValidate.IotHubSharedAccessPolicyName,
+			},
+
 			"table_name": {
 				Type:         pluginsdk.TypeString,
 				ForceNew:     true,
@@ -112,13 +119,6 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 					string(kusto.IotHubDataFormatTXT),
 					string(kusto.IotHubDataFormatW3CLOGFILE),
 				}, false),
-			},
-
-			"shared_access_policy_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: iothubValidate.IotHubSharedAccessPolicyName,
 			},
 
 			"event_system_properties": {
@@ -166,20 +166,11 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 		return tf.ImportAsExistsError("azurerm_kusto_iothub_data_connection", id.ID())
 	}
 
-	dataConnection := kusto.IotHubDataConnection{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		IotHubConnectionProperties: &kusto.IotHubConnectionProperties{
-			IotHubResourceID:       utils.String(d.Get("iothub_id").(string)),
-			ConsumerGroup:          utils.String(d.Get("consumer_group").(string)),
-			TableName:              utils.String(d.Get("table_name").(string)),
-			MappingRuleName:        utils.String(d.Get("mapping_rule_name").(string)),
-			DataFormat:             kusto.IotHubDataFormat(d.Get("data_format").(string)),
-			SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
-		},
-	}
+	iotHubDataConnectionProperties := expandKustoIotHubDataConnectionProperties(d)
 
-	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
-		dataConnection.IotHubConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
+	dataConnection := kusto.IotHubDataConnection{
+		Location:                   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		IotHubConnectionProperties: iotHubDataConnectionProperties,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
@@ -255,4 +246,30 @@ func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *kusto.IotHubConnectionProperties {
+	iotHubDataConnectionProperties := &kusto.IotHubConnectionProperties{
+		IotHubResourceID:       utils.String(d.Get("iothub_id").(string)),
+		ConsumerGroup:          utils.String(d.Get("consumer_group").(string)),
+		SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
+	}
+
+	if tableName, ok := d.GetOk("table_name"); ok {
+		iotHubDataConnectionProperties.TableName = utils.String(tableName.(string))
+	}
+
+	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
+		iotHubDataConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+	}
+
+	if df, ok := d.GetOk("data_format"); ok {
+		iotHubDataConnectionProperties.DataFormat = kusto.IotHubDataFormat(df.(string))
+	}
+
+	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
+		iotHubDataConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
+	}
+
+	return iotHubDataConnectionProperties
 }
