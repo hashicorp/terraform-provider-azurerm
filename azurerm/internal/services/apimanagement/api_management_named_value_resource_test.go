@@ -236,10 +236,12 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
   ]
   secret_permissions = [
-    "Delete",
     "Get",
+    "Delete",
     "List",
     "Purge",
+    "Recover",
+    "Set",
   ]
 }
 
@@ -257,12 +259,16 @@ resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%[3]s"
   value        = "rick-and-morty"
   key_vault_id = azurerm_key_vault.test.id
+
+  depends_on = [azurerm_key_vault_access_policy.test]
 }
 
 resource "azurerm_key_vault_secret" "test2" {
   name         = "secret2-%[3]s"
   value        = "rick-and-morty2"
   key_vault_id = azurerm_key_vault.test.id
+
+  depends_on = [azurerm_key_vault_access_policy.test]
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -299,7 +305,7 @@ resource "azurerm_api_management_named_value" "test" {
   resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
-  secret              = false
+  secret              = true
   key_vault {
     secret_id          = azurerm_key_vault_secret.test2.id
     identity_client_id = azurerm_user_assigned_identity.test.client_id
@@ -321,7 +327,7 @@ resource "azurerm_api_management_named_value" "test" {
   resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
-  secret              = true
+  secret              = false
   value               = "Key Vault to Value"
   tags                = ["tag5", "tag6"]
 }
