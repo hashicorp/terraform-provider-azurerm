@@ -27,8 +27,8 @@ type policyAssignmentIdentity = identity.SystemAssigned
 
 func resourceArmPolicyAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmPolicyAssignmentCreateUpdate,
-		Update: resourceArmPolicyAssignmentCreateUpdate,
+		Create: resourceArmPolicyAssignmentCreate,
+		Update: resourceArmPolicyAssignmentUpdate,
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 
@@ -108,9 +108,9 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmPolicyAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.AssignmentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.NewPolicyAssignmentId(d.Get("scope").(string), d.Get("name").(string))
@@ -118,17 +118,15 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.Scope, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.Scope, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_policy_assignment", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_policy_assignment", id.ID())
 	}
 
 	assignment := policy.Assignment{
@@ -154,7 +152,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 		identity, err := expandAzureRmPolicyIdentity(v.([]interface{}))
 		if err != nil {
-
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		assignment.Identity = identity
 	}
@@ -204,6 +202,117 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+	return resourceArmPolicyAssignmentRead(d, meta)
+}
+
+func resourceArmPolicyAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Policy.AssignmentsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.PolicyAssignmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, id.Scope, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if existing.AssignmentProperties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	update := policy.Assignment{
+		Location:             existing.Location,
+		AssignmentProperties: existing.AssignmentProperties,
+	}
+	if existing.Identity != nil {
+		update.Identity = &policy.Identity{
+			Type: existing.Identity.Type,
+		}
+	}
+
+	if d.HasChange("description") {
+		update.AssignmentProperties.Description = utils.String(d.Get("description").(string))
+	}
+	if d.HasChange("display_name") {
+		update.AssignmentProperties.DisplayName = utils.String(d.Get("display_name").(string))
+	}
+	if d.HasChange("enforcement_mode") {
+		update.AssignmentProperties.EnforcementMode = convertEnforcementMode(d.Get("enforcement_mode").(bool))
+	}
+	if d.HasChange("location") {
+		update.Location = utils.String(d.Get("location").(string))
+	}
+	if d.HasChange("policy_definition_id") {
+		update.AssignmentProperties.PolicyDefinitionID = utils.String(d.Get("policy_definition_id").(string))
+	}
+
+	if d.HasChange("identity") {
+		if update.Location == nil {
+			return fmt.Errorf("`location` must be set when `identity` is assigned")
+		}
+		identityRaw := d.Get("identity").([]interface{})
+		identity, err := expandAzureRmPolicyIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		update.Identity = identity
+	}
+
+	if d.HasChange("metadata") {
+		v := d.Get("metadata").(string)
+		update.AssignmentProperties.Metadata = map[string]interface{}{}
+		if v != "" {
+			metaData, err := pluginsdk.ExpandJsonFromString(v)
+			if err != nil {
+				return fmt.Errorf("parsing metadata: %+v", err)
+			}
+			update.AssignmentProperties.Metadata = &metaData
+		}
+	}
+
+	if d.HasChange("not_scopes") {
+		update.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(d.Get("not_scopes").([]interface{}))
+	}
+
+	if d.HasChange("parameters") {
+		update.AssignmentProperties.Parameters = map[string]*policy.ParameterValuesValue{}
+
+		if v := d.Get("parameters").(string); v != "" {
+			expandedParams, err := expandParameterValuesValueFromString(v)
+			if err != nil {
+				return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
+			}
+			update.AssignmentProperties.Parameters = expandedParams
+		}
+	}
+
+	// NOTE: there isn't an Update endpoint
+	if _, err := client.Create(ctx, id.Scope, id.Name, update); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", *id, err)
+	}
+
+	// Policy Assignments are eventually consistent; wait for them to stabilize
+	log.Printf("[DEBUG] Waiting for %s to become available", *id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context was missing a deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		PollInterval:              5 * time.Second,
+		Timeout:                   time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available: %s", id, err)
+	}
+
 	return resourceArmPolicyAssignmentRead(d, meta)
 }
 
