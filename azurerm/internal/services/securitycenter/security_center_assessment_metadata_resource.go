@@ -227,6 +227,9 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *pluginsdk.ResourceData, 
 		categories := make([]string, 0)
 		if props.Categories != nil {
 			for _, item := range *props.Categories {
+				// API would return `Unknown` when `categories` isn't set.
+				// After synced with service team, they confirmed it's an issue and will fix it in the new version.
+				// https://github.com/Azure/azure-rest-api-specs/issues/14918
 				if string(item) != "Unknown" {
 					categories = append(categories, string(item))
 				}
