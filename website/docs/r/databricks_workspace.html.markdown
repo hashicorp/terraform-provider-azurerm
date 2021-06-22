@@ -50,10 +50,6 @@ The following arguments are supported:
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
-* `provider_authorization` - (Optional) A `provider_authorization` block as documented below.
-
-* `ui_definition_uri` - (Optional) The blob URI where the UI definition file is located. Changing this forces a new resource to be created.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -90,7 +86,7 @@ A `customer_managed_key` block supports the following:
 
 * `key_vault_uri` - (Optional) The Uri of Key Vault.
 
-~> **NOTE** To successfully provision `customer_managed_key` you must first create the workspace with the `enable_cmk_encryption` field set to `true`. Once the workspace has been created you will then need to add the `customer_managed_key` block to your configuration file and `apply` the changes.
+~> **NOTE** To successfully provision `customer_managed_key` you must first set the `enable_cmk_encryption` field to `true`. Once the `enable_cmk_encryption` has been set to `true` you will then need to add the `customer_managed_key` block into your configuration file and `apply` the changes.
 
 ---
 
@@ -112,6 +108,19 @@ The following attributes are exported:
 * `workspace_url` - The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
 
 * `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
+
+* `storage_account_identity` - A `storage_account_identity` block as documented below.
+
+---
+
+A `storage_account_identity` block exports the following:
+
+* `principal_id` - The principal UUID for the internal databricks storage account needed to provide access to the workspace for enabling Customer Managed Keys.
+
+* `tenant_id` - The UUID of the tenant where the internal databricks storage account was created.
+
+* `type` - The type of the internal databricks storage account.
+
 
 ## Timeouts
 
