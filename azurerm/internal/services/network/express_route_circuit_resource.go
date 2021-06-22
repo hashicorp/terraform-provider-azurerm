@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -131,7 +132,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ForceNew:      true,
 				RequiredWith:  []string{"bandwidth_in_gbps"},
 				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
-				ValidateFunc:  azure.ValidateResourceID,
+				ValidateFunc:  validate.ExpressRoutePortID,
 			},
 
 			"service_provider_provisioning_state": {
