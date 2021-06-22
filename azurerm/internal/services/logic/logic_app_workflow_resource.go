@@ -350,7 +350,6 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 					if err := d.Set("parameters", parameters); err != nil {
 						return fmt.Errorf("Error setting `parameters`: %+v", err)
 					}
-
 				}
 			}
 		}
