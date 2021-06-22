@@ -31,6 +31,21 @@ func TestAccDataFactoryDatasetSFTP_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetSFTP_full(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_sftp", "test")
+	r := DatasetSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.full(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t DatasetSFTPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
@@ -81,6 +96,66 @@ resource "azurerm_data_factory_dataset_sftp" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_sftp.test.name
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetSFTPResource) full(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlssftp%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  authentication_type = "Basic"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+  password            = "bar"
+}
+
+resource "azurerm_data_factory_dataset_sftp" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_sftp.test.name
+
+  path = "/test/"
+  filename = "**"
+
+  compression {
+    type = "GZip"
+    level = "5"
+  }
+
+  description = "test description 2"
+  annotations = ["test1", "test2"]
+  folder      = "testFolder"
+
+  parameters = {
+    foo  = "test1"
+    bar  = "test2"
+    buzz = "test3"
+  }
+
+  additional_properties = {
+    foo = "test1"
+  }
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

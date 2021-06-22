@@ -78,15 +78,16 @@ func resourceDataFactoryDatasetSFTP() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"level": { //TarGZip, GZip, ZipDeflate
+						//TarGZip, GZip, ZipDeflate
+						"level": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						// SFTP Specific field
 						"type": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.TypeBasicDatasetCompressionTypeBZip2),
 								string(datafactory.TypeBasicDatasetCompressionTypeDeflate),
@@ -380,24 +381,24 @@ func expandDataFactoryCompression(d *pluginsdk.ResourceData) datafactory.BasicDa
 		}
 	}
 	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeGZip {
-		return datafactory.DatasetDeflateCompression{
+		return datafactory.DatasetGZipCompression{
 			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
 			Level: level,
 		}
 	}
 	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTar {
-		return datafactory.DatasetDeflateCompression{
+		return datafactory.DatasetTarCompression{
 			Type: datafactory.TypeBasicDatasetCompression(compressionType),
 		}
 	}
 	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTarGZip {
-		return datafactory.DatasetDeflateCompression{
+		return datafactory.DatasetTarGZipCompression{
 			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
 			Level: level,
 		}
 	}
 	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeZipDeflate {
-		return datafactory.DatasetDeflateCompression{
+		return datafactory.DatasetZipDeflateCompression{
 			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
 			Level: level,
 		}
