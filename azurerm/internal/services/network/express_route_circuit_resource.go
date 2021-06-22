@@ -229,7 +229,6 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(d.Get("service_provider_name").(string))
 		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(d.Get("peering_location").(string))
 		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(d.Get("bandwidth_in_mbps").(int)))
-
 	} else {
 		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = utils.String(d.Get("express_route_port_id").(string))
 		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
@@ -312,11 +311,13 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 	if resp.ExpressRoutePort != nil {
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
-		portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
-		if err != nil {
-			return err
+		if resp.ExpressRoutePort.ID != nil {
+			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			if err != nil {
+				return err
+			}
+			d.Set("express_route_port_id", portID.ID())
 		}
-		d.Set("express_route_port_id", portID.ID())
 	}
 
 	if props := resp.ServiceProviderProperties; props != nil {

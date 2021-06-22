@@ -49,9 +49,9 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block for the ExpressRoute circuit as documented below.
 
-* `service_provider_name` - (Optional) The name of the ExpressRoute Service Provider. Any change to the configuration will recreate the resource.
+* `service_provider_name` - (Optional) The name of the ExpressRoute Service Provider. Changing this forces a new resource to be created.
 
-* `peering_location` - (Optional) The name of the peering location and **not** the Azure resource location. Any change to the configuration will recreate the resource.
+* `peering_location` - (Optional) The name of the peering location and **not** the Azure resource location. Changing this forces a new resource to be created.
 
 * `bandwidth_in_mbps` - (Optional) The bandwidth in Mbps of the circuit being created on the Service Provider.
 
