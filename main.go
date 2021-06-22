@@ -4,9 +4,8 @@ import (
 	"context"
 	"flag"
 	"log"
-	"os"
 
-	"github.com/hashicorp/terraform-plugin-sdk/plugin"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 )
 
@@ -20,9 +19,6 @@ func main() {
 	flag.Parse()
 
 	if debugMode {
-		// This is needed so Terraform doesn't default to expecting protocol 4.
-		// TODO: remove below line once the provider migrates to plugin SDK v2.
-		os.Setenv("PLUGIN_PROTOCOL_VERSIONS", "5")
 		err := plugin.Debug(context.Background(), "registry.terraform.io/hashicorp/azurerm",
 			&plugin.ServeOpts{
 				ProviderFunc: azurerm.Provider,

@@ -314,7 +314,7 @@ func resourceIntegrationServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta
 		NotFoundChecks:            1,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

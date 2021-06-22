@@ -8,39 +8,38 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
-	return &schema.Resource{
+func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupPolicyPostgreSQLCreate,
 		Read:   resourceDataProtectionBackupPolicyPostgreSQLRead,
 		Delete: resourceDataProtectionBackupPolicyPostgreSQLDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BackupPolicyID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -52,54 +51,54 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"vault_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"backup_repeating_time_intervals": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"default_retention_duration": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"retention_rule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"duration": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"criteria": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							ForceNew: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"absolute_criteria": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -112,45 +111,45 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
 									},
 
 									"days_of_week": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										ForceNew: true,
 										MinItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsDayOfTheWeek(false),
 										},
 									},
 
 									"months_of_year": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										ForceNew: true,
 										MinItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsMonth(false),
 										},
 									},
 
 									"scheduled_backup_times": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										ForceNew: true,
 										MinItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsRFC3339Time,
 										},
 									},
 
 									"weeks_of_month": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										ForceNew: true,
 										MinItems: 1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												string(dataprotection.First),
 												string(dataprotection.Second),
@@ -165,7 +164,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
 						},
 
 						"priority": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 							ForceNew: true,
 						},
@@ -176,7 +175,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -219,7 +218,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *schema.ResourceData, 
 	return resourceDataProtectionBackupPolicyPostgreSQLRead(d, meta)
 }
 
-func resourceDataProtectionBackupPolicyPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +256,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -386,33 +385,33 @@ func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) *[]dataprote
 		}
 
 		var daysOfWeek []dataprotection.DayOfWeek
-		if v["days_of_week"].(*schema.Set).Len() > 0 {
+		if v["days_of_week"].(*pluginsdk.Set).Len() > 0 {
 			daysOfWeek = make([]dataprotection.DayOfWeek, 0)
-			for _, value := range v["days_of_week"].(*schema.Set).List() {
+			for _, value := range v["days_of_week"].(*pluginsdk.Set).List() {
 				daysOfWeek = append(daysOfWeek, dataprotection.DayOfWeek(value.(string)))
 			}
 		}
 
 		var monthsOfYear []dataprotection.Month
-		if v["months_of_year"].(*schema.Set).Len() > 0 {
+		if v["months_of_year"].(*pluginsdk.Set).Len() > 0 {
 			monthsOfYear = make([]dataprotection.Month, 0)
-			for _, value := range v["months_of_year"].(*schema.Set).List() {
+			for _, value := range v["months_of_year"].(*pluginsdk.Set).List() {
 				monthsOfYear = append(monthsOfYear, dataprotection.Month(value.(string)))
 			}
 		}
 
 		var weeksOfMonth []dataprotection.WeekNumber
-		if v["weeks_of_month"].(*schema.Set).Len() > 0 {
+		if v["weeks_of_month"].(*pluginsdk.Set).Len() > 0 {
 			weeksOfMonth = make([]dataprotection.WeekNumber, 0)
-			for _, value := range v["weeks_of_month"].(*schema.Set).List() {
+			for _, value := range v["weeks_of_month"].(*pluginsdk.Set).List() {
 				weeksOfMonth = append(weeksOfMonth, dataprotection.WeekNumber(value.(string)))
 			}
 		}
 
 		var scheduleTimes []date.Time
-		if v["scheduled_backup_times"].(*schema.Set).Len() > 0 {
+		if v["scheduled_backup_times"].(*pluginsdk.Set).Len() > 0 {
 			scheduleTimes = make([]date.Time, 0)
-			for _, value := range v["scheduled_backup_times"].(*schema.Set).List() {
+			for _, value := range v["scheduled_backup_times"].(*pluginsdk.Set).List() {
 				t, _ := time.Parse(time.RFC3339, value.(string))
 				scheduleTimes = append(scheduleTimes, date.Time{Time: t})
 			}

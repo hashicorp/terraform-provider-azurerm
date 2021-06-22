@@ -229,7 +229,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error for Express Route Circuit %q (Resource Group %q) to be able to be queried: %+v", name, resGroup, err)
 	}
 

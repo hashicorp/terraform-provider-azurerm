@@ -388,7 +388,7 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.Name, id.ResourceID, err)
 	}
 

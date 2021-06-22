@@ -99,6 +99,7 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
+	//lintignore:R006
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
 		if _, err := authorizationRulesClient.EventHubsCreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {

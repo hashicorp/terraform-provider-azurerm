@@ -39,7 +39,7 @@ func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, _, account
 				Timeout:        time.Until(timeout),
 			}
 
-			if _, err := stateConf.WaitForState(); err != nil {
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("failed creating container: %+v", err)
 			}
 		} else {

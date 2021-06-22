@@ -84,7 +84,7 @@ func TestAccEventHubNamespaceCustomerManagedKey_update(t *testing.T) {
 }
 
 func (r EventHubNamespaceCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := namespaces.NamespaceID(state.ID)
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}

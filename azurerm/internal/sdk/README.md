@@ -115,19 +115,19 @@ func (r ResourceGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving Resource Group %q..", id.Name)
-			group, err := client.Get(ctx, id.Name)
+			metadata.Logger.Infof("retrieving Resource Group %q..", id.ResourceGroup)
+			group, err := client.Get(ctx, id.ResourceGroup)
 			if err != nil {
 				if utils.ResponseWasNotFound(group.Response) {
-					metadata.Logger.Infof("Resource Group %q was not found - removing from state!", id.Name)
-					return metadata.MarkAsGone()
+					metadata.Logger.Infof("%s was not found - removing from state!", *id)
+					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving Resource Group %q: %+v", id.Name, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			return metadata.Encode(&ResourceGroup{
-				Name:     id.Name,
+				Name:     id.ResourceGroup,
 				Location: location.NormalizeNilable(group.Location),
 				Tags:     tags.ToTypedObject(group.Tags),
 			})
@@ -150,15 +150,15 @@ func (r ResourceGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating Resource Group %q..", id.Name)
+			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Resource.GroupsClient
 
 			input := resources.GroupPatchable{
 				Tags: tags.FromTypedObject(state.Tags),
 			}
 
-			if _, err := client.Update(ctx, id.Name, input); err != nil {
-				return fmt.Errorf("updating Resource Group %q: %+v", id.Name, err)
+			if _, err := client.Update(ctx, id.ResourceGroup, input); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -176,19 +176,19 @@ func (r ResourceGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Resource Group %q..", id.Name)
-			future, err := client.Delete(ctx, id.Name)
+			metadata.Logger.Infof("deleting %s..", *id)
+			future, err := client.Delete(ctx, id.ResourceGroup, "")
 			if err != nil {
 				if response.WasNotFound(future.Response()) {
-					return metadata.MarkAsGone()
+					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("deleting Resource Group %q: %+v", id.Name, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			metadata.Logger.Infof("waiting for the deletion of Resource Group %q..", id.Name)
+			metadata.Logger.Infof("waiting for the deletion of %s..", *id)
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of Resource Group %q: %+v", id.Name, err)
+				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 
 			return nil

@@ -2,11 +2,12 @@ package ssh
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -18,8 +19,8 @@ type Runner struct {
 	CommandsToRun []string
 }
 
-func (r Runner) Run() error {
-	if err := resource.Retry(5*time.Minute, r.tryRun); err != nil {
+func (r Runner) Run(ctx context.Context) error {
+	if err := resource.RetryContext(ctx, 5*time.Minute, r.tryRun); err != nil {
 		return err
 	}
 
