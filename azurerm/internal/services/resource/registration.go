@@ -29,6 +29,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_resources":             dataSourceResources(),
 		"azurerm_resource_group":        dataSourceResourceGroup(),
+		"azurerm_resource_id":           dataSourceResourceId(),
 		"azurerm_template_spec_version": dataSourceTemplateSpecVersion(),
 	}
 }
