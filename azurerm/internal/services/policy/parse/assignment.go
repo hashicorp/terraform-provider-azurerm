@@ -22,7 +22,7 @@ func (id PolicyAssignmentId) String() string {
 }
 
 func (id PolicyAssignmentId) ID() string {
-	fmtString := "%s/providers/Microsoft.Authorization/policyAssignment/%s"
+	fmtString := "%s/providers/Microsoft.Authorization/policyAssignments/%s"
 	return fmt.Sprintf(fmtString, id.Scope, id.Name)
 }
 
@@ -35,6 +35,7 @@ func NewPolicyAssignmentId(scope, name string) (*PolicyAssignmentId, error) {
 	return &PolicyAssignmentId{
 		Name:          name,
 		PolicyScopeId: scopeId,
+		Scope:         scope,
 	}, nil
 }
 

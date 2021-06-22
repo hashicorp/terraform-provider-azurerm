@@ -183,21 +183,8 @@ func resourceArmPolicyAssignmentCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
-	log.Printf("[DEBUG] Waiting for %s to become available", *id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context was missing a deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		PollInterval:              5 * time.Second,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	log.Printf("[DEBUG] Waiting for %s to become available..", id)
+	if err := waitForPolicyAssignmentToStabilize(ctx, client, *id, true); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
@@ -295,21 +282,8 @@ func resourceArmPolicyAssignmentUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
-	log.Printf("[DEBUG] Waiting for %s to become available", *id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context was missing a deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		PollInterval:              5 * time.Second,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	log.Printf("[DEBUG] Waiting for %s to become available..", id)
+	if err := waitForPolicyAssignmentToStabilize(ctx, client, *id, true); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
@@ -379,36 +353,49 @@ func resourceArmPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Policy Assignments are eventually consistent; wait for it to be gone
-	log.Printf("[DEBUG] Waiting for %s to finish deleting", *id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context was missing a deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"200"},
-		Target:                    []string{"404"},
-		Refresh:                   policyAssignmentRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		PollInterval:              5 * time.Second,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	log.Printf("[DEBUG] Waiting for %s to disappear..", id)
+	if err := waitForPolicyAssignmentToStabilize(ctx, client, *id, false); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %s", id, err)
 	}
 
 	return nil
 }
 
-func policyAssignmentRefreshFunc(ctx context.Context, client *policy.AssignmentsClient, id parse.PolicyAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.Scope, id.Name)
-		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
+func waitForPolicyAssignmentToStabilize(ctx context.Context, client *policy.AssignmentsClient, id parse.PolicyAssignmentId, shouldExist bool) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context was missing a deadline")
 	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"404"},
+		Target:  []string{"200"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, id.Scope, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, strconv.Itoa(resp.StatusCode), nil
+				}
+
+				return nil, strconv.Itoa(resp.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
+			}
+
+			return resp, strconv.Itoa(resp.StatusCode), nil
+		},
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		PollInterval:              5 * time.Second,
+		Timeout:                   time.Until(deadline),
+	}
+	if !shouldExist {
+		stateConf.Pending = []string{"200"}
+		stateConf.Target = []string{"404"}
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func expandAzureRmPolicyIdentity(input []interface{}) (*policy.Identity, error) {
