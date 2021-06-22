@@ -1026,10 +1026,10 @@ func expandAdvancedFilter(operatorType string, config map[string]interface{}) (e
 	case "is_null_or_undefined":
 		return eventgrid.IsNullOrUndefinedAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeIsNullOrUndefined}, nil
 	case "number_in_range":
-		v := utils.ExpandFloatRangeSlice(config["values"].([][]interface{}))
+		v := utils.ExpandFloatRangeSlice(config["values"].([]interface{}))
 		return eventgrid.NumberInRangeAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberInRange, Values: v}, nil
 	case "number_not_in_range":
-		v := utils.ExpandFloatRangeSlice(config["values"].([][]interface{}))
+		v := utils.ExpandFloatRangeSlice(config["values"].([]interface{}))
 		return eventgrid.NumberNotInRangeAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberNotInRange, Values: v}, nil
 	default:
 		return nil, fmt.Errorf("Invalid `advanced_filter` operator_type %q used", operatorType)
@@ -1306,7 +1306,7 @@ func flattenEventGridEventSubscriptionAdvancedFilter(input *eventgrid.EventSubsc
 			"number_in":                     numberIn,
 			"number_not_in":                 numberNotIn,
 			"number_in_range":               numberInRange,
-			"number_not_in_rang":            numberNotInRange,
+			"number_not_in_range":           numberNotInRange,
 			"string_begins_with":            stringBeginsWith,
 			"string_not_begins_with":        stringNotBeginsWith,
 			"string_ends_with":              stringEndsWith,
