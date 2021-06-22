@@ -76,7 +76,7 @@ resource "azurerm_kusto_iothub_data_connection" "example" {
   shared_access_policy_name = azurerm_iothub_shared_access_policy.example.name
   event_system_properties   = ["message-id", "sequence-number", "to"]
 
-  table_name        = "my-table" 
+  table_name        = "my-table"
   mapping_rule_name = "my-table-mapping"
   data_format       = "JSON"
 }
