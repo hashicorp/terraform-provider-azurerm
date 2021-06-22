@@ -428,6 +428,10 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
+	if d.HasChange("policy_definition_group") {
+		existing.SetDefinitionProperties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(d.Get("policy_definition_group").(*pluginsdk.Set).List())
+	}
+
 	if d.HasChange("policy_definitions") {
 		var policyDefinitions []policy.DefinitionReference
 		err := json.Unmarshal([]byte(d.Get("policy_definitions").(string)), &policyDefinitions)
