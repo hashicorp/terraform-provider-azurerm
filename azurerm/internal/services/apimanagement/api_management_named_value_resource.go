@@ -46,11 +46,34 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"key_vault": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"value"},
+				ExactlyOneOf:  []string{"value", "key_vault"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"secret_id": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
+
 			"value": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"key_vault"},
+				ExactlyOneOf:  []string{"value", "key_vault"},
 			},
 
 			"secret": {
@@ -96,8 +119,12 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		NamedValueCreateContractProperties: &apimanagement.NamedValueCreateContractProperties{
 			DisplayName: utils.String(d.Get("display_name").(string)),
 			Secret:      utils.Bool(d.Get("secret").(bool)),
-			Value:       utils.String(d.Get("value").(string)),
+			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("key_vault").([]interface{})),
 		},
+	}
+
+	if v, ok := d.GetOk("value"); ok {
+		parameters.NamedValueCreateContractProperties.Value = utils.String(v.(string))
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
@@ -160,6 +187,9 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 		if properties.Secret != nil && !*properties.Secret {
 			d.Set("value", properties.Value)
 		}
+		if err := d.Set("key_vault", flattenApiManagementNamedValueKeyVault(properties.KeyVault)); err != nil {
+			return fmt.Errorf("setting `key_vault`: %+v", err)
+		}
 		d.Set("tags", properties.Tags)
 	}
 
@@ -186,4 +216,38 @@ func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandApiManagementNamedValueKeyVault(inputs []interface{}) *apimanagement.KeyVaultContractCreateProperties {
+	if len(inputs) == 0 {
+		return nil
+	}
+	input := inputs[0].(map[string]interface{})
+
+	return &apimanagement.KeyVaultContractCreateProperties{
+		SecretIdentifier: utils.String(input["secret_id"].(string)),
+		IdentityClientID: utils.String(input["identity_client_id"].(string)),
+	}
+}
+
+func flattenApiManagementNamedValueKeyVault(input *apimanagement.KeyVaultContractProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var secretId, clientId string
+	if input.SecretIdentifier != nil {
+		secretId = *input.SecretIdentifier
+	}
+
+	if input.IdentityClientID != nil {
+		clientId = *input.IdentityClientID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secret_id":          secretId,
+			"identity_client_id": clientId,
+		},
+	}
 }
