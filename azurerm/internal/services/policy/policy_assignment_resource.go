@@ -7,6 +7,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -18,6 +22,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type policyAssignmentIdentity = identity.SystemAssigned
 
 func resourceArmPolicyAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -73,31 +79,7 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocationOptional(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(policy.SystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": policyAssignmentIdentity{}.Schema(),
 
 			"parameters": {
 				Type:             pluginsdk.TypeString,
@@ -170,7 +152,11 @@ func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if assignment.Location == nil {
 			return fmt.Errorf("`location` must be set when `identity` is assigned")
 		}
-		assignment.Identity = expandAzureRmPolicyIdentity(v.([]interface{}))
+		identity, err := expandAzureRmPolicyIdentity(v.([]interface{}))
+		if err != nil {
+
+		}
+		assignment.Identity = identity
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -245,13 +231,10 @@ func resourceArmPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 	d.Set("scope", id.Scope)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if err := d.Set("identity", flattenAzureRmPolicyIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AssignmentProperties; props != nil {
@@ -304,41 +287,27 @@ func policyAssignmentRefreshFunc(ctx context.Context, client *policy.Assignments
 	}
 }
 
-func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
-	if len(input) == 0 || input[0] == nil {
-		return &policy.Identity{
-			Type: policy.None,
-		}
+func expandAzureRmPolicyIdentity(input []interface{}) (*policy.Identity, error) {
+	expanded, err := policyAssignmentIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
 	}
 
-	identity := input[0].(map[string]interface{})
 	return &policy.Identity{
-		Type: policy.ResourceIdentityType(identity["type"].(string)),
-	}
+		Type: policy.ResourceIdentityType(expanded.Type),
+	}, nil
 }
 
-func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
-	if identity == nil || identity.Type == policy.None {
-		return make([]interface{}, 0)
+func flattenAzureRmPolicyIdentity(input *policy.Identity) []interface{} {
+	var config *identity.ExpandedConfig
+	if input != nil {
+		config = &identity.ExpandedConfig{
+			Type:        string(input.Type),
+			PrincipalId: input.PrincipalID,
+			TenantId:    input.TenantID,
+		}
 	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
+	return policyAssignmentIdentity{}.Flatten(config)
 }
 
 func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
