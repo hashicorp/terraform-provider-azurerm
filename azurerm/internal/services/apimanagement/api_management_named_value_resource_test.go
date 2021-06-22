@@ -276,7 +276,7 @@ resource "azurerm_key_vault_secret" "test2" {
 
 func (r ApiManagementNamedValueResource) keyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s 
+%[1]s
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%[2]d"
@@ -298,7 +298,7 @@ resource "azurerm_api_management_named_value" "test" {
 
 func (r ApiManagementNamedValueResource) keyVaultUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s 
+%[1]s
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%[2]d"
@@ -319,8 +319,7 @@ resource "azurerm_api_management_named_value" "test" {
 
 func (r ApiManagementNamedValueResource) keyVaultUpdateToValue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s 
-
+%[1]s
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%[2]d"
