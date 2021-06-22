@@ -75,7 +75,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetProperties(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Cognitive Services Account %q (Resource Group %q) was not found", name, resourceGroup)

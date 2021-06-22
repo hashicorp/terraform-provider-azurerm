@@ -224,7 +224,7 @@ func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Cognitive.AccountsClient.GetProperties(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cognitive.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 	}

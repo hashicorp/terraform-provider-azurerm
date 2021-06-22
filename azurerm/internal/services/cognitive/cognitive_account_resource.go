@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
+	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -121,8 +121,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.Allow),
-								string(cognitiveservices.Deny),
+								string(cognitiveservices.NetworkRuleActionAllow),
+								string(cognitiveservices.NetworkRuleActionDeny),
 							}, false),
 						},
 						"ip_rules": {
@@ -185,7 +185,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	kind := d.Get("kind").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.GetProperties(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -224,7 +224,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:       &cognitiveservices.AccountAPIProperties{},
+			APIProperties:       &cognitiveservices.APIProperties{},
 			NetworkAcls:         networkAcls,
 			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
 		},
@@ -255,7 +255,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
 	}
 
-	read, err := client.GetProperties(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -300,7 +300,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:       &cognitiveservices.AccountAPIProperties{},
+			APIProperties:       &cognitiveservices.APIProperties{},
 			NetworkAcls:         networkAcls,
 			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
 		},
@@ -344,7 +344,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -403,11 +403,12 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("error deleting Cognitive Services Account (%q): %+v", id, err)
 		}
+		return fmt.Errorf("error deleting Cognitive Services Account (%q): %+v", id, err)
 	}
 
 	return nil
@@ -417,11 +418,11 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 	var tier cognitiveservices.SkuTier
 	switch skuName[0:1] {
 	case "F":
-		tier = cognitiveservices.Free
+		tier = cognitiveservices.SkuTierFree
 	case "S":
-		tier = cognitiveservices.Standard
+		tier = cognitiveservices.SkuTierStandard
 	case "P":
-		tier = cognitiveservices.Premium
+		tier = cognitiveservices.SkuTierPremium
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
 	}
@@ -434,7 +435,7 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 
 func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservices.AccountsClient, resourceGroupName string, cognitiveAccountName string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.GetProperties(ctx, resourceGroupName, cognitiveAccountName)
+		res, err := client.Get(ctx, resourceGroupName, cognitiveAccountName)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request in cognitiveAccountStateRefreshFunc to Azure ARM for Cognitive Account '%s' (RG: '%s'): %s", cognitiveAccountName, resourceGroupName, err)
 		}
