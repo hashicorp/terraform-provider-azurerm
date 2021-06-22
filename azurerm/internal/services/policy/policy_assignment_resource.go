@@ -2,10 +2,8 @@ package policy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -123,40 +121,9 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 				},
 			},
 
-			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policyAssignmentsMetadataDiffSuppressFunc,
-			},
+			"metadata": metadataSchema(),
 		},
 	}
-}
-
-func policyAssignmentsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicyAssignmentsMetadata map[string]interface{}
-	errOld := json.Unmarshal([]byte(old), &oldPolicyAssignmentsMetadata)
-	if errOld != nil {
-		return false
-	}
-
-	var newPolicyAssignmentsMetadata map[string]interface{}
-	if new != "" {
-		errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
-		if errNew != nil {
-			return false
-		}
-	}
-
-	// Ignore the following keys if they're found in the metadata JSON
-	ignoreKeys := [5]string{"assignedBy", "createdBy", "createdOn", "updatedBy", "updatedOn"}
-	for _, key := range ignoreKeys {
-		delete(oldPolicyAssignmentsMetadata, key)
-		delete(newPolicyAssignmentsMetadata, key)
-	}
-
-	return reflect.DeepEqual(oldPolicyAssignmentsMetadata, newPolicyAssignmentsMetadata)
 }
 
 func resourceArmPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
