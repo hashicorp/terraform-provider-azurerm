@@ -176,7 +176,7 @@ func resourceArmPolicyAssignmentCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if _, err := client.Create(ctx, id.Scope, id.Name, assignment); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
@@ -275,7 +275,7 @@ func resourceArmPolicyAssignmentUpdate(d *pluginsdk.ResourceData, meta interface
 
 	// NOTE: there isn't an Update endpoint
 	if _, err := client.Create(ctx, id.Scope, id.Name, update); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", *id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
