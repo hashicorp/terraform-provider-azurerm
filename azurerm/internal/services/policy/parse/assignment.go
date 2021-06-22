@@ -9,7 +9,6 @@ import (
 type PolicyAssignmentId struct {
 	Name  string
 	Scope string
-	PolicyScopeId
 }
 
 func (id PolicyAssignmentId) String() string {
@@ -26,17 +25,11 @@ func (id PolicyAssignmentId) ID() string {
 	return fmt.Sprintf(fmtString, id.Scope, id.Name)
 }
 
-func NewPolicyAssignmentId(scope, name string) (*PolicyAssignmentId, error) {
-	scopeId, err := PolicyScopeID(scope)
-	if err != nil {
-		return nil, fmt.Errorf("parsing Policy Scope ID %q: %+v", scope, err)
+func NewPolicyAssignmentId(scope, name string) PolicyAssignmentId {
+	return PolicyAssignmentId{
+		Name:  name,
+		Scope: scope,
 	}
-
-	return &PolicyAssignmentId{
-		Name:          name,
-		PolicyScopeId: scopeId,
-		Scope:         scope,
-	}, nil
 }
 
 // TODO: This paring function is currently suppressing every case difference due to github issue: https://github.com/Azure/azure-rest-api-specs/issues/8353
@@ -60,14 +53,8 @@ func PolicyAssignmentID(input string) (*PolicyAssignmentId, error) {
 		return nil, fmt.Errorf("unable to parse Policy Assignment ID %q: assignment name is empty", input)
 	}
 
-	scopeId, err := PolicyScopeID(scope)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse Policy Assignment ID %q: %+v", input, err)
-	}
-
 	return &PolicyAssignmentId{
-		Name:          name,
-		Scope:         scope,
-		PolicyScopeId: scopeId,
+		Name:  name,
+		Scope: scope,
 	}, nil
 }

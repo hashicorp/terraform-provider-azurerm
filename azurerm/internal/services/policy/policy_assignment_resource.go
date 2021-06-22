@@ -113,15 +113,12 @@ func resourceArmPolicyAssignmentCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NewPolicyAssignmentId(d.Get("scope").(string), d.Get("name").(string))
-	if err != nil {
-		return err
-	}
+	id := parse.NewPolicyAssignmentId(d.Get("scope").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
@@ -179,12 +176,12 @@ func resourceArmPolicyAssignmentCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if _, err := client.Create(ctx, id.Scope, id.Name, assignment); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", *id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for %s to become available..", id)
-	if err := waitForPolicyAssignmentToStabilize(ctx, client, *id, true); err != nil {
+	if err := waitForPolicyAssignmentToStabilize(ctx, client, id, true); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
