@@ -143,7 +143,7 @@ func (r ApiManagementNamedValueResource) basic(data acceptance.TestData) string 
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%d"
-  resource_group_name = azurerm_api_management.test.resource_group_name
+  resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestProperty%d"
   value               = "Test Value"
@@ -158,7 +158,7 @@ func (r ApiManagementNamedValueResource) update(data acceptance.TestData) string
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%d"
-  resource_group_name = azurerm_api_management.test.resource_group_name
+  resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestProperty2%d"
   value               = "Test Value2"
@@ -173,7 +173,7 @@ func (r ApiManagementNamedValueResource) keyVaultTemplate(data acceptance.TestDa
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy = true
     }
   }
 }
@@ -280,7 +280,7 @@ func (r ApiManagementNamedValueResource) keyVault(data acceptance.TestData) stri
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%[2]d"
-  resource_group_name = azurerm_api_management.test.resource_group_name
+  resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
   secret              = true
@@ -291,7 +291,7 @@ resource "azurerm_api_management_named_value" "test" {
 
   tags = ["tag1", "tag2"]
 
-  depends_on = [azurerm_key_vault_access_policy.test,azurerm_key_vault_access_policy.test2]
+  depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, r.keyVaultTemplate(data), data.RandomInteger)
 }
@@ -302,7 +302,7 @@ func (r ApiManagementNamedValueResource) keyVaultUpdate(data acceptance.TestData
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%[2]d"
-  resource_group_name = azurerm_api_management.test.resource_group_name
+  resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
   secret              = true
@@ -324,7 +324,7 @@ func (r ApiManagementNamedValueResource) keyVaultUpdateToValue(data acceptance.T
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%[2]d"
-  resource_group_name = azurerm_api_management.test.resource_group_name
+  resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
   secret              = false
