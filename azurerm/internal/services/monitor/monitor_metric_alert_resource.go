@@ -11,9 +11,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -21,12 +18,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorMetricAlert() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorMetricAlert() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorMetricAlertCreateUpdate,
 		Read:   resourceMonitorMetricAlertRead,
 		Update: resourceMonitorMetricAlertCreateUpdate,
@@ -35,16 +33,16 @@ func resourceMonitorMetricAlert() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,52 +51,52 @@ func resourceMonitorMetricAlert() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scopes": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"target_resource_type": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target resource. Required when using subscription, resource group scope or multiple scopes.`,
+				Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
 			},
 
 			"target_resource_location": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
-				Description:      `The location of the target resource. Required when using subscription, resource group scope or multiple scopes.`,
+				Description:      `The location of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
 			},
 
 			// static criteria
 			"criteria": {
-				Type:         schema.TypeSet,
+				Type:         pluginsdk.TypeSet,
 				Optional:     true,
 				MinItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"metric_namespace": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"metric_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"aggregation": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Average",
@@ -109,36 +107,37 @@ func resourceMonitorMetricAlert() *schema.Resource {
 							}, false),
 						},
 						"dimension": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"operator": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
+											"StartsWith",
 										}, false),
 									},
 									"values": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MinItems: 1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
 							},
 						},
 						"operator": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(insights.OperatorEquals),
@@ -150,11 +149,11 @@ func resourceMonitorMetricAlert() *schema.Resource {
 							}, false),
 						},
 						"threshold": {
-							Type:     schema.TypeFloat,
+							Type:     pluginsdk.TypeFloat,
 							Required: true,
 						},
 						"skip_metric_validation": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -164,26 +163,26 @@ func resourceMonitorMetricAlert() *schema.Resource {
 
 			// lintignore: S018
 			"dynamic_criteria": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
 				// Curently, it allows to define only one dynamic criteria in one metric alert.
 				MaxItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"metric_namespace": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"metric_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"aggregation": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Average",
@@ -194,17 +193,17 @@ func resourceMonitorMetricAlert() *schema.Resource {
 							}, false),
 						},
 						"dimension": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"operator": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
@@ -212,18 +211,18 @@ func resourceMonitorMetricAlert() *schema.Resource {
 										}, false),
 									},
 									"values": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MinItems: 1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
 							},
 						},
 						"operator": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(insights.DynamicThresholdOperatorLessThan),
@@ -232,7 +231,7 @@ func resourceMonitorMetricAlert() *schema.Resource {
 							}, false),
 						},
 						"alert_sensitivity": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(insights.Low),
@@ -242,26 +241,26 @@ func resourceMonitorMetricAlert() *schema.Resource {
 						},
 
 						"evaluation_total_count": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 							Default:      4,
 						},
 
 						"evaluation_failure_count": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 							Default:      4,
 						},
 
 						"ignore_data_before": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"skip_metric_validation": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 					},
@@ -269,25 +268,25 @@ func resourceMonitorMetricAlert() *schema.Resource {
 			},
 
 			"application_insights_web_test_location_availability_criteria": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				MinItems:     1,
 				MaxItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"web_test_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.WebTestID,
 						},
 						"component_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ComponentID,
 						},
 						"failed_location_count": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
@@ -296,20 +295,20 @@ func resourceMonitorMetricAlert() *schema.Resource {
 			},
 
 			"action": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"action_group_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"webhook_properties": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -318,24 +317,24 @@ func resourceMonitorMetricAlert() *schema.Resource {
 			},
 
 			"auto_mitigate": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"frequency": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "PT1M",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -348,14 +347,14 @@ func resourceMonitorMetricAlert() *schema.Resource {
 			},
 
 			"severity": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      3,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
 
 			"window_size": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "PT5M",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -375,7 +374,7 @@ func resourceMonitorMetricAlert() *schema.Resource {
 	}
 }
 
-func resourceMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -399,11 +398,11 @@ func resourceMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interfa
 	enabled := d.Get("enabled").(bool)
 	autoMitigate := d.Get("auto_mitigate").(bool)
 	description := d.Get("description").(string)
-	scopesRaw := d.Get("scopes").(*schema.Set).List()
+	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
 	severity := d.Get("severity").(int)
 	frequency := d.Get("frequency").(string)
 	windowSize := d.Get("window_size").(string)
-	actionRaw := d.Get("action").(*schema.Set).List()
+	actionRaw := d.Get("action").(*pluginsdk.Set).List()
 	targetResourceType := d.Get("target_resource_type").(string)
 	targetResourceLocation := d.Get("target_resource_location").(string)
 
@@ -455,7 +454,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interfa
 	// Monitor Metric Alert API would return 404 while creating multiple Monitor Metric Alerts and get each resource immediately once it's created successfully in parallel.
 	// Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10973
 	log.Printf("[DEBUG] Waiting for Monitor Metric Alert %q (Resource Group %q) to be created", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, resourceGroup, name),
@@ -464,12 +463,12 @@ func resourceMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Monitor Metric Alert %q (Resource Group %q) to finish provisioning: %s", name, resourceGroup, err)
 	}
 
@@ -485,7 +484,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceMonitorMetricAlertRead(d, meta)
 }
 
-func resourceMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -557,7 +556,7 @@ func resourceMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -578,15 +577,15 @@ func resourceMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandMonitorMetricAlertCriteria(d *schema.ResourceData, isLegacy bool) (insights.BasicMetricAlertCriteria, error) {
+func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) (insights.BasicMetricAlertCriteria, error) {
 	switch {
-	case d.Get("criteria").(*schema.Set).Len() != 0:
+	case d.Get("criteria").(*pluginsdk.Set).Len() != 0:
 		if isLegacy {
-			return expandMonitorMetricAlertSingleResourceMultiMetricCriteria(d.Get("criteria").(*schema.Set).List()), nil
+			return expandMonitorMetricAlertSingleResourceMultiMetricCriteria(d.Get("criteria").(*pluginsdk.Set).List()), nil
 		}
-		return expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(d.Get("criteria").(*schema.Set).List()), nil
-	case d.Get("dynamic_criteria").(*schema.Set).Len() != 0:
-		return expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(d.Get("dynamic_criteria").(*schema.Set).List()), nil
+		return expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(d.Get("criteria").(*pluginsdk.Set).List()), nil
+	case d.Get("dynamic_criteria").(*pluginsdk.Set).Len() != 0:
+		return expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(d.Get("dynamic_criteria").(*pluginsdk.Set).List()), nil
 	case len(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})) != 0:
 		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})), nil
 	default:
@@ -954,10 +953,10 @@ func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
 	}
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *insights.MetricAlertsClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *insights.MetricAlertsClient, resourceGroupName string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

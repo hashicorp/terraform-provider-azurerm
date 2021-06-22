@@ -10,11 +10,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -22,28 +22,28 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHPCCacheBlobNFSTarget() *schema.Resource {
-	return &schema.Resource{
+func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHPCCacheBlobNFSTargetCreateUpdate,
 		Read:   resourceHPCCacheBlobNFSTargetRead,
 		Update: resourceHPCCacheBlobNFSTargetCreateUpdate,
 		Delete: resourceHPCCacheBlobNFSTargetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.StorageTargetID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageTargetName,
@@ -52,20 +52,20 @@ func resourceHPCCacheBlobNFSTarget() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"cache_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"namespace_path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CacheNamespacePath,
 			},
 
 			"storage_container_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageContainerResourceManagerID,
@@ -74,7 +74,7 @@ func resourceHPCCacheBlobNFSTarget() *schema.Resource {
 			// TODO: use SDK enums once following issue is addressed
 			// https://github.com/Azure/azure-rest-api-specs/issues/13839
 			"usage_model": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"READ_HEAVY_INFREQ",
@@ -88,7 +88,7 @@ func resourceHPCCacheBlobNFSTarget() *schema.Resource {
 			},
 
 			"access_policy_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "default",
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -97,7 +97,7 @@ func resourceHPCCacheBlobNFSTarget() *schema.Resource {
 	}
 }
 
-func resourceHPCCacheBlobNFSTargetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -158,7 +158,7 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceHPCCacheBlobNFSTargetRead(d, meta)
 }
 
-func resourceHPCCacheBlobNFSTargetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceHPCCacheBlobNFSTargetRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceHPCCacheBlobNFSTargetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

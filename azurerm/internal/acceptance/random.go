@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 )
 
 func RandTimeInt() int {
@@ -29,4 +29,8 @@ func RandTimeInt() int {
 // RandString generates a random alphanumeric string of the length specified
 func RandString(strlen int) string {
 	return acctest.RandString(strlen)
+}
+
+func RandStringFromCharSet(strlen int, charSet string) string {
+	return acctest.RandStringFromCharSet(strlen, charSet)
 }

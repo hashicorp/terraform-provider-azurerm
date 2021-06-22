@@ -3,56 +3,54 @@ package web
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/Azure/go-autorest/autorest/date"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaAppServiceBackup() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaAppServiceBackup() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_account_url": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.IsURLWithHTTPS,
 				},
 
 				"enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
 				},
 
 				"schedule": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"frequency_interval": {
-								Type:         schema.TypeInt,
+								Type:         pluginsdk.TypeInt,
 								Required:     true,
 								ValidateFunc: validation.IntBetween(0, 1000),
 							},
 
 							"frequency_unit": {
-								Type:     schema.TypeString,
+								Type:     pluginsdk.TypeString,
 								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Day",
@@ -61,20 +59,20 @@ func schemaAppServiceBackup() *schema.Schema {
 							},
 
 							"keep_at_least_one_backup": {
-								Type:     schema.TypeBool,
+								Type:     pluginsdk.TypeBool,
 								Optional: true,
 								Default:  false,
 							},
 
 							"retention_period_in_days": {
-								Type:         schema.TypeInt,
+								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								Default:      30,
 								ValidateFunc: validation.IntBetween(0, 9999999),
 							},
 
 							"start_time": {
-								Type:             schema.TypeString,
+								Type:             pluginsdk.TypeString,
 								Optional:         true,
 								DiffSuppressFunc: suppress.RFC3339Time,
 								ValidateFunc:     validation.IsRFC3339Time,

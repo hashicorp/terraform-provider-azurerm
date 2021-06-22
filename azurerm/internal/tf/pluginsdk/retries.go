@@ -3,8 +3,10 @@ package pluginsdk
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
+
+// TODO: work through and switch these out for WaitForState funcs
 
 // RetryFunc is the function retried until it succeeds.
 type RetryFunc = resource.RetryFunc
@@ -18,7 +20,7 @@ type RetryError = resource.RetryError
 // a function until it no longer returns an error.
 func Retry(timeout time.Duration, f RetryFunc) error {
 	// TODO: deprecate this
-	return resource.Retry(timeout, f)
+	return resource.Retry(timeout, f) //nolint:SA1019
 }
 
 // RetryableError is a helper to create a RetryError that's retryable from a

@@ -7,20 +7,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
 )
 
-func resourceStorageShareDirectory() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageShareDirectory() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageShareDirectoryCreate,
 		Read:   resourceStorageShareDirectoryRead,
 		Update: resourceStorageShareDirectoryUpdate,
@@ -28,28 +26,28 @@ func resourceStorageShareDirectory() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageShareDirectoryName,
 			},
 			"share_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"storage_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -60,7 +58,7 @@ func resourceStorageShareDirectory() *schema.Resource {
 	}
 }
 
-func resourceStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -106,16 +104,16 @@ func resourceStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{
 
 	// Storage Share Directories are eventually consistent
 	log.Printf("[DEBUG] Waiting for Directory %q (File Share %q / Account %q) to become available", directoryName, shareName, accountName)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   storageShareDirectoryRefreshFunc(ctx, client, accountName, shareName, directoryName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 5,
-		Timeout:                   d.Timeout(schema.TimeoutCreate),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Directory %q (File Share %q / Account %q) to become available: %s", directoryName, shareName, accountName, err)
 	}
 
@@ -125,7 +123,7 @@ func resourceStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{
 	return resourceStorageShareDirectoryRead(d, meta)
 }
 
-func resourceStorageShareDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -158,7 +156,7 @@ func resourceStorageShareDirectoryUpdate(d *schema.ResourceData, meta interface{
 	return resourceStorageShareDirectoryRead(d, meta)
 }
 
-func resourceStorageShareDirectoryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -199,7 +197,7 @@ func resourceStorageShareDirectoryRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceStorageShareDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -229,7 +227,7 @@ func resourceStorageShareDirectoryDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, accountName, shareName, directoryName string) resource.StateRefreshFunc {
+func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, accountName, shareName, directoryName string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, accountName, shareName, directoryName)
 		if err != nil {

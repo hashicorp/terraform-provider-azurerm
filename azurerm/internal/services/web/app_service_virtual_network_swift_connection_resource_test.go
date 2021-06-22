@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 	r := AppServiceVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),
@@ -37,10 +36,10 @@ func TestAccAppServiceVirtualNetworkSwiftConnection_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 	r := AppServiceVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,17 +51,17 @@ func TestAccAppServiceVirtualNetworkSwiftConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 	r := AppServiceVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),
@@ -74,10 +73,10 @@ func TestAccAppServiceVirtualNetworkSwiftConnection_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 	r := AppServiceVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				data.CheckWithClient(r.disappears),
@@ -87,7 +86,7 @@ func TestAccAppServiceVirtualNetworkSwiftConnection_disappears(t *testing.T) {
 	})
 }
 
-func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkSwiftConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -104,7 +103,7 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Cont
 	return utils.Bool(resp.SwiftVirtualNetworkProperties != nil), nil
 }
 
-func (t AppServiceVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t AppServiceVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.VirtualNetworkSwiftConnectionID(state.ID)
 	if err != nil {
 		return err
@@ -124,10 +123,10 @@ func TestAccAppServiceVirtualNetworkSwiftConnection_functionAppBasic(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 	r := AppServiceVirtualNetworkSwiftConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.functionAppBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 			),

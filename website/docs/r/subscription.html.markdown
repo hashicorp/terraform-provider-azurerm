@@ -65,23 +65,13 @@ The following arguments are supported:
 
 * `alias` - (Optional) The Alias name for the subscription. Terraform will generate a new GUID if this is not supplied. Changing this forces a new Subscription to be created.
 
-* `billing_account` - (Optional) The Azure Billing Account Name. Changing this forces a new Subscription to be created.
+* `billing_scope_id` - (Optional) The Azure Billing Scope ID. Can be either a Microsoft Customer Account Billing Scope ID or an Enrollment Billing Scope ID.
 
-* `billing_profile` - (Optional) The Billing Profile within the Billing Account. Conflicts with `enrollment_account`,`subscription_id`. Changing this forces a new Subscription to be created.
-
-~> **NOTE:** This value is only used for MCA and Partner Account types and must be used with `invoice_section`.
-
-* `enrollment_account` - (Optional) The Enrollment Account Name. Conflicts with `invoice_section`,`billing_profile`, and `subscription_id`. Changing this forces a new Subscription to be created.
-
-~> **NOTE:** This value is only valid for Enterprise Agreements.
-
-* `invoice_section` - (Optional) The Invoice Section name. Conflicts with `enrollment_account`, and `subscription_id`. Changing this forces a new Subscription to be created.
-
-~> **NOTE:** This value is only valid for MCA and Partner Account types and must be used with `billing_profile`.
-
-* `subscription_id` - (Optional) The ID of the Subscription. Cannot be specified with `billing_account`, `billing_profile`, `enrollment_account`, or `invoice_section` Changing this forces a new Subscription to be created.
-
+* `subscription_id` - (Optional) The ID of the Subscription. Changing this forces a new Subscription to be created.
+ 
 ~> **NOTE:** This value can be specified only for adopting control of an existing Subscription, it cannot be used to provide a custom Subscription ID.
+
+~> **NOTE:** Either `billing_scope_id` or `subscription_id` has to be specified.
 
 * `workload` - (Optional) The workload type of the Subscription.  Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
 

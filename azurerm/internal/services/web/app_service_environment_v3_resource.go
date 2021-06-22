@@ -5,12 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
@@ -19,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,10 +46,10 @@ type AppServiceEnvironmentV3Resource struct{}
 var _ sdk.Resource = AppServiceEnvironmentV3Resource{}
 var _ sdk.ResourceWithUpdate = AppServiceEnvironmentV3Resource{}
 
-func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AppServiceEnvironmentName,
@@ -60,26 +58,26 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*schema.Schema {
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"subnet_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
 
 		"cluster_setting": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         schema.TypeString,
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"value": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 				},
@@ -90,15 +88,15 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"pricing_tier": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}
@@ -169,7 +167,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			createWait := resource.StateChangeConf{
+			createWait := pluginsdk.StateChangeConf{
 				Pending: []string{
 					string(web.ProvisioningStateInProgress),
 				},
@@ -183,7 +181,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			timeout, _ := ctx.Deadline()
 			createWait.Timeout = time.Until(timeout)
 
-			if _, err := createWait.WaitForState(); err != nil {
+			if _, err := createWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 			}
 
@@ -262,7 +260,7 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceEnvironmentV3Resource) IDValidationFunc() schema.SchemaValidateFunc {
+func (r AppServiceEnvironmentV3Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppServiceEnvironmentID
 }
 

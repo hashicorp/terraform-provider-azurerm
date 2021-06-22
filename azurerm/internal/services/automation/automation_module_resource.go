@@ -6,20 +6,18 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAutomationModule() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomationModule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomationModuleCreateUpdate,
 		Read:   resourceAutomationModuleRead,
 		Update: resourceAutomationModuleCreateUpdate,
@@ -28,23 +26,23 @@ func resourceAutomationModule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"automation_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AutomationAccount(),
@@ -53,28 +51,28 @@ func resourceAutomationModule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"module_link": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"hash": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"algorithm": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"value": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -87,7 +85,7 @@ func resourceAutomationModule() *schema.Resource {
 	}
 }
 
-func resourceAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ModuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +122,7 @@ func resourceAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	// the API returns 'done' but it's not actually finished provisioning yet
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(automation.ModuleProvisioningStateActivitiesStored),
 			string(automation.ModuleProvisioningStateConnectionTypeImported),
@@ -161,12 +159,12 @@ func resourceAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface
 		},
 	}
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
 	}
 
@@ -184,7 +182,7 @@ func resourceAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface
 	return resourceAutomationModuleRead(d, meta)
 }
 
-func resourceAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ModuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,7 +212,7 @@ func resourceAutomationModuleRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ModuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +237,7 @@ func resourceAutomationModuleDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandModuleLink(d *schema.ResourceData) automation.ContentLink {
+func expandModuleLink(d *pluginsdk.ResourceData) automation.ContentLink {
 	inputs := d.Get("module_link").([]interface{})
 	input := inputs[0].(map[string]interface{})
 	uri := input["uri"].(string)

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
@@ -34,7 +34,7 @@ func (w DataPlaneStorageShareWrapper) Create(ctx context.Context, _, accountName
 
 	// If we fail due to previous delete still in progress, then we can retry
 	if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
-		stateConf := &resource.StateChangeConf{
+		stateConf := &pluginsdk.StateChangeConf{
 			Pending:        []string{"waitingOnDelete"},
 			Target:         []string{"succeeded"},
 			Refresh:        w.createRefreshFunc(ctx, accountName, shareName, input),
@@ -43,7 +43,7 @@ func (w DataPlaneStorageShareWrapper) Create(ctx context.Context, _, accountName
 			Timeout:        time.Until(timeout),
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return err
 		}
 	}
@@ -108,7 +108,7 @@ func (w DataPlaneStorageShareWrapper) UpdateQuota(ctx context.Context, _, accoun
 	return err
 }
 
-func (w DataPlaneStorageShareWrapper) createRefreshFunc(ctx context.Context, accountName string, shareName string, input shares.CreateInput) resource.StateRefreshFunc {
+func (w DataPlaneStorageShareWrapper) createRefreshFunc(ctx context.Context, accountName string, shareName string, input shares.CreateInput) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := w.client.Create(ctx, accountName, shareName, input)
 		if err != nil {

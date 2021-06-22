@@ -6,8 +6,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -15,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,18 +24,18 @@ func TestAccImage_standaloneImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: r.setupUnmanagedDisks(data, "LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "LRS", ""),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -48,18 +47,18 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: r.setupUnmanagedDisks(data, "LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "LRS", "V2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,19 +70,19 @@ func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  r.setupUnmanagedDisks(data, "ZRS"),
 			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "ZRS", ""),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_image.test").ExistsInAzure(r),
 			),
 		},
@@ -95,18 +94,18 @@ func TestAccImage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: r.setupUnmanagedDisks(data, "LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "LRS", ""),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -118,18 +117,18 @@ func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: r.setupUnmanagedDisks(data, "LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.customImageFromVMWithUnmanagedDisksProvision(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testdestination"),
 			),
 		},
@@ -140,19 +139,19 @@ func TestAccImage_customImageFromVMWithManagedDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  r.setupManagedDisks(data),
 			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.customImageFromManagedDiskVMProvision(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testdestination"),
 			),
 		},
@@ -163,26 +162,26 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  r.setupUnmanagedDisks(data, "LRS"),
 			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.customImageFromVMSSWithUnmanagedDisksProvision(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineScaleSetExists, "azurerm_virtual_machine_scale_set.testdestination"),
 			),
 		},
 	})
 }
 
-func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -198,8 +197,8 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *terraform.InstanceState) error {
-	return func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.VirtualMachineID(state.ID)
 		if err != nil {
 			return err
@@ -279,7 +278,7 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 				ssh.LinuxAgentDeprovisionCommand,
 			},
 		}
-		if err := sshGeneralizationCommand.Run(); err != nil {
+		if err := sshGeneralizationCommand.Run(ctx); err != nil {
 			return fmt.Errorf("Bad: running generalization command: %+v", err)
 		}
 
@@ -302,7 +301,7 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 	}
 }
 
-func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.VirtualMachineID(state.ID)
 	if err != nil {
 		return err
@@ -320,7 +319,7 @@ func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.C
 	return nil
 }
 
-func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.VirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err

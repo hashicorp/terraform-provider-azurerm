@@ -395,6 +395,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Update maintenance update on a resource
 type Update struct {
 	// MaintenanceScope - The impact area. Possible values include: 'ScopeAll', 'ScopeHost', 'ScopeResource', 'ScopeInResource'

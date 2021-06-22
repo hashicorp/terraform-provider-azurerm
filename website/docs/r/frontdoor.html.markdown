@@ -19,6 +19,10 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 
 !> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
+!> **BREAKING CHANGE:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the `v2.58.0` provider due to changes made by the service team. If you wish to enable the custom https configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
+
+!> **BREAKING CHANGE:** With the release of the `v2.58.0` provider, if you run the `apply` command against an existing Front Door resource it **will not** apply the detected changes. Instead it will persist the `explicit_resource_order` mapping structure to the state file. Once this operation has completed the resource will resume functioning normally.This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource via Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned. If your pre-existing Front Door instance contains `custom_https_configuration` blocks there are additional steps that will need to be completed to succefully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](../guides/2.58.0-frontdoor-upgrade-guide.html).
+
 ## Example Usage
 
 ```hcl
@@ -66,9 +70,8 @@ resource "azurerm_frontdoor" "example" {
   }
 
   frontend_endpoint {
-    name                              = "exampleFrontendEndpoint1"
-    host_name                         = "example-FrontDoor.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = "exampleFrontendEndpoint1"
+    host_name = "example-FrontDoor.azurefd.net"
   }
 }
 ```
@@ -148,12 +151,6 @@ The `frontend_endpoint` block supports the following:
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
-
-* `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for a custom domain associated with the Front Door?
-
-* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
-
--> **NOTE:** This block is required when `custom_https_provisioning_enabled` is set to `true`.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
@@ -239,24 +236,6 @@ The `redirect_configuration` block supports the following:
 
 ---
 
-The `custom_https_configuration` block supports the following:
-
-* `certificate_source` - (Optional) Certificate source to encrypted `HTTPS` traffic with. Allowed values are `FrontDoor` or `AzureKeyVault`. Defaults to `FrontDoor`.
-
-The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
-
-* `azure_key_vault_certificate_vault_id` - (Required) The ID of the Key Vault containing the SSL certificate.
-
-* `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
-
-* `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
-
-~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
-
--> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
-
----
-
 ## Attributes Reference
 
 -> **NOTE:** UPCOMING BREAKING CHANGE: In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as backend pool health probes, backend pool loadbalancer settings, backend pools, frontend endpoints and routing rules. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
@@ -290,12 +269,6 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 `backend_pool_load_balancing` exports the following:
 
 * `id` - The ID of the Azure Front Door Backend Load Balancer.
-
----
-
-`custom_https_configuration` exports the following:
-
-* `minimum_tls_version` - Minimum client TLS version supported.
 
 ---
 

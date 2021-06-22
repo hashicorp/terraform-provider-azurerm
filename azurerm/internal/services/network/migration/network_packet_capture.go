@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -14,47 +13,47 @@ var _ pluginsdk.StateUpgrade = NetworkPacketCaptureV0ToV1{}
 type NetworkPacketCaptureV0ToV1 struct{}
 
 func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"network_watcher_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"target_resource_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"maximum_bytes_per_packet": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			ForceNew: true,
 			Default:  0,
 		},
 
 		"maximum_bytes_per_session": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			ForceNew: true,
 			Default:  1073741824,
 		},
 
 		"maximum_capture_duration": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			ForceNew: true,
 			Default:  18000,
@@ -62,24 +61,24 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		//lintignore:XS003
 		"storage_location": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"file_path": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 
 					"storage_account_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 
 					"storage_path": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 				},
@@ -87,37 +86,37 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"filter": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"local_ip_address": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
 					},
 
 					"local_port": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
 					},
 
 					"protocol": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
 					},
 
 					"remote_ip_address": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
 					},
 
 					"remote_port": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
 					},

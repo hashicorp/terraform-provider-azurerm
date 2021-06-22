@@ -8,21 +8,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorLogProfile() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorLogProfile() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogProfileCreateUpdate,
 		Read:   resourceLogProfileRead,
 		Update: resourceLogProfileCreateUpdate,
@@ -30,63 +28,63 @@ func resourceMonitorLogProfile() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 			"servicebus_rule_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 			"locations": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				MinItems: 1,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
 					StateFunc:        location.StateFunc,
 					DiffSuppressFunc: location.DiffSuppressFunc,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 			"categories": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 			"retention_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 						"days": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Default:  0,
 						},
@@ -97,7 +95,7 @@ func resourceMonitorLogProfile() *schema.Resource {
 	}
 }
 
-func resourceLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.LogProfilesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +144,7 @@ func resourceLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Available"},
 		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, name),
@@ -154,12 +152,12 @@ func resourceLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		ContinuousTargetOccurence: 5,
 	}
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Log Profile %q to become available: %s", name, err)
 	}
 
@@ -173,7 +171,7 @@ func resourceLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceLogProfileRead(d, meta)
 }
 
-func resourceLogProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.LogProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +209,7 @@ func resourceLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceLogProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.LogProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,8 +226,8 @@ func resourceLogProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandLogProfileCategories(d *schema.ResourceData) []string {
-	logProfileCategories := d.Get("categories").(*schema.Set).List()
+func expandLogProfileCategories(d *pluginsdk.ResourceData) []string {
+	logProfileCategories := d.Get("categories").(*pluginsdk.Set).List()
 	categories := make([]string, 0)
 
 	for _, category := range logProfileCategories {
@@ -239,8 +237,8 @@ func expandLogProfileCategories(d *schema.ResourceData) []string {
 	return categories
 }
 
-func expandLogProfileLocations(d *schema.ResourceData) []string {
-	logProfileLocations := d.Get("locations").(*schema.Set).List()
+func expandLogProfileLocations(d *pluginsdk.ResourceData) []string {
+	logProfileLocations := d.Get("locations").(*pluginsdk.Set).List()
 	locations := make([]string, 0)
 
 	for _, location := range logProfileLocations {
@@ -250,7 +248,7 @@ func expandLogProfileLocations(d *schema.ResourceData) []string {
 	return locations
 }
 
-func expandAzureRmLogProfileRetentionPolicy(d *schema.ResourceData) insights.RetentionPolicy {
+func expandAzureRmLogProfileRetentionPolicy(d *pluginsdk.ResourceData) insights.RetentionPolicy {
 	vs := d.Get("retention_policy").([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -306,7 +304,7 @@ func ParseLogProfileNameFromID(id string) (string, error) {
 	return components[6], nil
 }
 
-func logProfilesCreateRefreshFunc(ctx context.Context, client *insights.LogProfilesClient, name string) resource.StateRefreshFunc {
+func logProfilesCreateRefreshFunc(ctx context.Context, client *insights.LogProfilesClient, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		logProfile, err := client.Get(ctx, name)
 		if err != nil {

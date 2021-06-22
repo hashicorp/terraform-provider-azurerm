@@ -6,23 +6,20 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRelayHybridConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceArmRelayHybridConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmRelayHybridConnectionCreateUpdate,
 		Read:   resourceArmRelayHybridConnectionRead,
 		Update: resourceArmRelayHybridConnectionCreateUpdate,
@@ -32,16 +29,16 @@ func resourceArmRelayHybridConnection() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -50,20 +47,20 @@ func resourceArmRelayHybridConnection() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"relay_namespace_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"requires_client_authorization": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Default:  true,
 				ForceNew: true,
 				Optional: true,
 			},
 			"user_metadata": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -71,7 +68,7 @@ func resourceArmRelayHybridConnection() *schema.Resource {
 	}
 }
 
-func resourceArmRelayHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -111,7 +108,7 @@ func resourceArmRelayHybridConnectionCreateUpdate(d *schema.ResourceData, meta i
 	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 
-func resourceArmRelayHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +140,7 @@ func resourceArmRelayHybridConnectionRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmRelayHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,22 +160,22 @@ func resourceArmRelayHybridConnectionDelete(d *schema.ResourceData, meta interfa
 	}
 
 	log.Printf("[INFO] Waiting for Hybrid Connection %q (Namespace %q / Resource Group %q) to be deleted", id.Name, id.NamespaceName, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
 		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, id.ResourceGroup, id.NamespaceName, id.Name),
 		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted: %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func hybridConnectionDeleteRefreshFunc(ctx context.Context, client *relay.HybridConnectionsClient, resourceGroupName string, relayNamespace string, name string) resource.StateRefreshFunc {
+func hybridConnectionDeleteRefreshFunc(ctx context.Context, client *relay.HybridConnectionsClient, resourceGroupName string, relayNamespace string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, relayNamespace, name)
 		if err != nil {

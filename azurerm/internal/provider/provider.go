@@ -1,32 +1,32 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func AzureProvider() terraform.ResourceProvider {
+func AzureProvider() *schema.Provider {
 	return azureProvider(false)
 }
 
-func TestAzureProvider() terraform.ResourceProvider {
+func TestAzureProvider() *schema.Provider {
 	return azureProvider(true)
 }
 
-func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
+func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	// avoids this showing up in test output
 	debugLog := func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -243,13 +243,13 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 		}
 	}
 
-	p.ConfigureFunc = providerConfigure(p)
+	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
 }
 
-func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
-	return func(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
@@ -258,7 +258,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
+			return nil, diag.FromErr(fmt.Errorf("The provider only supports 3 auxiliary tenant IDs"))
 		}
 
 		metadataHost := d.Get("metadata_host").(string)
@@ -295,7 +295,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		config, err := builder.Build()
 		if err != nil {
-			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
+			return nil, diag.FromErr(fmt.Errorf("Error building AzureRM Client: %s", err))
 		}
 
 		terraformVersion := p.TerraformVersion
@@ -320,29 +320,34 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			// platform level tracing
 			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
-		client, err := clients.Build(p.StopContext(), clientBuilder)
-		if err != nil {
-			return nil, err
+
+		stopCtx, ok := schema.StopContext(ctx) //nolint:SA1019
+		if !ok {
+			stopCtx = ctx
 		}
 
-		client.StopContext = p.StopContext()
+		client, err := clients.Build(stopCtx, clientBuilder)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		client.StopContext = stopCtx
 
 		if !skipProviderRegistration {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
-			ctx := client.StopContext
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
-				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+				return nil, diag.FromErr(fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-					"error: %s", err)
+					"error: %s", err))
 			}
 
 			availableResourceProviders := providerList.Values()
 			requiredResourceProviders := resourceproviders.Required()
 
 			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
-				return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
+				return nil, diag.FromErr(fmt.Errorf(resourceProviderRegistrationErrorFmt, err))
 			}
 		}
 

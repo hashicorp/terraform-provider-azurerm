@@ -29,10 +29,10 @@ type AlertRuleKind string
 const (
 	// AlertRuleKindFusion ...
 	AlertRuleKindFusion AlertRuleKind = "Fusion"
-	// AlertRuleKindMLBehaviorAnalytics ...
-	AlertRuleKindMLBehaviorAnalytics AlertRuleKind = "MLBehaviorAnalytics"
 	// AlertRuleKindMicrosoftSecurityIncidentCreation ...
 	AlertRuleKindMicrosoftSecurityIncidentCreation AlertRuleKind = "MicrosoftSecurityIncidentCreation"
+	// AlertRuleKindMLBehaviorAnalytics ...
+	AlertRuleKindMLBehaviorAnalytics AlertRuleKind = "MLBehaviorAnalytics"
 	// AlertRuleKindScheduled ...
 	AlertRuleKindScheduled AlertRuleKind = "Scheduled"
 	// AlertRuleKindThreatIntelligence ...
@@ -41,26 +41,26 @@ const (
 
 // PossibleAlertRuleKindValues returns an array of possible values for the AlertRuleKind const type.
 func PossibleAlertRuleKindValues() []AlertRuleKind {
-	return []AlertRuleKind{AlertRuleKindFusion, AlertRuleKindMLBehaviorAnalytics, AlertRuleKindMicrosoftSecurityIncidentCreation, AlertRuleKindScheduled, AlertRuleKindThreatIntelligence}
+	return []AlertRuleKind{AlertRuleKindFusion, AlertRuleKindMicrosoftSecurityIncidentCreation, AlertRuleKindMLBehaviorAnalytics, AlertRuleKindScheduled, AlertRuleKindThreatIntelligence}
 }
 
 // AlertSeverity enumerates the values for alert severity.
 type AlertSeverity string
 
 const (
-	// High High severity
-	High AlertSeverity = "High"
-	// Informational Informational severity
-	Informational AlertSeverity = "Informational"
-	// Low Low severity
-	Low AlertSeverity = "Low"
-	// Medium Medium severity
-	Medium AlertSeverity = "Medium"
+	// AlertSeverityHigh High severity
+	AlertSeverityHigh AlertSeverity = "High"
+	// AlertSeverityInformational Informational severity
+	AlertSeverityInformational AlertSeverity = "Informational"
+	// AlertSeverityLow Low severity
+	AlertSeverityLow AlertSeverity = "Low"
+	// AlertSeverityMedium Medium severity
+	AlertSeverityMedium AlertSeverity = "Medium"
 )
 
 // PossibleAlertSeverityValues returns an array of possible values for the AlertSeverity const type.
 func PossibleAlertSeverityValues() []AlertSeverity {
-	return []AlertSeverity{High, Informational, Low, Medium}
+	return []AlertSeverity{AlertSeverityHigh, AlertSeverityInformational, AlertSeverityLow, AlertSeverityMedium}
 }
 
 // AlertStatus enumerates the values for alert status.
@@ -88,56 +88,56 @@ func PossibleAlertStatusValues() []AlertStatus {
 type AntispamMailDirection string
 
 const (
-	// Inbound Inbound
-	Inbound AntispamMailDirection = "Inbound"
-	// Intraorg Intraorg
-	Intraorg AntispamMailDirection = "Intraorg"
-	// Outbound Outbound
-	Outbound AntispamMailDirection = "Outbound"
-	// Unknown Unknown
-	Unknown AntispamMailDirection = "Unknown"
+	// AntispamMailDirectionInbound Inbound
+	AntispamMailDirectionInbound AntispamMailDirection = "Inbound"
+	// AntispamMailDirectionIntraorg Intraorg
+	AntispamMailDirectionIntraorg AntispamMailDirection = "Intraorg"
+	// AntispamMailDirectionOutbound Outbound
+	AntispamMailDirectionOutbound AntispamMailDirection = "Outbound"
+	// AntispamMailDirectionUnknown Unknown
+	AntispamMailDirectionUnknown AntispamMailDirection = "Unknown"
 )
 
 // PossibleAntispamMailDirectionValues returns an array of possible values for the AntispamMailDirection const type.
 func PossibleAntispamMailDirectionValues() []AntispamMailDirection {
-	return []AntispamMailDirection{Inbound, Intraorg, Outbound, Unknown}
+	return []AntispamMailDirection{AntispamMailDirectionInbound, AntispamMailDirectionIntraorg, AntispamMailDirectionOutbound, AntispamMailDirectionUnknown}
 }
 
 // AttackTactic enumerates the values for attack tactic.
 type AttackTactic string
 
 const (
-	// Collection ...
-	Collection AttackTactic = "Collection"
-	// CommandAndControl ...
-	CommandAndControl AttackTactic = "CommandAndControl"
-	// CredentialAccess ...
-	CredentialAccess AttackTactic = "CredentialAccess"
-	// DefenseEvasion ...
-	DefenseEvasion AttackTactic = "DefenseEvasion"
-	// Discovery ...
-	Discovery AttackTactic = "Discovery"
-	// Execution ...
-	Execution AttackTactic = "Execution"
-	// Exfiltration ...
-	Exfiltration AttackTactic = "Exfiltration"
-	// Impact ...
-	Impact AttackTactic = "Impact"
-	// InitialAccess ...
-	InitialAccess AttackTactic = "InitialAccess"
-	// LateralMovement ...
-	LateralMovement AttackTactic = "LateralMovement"
-	// Persistence ...
-	Persistence AttackTactic = "Persistence"
-	// PreAttack ...
-	PreAttack AttackTactic = "PreAttack"
-	// PrivilegeEscalation ...
-	PrivilegeEscalation AttackTactic = "PrivilegeEscalation"
+	// AttackTacticCollection ...
+	AttackTacticCollection AttackTactic = "Collection"
+	// AttackTacticCommandAndControl ...
+	AttackTacticCommandAndControl AttackTactic = "CommandAndControl"
+	// AttackTacticCredentialAccess ...
+	AttackTacticCredentialAccess AttackTactic = "CredentialAccess"
+	// AttackTacticDefenseEvasion ...
+	AttackTacticDefenseEvasion AttackTactic = "DefenseEvasion"
+	// AttackTacticDiscovery ...
+	AttackTacticDiscovery AttackTactic = "Discovery"
+	// AttackTacticExecution ...
+	AttackTacticExecution AttackTactic = "Execution"
+	// AttackTacticExfiltration ...
+	AttackTacticExfiltration AttackTactic = "Exfiltration"
+	// AttackTacticImpact ...
+	AttackTacticImpact AttackTactic = "Impact"
+	// AttackTacticInitialAccess ...
+	AttackTacticInitialAccess AttackTactic = "InitialAccess"
+	// AttackTacticLateralMovement ...
+	AttackTacticLateralMovement AttackTactic = "LateralMovement"
+	// AttackTacticPersistence ...
+	AttackTacticPersistence AttackTactic = "Persistence"
+	// AttackTacticPreAttack ...
+	AttackTacticPreAttack AttackTactic = "PreAttack"
+	// AttackTacticPrivilegeEscalation ...
+	AttackTacticPrivilegeEscalation AttackTactic = "PrivilegeEscalation"
 )
 
 // PossibleAttackTacticValues returns an array of possible values for the AttackTactic const type.
 func PossibleAttackTacticValues() []AttackTactic {
-	return []AttackTactic{Collection, CommandAndControl, CredentialAccess, DefenseEvasion, Discovery, Execution, Exfiltration, Impact, InitialAccess, LateralMovement, Persistence, PreAttack, PrivilegeEscalation}
+	return []AttackTactic{AttackTacticCollection, AttackTacticCommandAndControl, AttackTacticCredentialAccess, AttackTacticDefenseEvasion, AttackTacticDiscovery, AttackTacticExecution, AttackTacticExfiltration, AttackTacticImpact, AttackTacticInitialAccess, AttackTacticLateralMovement, AttackTacticPersistence, AttackTacticPreAttack, AttackTacticPrivilegeEscalation}
 }
 
 // AutomationRulePropertyConditionSupportedOperator enumerates the values for automation rule property
@@ -145,27 +145,35 @@ func PossibleAttackTacticValues() []AttackTactic {
 type AutomationRulePropertyConditionSupportedOperator string
 
 const (
-	// Contains Evaluates if the property contains at least one of the condition values
-	Contains AutomationRulePropertyConditionSupportedOperator = "Contains"
-	// EndsWith Evaluates if the property ends with any of the condition values
-	EndsWith AutomationRulePropertyConditionSupportedOperator = "EndsWith"
-	// Equals Evaluates if the property equals at least one of the condition values
-	Equals AutomationRulePropertyConditionSupportedOperator = "Equals"
-	// NotContains Evaluates if the property does not contain any of the condition values
-	NotContains AutomationRulePropertyConditionSupportedOperator = "NotContains"
-	// NotEndsWith Evaluates if the property does not end with any of the condition values
-	NotEndsWith AutomationRulePropertyConditionSupportedOperator = "NotEndsWith"
-	// NotEquals Evaluates if the property does not equal any of the condition values
-	NotEquals AutomationRulePropertyConditionSupportedOperator = "NotEquals"
-	// NotStartsWith Evaluates if the property does not start with any of the condition values
-	NotStartsWith AutomationRulePropertyConditionSupportedOperator = "NotStartsWith"
-	// StartsWith Evaluates if the property starts with any of the condition values
-	StartsWith AutomationRulePropertyConditionSupportedOperator = "StartsWith"
+	// AutomationRulePropertyConditionSupportedOperatorContains Evaluates if the property contains at least one
+	// of the condition values
+	AutomationRulePropertyConditionSupportedOperatorContains AutomationRulePropertyConditionSupportedOperator = "Contains"
+	// AutomationRulePropertyConditionSupportedOperatorEndsWith Evaluates if the property ends with any of the
+	// condition values
+	AutomationRulePropertyConditionSupportedOperatorEndsWith AutomationRulePropertyConditionSupportedOperator = "EndsWith"
+	// AutomationRulePropertyConditionSupportedOperatorEquals Evaluates if the property equals at least one of
+	// the condition values
+	AutomationRulePropertyConditionSupportedOperatorEquals AutomationRulePropertyConditionSupportedOperator = "Equals"
+	// AutomationRulePropertyConditionSupportedOperatorNotContains Evaluates if the property does not contain
+	// any of the condition values
+	AutomationRulePropertyConditionSupportedOperatorNotContains AutomationRulePropertyConditionSupportedOperator = "NotContains"
+	// AutomationRulePropertyConditionSupportedOperatorNotEndsWith Evaluates if the property does not end with
+	// any of the condition values
+	AutomationRulePropertyConditionSupportedOperatorNotEndsWith AutomationRulePropertyConditionSupportedOperator = "NotEndsWith"
+	// AutomationRulePropertyConditionSupportedOperatorNotEquals Evaluates if the property does not equal any
+	// of the condition values
+	AutomationRulePropertyConditionSupportedOperatorNotEquals AutomationRulePropertyConditionSupportedOperator = "NotEquals"
+	// AutomationRulePropertyConditionSupportedOperatorNotStartsWith Evaluates if the property does not start
+	// with any of the condition values
+	AutomationRulePropertyConditionSupportedOperatorNotStartsWith AutomationRulePropertyConditionSupportedOperator = "NotStartsWith"
+	// AutomationRulePropertyConditionSupportedOperatorStartsWith Evaluates if the property starts with any of
+	// the condition values
+	AutomationRulePropertyConditionSupportedOperatorStartsWith AutomationRulePropertyConditionSupportedOperator = "StartsWith"
 )
 
 // PossibleAutomationRulePropertyConditionSupportedOperatorValues returns an array of possible values for the AutomationRulePropertyConditionSupportedOperator const type.
 func PossibleAutomationRulePropertyConditionSupportedOperatorValues() []AutomationRulePropertyConditionSupportedOperator {
-	return []AutomationRulePropertyConditionSupportedOperator{Contains, EndsWith, Equals, NotContains, NotEndsWith, NotEquals, NotStartsWith, StartsWith}
+	return []AutomationRulePropertyConditionSupportedOperator{AutomationRulePropertyConditionSupportedOperatorContains, AutomationRulePropertyConditionSupportedOperatorEndsWith, AutomationRulePropertyConditionSupportedOperatorEquals, AutomationRulePropertyConditionSupportedOperatorNotContains, AutomationRulePropertyConditionSupportedOperatorNotEndsWith, AutomationRulePropertyConditionSupportedOperatorNotEquals, AutomationRulePropertyConditionSupportedOperatorNotStartsWith, AutomationRulePropertyConditionSupportedOperatorStartsWith}
 }
 
 // AutomationRulePropertyConditionSupportedProperty enumerates the values for automation rule property
@@ -179,10 +187,10 @@ const (
 	// AutomationRulePropertyConditionSupportedPropertyAccountAadUserID The account Azure Active Directory user
 	// id.
 	AutomationRulePropertyConditionSupportedPropertyAccountAadUserID AutomationRulePropertyConditionSupportedProperty = "AccountAadUserId"
-	// AutomationRulePropertyConditionSupportedPropertyAccountNTDomain The account NetBIOS domain name
-	AutomationRulePropertyConditionSupportedPropertyAccountNTDomain AutomationRulePropertyConditionSupportedProperty = "AccountNTDomain"
 	// AutomationRulePropertyConditionSupportedPropertyAccountName The account name
 	AutomationRulePropertyConditionSupportedPropertyAccountName AutomationRulePropertyConditionSupportedProperty = "AccountName"
+	// AutomationRulePropertyConditionSupportedPropertyAccountNTDomain The account NetBIOS domain name
+	AutomationRulePropertyConditionSupportedPropertyAccountNTDomain AutomationRulePropertyConditionSupportedProperty = "AccountNTDomain"
 	// AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID The account unique identifier
 	AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID AutomationRulePropertyConditionSupportedProperty = "AccountObjectGuid"
 	// AutomationRulePropertyConditionSupportedPropertyAccountPUID The account Azure Active Directory Passport
@@ -211,16 +219,14 @@ const (
 	AutomationRulePropertyConditionSupportedPropertyFileName AutomationRulePropertyConditionSupportedProperty = "FileName"
 	// AutomationRulePropertyConditionSupportedPropertyHostAzureID The host Azure resource id
 	AutomationRulePropertyConditionSupportedPropertyHostAzureID AutomationRulePropertyConditionSupportedProperty = "HostAzureID"
-	// AutomationRulePropertyConditionSupportedPropertyHostNTDomain The host NT domain
-	AutomationRulePropertyConditionSupportedPropertyHostNTDomain AutomationRulePropertyConditionSupportedProperty = "HostNTDomain"
 	// AutomationRulePropertyConditionSupportedPropertyHostName The host name without domain
 	AutomationRulePropertyConditionSupportedPropertyHostName AutomationRulePropertyConditionSupportedProperty = "HostName"
 	// AutomationRulePropertyConditionSupportedPropertyHostNetBiosName The host NetBIOS name
 	AutomationRulePropertyConditionSupportedPropertyHostNetBiosName AutomationRulePropertyConditionSupportedProperty = "HostNetBiosName"
+	// AutomationRulePropertyConditionSupportedPropertyHostNTDomain The host NT domain
+	AutomationRulePropertyConditionSupportedPropertyHostNTDomain AutomationRulePropertyConditionSupportedProperty = "HostNTDomain"
 	// AutomationRulePropertyConditionSupportedPropertyHostOSVersion The host operating system
 	AutomationRulePropertyConditionSupportedPropertyHostOSVersion AutomationRulePropertyConditionSupportedProperty = "HostOSVersion"
-	// AutomationRulePropertyConditionSupportedPropertyIPAddress The IP address
-	AutomationRulePropertyConditionSupportedPropertyIPAddress AutomationRulePropertyConditionSupportedProperty = "IPAddress"
 	// AutomationRulePropertyConditionSupportedPropertyIncidentDescription The description of the incident
 	AutomationRulePropertyConditionSupportedPropertyIncidentDescription AutomationRulePropertyConditionSupportedProperty = "IncidentDescription"
 	// AutomationRulePropertyConditionSupportedPropertyIncidentProviderName The provider name of the incident
@@ -248,6 +254,14 @@ const (
 	AutomationRulePropertyConditionSupportedPropertyIoTDeviceType AutomationRulePropertyConditionSupportedProperty = "IoTDeviceType"
 	// AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor The IoT device vendor
 	AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor AutomationRulePropertyConditionSupportedProperty = "IoTDeviceVendor"
+	// AutomationRulePropertyConditionSupportedPropertyIPAddress The IP address
+	AutomationRulePropertyConditionSupportedPropertyIPAddress AutomationRulePropertyConditionSupportedProperty = "IPAddress"
+	// AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName The mailbox display name
+	AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName AutomationRulePropertyConditionSupportedProperty = "MailboxDisplayName"
+	// AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress The mailbox primary address
+	AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress AutomationRulePropertyConditionSupportedProperty = "MailboxPrimaryAddress"
+	// AutomationRulePropertyConditionSupportedPropertyMailboxUPN The mailbox user principal name
+	AutomationRulePropertyConditionSupportedPropertyMailboxUPN AutomationRulePropertyConditionSupportedProperty = "MailboxUPN"
 	// AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction The mail message delivery
 	// action
 	AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction AutomationRulePropertyConditionSupportedProperty = "MailMessageDeliveryAction"
@@ -264,12 +278,6 @@ const (
 	AutomationRulePropertyConditionSupportedPropertyMailMessageSenderIP AutomationRulePropertyConditionSupportedProperty = "MailMessageSenderIP"
 	// AutomationRulePropertyConditionSupportedPropertyMailMessageSubject The mail message subject
 	AutomationRulePropertyConditionSupportedPropertyMailMessageSubject AutomationRulePropertyConditionSupportedProperty = "MailMessageSubject"
-	// AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName The mailbox display name
-	AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName AutomationRulePropertyConditionSupportedProperty = "MailboxDisplayName"
-	// AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress The mailbox primary address
-	AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress AutomationRulePropertyConditionSupportedProperty = "MailboxPrimaryAddress"
-	// AutomationRulePropertyConditionSupportedPropertyMailboxUPN The mailbox user principal name
-	AutomationRulePropertyConditionSupportedPropertyMailboxUPN AutomationRulePropertyConditionSupportedProperty = "MailboxUPN"
 	// AutomationRulePropertyConditionSupportedPropertyMalwareCategory The malware category
 	AutomationRulePropertyConditionSupportedPropertyMalwareCategory AutomationRulePropertyConditionSupportedProperty = "MalwareCategory"
 	// AutomationRulePropertyConditionSupportedPropertyMalwareName The malware name
@@ -289,7 +297,7 @@ const (
 
 // PossibleAutomationRulePropertyConditionSupportedPropertyValues returns an array of possible values for the AutomationRulePropertyConditionSupportedProperty const type.
 func PossibleAutomationRulePropertyConditionSupportedPropertyValues() []AutomationRulePropertyConditionSupportedProperty {
-	return []AutomationRulePropertyConditionSupportedProperty{AutomationRulePropertyConditionSupportedPropertyAccountAadTenantID, AutomationRulePropertyConditionSupportedPropertyAccountAadUserID, AutomationRulePropertyConditionSupportedPropertyAccountNTDomain, AutomationRulePropertyConditionSupportedPropertyAccountName, AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID, AutomationRulePropertyConditionSupportedPropertyAccountPUID, AutomationRulePropertyConditionSupportedPropertyAccountSid, AutomationRulePropertyConditionSupportedPropertyAccountUPNSuffix, AutomationRulePropertyConditionSupportedPropertyAzureResourceResourceID, AutomationRulePropertyConditionSupportedPropertyAzureResourceSubscriptionID, AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppID, AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppName, AutomationRulePropertyConditionSupportedPropertyDNSDomainName, AutomationRulePropertyConditionSupportedPropertyFileDirectory, AutomationRulePropertyConditionSupportedPropertyFileHashValue, AutomationRulePropertyConditionSupportedPropertyFileName, AutomationRulePropertyConditionSupportedPropertyHostAzureID, AutomationRulePropertyConditionSupportedPropertyHostNTDomain, AutomationRulePropertyConditionSupportedPropertyHostName, AutomationRulePropertyConditionSupportedPropertyHostNetBiosName, AutomationRulePropertyConditionSupportedPropertyHostOSVersion, AutomationRulePropertyConditionSupportedPropertyIPAddress, AutomationRulePropertyConditionSupportedPropertyIncidentDescription, AutomationRulePropertyConditionSupportedPropertyIncidentProviderName, AutomationRulePropertyConditionSupportedPropertyIncidentRelatedAnalyticRuleIds, AutomationRulePropertyConditionSupportedPropertyIncidentSeverity, AutomationRulePropertyConditionSupportedPropertyIncidentStatus, AutomationRulePropertyConditionSupportedPropertyIncidentTactics, AutomationRulePropertyConditionSupportedPropertyIncidentTitle, AutomationRulePropertyConditionSupportedPropertyIoTDeviceID, AutomationRulePropertyConditionSupportedPropertyIoTDeviceModel, AutomationRulePropertyConditionSupportedPropertyIoTDeviceName, AutomationRulePropertyConditionSupportedPropertyIoTDeviceOperatingSystem, AutomationRulePropertyConditionSupportedPropertyIoTDeviceType, AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor, AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction, AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryLocation, AutomationRulePropertyConditionSupportedPropertyMailMessageP1Sender, AutomationRulePropertyConditionSupportedPropertyMailMessageP2Sender, AutomationRulePropertyConditionSupportedPropertyMailMessageRecipient, AutomationRulePropertyConditionSupportedPropertyMailMessageSenderIP, AutomationRulePropertyConditionSupportedPropertyMailMessageSubject, AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName, AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress, AutomationRulePropertyConditionSupportedPropertyMailboxUPN, AutomationRulePropertyConditionSupportedPropertyMalwareCategory, AutomationRulePropertyConditionSupportedPropertyMalwareName, AutomationRulePropertyConditionSupportedPropertyProcessCommandLine, AutomationRulePropertyConditionSupportedPropertyProcessID, AutomationRulePropertyConditionSupportedPropertyRegistryKey, AutomationRulePropertyConditionSupportedPropertyRegistryValueData, AutomationRulePropertyConditionSupportedPropertyURL}
+	return []AutomationRulePropertyConditionSupportedProperty{AutomationRulePropertyConditionSupportedPropertyAccountAadTenantID, AutomationRulePropertyConditionSupportedPropertyAccountAadUserID, AutomationRulePropertyConditionSupportedPropertyAccountName, AutomationRulePropertyConditionSupportedPropertyAccountNTDomain, AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID, AutomationRulePropertyConditionSupportedPropertyAccountPUID, AutomationRulePropertyConditionSupportedPropertyAccountSid, AutomationRulePropertyConditionSupportedPropertyAccountUPNSuffix, AutomationRulePropertyConditionSupportedPropertyAzureResourceResourceID, AutomationRulePropertyConditionSupportedPropertyAzureResourceSubscriptionID, AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppID, AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppName, AutomationRulePropertyConditionSupportedPropertyDNSDomainName, AutomationRulePropertyConditionSupportedPropertyFileDirectory, AutomationRulePropertyConditionSupportedPropertyFileHashValue, AutomationRulePropertyConditionSupportedPropertyFileName, AutomationRulePropertyConditionSupportedPropertyHostAzureID, AutomationRulePropertyConditionSupportedPropertyHostName, AutomationRulePropertyConditionSupportedPropertyHostNetBiosName, AutomationRulePropertyConditionSupportedPropertyHostNTDomain, AutomationRulePropertyConditionSupportedPropertyHostOSVersion, AutomationRulePropertyConditionSupportedPropertyIncidentDescription, AutomationRulePropertyConditionSupportedPropertyIncidentProviderName, AutomationRulePropertyConditionSupportedPropertyIncidentRelatedAnalyticRuleIds, AutomationRulePropertyConditionSupportedPropertyIncidentSeverity, AutomationRulePropertyConditionSupportedPropertyIncidentStatus, AutomationRulePropertyConditionSupportedPropertyIncidentTactics, AutomationRulePropertyConditionSupportedPropertyIncidentTitle, AutomationRulePropertyConditionSupportedPropertyIoTDeviceID, AutomationRulePropertyConditionSupportedPropertyIoTDeviceModel, AutomationRulePropertyConditionSupportedPropertyIoTDeviceName, AutomationRulePropertyConditionSupportedPropertyIoTDeviceOperatingSystem, AutomationRulePropertyConditionSupportedPropertyIoTDeviceType, AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor, AutomationRulePropertyConditionSupportedPropertyIPAddress, AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName, AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress, AutomationRulePropertyConditionSupportedPropertyMailboxUPN, AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction, AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryLocation, AutomationRulePropertyConditionSupportedPropertyMailMessageP1Sender, AutomationRulePropertyConditionSupportedPropertyMailMessageP2Sender, AutomationRulePropertyConditionSupportedPropertyMailMessageRecipient, AutomationRulePropertyConditionSupportedPropertyMailMessageSenderIP, AutomationRulePropertyConditionSupportedPropertyMailMessageSubject, AutomationRulePropertyConditionSupportedPropertyMalwareCategory, AutomationRulePropertyConditionSupportedPropertyMalwareName, AutomationRulePropertyConditionSupportedPropertyProcessCommandLine, AutomationRulePropertyConditionSupportedPropertyProcessID, AutomationRulePropertyConditionSupportedPropertyRegistryKey, AutomationRulePropertyConditionSupportedPropertyRegistryValueData, AutomationRulePropertyConditionSupportedPropertyURL}
 }
 
 // CaseSeverity enumerates the values for case severity.
@@ -336,21 +344,21 @@ func PossibleCaseStatusValues() []CaseStatus {
 type CloseReason string
 
 const (
-	// Dismissed Case was dismissed
-	Dismissed CloseReason = "Dismissed"
-	// FalsePositive Case was false positive
-	FalsePositive CloseReason = "FalsePositive"
-	// Other Case was closed for another reason
-	Other CloseReason = "Other"
-	// Resolved Case was resolved
-	Resolved CloseReason = "Resolved"
-	// TruePositive Case was true positive
-	TruePositive CloseReason = "TruePositive"
+	// CloseReasonDismissed Case was dismissed
+	CloseReasonDismissed CloseReason = "Dismissed"
+	// CloseReasonFalsePositive Case was false positive
+	CloseReasonFalsePositive CloseReason = "FalsePositive"
+	// CloseReasonOther Case was closed for another reason
+	CloseReasonOther CloseReason = "Other"
+	// CloseReasonResolved Case was resolved
+	CloseReasonResolved CloseReason = "Resolved"
+	// CloseReasonTruePositive Case was true positive
+	CloseReasonTruePositive CloseReason = "TruePositive"
 )
 
 // PossibleCloseReasonValues returns an array of possible values for the CloseReason const type.
 func PossibleCloseReasonValues() []CloseReason {
-	return []CloseReason{Dismissed, FalsePositive, Other, Resolved, TruePositive}
+	return []CloseReason{CloseReasonDismissed, CloseReasonFalsePositive, CloseReasonOther, CloseReasonResolved, CloseReasonTruePositive}
 }
 
 // ConditionType enumerates the values for condition type.
@@ -390,35 +398,36 @@ func PossibleConfidenceLevelValues() []ConfidenceLevel {
 type ConfidenceScoreStatus string
 
 const (
-	// Final Final score was calculated and available
-	Final ConfidenceScoreStatus = "Final"
-	// InProcess No score was set yet and calculation is in progress
-	InProcess ConfidenceScoreStatus = "InProcess"
-	// NotApplicable Score will not be calculated for this alert as it is not supported by virtual analyst
-	NotApplicable ConfidenceScoreStatus = "NotApplicable"
-	// NotFinal Score is calculated and shown as part of the alert, but may be updated again at a later time
-	// following the processing of additional data
-	NotFinal ConfidenceScoreStatus = "NotFinal"
+	// ConfidenceScoreStatusFinal Final score was calculated and available
+	ConfidenceScoreStatusFinal ConfidenceScoreStatus = "Final"
+	// ConfidenceScoreStatusInProcess No score was set yet and calculation is in progress
+	ConfidenceScoreStatusInProcess ConfidenceScoreStatus = "InProcess"
+	// ConfidenceScoreStatusNotApplicable Score will not be calculated for this alert as it is not supported by
+	// virtual analyst
+	ConfidenceScoreStatusNotApplicable ConfidenceScoreStatus = "NotApplicable"
+	// ConfidenceScoreStatusNotFinal Score is calculated and shown as part of the alert, but may be updated
+	// again at a later time following the processing of additional data
+	ConfidenceScoreStatusNotFinal ConfidenceScoreStatus = "NotFinal"
 )
 
 // PossibleConfidenceScoreStatusValues returns an array of possible values for the ConfidenceScoreStatus const type.
 func PossibleConfidenceScoreStatusValues() []ConfidenceScoreStatus {
-	return []ConfidenceScoreStatus{Final, InProcess, NotApplicable, NotFinal}
+	return []ConfidenceScoreStatus{ConfidenceScoreStatusFinal, ConfidenceScoreStatusInProcess, ConfidenceScoreStatusNotApplicable, ConfidenceScoreStatusNotFinal}
 }
 
 // DataConnectorAuthorizationState enumerates the values for data connector authorization state.
 type DataConnectorAuthorizationState string
 
 const (
-	// Invalid ...
-	Invalid DataConnectorAuthorizationState = "Invalid"
-	// Valid ...
-	Valid DataConnectorAuthorizationState = "Valid"
+	// DataConnectorAuthorizationStateInvalid ...
+	DataConnectorAuthorizationStateInvalid DataConnectorAuthorizationState = "Invalid"
+	// DataConnectorAuthorizationStateValid ...
+	DataConnectorAuthorizationStateValid DataConnectorAuthorizationState = "Valid"
 )
 
 // PossibleDataConnectorAuthorizationStateValues returns an array of possible values for the DataConnectorAuthorizationState const type.
 func PossibleDataConnectorAuthorizationStateValues() []DataConnectorAuthorizationState {
-	return []DataConnectorAuthorizationState{Invalid, Valid}
+	return []DataConnectorAuthorizationState{DataConnectorAuthorizationStateInvalid, DataConnectorAuthorizationStateValid}
 }
 
 // DataConnectorKind enumerates the values for data connector kind.
@@ -479,15 +488,15 @@ func PossibleDataConnectorLicenseStateValues() []DataConnectorLicenseState {
 type DataTypeState string
 
 const (
-	// Disabled ...
-	Disabled DataTypeState = "Disabled"
-	// Enabled ...
-	Enabled DataTypeState = "Enabled"
+	// DataTypeStateDisabled ...
+	DataTypeStateDisabled DataTypeState = "Disabled"
+	// DataTypeStateEnabled ...
+	DataTypeStateEnabled DataTypeState = "Enabled"
 )
 
 // PossibleDataTypeStateValues returns an array of possible values for the DataTypeState const type.
 func PossibleDataTypeStateValues() []DataTypeState {
-	return []DataTypeState{Disabled, Enabled}
+	return []DataTypeState{DataTypeStateDisabled, DataTypeStateEnabled}
 }
 
 // DeliveryAction enumerates the values for delivery action.
@@ -544,34 +553,34 @@ func PossibleDeliveryLocationValues() []DeliveryLocation {
 type ElevationToken string
 
 const (
-	// Default Default elevation token
-	Default ElevationToken = "Default"
-	// Full Full elevation token
-	Full ElevationToken = "Full"
-	// Limited Limited elevation token
-	Limited ElevationToken = "Limited"
+	// ElevationTokenDefault Default elevation token
+	ElevationTokenDefault ElevationToken = "Default"
+	// ElevationTokenFull Full elevation token
+	ElevationTokenFull ElevationToken = "Full"
+	// ElevationTokenLimited Limited elevation token
+	ElevationTokenLimited ElevationToken = "Limited"
 )
 
 // PossibleElevationTokenValues returns an array of possible values for the ElevationToken const type.
 func PossibleElevationTokenValues() []ElevationToken {
-	return []ElevationToken{Default, Full, Limited}
+	return []ElevationToken{ElevationTokenDefault, ElevationTokenFull, ElevationTokenLimited}
 }
 
 // EntitiesMatchingMethod enumerates the values for entities matching method.
 type EntitiesMatchingMethod string
 
 const (
-	// All Grouping alerts into a single incident if all the entities match
-	All EntitiesMatchingMethod = "All"
-	// Custom Grouping alerts into a single incident if the selected entities match
-	Custom EntitiesMatchingMethod = "Custom"
-	// None Grouping all alerts triggered by this rule into a single incident
-	None EntitiesMatchingMethod = "None"
+	// EntitiesMatchingMethodAll Grouping alerts into a single incident if all the entities match
+	EntitiesMatchingMethodAll EntitiesMatchingMethod = "All"
+	// EntitiesMatchingMethodCustom Grouping alerts into a single incident if the selected entities match
+	EntitiesMatchingMethodCustom EntitiesMatchingMethod = "Custom"
+	// EntitiesMatchingMethodNone Grouping all alerts triggered by this rule into a single incident
+	EntitiesMatchingMethodNone EntitiesMatchingMethod = "None"
 )
 
 // PossibleEntitiesMatchingMethodValues returns an array of possible values for the EntitiesMatchingMethod const type.
 func PossibleEntitiesMatchingMethodValues() []EntitiesMatchingMethod {
-	return []EntitiesMatchingMethod{All, Custom, None}
+	return []EntitiesMatchingMethod{EntitiesMatchingMethodAll, EntitiesMatchingMethodCustom, EntitiesMatchingMethodNone}
 }
 
 // EntityKind enumerates the values for entity kind.
@@ -594,16 +603,16 @@ const (
 	EntityKindFileHash EntityKind = "FileHash"
 	// EntityKindHost Entity represents host in the system.
 	EntityKindHost EntityKind = "Host"
-	// EntityKindIP Entity represents ip in the system.
-	EntityKindIP EntityKind = "Ip"
 	// EntityKindIoTDevice Entity represents IoT device in the system.
 	EntityKindIoTDevice EntityKind = "IoTDevice"
+	// EntityKindIP Entity represents ip in the system.
+	EntityKindIP EntityKind = "Ip"
+	// EntityKindMailbox Entity represents mailbox in the system.
+	EntityKindMailbox EntityKind = "Mailbox"
 	// EntityKindMailCluster Entity represents mail cluster in the system.
 	EntityKindMailCluster EntityKind = "MailCluster"
 	// EntityKindMailMessage Entity represents mail message in the system.
 	EntityKindMailMessage EntityKind = "MailMessage"
-	// EntityKindMailbox Entity represents mailbox in the system.
-	EntityKindMailbox EntityKind = "Mailbox"
 	// EntityKindMalware Entity represents malware in the system.
 	EntityKindMalware EntityKind = "Malware"
 	// EntityKindProcess Entity represents process in the system.
@@ -624,22 +633,22 @@ const (
 
 // PossibleEntityKindValues returns an array of possible values for the EntityKind const type.
 func PossibleEntityKindValues() []EntityKind {
-	return []EntityKind{EntityKindAccount, EntityKindAzureResource, EntityKindBookmark, EntityKindCloudApplication, EntityKindDNSResolution, EntityKindFile, EntityKindFileHash, EntityKindHost, EntityKindIP, EntityKindIoTDevice, EntityKindMailCluster, EntityKindMailMessage, EntityKindMailbox, EntityKindMalware, EntityKindProcess, EntityKindRegistryKey, EntityKindRegistryValue, EntityKindSecurityAlert, EntityKindSecurityGroup, EntityKindSubmissionMail, EntityKindURL}
+	return []EntityKind{EntityKindAccount, EntityKindAzureResource, EntityKindBookmark, EntityKindCloudApplication, EntityKindDNSResolution, EntityKindFile, EntityKindFileHash, EntityKindHost, EntityKindIoTDevice, EntityKindIP, EntityKindMailbox, EntityKindMailCluster, EntityKindMailMessage, EntityKindMalware, EntityKindProcess, EntityKindRegistryKey, EntityKindRegistryValue, EntityKindSecurityAlert, EntityKindSecurityGroup, EntityKindSubmissionMail, EntityKindURL}
 }
 
 // EntityQueryKind enumerates the values for entity query kind.
 type EntityQueryKind string
 
 const (
-	// Expansion ...
-	Expansion EntityQueryKind = "Expansion"
-	// Insight ...
-	Insight EntityQueryKind = "Insight"
+	// EntityQueryKindExpansion ...
+	EntityQueryKindExpansion EntityQueryKind = "Expansion"
+	// EntityQueryKindInsight ...
+	EntityQueryKindInsight EntityQueryKind = "Insight"
 )
 
 // PossibleEntityQueryKindValues returns an array of possible values for the EntityQueryKind const type.
 func PossibleEntityQueryKindValues() []EntityQueryKind {
-	return []EntityQueryKind{Expansion, Insight}
+	return []EntityQueryKind{EntityQueryKindExpansion, EntityQueryKindInsight}
 }
 
 // EntityTimelineKind enumerates the values for entity timeline kind.
@@ -679,16 +688,16 @@ const (
 	EntityTypeHost EntityType = "Host"
 	// EntityTypeHuntingBookmark Entity represents HuntingBookmark in the system.
 	EntityTypeHuntingBookmark EntityType = "HuntingBookmark"
-	// EntityTypeIP Entity represents ip in the system.
-	EntityTypeIP EntityType = "IP"
 	// EntityTypeIoTDevice Entity represents IoT device in the system.
 	EntityTypeIoTDevice EntityType = "IoTDevice"
+	// EntityTypeIP Entity represents ip in the system.
+	EntityTypeIP EntityType = "IP"
+	// EntityTypeMailbox Entity represents mailbox in the system.
+	EntityTypeMailbox EntityType = "Mailbox"
 	// EntityTypeMailCluster Entity represents mail cluster in the system.
 	EntityTypeMailCluster EntityType = "MailCluster"
 	// EntityTypeMailMessage Entity represents mail message in the system.
 	EntityTypeMailMessage EntityType = "MailMessage"
-	// EntityTypeMailbox Entity represents mailbox in the system.
-	EntityTypeMailbox EntityType = "Mailbox"
 	// EntityTypeMalware Entity represents malware in the system.
 	EntityTypeMalware EntityType = "Malware"
 	// EntityTypeProcess Entity represents process in the system.
@@ -709,22 +718,22 @@ const (
 
 // PossibleEntityTypeValues returns an array of possible values for the EntityType const type.
 func PossibleEntityTypeValues() []EntityType {
-	return []EntityType{EntityTypeAccount, EntityTypeAzureResource, EntityTypeCloudApplication, EntityTypeDNS, EntityTypeFile, EntityTypeFileHash, EntityTypeHost, EntityTypeHuntingBookmark, EntityTypeIP, EntityTypeIoTDevice, EntityTypeMailCluster, EntityTypeMailMessage, EntityTypeMailbox, EntityTypeMalware, EntityTypeProcess, EntityTypeRegistryKey, EntityTypeRegistryValue, EntityTypeSecurityAlert, EntityTypeSecurityGroup, EntityTypeSubmissionMail, EntityTypeURL}
+	return []EntityType{EntityTypeAccount, EntityTypeAzureResource, EntityTypeCloudApplication, EntityTypeDNS, EntityTypeFile, EntityTypeFileHash, EntityTypeHost, EntityTypeHuntingBookmark, EntityTypeIoTDevice, EntityTypeIP, EntityTypeMailbox, EntityTypeMailCluster, EntityTypeMailMessage, EntityTypeMalware, EntityTypeProcess, EntityTypeRegistryKey, EntityTypeRegistryValue, EntityTypeSecurityAlert, EntityTypeSecurityGroup, EntityTypeSubmissionMail, EntityTypeURL}
 }
 
 // EventGroupingAggregationKind enumerates the values for event grouping aggregation kind.
 type EventGroupingAggregationKind string
 
 const (
-	// AlertPerResult ...
-	AlertPerResult EventGroupingAggregationKind = "AlertPerResult"
-	// SingleAlert ...
-	SingleAlert EventGroupingAggregationKind = "SingleAlert"
+	// EventGroupingAggregationKindAlertPerResult ...
+	EventGroupingAggregationKindAlertPerResult EventGroupingAggregationKind = "AlertPerResult"
+	// EventGroupingAggregationKindSingleAlert ...
+	EventGroupingAggregationKindSingleAlert EventGroupingAggregationKind = "SingleAlert"
 )
 
 // PossibleEventGroupingAggregationKindValues returns an array of possible values for the EventGroupingAggregationKind const type.
 func PossibleEventGroupingAggregationKindValues() []EventGroupingAggregationKind {
-	return []EventGroupingAggregationKind{AlertPerResult, SingleAlert}
+	return []EventGroupingAggregationKind{EventGroupingAggregationKindAlertPerResult, EventGroupingAggregationKindSingleAlert}
 }
 
 // FileHashAlgorithm enumerates the values for file hash algorithm.
@@ -752,21 +761,21 @@ func PossibleFileHashAlgorithmValues() []FileHashAlgorithm {
 type GroupingEntityType string
 
 const (
-	// Account Account entity
-	Account GroupingEntityType = "Account"
-	// FileHash FileHash entity
-	FileHash GroupingEntityType = "FileHash"
-	// Host Host entity
-	Host GroupingEntityType = "Host"
-	// IP Ip entity
-	IP GroupingEntityType = "Ip"
-	// URL Url entity
-	URL GroupingEntityType = "Url"
+	// GroupingEntityTypeAccount Account entity
+	GroupingEntityTypeAccount GroupingEntityType = "Account"
+	// GroupingEntityTypeFileHash FileHash entity
+	GroupingEntityTypeFileHash GroupingEntityType = "FileHash"
+	// GroupingEntityTypeHost Host entity
+	GroupingEntityTypeHost GroupingEntityType = "Host"
+	// GroupingEntityTypeIP Ip entity
+	GroupingEntityTypeIP GroupingEntityType = "Ip"
+	// GroupingEntityTypeURL Url entity
+	GroupingEntityTypeURL GroupingEntityType = "Url"
 )
 
 // PossibleGroupingEntityTypeValues returns an array of possible values for the GroupingEntityType const type.
 func PossibleGroupingEntityTypeValues() []GroupingEntityType {
-	return []GroupingEntityType{Account, FileHash, Host, IP, URL}
+	return []GroupingEntityType{GroupingEntityTypeAccount, GroupingEntityTypeFileHash, GroupingEntityTypeHost, GroupingEntityTypeIP, GroupingEntityTypeURL}
 }
 
 // IncidentClassification enumerates the values for incident classification.
@@ -792,34 +801,34 @@ func PossibleIncidentClassificationValues() []IncidentClassification {
 type IncidentClassificationReason string
 
 const (
-	// InaccurateData Classification reason was inaccurate data
-	InaccurateData IncidentClassificationReason = "InaccurateData"
-	// IncorrectAlertLogic Classification reason was incorrect alert logic
-	IncorrectAlertLogic IncidentClassificationReason = "IncorrectAlertLogic"
-	// SuspiciousActivity Classification reason was suspicious activity
-	SuspiciousActivity IncidentClassificationReason = "SuspiciousActivity"
-	// SuspiciousButExpected Classification reason was suspicious but expected
-	SuspiciousButExpected IncidentClassificationReason = "SuspiciousButExpected"
+	// IncidentClassificationReasonInaccurateData Classification reason was inaccurate data
+	IncidentClassificationReasonInaccurateData IncidentClassificationReason = "InaccurateData"
+	// IncidentClassificationReasonIncorrectAlertLogic Classification reason was incorrect alert logic
+	IncidentClassificationReasonIncorrectAlertLogic IncidentClassificationReason = "IncorrectAlertLogic"
+	// IncidentClassificationReasonSuspiciousActivity Classification reason was suspicious activity
+	IncidentClassificationReasonSuspiciousActivity IncidentClassificationReason = "SuspiciousActivity"
+	// IncidentClassificationReasonSuspiciousButExpected Classification reason was suspicious but expected
+	IncidentClassificationReasonSuspiciousButExpected IncidentClassificationReason = "SuspiciousButExpected"
 )
 
 // PossibleIncidentClassificationReasonValues returns an array of possible values for the IncidentClassificationReason const type.
 func PossibleIncidentClassificationReasonValues() []IncidentClassificationReason {
-	return []IncidentClassificationReason{InaccurateData, IncorrectAlertLogic, SuspiciousActivity, SuspiciousButExpected}
+	return []IncidentClassificationReason{IncidentClassificationReasonInaccurateData, IncidentClassificationReasonIncorrectAlertLogic, IncidentClassificationReasonSuspiciousActivity, IncidentClassificationReasonSuspiciousButExpected}
 }
 
 // IncidentLabelType enumerates the values for incident label type.
 type IncidentLabelType string
 
 const (
-	// System Label automatically created by the system
-	System IncidentLabelType = "System"
-	// User Label manually created by a user
-	User IncidentLabelType = "User"
+	// IncidentLabelTypeSystem Label automatically created by the system
+	IncidentLabelTypeSystem IncidentLabelType = "System"
+	// IncidentLabelTypeUser Label manually created by a user
+	IncidentLabelTypeUser IncidentLabelType = "User"
 )
 
 // PossibleIncidentLabelTypeValues returns an array of possible values for the IncidentLabelType const type.
 func PossibleIncidentLabelTypeValues() []IncidentLabelType {
-	return []IncidentLabelType{System, User}
+	return []IncidentLabelType{IncidentLabelTypeSystem, IncidentLabelTypeUser}
 }
 
 // IncidentSeverity enumerates the values for incident severity.
@@ -955,23 +964,23 @@ func PossibleKindValues() []Kind {
 type KindBasicAlertRule string
 
 const (
-	// KindAlertRule ...
-	KindAlertRule KindBasicAlertRule = "AlertRule"
-	// KindFusion ...
-	KindFusion KindBasicAlertRule = "Fusion"
-	// KindMLBehaviorAnalytics ...
-	KindMLBehaviorAnalytics KindBasicAlertRule = "MLBehaviorAnalytics"
-	// KindMicrosoftSecurityIncidentCreation ...
-	KindMicrosoftSecurityIncidentCreation KindBasicAlertRule = "MicrosoftSecurityIncidentCreation"
-	// KindScheduled ...
-	KindScheduled KindBasicAlertRule = "Scheduled"
-	// KindThreatIntelligence ...
-	KindThreatIntelligence KindBasicAlertRule = "ThreatIntelligence"
+	// KindBasicAlertRuleKindAlertRule ...
+	KindBasicAlertRuleKindAlertRule KindBasicAlertRule = "AlertRule"
+	// KindBasicAlertRuleKindFusion ...
+	KindBasicAlertRuleKindFusion KindBasicAlertRule = "Fusion"
+	// KindBasicAlertRuleKindMicrosoftSecurityIncidentCreation ...
+	KindBasicAlertRuleKindMicrosoftSecurityIncidentCreation KindBasicAlertRule = "MicrosoftSecurityIncidentCreation"
+	// KindBasicAlertRuleKindMLBehaviorAnalytics ...
+	KindBasicAlertRuleKindMLBehaviorAnalytics KindBasicAlertRule = "MLBehaviorAnalytics"
+	// KindBasicAlertRuleKindScheduled ...
+	KindBasicAlertRuleKindScheduled KindBasicAlertRule = "Scheduled"
+	// KindBasicAlertRuleKindThreatIntelligence ...
+	KindBasicAlertRuleKindThreatIntelligence KindBasicAlertRule = "ThreatIntelligence"
 )
 
 // PossibleKindBasicAlertRuleValues returns an array of possible values for the KindBasicAlertRule const type.
 func PossibleKindBasicAlertRuleValues() []KindBasicAlertRule {
-	return []KindBasicAlertRule{KindAlertRule, KindFusion, KindMLBehaviorAnalytics, KindMicrosoftSecurityIncidentCreation, KindScheduled, KindThreatIntelligence}
+	return []KindBasicAlertRule{KindBasicAlertRuleKindAlertRule, KindBasicAlertRuleKindFusion, KindBasicAlertRuleKindMicrosoftSecurityIncidentCreation, KindBasicAlertRuleKindMLBehaviorAnalytics, KindBasicAlertRuleKindScheduled, KindBasicAlertRuleKindThreatIntelligence}
 }
 
 // KindBasicAlertRuleTemplate enumerates the values for kind basic alert rule template.
@@ -982,10 +991,10 @@ const (
 	KindBasicAlertRuleTemplateKindAlertRuleTemplate KindBasicAlertRuleTemplate = "AlertRuleTemplate"
 	// KindBasicAlertRuleTemplateKindFusion ...
 	KindBasicAlertRuleTemplateKindFusion KindBasicAlertRuleTemplate = "Fusion"
-	// KindBasicAlertRuleTemplateKindMLBehaviorAnalytics ...
-	KindBasicAlertRuleTemplateKindMLBehaviorAnalytics KindBasicAlertRuleTemplate = "MLBehaviorAnalytics"
 	// KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation ...
 	KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation KindBasicAlertRuleTemplate = "MicrosoftSecurityIncidentCreation"
+	// KindBasicAlertRuleTemplateKindMLBehaviorAnalytics ...
+	KindBasicAlertRuleTemplateKindMLBehaviorAnalytics KindBasicAlertRuleTemplate = "MLBehaviorAnalytics"
 	// KindBasicAlertRuleTemplateKindScheduled ...
 	KindBasicAlertRuleTemplateKindScheduled KindBasicAlertRuleTemplate = "Scheduled"
 	// KindBasicAlertRuleTemplateKindThreatIntelligence ...
@@ -994,7 +1003,7 @@ const (
 
 // PossibleKindBasicAlertRuleTemplateValues returns an array of possible values for the KindBasicAlertRuleTemplate const type.
 func PossibleKindBasicAlertRuleTemplateValues() []KindBasicAlertRuleTemplate {
-	return []KindBasicAlertRuleTemplate{KindBasicAlertRuleTemplateKindAlertRuleTemplate, KindBasicAlertRuleTemplateKindFusion, KindBasicAlertRuleTemplateKindMLBehaviorAnalytics, KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation, KindBasicAlertRuleTemplateKindScheduled, KindBasicAlertRuleTemplateKindThreatIntelligence}
+	return []KindBasicAlertRuleTemplate{KindBasicAlertRuleTemplateKindAlertRuleTemplate, KindBasicAlertRuleTemplateKindFusion, KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation, KindBasicAlertRuleTemplateKindMLBehaviorAnalytics, KindBasicAlertRuleTemplateKindScheduled, KindBasicAlertRuleTemplateKindThreatIntelligence}
 }
 
 // KindBasicDataConnector enumerates the values for kind basic data connector.
@@ -1078,70 +1087,70 @@ func PossibleKindBasicDataConnectorsCheckRequirementsValues() []KindBasicDataCon
 type KindBasicEntity string
 
 const (
-	// KindAccount ...
-	KindAccount KindBasicEntity = "Account"
-	// KindAzureResource ...
-	KindAzureResource KindBasicEntity = "AzureResource"
-	// KindBookmark ...
-	KindBookmark KindBasicEntity = "Bookmark"
-	// KindCloudApplication ...
-	KindCloudApplication KindBasicEntity = "CloudApplication"
-	// KindDNSResolution ...
-	KindDNSResolution KindBasicEntity = "DnsResolution"
-	// KindEntity ...
-	KindEntity KindBasicEntity = "Entity"
-	// KindFile ...
-	KindFile KindBasicEntity = "File"
-	// KindFileHash ...
-	KindFileHash KindBasicEntity = "FileHash"
-	// KindHost ...
-	KindHost KindBasicEntity = "Host"
-	// KindIP ...
-	KindIP KindBasicEntity = "Ip"
-	// KindIoTDevice ...
-	KindIoTDevice KindBasicEntity = "IoTDevice"
-	// KindMailCluster ...
-	KindMailCluster KindBasicEntity = "MailCluster"
-	// KindMailMessage ...
-	KindMailMessage KindBasicEntity = "MailMessage"
-	// KindMailbox ...
-	KindMailbox KindBasicEntity = "Mailbox"
-	// KindMalware ...
-	KindMalware KindBasicEntity = "Malware"
-	// KindProcess ...
-	KindProcess KindBasicEntity = "Process"
-	// KindRegistryKey ...
-	KindRegistryKey KindBasicEntity = "RegistryKey"
-	// KindRegistryValue ...
-	KindRegistryValue KindBasicEntity = "RegistryValue"
-	// KindSecurityAlert ...
-	KindSecurityAlert KindBasicEntity = "SecurityAlert"
-	// KindSecurityGroup ...
-	KindSecurityGroup KindBasicEntity = "SecurityGroup"
-	// KindSubmissionMail ...
-	KindSubmissionMail KindBasicEntity = "SubmissionMail"
-	// KindURL ...
-	KindURL KindBasicEntity = "Url"
+	// KindBasicEntityKindAccount ...
+	KindBasicEntityKindAccount KindBasicEntity = "Account"
+	// KindBasicEntityKindAzureResource ...
+	KindBasicEntityKindAzureResource KindBasicEntity = "AzureResource"
+	// KindBasicEntityKindBookmark ...
+	KindBasicEntityKindBookmark KindBasicEntity = "Bookmark"
+	// KindBasicEntityKindCloudApplication ...
+	KindBasicEntityKindCloudApplication KindBasicEntity = "CloudApplication"
+	// KindBasicEntityKindDNSResolution ...
+	KindBasicEntityKindDNSResolution KindBasicEntity = "DnsResolution"
+	// KindBasicEntityKindEntity ...
+	KindBasicEntityKindEntity KindBasicEntity = "Entity"
+	// KindBasicEntityKindFile ...
+	KindBasicEntityKindFile KindBasicEntity = "File"
+	// KindBasicEntityKindFileHash ...
+	KindBasicEntityKindFileHash KindBasicEntity = "FileHash"
+	// KindBasicEntityKindHost ...
+	KindBasicEntityKindHost KindBasicEntity = "Host"
+	// KindBasicEntityKindIoTDevice ...
+	KindBasicEntityKindIoTDevice KindBasicEntity = "IoTDevice"
+	// KindBasicEntityKindIP ...
+	KindBasicEntityKindIP KindBasicEntity = "Ip"
+	// KindBasicEntityKindMailbox ...
+	KindBasicEntityKindMailbox KindBasicEntity = "Mailbox"
+	// KindBasicEntityKindMailCluster ...
+	KindBasicEntityKindMailCluster KindBasicEntity = "MailCluster"
+	// KindBasicEntityKindMailMessage ...
+	KindBasicEntityKindMailMessage KindBasicEntity = "MailMessage"
+	// KindBasicEntityKindMalware ...
+	KindBasicEntityKindMalware KindBasicEntity = "Malware"
+	// KindBasicEntityKindProcess ...
+	KindBasicEntityKindProcess KindBasicEntity = "Process"
+	// KindBasicEntityKindRegistryKey ...
+	KindBasicEntityKindRegistryKey KindBasicEntity = "RegistryKey"
+	// KindBasicEntityKindRegistryValue ...
+	KindBasicEntityKindRegistryValue KindBasicEntity = "RegistryValue"
+	// KindBasicEntityKindSecurityAlert ...
+	KindBasicEntityKindSecurityAlert KindBasicEntity = "SecurityAlert"
+	// KindBasicEntityKindSecurityGroup ...
+	KindBasicEntityKindSecurityGroup KindBasicEntity = "SecurityGroup"
+	// KindBasicEntityKindSubmissionMail ...
+	KindBasicEntityKindSubmissionMail KindBasicEntity = "SubmissionMail"
+	// KindBasicEntityKindURL ...
+	KindBasicEntityKindURL KindBasicEntity = "Url"
 )
 
 // PossibleKindBasicEntityValues returns an array of possible values for the KindBasicEntity const type.
 func PossibleKindBasicEntityValues() []KindBasicEntity {
-	return []KindBasicEntity{KindAccount, KindAzureResource, KindBookmark, KindCloudApplication, KindDNSResolution, KindEntity, KindFile, KindFileHash, KindHost, KindIP, KindIoTDevice, KindMailCluster, KindMailMessage, KindMailbox, KindMalware, KindProcess, KindRegistryKey, KindRegistryValue, KindSecurityAlert, KindSecurityGroup, KindSubmissionMail, KindURL}
+	return []KindBasicEntity{KindBasicEntityKindAccount, KindBasicEntityKindAzureResource, KindBasicEntityKindBookmark, KindBasicEntityKindCloudApplication, KindBasicEntityKindDNSResolution, KindBasicEntityKindEntity, KindBasicEntityKindFile, KindBasicEntityKindFileHash, KindBasicEntityKindHost, KindBasicEntityKindIoTDevice, KindBasicEntityKindIP, KindBasicEntityKindMailbox, KindBasicEntityKindMailCluster, KindBasicEntityKindMailMessage, KindBasicEntityKindMalware, KindBasicEntityKindProcess, KindBasicEntityKindRegistryKey, KindBasicEntityKindRegistryValue, KindBasicEntityKindSecurityAlert, KindBasicEntityKindSecurityGroup, KindBasicEntityKindSubmissionMail, KindBasicEntityKindURL}
 }
 
 // KindBasicEntityQuery enumerates the values for kind basic entity query.
 type KindBasicEntityQuery string
 
 const (
-	// KindEntityQuery ...
-	KindEntityQuery KindBasicEntityQuery = "EntityQuery"
-	// KindExpansion ...
-	KindExpansion KindBasicEntityQuery = "Expansion"
+	// KindBasicEntityQueryKindEntityQuery ...
+	KindBasicEntityQueryKindEntityQuery KindBasicEntityQuery = "EntityQuery"
+	// KindBasicEntityQueryKindExpansion ...
+	KindBasicEntityQueryKindExpansion KindBasicEntityQuery = "Expansion"
 )
 
 // PossibleKindBasicEntityQueryValues returns an array of possible values for the KindBasicEntityQuery const type.
 func PossibleKindBasicEntityQueryValues() []KindBasicEntityQuery {
-	return []KindBasicEntityQuery{KindEntityQuery, KindExpansion}
+	return []KindBasicEntityQuery{KindBasicEntityQueryKindEntityQuery, KindBasicEntityQueryKindExpansion}
 }
 
 // KindBasicEntityTimelineItem enumerates the values for kind basic entity timeline item.
@@ -1167,61 +1176,61 @@ func PossibleKindBasicEntityTimelineItemValues() []KindBasicEntityTimelineItem {
 type KindBasicSettings string
 
 const (
-	// KindEntityAnalytics ...
-	KindEntityAnalytics KindBasicSettings = "EntityAnalytics"
-	// KindEyesOn ...
-	KindEyesOn KindBasicSettings = "EyesOn"
-	// KindIPSyncer ...
-	KindIPSyncer KindBasicSettings = "IPSyncer"
-	// KindSettings ...
-	KindSettings KindBasicSettings = "Settings"
-	// KindUeba ...
-	KindUeba KindBasicSettings = "Ueba"
+	// KindBasicSettingsKindEntityAnalytics ...
+	KindBasicSettingsKindEntityAnalytics KindBasicSettings = "EntityAnalytics"
+	// KindBasicSettingsKindEyesOn ...
+	KindBasicSettingsKindEyesOn KindBasicSettings = "EyesOn"
+	// KindBasicSettingsKindIPSyncer ...
+	KindBasicSettingsKindIPSyncer KindBasicSettings = "IPSyncer"
+	// KindBasicSettingsKindSettings ...
+	KindBasicSettingsKindSettings KindBasicSettings = "Settings"
+	// KindBasicSettingsKindUeba ...
+	KindBasicSettingsKindUeba KindBasicSettings = "Ueba"
 )
 
 // PossibleKindBasicSettingsValues returns an array of possible values for the KindBasicSettings const type.
 func PossibleKindBasicSettingsValues() []KindBasicSettings {
-	return []KindBasicSettings{KindEntityAnalytics, KindEyesOn, KindIPSyncer, KindSettings, KindUeba}
+	return []KindBasicSettings{KindBasicSettingsKindEntityAnalytics, KindBasicSettingsKindEyesOn, KindBasicSettingsKindIPSyncer, KindBasicSettingsKindSettings, KindBasicSettingsKindUeba}
 }
 
 // KindBasicThreatIntelligenceInformation enumerates the values for kind basic threat intelligence information.
 type KindBasicThreatIntelligenceInformation string
 
 const (
-	// KindIndicator ...
-	KindIndicator KindBasicThreatIntelligenceInformation = "indicator"
-	// KindThreatIntelligenceInformation ...
-	KindThreatIntelligenceInformation KindBasicThreatIntelligenceInformation = "ThreatIntelligenceInformation"
+	// KindBasicThreatIntelligenceInformationKindIndicator ...
+	KindBasicThreatIntelligenceInformationKindIndicator KindBasicThreatIntelligenceInformation = "indicator"
+	// KindBasicThreatIntelligenceInformationKindThreatIntelligenceInformation ...
+	KindBasicThreatIntelligenceInformationKindThreatIntelligenceInformation KindBasicThreatIntelligenceInformation = "ThreatIntelligenceInformation"
 )
 
 // PossibleKindBasicThreatIntelligenceInformationValues returns an array of possible values for the KindBasicThreatIntelligenceInformation const type.
 func PossibleKindBasicThreatIntelligenceInformationValues() []KindBasicThreatIntelligenceInformation {
-	return []KindBasicThreatIntelligenceInformation{KindIndicator, KindThreatIntelligenceInformation}
+	return []KindBasicThreatIntelligenceInformation{KindBasicThreatIntelligenceInformationKindIndicator, KindBasicThreatIntelligenceInformationKindThreatIntelligenceInformation}
 }
 
 // MicrosoftSecurityProductName enumerates the values for microsoft security product name.
 type MicrosoftSecurityProductName string
 
 const (
-	// AzureActiveDirectoryIdentityProtection ...
-	AzureActiveDirectoryIdentityProtection MicrosoftSecurityProductName = "Azure Active Directory Identity Protection"
-	// AzureAdvancedThreatProtection ...
-	AzureAdvancedThreatProtection MicrosoftSecurityProductName = "Azure Advanced Threat Protection"
-	// AzureSecurityCenter ...
-	AzureSecurityCenter MicrosoftSecurityProductName = "Azure Security Center"
-	// AzureSecurityCenterforIoT ...
-	AzureSecurityCenterforIoT MicrosoftSecurityProductName = "Azure Security Center for IoT"
-	// MicrosoftCloudAppSecurity ...
-	MicrosoftCloudAppSecurity MicrosoftSecurityProductName = "Microsoft Cloud App Security"
-	// MicrosoftDefenderAdvancedThreatProtection ...
-	MicrosoftDefenderAdvancedThreatProtection MicrosoftSecurityProductName = "Microsoft Defender Advanced Threat Protection"
-	// Office365AdvancedThreatProtection ...
-	Office365AdvancedThreatProtection MicrosoftSecurityProductName = "Office 365 Advanced Threat Protection"
+	// MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection ...
+	MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection MicrosoftSecurityProductName = "Azure Active Directory Identity Protection"
+	// MicrosoftSecurityProductNameAzureAdvancedThreatProtection ...
+	MicrosoftSecurityProductNameAzureAdvancedThreatProtection MicrosoftSecurityProductName = "Azure Advanced Threat Protection"
+	// MicrosoftSecurityProductNameAzureSecurityCenter ...
+	MicrosoftSecurityProductNameAzureSecurityCenter MicrosoftSecurityProductName = "Azure Security Center"
+	// MicrosoftSecurityProductNameAzureSecurityCenterforIoT ...
+	MicrosoftSecurityProductNameAzureSecurityCenterforIoT MicrosoftSecurityProductName = "Azure Security Center for IoT"
+	// MicrosoftSecurityProductNameMicrosoftCloudAppSecurity ...
+	MicrosoftSecurityProductNameMicrosoftCloudAppSecurity MicrosoftSecurityProductName = "Microsoft Cloud App Security"
+	// MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection ...
+	MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection MicrosoftSecurityProductName = "Microsoft Defender Advanced Threat Protection"
+	// MicrosoftSecurityProductNameOffice365AdvancedThreatProtection ...
+	MicrosoftSecurityProductNameOffice365AdvancedThreatProtection MicrosoftSecurityProductName = "Office 365 Advanced Threat Protection"
 )
 
 // PossibleMicrosoftSecurityProductNameValues returns an array of possible values for the MicrosoftSecurityProductName const type.
 func PossibleMicrosoftSecurityProductNameValues() []MicrosoftSecurityProductName {
-	return []MicrosoftSecurityProductName{AzureActiveDirectoryIdentityProtection, AzureAdvancedThreatProtection, AzureSecurityCenter, AzureSecurityCenterforIoT, MicrosoftCloudAppSecurity, MicrosoftDefenderAdvancedThreatProtection, Office365AdvancedThreatProtection}
+	return []MicrosoftSecurityProductName{MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection, MicrosoftSecurityProductNameAzureAdvancedThreatProtection, MicrosoftSecurityProductNameAzureSecurityCenter, MicrosoftSecurityProductNameAzureSecurityCenterforIoT, MicrosoftSecurityProductNameMicrosoftCloudAppSecurity, MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection, MicrosoftSecurityProductNameOffice365AdvancedThreatProtection}
 }
 
 // OSFamily enumerates the values for os family.
@@ -1268,48 +1277,48 @@ func PossibleOutputTypeValues() []OutputType {
 type PollingFrequency string
 
 const (
-	// OnceADay Once a day
-	OnceADay PollingFrequency = "OnceADay"
-	// OnceAMinute Once a minute
-	OnceAMinute PollingFrequency = "OnceAMinute"
-	// OnceAnHour Once an hour
-	OnceAnHour PollingFrequency = "OnceAnHour"
+	// PollingFrequencyOnceADay Once a day
+	PollingFrequencyOnceADay PollingFrequency = "OnceADay"
+	// PollingFrequencyOnceAMinute Once a minute
+	PollingFrequencyOnceAMinute PollingFrequency = "OnceAMinute"
+	// PollingFrequencyOnceAnHour Once an hour
+	PollingFrequencyOnceAnHour PollingFrequency = "OnceAnHour"
 )
 
 // PossiblePollingFrequencyValues returns an array of possible values for the PollingFrequency const type.
 func PossiblePollingFrequencyValues() []PollingFrequency {
-	return []PollingFrequency{OnceADay, OnceAMinute, OnceAnHour}
+	return []PollingFrequency{PollingFrequencyOnceADay, PollingFrequencyOnceAMinute, PollingFrequencyOnceAnHour}
 }
 
 // RegistryHive enumerates the values for registry hive.
 type RegistryHive string
 
 const (
-	// HKEYA HKEY_A
-	HKEYA RegistryHive = "HKEY_A"
-	// HKEYCLASSESROOT HKEY_CLASSES_ROOT
-	HKEYCLASSESROOT RegistryHive = "HKEY_CLASSES_ROOT"
-	// HKEYCURRENTCONFIG HKEY_CURRENT_CONFIG
-	HKEYCURRENTCONFIG RegistryHive = "HKEY_CURRENT_CONFIG"
-	// HKEYCURRENTUSER HKEY_CURRENT_USER
-	HKEYCURRENTUSER RegistryHive = "HKEY_CURRENT_USER"
-	// HKEYCURRENTUSERLOCALSETTINGS HKEY_CURRENT_USER_LOCAL_SETTINGS
-	HKEYCURRENTUSERLOCALSETTINGS RegistryHive = "HKEY_CURRENT_USER_LOCAL_SETTINGS"
-	// HKEYLOCALMACHINE HKEY_LOCAL_MACHINE
-	HKEYLOCALMACHINE RegistryHive = "HKEY_LOCAL_MACHINE"
-	// HKEYPERFORMANCEDATA HKEY_PERFORMANCE_DATA
-	HKEYPERFORMANCEDATA RegistryHive = "HKEY_PERFORMANCE_DATA"
-	// HKEYPERFORMANCENLSTEXT HKEY_PERFORMANCE_NLSTEXT
-	HKEYPERFORMANCENLSTEXT RegistryHive = "HKEY_PERFORMANCE_NLSTEXT"
-	// HKEYPERFORMANCETEXT HKEY_PERFORMANCE_TEXT
-	HKEYPERFORMANCETEXT RegistryHive = "HKEY_PERFORMANCE_TEXT"
-	// HKEYUSERS HKEY_USERS
-	HKEYUSERS RegistryHive = "HKEY_USERS"
+	// RegistryHiveHKEYA HKEY_A
+	RegistryHiveHKEYA RegistryHive = "HKEY_A"
+	// RegistryHiveHKEYCLASSESROOT HKEY_CLASSES_ROOT
+	RegistryHiveHKEYCLASSESROOT RegistryHive = "HKEY_CLASSES_ROOT"
+	// RegistryHiveHKEYCURRENTCONFIG HKEY_CURRENT_CONFIG
+	RegistryHiveHKEYCURRENTCONFIG RegistryHive = "HKEY_CURRENT_CONFIG"
+	// RegistryHiveHKEYCURRENTUSER HKEY_CURRENT_USER
+	RegistryHiveHKEYCURRENTUSER RegistryHive = "HKEY_CURRENT_USER"
+	// RegistryHiveHKEYCURRENTUSERLOCALSETTINGS HKEY_CURRENT_USER_LOCAL_SETTINGS
+	RegistryHiveHKEYCURRENTUSERLOCALSETTINGS RegistryHive = "HKEY_CURRENT_USER_LOCAL_SETTINGS"
+	// RegistryHiveHKEYLOCALMACHINE HKEY_LOCAL_MACHINE
+	RegistryHiveHKEYLOCALMACHINE RegistryHive = "HKEY_LOCAL_MACHINE"
+	// RegistryHiveHKEYPERFORMANCEDATA HKEY_PERFORMANCE_DATA
+	RegistryHiveHKEYPERFORMANCEDATA RegistryHive = "HKEY_PERFORMANCE_DATA"
+	// RegistryHiveHKEYPERFORMANCENLSTEXT HKEY_PERFORMANCE_NLSTEXT
+	RegistryHiveHKEYPERFORMANCENLSTEXT RegistryHive = "HKEY_PERFORMANCE_NLSTEXT"
+	// RegistryHiveHKEYPERFORMANCETEXT HKEY_PERFORMANCE_TEXT
+	RegistryHiveHKEYPERFORMANCETEXT RegistryHive = "HKEY_PERFORMANCE_TEXT"
+	// RegistryHiveHKEYUSERS HKEY_USERS
+	RegistryHiveHKEYUSERS RegistryHive = "HKEY_USERS"
 )
 
 // PossibleRegistryHiveValues returns an array of possible values for the RegistryHive const type.
 func PossibleRegistryHiveValues() []RegistryHive {
-	return []RegistryHive{HKEYA, HKEYCLASSESROOT, HKEYCURRENTCONFIG, HKEYCURRENTUSER, HKEYCURRENTUSERLOCALSETTINGS, HKEYLOCALMACHINE, HKEYPERFORMANCEDATA, HKEYPERFORMANCENLSTEXT, HKEYPERFORMANCETEXT, HKEYUSERS}
+	return []RegistryHive{RegistryHiveHKEYA, RegistryHiveHKEYCLASSESROOT, RegistryHiveHKEYCURRENTCONFIG, RegistryHiveHKEYCURRENTUSER, RegistryHiveHKEYCURRENTUSERLOCALSETTINGS, RegistryHiveHKEYLOCALMACHINE, RegistryHiveHKEYPERFORMANCEDATA, RegistryHiveHKEYPERFORMANCENLSTEXT, RegistryHiveHKEYPERFORMANCETEXT, RegistryHiveHKEYUSERS}
 }
 
 // RegistryValueKind enumerates the values for registry value kind.
@@ -1358,13 +1367,13 @@ func PossibleRelationNodeKindValues() []RelationNodeKind {
 type RelationTypes string
 
 const (
-	// CasesToBookmarks Relations between cases and bookmarks
-	CasesToBookmarks RelationTypes = "CasesToBookmarks"
+	// RelationTypesCasesToBookmarks Relations between cases and bookmarks
+	RelationTypesCasesToBookmarks RelationTypes = "CasesToBookmarks"
 )
 
 // PossibleRelationTypesValues returns an array of possible values for the RelationTypes const type.
 func PossibleRelationTypesValues() []RelationTypes {
-	return []RelationTypes{CasesToBookmarks}
+	return []RelationTypes{RelationTypesCasesToBookmarks}
 }
 
 // SettingKind enumerates the values for setting kind.
@@ -1388,98 +1397,98 @@ func PossibleSettingKindValues() []SettingKind {
 type Source string
 
 const (
-	// Localfile ...
-	Localfile Source = "Local file"
-	// Remotestorage ...
-	Remotestorage Source = "Remote storage"
+	// SourceLocalfile ...
+	SourceLocalfile Source = "Local file"
+	// SourceRemotestorage ...
+	SourceRemotestorage Source = "Remote storage"
 )
 
 // PossibleSourceValues returns an array of possible values for the Source const type.
 func PossibleSourceValues() []Source {
-	return []Source{Localfile, Remotestorage}
+	return []Source{SourceLocalfile, SourceRemotestorage}
 }
 
 // TemplateStatus enumerates the values for template status.
 type TemplateStatus string
 
 const (
-	// Available Alert rule template is available.
-	Available TemplateStatus = "Available"
-	// Installed Alert rule template installed. and can not use more then once
-	Installed TemplateStatus = "Installed"
-	// NotAvailable Alert rule template is not available
-	NotAvailable TemplateStatus = "NotAvailable"
+	// TemplateStatusAvailable Alert rule template is available.
+	TemplateStatusAvailable TemplateStatus = "Available"
+	// TemplateStatusInstalled Alert rule template installed. and can not use more then once
+	TemplateStatusInstalled TemplateStatus = "Installed"
+	// TemplateStatusNotAvailable Alert rule template is not available
+	TemplateStatusNotAvailable TemplateStatus = "NotAvailable"
 )
 
 // PossibleTemplateStatusValues returns an array of possible values for the TemplateStatus const type.
 func PossibleTemplateStatusValues() []TemplateStatus {
-	return []TemplateStatus{Available, Installed, NotAvailable}
+	return []TemplateStatus{TemplateStatusAvailable, TemplateStatusInstalled, TemplateStatusNotAvailable}
 }
 
 // ThreatIntelligenceResourceKind enumerates the values for threat intelligence resource kind.
 type ThreatIntelligenceResourceKind string
 
 const (
-	// Indicator Entity represents threat intelligence indicator in the system.
-	Indicator ThreatIntelligenceResourceKind = "indicator"
+	// ThreatIntelligenceResourceKindIndicator Entity represents threat intelligence indicator in the system.
+	ThreatIntelligenceResourceKindIndicator ThreatIntelligenceResourceKind = "indicator"
 )
 
 // PossibleThreatIntelligenceResourceKindValues returns an array of possible values for the ThreatIntelligenceResourceKind const type.
 func PossibleThreatIntelligenceResourceKindValues() []ThreatIntelligenceResourceKind {
-	return []ThreatIntelligenceResourceKind{Indicator}
+	return []ThreatIntelligenceResourceKind{ThreatIntelligenceResourceKindIndicator}
 }
 
 // ThreatIntelligenceSortingCriteria enumerates the values for threat intelligence sorting criteria.
 type ThreatIntelligenceSortingCriteria string
 
 const (
-	// Ascending ...
-	Ascending ThreatIntelligenceSortingCriteria = "ascending"
-	// Descending ...
-	Descending ThreatIntelligenceSortingCriteria = "descending"
-	// Unsorted ...
-	Unsorted ThreatIntelligenceSortingCriteria = "unsorted"
+	// ThreatIntelligenceSortingCriteriaAscending ...
+	ThreatIntelligenceSortingCriteriaAscending ThreatIntelligenceSortingCriteria = "ascending"
+	// ThreatIntelligenceSortingCriteriaDescending ...
+	ThreatIntelligenceSortingCriteriaDescending ThreatIntelligenceSortingCriteria = "descending"
+	// ThreatIntelligenceSortingCriteriaUnsorted ...
+	ThreatIntelligenceSortingCriteriaUnsorted ThreatIntelligenceSortingCriteria = "unsorted"
 )
 
 // PossibleThreatIntelligenceSortingCriteriaValues returns an array of possible values for the ThreatIntelligenceSortingCriteria const type.
 func PossibleThreatIntelligenceSortingCriteriaValues() []ThreatIntelligenceSortingCriteria {
-	return []ThreatIntelligenceSortingCriteria{Ascending, Descending, Unsorted}
+	return []ThreatIntelligenceSortingCriteria{ThreatIntelligenceSortingCriteriaAscending, ThreatIntelligenceSortingCriteriaDescending, ThreatIntelligenceSortingCriteriaUnsorted}
 }
 
 // TriggerOperator enumerates the values for trigger operator.
 type TriggerOperator string
 
 const (
-	// Equal ...
-	Equal TriggerOperator = "Equal"
-	// GreaterThan ...
-	GreaterThan TriggerOperator = "GreaterThan"
-	// LessThan ...
-	LessThan TriggerOperator = "LessThan"
-	// NotEqual ...
-	NotEqual TriggerOperator = "NotEqual"
+	// TriggerOperatorEqual ...
+	TriggerOperatorEqual TriggerOperator = "Equal"
+	// TriggerOperatorGreaterThan ...
+	TriggerOperatorGreaterThan TriggerOperator = "GreaterThan"
+	// TriggerOperatorLessThan ...
+	TriggerOperatorLessThan TriggerOperator = "LessThan"
+	// TriggerOperatorNotEqual ...
+	TriggerOperatorNotEqual TriggerOperator = "NotEqual"
 )
 
 // PossibleTriggerOperatorValues returns an array of possible values for the TriggerOperator const type.
 func PossibleTriggerOperatorValues() []TriggerOperator {
-	return []TriggerOperator{Equal, GreaterThan, LessThan, NotEqual}
+	return []TriggerOperator{TriggerOperatorEqual, TriggerOperatorGreaterThan, TriggerOperatorLessThan, TriggerOperatorNotEqual}
 }
 
 // UebaDataSources enumerates the values for ueba data sources.
 type UebaDataSources string
 
 const (
-	// AuditLogs ...
-	AuditLogs UebaDataSources = "AuditLogs"
-	// AzureActivity ...
-	AzureActivity UebaDataSources = "AzureActivity"
-	// SecurityEvent ...
-	SecurityEvent UebaDataSources = "SecurityEvent"
-	// SigninLogs ...
-	SigninLogs UebaDataSources = "SigninLogs"
+	// UebaDataSourcesAuditLogs ...
+	UebaDataSourcesAuditLogs UebaDataSources = "AuditLogs"
+	// UebaDataSourcesAzureActivity ...
+	UebaDataSourcesAzureActivity UebaDataSources = "AzureActivity"
+	// UebaDataSourcesSecurityEvent ...
+	UebaDataSourcesSecurityEvent UebaDataSources = "SecurityEvent"
+	// UebaDataSourcesSigninLogs ...
+	UebaDataSourcesSigninLogs UebaDataSources = "SigninLogs"
 )
 
 // PossibleUebaDataSourcesValues returns an array of possible values for the UebaDataSources const type.
 func PossibleUebaDataSourcesValues() []UebaDataSources {
-	return []UebaDataSources{AuditLogs, AzureActivity, SecurityEvent, SigninLogs}
+	return []UebaDataSources{UebaDataSourcesAuditLogs, UebaDataSourcesAzureActivity, UebaDataSourcesSecurityEvent, UebaDataSourcesSigninLogs}
 }

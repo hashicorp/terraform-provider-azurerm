@@ -8,8 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,8 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMariaDbVirtualNetworkRule() *schema.Resource {
-	return &schema.Resource{
+func resourceMariaDbVirtualNetworkRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMariaDbVirtualNetworkRuleCreateUpdate,
 		Read:   resourceMariaDbVirtualNetworkRuleRead,
 		Update: resourceMariaDbVirtualNetworkRuleCreateUpdate,
@@ -29,16 +27,16 @@ func resourceMariaDbVirtualNetworkRule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate2.VirtualNetworkRuleName,
@@ -47,14 +45,14 @@ func resourceMariaDbVirtualNetworkRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -62,7 +60,7 @@ func resourceMariaDbVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -98,7 +96,7 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta 
 
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
 		Refresh:                   mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
@@ -106,12 +104,12 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta 
 		ContinuousTargetOccurence: 5,
 	}
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -125,7 +123,7 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta 
 	return resourceMariaDbVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +159,7 @@ func resourceMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +191,7 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {

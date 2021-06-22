@@ -6,30 +6,26 @@ import (
 	"log"
 	"time"
 
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const virtualHubResourceName = "azurerm_virtual_hub"
 
-func resourceVirtualHub() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualHub() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualHubCreateUpdate,
 		Read:   resourceVirtualHubRead,
 		Update: resourceVirtualHubCreateUpdate,
@@ -38,16 +34,16 @@ func resourceVirtualHub() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.VirtualHubName,
@@ -58,14 +54,14 @@ func resourceVirtualHub() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"address_prefix": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CIDR,
 			},
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -75,27 +71,27 @@ func resourceVirtualHub() *schema.Resource {
 			},
 
 			"virtual_wan_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"route": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"address_prefixes": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
 						},
 						"next_hop_ip_address": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.IPv4Address,
 						},
@@ -108,7 +104,7 @@ func resourceVirtualHub() *schema.Resource {
 	}
 }
 
-func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +132,7 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	route := d.Get("route").(*schema.Set).List()
+	route := d.Get("route").(*pluginsdk.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.VirtualHub{
@@ -176,7 +172,7 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	// deadline is checked at the entry point of this function
 	timeout, _ := ctx.Deadline()
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Provisioning"},
 		Target:                    []string{"Provisioned", "Failed", "None"},
 		Refresh:                   virtualHubCreateRefreshFunc(ctx, client, resourceGroup, name),
@@ -184,7 +180,7 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	respRaw, err := stateConf.WaitForState()
+	respRaw, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for Virtual Hub %q (Host Group Name %q) provisioning route: %+v", name, resourceGroup, err)
 	}
@@ -198,7 +194,7 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceVirtualHubRead(d, meta)
 }
 
-func resourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +237,7 @@ func resourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVirtualHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,7 +315,7 @@ func flattenVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 	return results
 }
 
-func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) resource.StateRefreshFunc {
+func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

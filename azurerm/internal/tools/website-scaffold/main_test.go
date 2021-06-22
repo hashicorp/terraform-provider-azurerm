@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -98,7 +98,7 @@ A 'block3' block supports the following:
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"block1": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
@@ -112,7 +112,7 @@ A 'block3' block supports the following:
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"block3": {
 							Type:     schema.TypeList,
 							MinItems: 1,

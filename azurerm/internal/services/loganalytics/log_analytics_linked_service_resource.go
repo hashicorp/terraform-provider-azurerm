@@ -7,12 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,13 +16,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLogAnalyticsLinkedService() *schema.Resource {
-	return &schema.Resource{
+func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsLinkedServiceCreateUpdate,
 		Read:   resourceLogAnalyticsLinkedServiceRead,
 		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
@@ -35,19 +33,19 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			// TODO: Remove in 3.0
 			"workspace_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Computed:         true,
 				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -57,7 +55,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 			},
 
 			"workspace_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Computed:         true,
 				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -67,7 +65,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 
 			// TODO: Remove in 3.0
 			"linked_service_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Computed:         true,
 				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -80,7 +78,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 
 			// TODO: Remove in 3.0
 			"resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -89,7 +87,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 			},
 
 			"read_access_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -97,7 +95,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 			},
 
 			"write_access_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 				ExactlyOneOf: []string{"read_access_id", "write_access_id", "resource_id"},
@@ -105,7 +103,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 
 			// Exported properties
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -113,7 +111,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 		},
 
 		// TODO: Remove in 3.0
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if d.HasChange("linked_service_name") {
 				oldServiceName, newServiceName := d.GetChange("linked_service_name")
 
@@ -200,7 +198,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 	}
 }
 
-func resourceLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -294,7 +292,7 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta 
 	return resourceLogAnalyticsLinkedServiceRead(d, meta)
 }
 
-func resourceLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -334,7 +332,7 @@ func resourceLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,9 +359,9 @@ func resourceLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interf
 
 	// (@WodansSon) - This is a bug in the service API, it returns instantly from the delete call with a 200
 	// so we must wait for the state to change before we return from the delete function
-	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(schema.TimeoutDelete), resourceGroup, workspaceName, serviceType)
+	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), resourceGroup, workspaceName, serviceType)
 
-	if _, err := deleteWait.WaitForState(); err != nil {
+	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish deleting '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
 	}
 

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -19,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppServiceManagedCertificate() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceManagedCertificateCreateUpdate,
 		Read:   resourceAppServiceManagedCertificateRead,
 		Update: resourceAppServiceManagedCertificateCreateUpdate,
@@ -30,61 +28,61 @@ func resourceAppServiceManagedCertificate() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"custom_hostname_binding_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServiceCustomHostnameBindingID,
 			},
 
 			"canonical_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"friendly_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"subject_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"host_names": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"issuer": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"issue_date": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"expiration_date": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"thumbprint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -93,7 +91,7 @@ func resourceAppServiceManagedCertificate() *schema.Resource {
 	}
 }
 
-func resourceAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -161,11 +159,11 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
-	certificateWait := &resource.StateChangeConf{
+	certificateWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NotFound", "Unknown"},
 		Target:     []string{"Success"},
 		MinTimeout: 1 * time.Minute,
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)
 			if err != nil {
@@ -182,10 +180,10 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, me
 	}
 
 	if !d.IsNewResource() {
-		certificateWait.Timeout = d.Timeout(schema.TimeoutUpdate)
+		certificateWait.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := certificateWait.WaitForState(); err != nil {
+	if _, err := certificateWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.CertificateName, err)
 	}
 
@@ -194,7 +192,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, me
 	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceAppServiceManagedCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,7 +230,7 @@ func resourceAppServiceManagedCertificateRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceAppServiceManagedCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

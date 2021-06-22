@@ -7,42 +7,39 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNetAppSnapshot() *schema.Resource {
-	return &schema.Resource{
+func resourceNetAppSnapshot() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetAppSnapshotCreate,
 		Read:   resourceNetAppSnapshotRead,
 		Update: resourceNetAppSnapshotUpdate,
 		Delete: resourceNetAppSnapshotDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SnapshotID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SnapshotName,
@@ -53,21 +50,21 @@ func resourceNetAppSnapshot() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.PoolName,
 			},
 
 			"volume_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VolumeName,
@@ -76,10 +73,10 @@ func resourceNetAppSnapshot() *schema.Resource {
 			// TODO: remove this in a next breaking changes release since tags are
 			// not supported anymore on Snapshots (todo 3.0)
 			"tags": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 				Deprecated: "This property as been deprecated as the API no longer supports tags and will be removed in version 3.0 of the provider.",
 			},
@@ -87,7 +84,7 @@ func resourceNetAppSnapshot() *schema.Resource {
 	}
 }
 
-func resourceNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +137,7 @@ func resourceNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +169,7 @@ func resourceNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// Snapshot resource in Azure changed its type to proxied resource, therefore
 	// tags are not supported anymore, ignoring any tags.
 	if tags.Expand(d.Get("tags").(map[string]interface{})) == nil {
@@ -182,7 +179,7 @@ func resourceNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,24 +199,24 @@ func resourceNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) erro
 	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/11475
 	log.Printf("[DEBUG] Waiting for NetApp Snapshot %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
 		Refresh:                   netappSnapshotDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name),
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Snapshot %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func netappSnapshotDeleteStateRefreshFunc(ctx context.Context, client *netapp.SnapshotsClient, resourceGroupName string, accountName string, poolName string, volumeName string, name string) resource.StateRefreshFunc {
+func netappSnapshotDeleteStateRefreshFunc(ctx context.Context, client *netapp.SnapshotsClient, resourceGroupName string, accountName string, poolName string, volumeName string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, accountName, poolName, volumeName, name)
 		if err != nil {

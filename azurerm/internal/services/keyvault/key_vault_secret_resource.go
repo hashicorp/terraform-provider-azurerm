@@ -9,80 +9,80 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKeyVaultSecret() *schema.Resource {
-	return &schema.Resource{
+func resourceKeyVaultSecret() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultSecretCreate,
 		Read:   resourceKeyVaultSecretRead,
 		Update: resourceKeyVaultSecretUpdate,
 		Delete: resourceKeyVaultSecretDelete,
-		Importer: &schema.ResourceImporter{
-			State: nestedItemResourceImporter,
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"value": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				Sensitive: true,
 			},
 
 			"content_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"not_before_date": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"expiration_date": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"versionless_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -91,7 +91,7 @@ func resourceKeyVaultSecret() *schema.Resource {
 	}
 }
 
-func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -155,17 +155,17 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 			log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredSecret.ID)
 			// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
 			if secret := recoveredSecret.ID; secret != nil {
-				stateConf := &resource.StateChangeConf{
+				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
 					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
-					Timeout:                   d.Timeout(schema.TimeoutCreate),
+					Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 				}
 
-				if _, err := stateConf.WaitForState(); err != nil {
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 					return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
@@ -196,7 +196,7 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource
@@ -289,7 +289,7 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource
@@ -361,7 +361,7 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource

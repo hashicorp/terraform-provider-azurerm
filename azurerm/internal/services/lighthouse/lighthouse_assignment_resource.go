@@ -8,9 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
@@ -18,27 +15,28 @@ import (
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLighthouseAssignment() *schema.Resource {
-	return &schema.Resource{
+func resourceLighthouseAssignment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLighthouseAssignmentCreate,
 		Read:   resourceLighthouseAssignmentRead,
 		Delete: resourceLighthouseAssignmentDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
@@ -46,14 +44,14 @@ func resourceLighthouseAssignment() *schema.Resource {
 			},
 
 			"lighthouse_definition_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LighthouseDefinitionID,
 			},
 
 			"scope": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.Any(subscriptionValidate.SubscriptionID, resourceValidate.ResourceGroupID),
@@ -62,7 +60,7 @@ func resourceLighthouseAssignment() *schema.Resource {
 	}
 }
 
-func resourceLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +112,7 @@ func resourceLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}
 	return resourceLighthouseAssignmentRead(d, meta)
 }
 
-func resourceLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +143,7 @@ func resourceLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,22 +157,22 @@ func resourceLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"Deleted"},
 		Refresh:    lighthouseAssignmentDeleteRefreshFunc(ctx, client, id.Scope, id.Name),
 		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Lighthouse Assignment %q (Scope %q) to be deleted: %s", id.Name, id.Scope, err)
 	}
 
 	return nil
 }
 
-func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *managedservices.RegistrationAssignmentsClient, scope string, lighthouseAssignmentName string) resource.StateRefreshFunc {
+func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *managedservices.RegistrationAssignmentsClient, scope string, lighthouseAssignmentName string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		expandLighthouseDefinition := true
 		res, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)

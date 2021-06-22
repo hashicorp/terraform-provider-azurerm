@@ -5,21 +5,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVirtualMachineExtension() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualMachineExtension() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineExtensionsCreateUpdate,
 		Read:   resourceVirtualMachineExtensionsRead,
 		Update: resourceVirtualMachineExtensionsCreateUpdate,
@@ -30,61 +28,61 @@ func resourceVirtualMachineExtension() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"virtual_machine_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualMachineID,
 			},
 
 			"publisher": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"type_handler_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"auto_upgrade_minor_version": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"settings": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			// due to the sensitive nature, these are not returned by the API
 			"protected_settings": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Sensitive:        true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"tags": tags.Schema(),
@@ -92,7 +90,7 @@ func resourceVirtualMachineExtension() *schema.Resource {
 	}
 }
 
-func resourceVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
 	vmClient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -147,7 +145,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		settings, err := structure.ExpandJsonFromString(settingsString)
+		settings, err := pluginsdk.ExpandJsonFromString(settingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse settings: %s", err)
 		}
@@ -155,7 +153,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		protectedSettings, err := structure.ExpandJsonFromString(protectedSettingsString)
+		protectedSettings, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse protected_settings: %s", err)
 		}
@@ -185,7 +183,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta i
 	return resourceVirtualMachineExtensionsRead(d, meta)
 }
 
-func resourceVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
 	vmClient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -226,7 +224,7 @@ func resourceVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface
 
 		if settings := props.Settings; settings != nil {
 			settingsVal := settings.(map[string]interface{})
-			settingsJson, err := structure.FlattenJsonToString(settingsVal)
+			settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
 			if err != nil {
 				return fmt.Errorf("unable to parse settings from response: %s", err)
 			}
@@ -237,7 +235,7 @@ func resourceVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVirtualMachineExtensionsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMExtensionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

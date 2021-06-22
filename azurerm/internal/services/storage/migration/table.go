@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 var _ pluginsdk.StateUpgrade = TableV0ToV1{}
@@ -61,48 +59,48 @@ func (TableV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 // the schema schema was used for both V0 and V1
 func tableSchemaV0AndV1() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"storage_account_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"acl": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"access_policy": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"start": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"expiry": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"permissions": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 							},

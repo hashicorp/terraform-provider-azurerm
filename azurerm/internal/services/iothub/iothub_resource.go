@@ -11,9 +11,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -24,6 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,8 +31,8 @@ import (
 var IothubResourceName = "azurerm_iothub"
 
 // nolint unparam
-func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *schema.ResourceData) bool {
+func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		path := strings.Split(k, ".")
 		path[len(path)-1] = "type"
 		return d.Get(strings.Join(path, ".")).(string) != t
@@ -42,8 +40,8 @@ func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 }
 
 // nolint unparam
-func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *schema.ResourceData) bool {
+func supressWhenAll(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		for _, f := range fs {
 			if !f(k, old, new, d) {
 				return false
@@ -53,8 +51,8 @@ func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppre
 	}
 }
 
-func resourceIotHub() *schema.Resource {
-	return &schema.Resource{
+func resourceIotHub() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIotHubCreateUpdate,
 		Read:   resourceIotHubRead,
 		Update: resourceIotHubCreateUpdate,
@@ -65,16 +63,16 @@ func resourceIotHub() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IoTHubName,
@@ -85,13 +83,13 @@ func resourceIotHub() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -106,7 +104,7 @@ func resourceIotHub() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 200),
 						},
@@ -115,26 +113,26 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"shared_access_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"key_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"primary_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"secondary_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"permissions": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -142,28 +140,28 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"event_hub_partition_count": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(2, 128),
 			},
 			"event_hub_retention_in_days": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 7),
 			},
 
 			"file_upload": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"connection_string": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
 								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
 
@@ -176,34 +174,34 @@ func resourceIotHub() *schema.Resource {
 							Sensitive: true,
 						},
 						"container_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"notifications": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"max_delivery_count": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      10,
 							ValidateFunc: validation.IntBetween(1, 100),
 						},
 						"sas_ttl": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.ISO8601Duration,
 						},
 						"default_ttl": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.ISO8601Duration,
 						},
 						"lock_duration": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.ISO8601Duration,
@@ -213,14 +211,14 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"endpoint": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"AzureIotHub.StorageContainer",
@@ -231,9 +229,9 @@ func resourceIotHub() *schema.Resource {
 						},
 
 						"connection_string": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
 								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
 
@@ -247,13 +245,13 @@ func resourceIotHub() *schema.Resource {
 						},
 
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: iothubValidate.IoTHubEndpointName,
 						},
 
 						"batch_frequency_in_seconds": {
-							Type:             schema.TypeInt,
+							Type:             pluginsdk.TypeInt,
 							Optional:         true,
 							Default:          300,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
@@ -261,7 +259,7 @@ func resourceIotHub() *schema.Resource {
 						},
 
 						"max_chunk_size_in_bytes": {
-							Type:             schema.TypeInt,
+							Type:             pluginsdk.TypeInt,
 							Optional:         true,
 							Default:          314572800,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
@@ -269,13 +267,13 @@ func resourceIotHub() *schema.Resource {
 						},
 
 						"container_name": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
 
 						"encoding": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							DiffSuppressFunc: supressWhenAll(
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
@@ -288,7 +286,7 @@ func resourceIotHub() *schema.Resource {
 						},
 
 						"file_name_format": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: iothubValidate.FileNameFormat,
 						},
@@ -299,14 +297,14 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"route": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
@@ -314,7 +312,7 @@ func resourceIotHub() *schema.Resource {
 							),
 						},
 						"source": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"DeviceJobLifecycleEvents",
@@ -327,19 +325,19 @@ func resourceIotHub() *schema.Resource {
 						"condition": {
 							// The condition is a string value representing device-to-cloud message routes query expression
 							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "true",
 						},
 						"endpoint_names": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Type: pluginsdk.TypeList,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							Required: true,
 						},
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -347,16 +345,16 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"enrichment": {
-				Type: schema.TypeList,
+				Type: pluginsdk.TypeList,
 				// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
 				MaxItems:   10,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"key": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
@@ -364,14 +362,14 @@ func resourceIotHub() *schema.Resource {
 							),
 						},
 						"value": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"endpoint_names": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Type: pluginsdk.TypeList,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							Required: true,
 						},
@@ -380,14 +378,14 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"fallback_route": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"source": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "DeviceMessages",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -401,21 +399,21 @@ func resourceIotHub() *schema.Resource {
 						"condition": {
 							// The condition is a string value representing device-to-cloud message routes query expression
 							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "true",
 						},
 						"endpoint_names": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringLenBetween(0, 64),
 							},
 						},
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Computed: true,
 						},
@@ -424,22 +422,22 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"ip_filter_rule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"ip_mask": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.CIDR,
 						},
 						"action": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Accept),
@@ -451,7 +449,7 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"min_tls_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -460,35 +458,35 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"hostname": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"event_hub_events_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"event_hub_operations_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"event_hub_events_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"event_hub_operations_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -497,7 +495,7 @@ func resourceIotHub() *schema.Resource {
 	}
 }
 
-func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -605,18 +603,18 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	timeout := schema.TimeoutUpdate
+	timeout := pluginsdk.TimeoutUpdate
 	if d.IsNewResource() {
-		timeout = schema.TimeoutCreate
+		timeout = pluginsdk.TimeoutCreate
 	}
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"Activating", "Transitioning"},
 		Target:  []string{"Succeeded"},
 		Refresh: iothubStateRefreshFunc(ctx, client, resourceGroup, name),
 		Timeout: d.Timeout(timeout),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -630,7 +628,7 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceIotHubRead(d, meta)
 }
 
-func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -729,7 +727,7 @@ func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, hub.Tags)
 }
 
-func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := parse.IotHubID(d.Id())
 	if err != nil {
 		return err
@@ -745,14 +743,14 @@ func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	// when running acctest of `azurerm_iot_security_solution`, we found after delete the iot security solution, the iothub provisionState is `Transitioning`
 	// if we delete directly, the func `client.Delete` will throw error
 	// so first wait for the iotHub state become succeed
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"Activating", "Transitioning"},
 		Target:  []string{"Succeeded"},
 		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for ProvisioningState of IotHub %q (Resource Group %q) to become `Succeeded`: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -767,24 +765,24 @@ func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return waitForIotHubToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
-func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string, d *schema.ResourceData) error {
+func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string, d *pluginsdk.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 
@@ -805,7 +803,7 @@ func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceC
 	}
 }
 
-func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 
@@ -822,7 +820,7 @@ func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHu
 	}
 }
 
-func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
+func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 	routeList := d.Get("route").([]interface{})
 
 	routeProperties := make([]devices.RouteProperties, 0)
@@ -850,7 +848,7 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 	return &routeProperties
 }
 
-func expandIoTHubEnrichments(d *schema.ResourceData) *[]devices.EnrichmentProperties {
+func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentProperties {
 	enrichmentList := d.Get("enrichment").([]interface{})
 
 	enrichmentProperties := make([]devices.EnrichmentProperties, 0)
@@ -873,7 +871,7 @@ func expandIoTHubEnrichments(d *schema.ResourceData) *[]devices.EnrichmentProper
 	return &enrichmentProperties
 }
 
-func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool) {
+func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool) {
 	fileUploadList := d.Get("file_upload").([]interface{})
 
 	storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
@@ -907,7 +905,7 @@ func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.Storage
 	return storageEndpointProperties, messagingEndpointProperties, notifications
 }
 
-func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) *devices.RoutingEndpoints {
+func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) *devices.RoutingEndpoints {
 	routeEndpointList := d.Get("endpoint").([]interface{})
 
 	serviceBusQueueEndpointProperties := make([]devices.RoutingServiceBusQueueEndpointProperties, 0)
@@ -982,7 +980,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) *devic
 	}
 }
 
-func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRouteProperties {
+func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRouteProperties {
 	fallbackRouteList := d.Get("fallback_route").([]interface{})
 	if len(fallbackRouteList) == 0 {
 		return nil
@@ -1002,7 +1000,7 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 	}
 }
 
-func expandIoTHubSku(d *schema.ResourceData) *devices.IotHubSkuInfo {
+func expandIoTHubSku(d *pluginsdk.ResourceData) *devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
 
@@ -1263,7 +1261,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 	return []interface{}{output}
 }
 
-func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
+func expandIPFilterRules(d *pluginsdk.ResourceData) *[]devices.IPFilterRule {
 	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
 	if len(ipFilterRuleList) == 0 {
 		return nil

@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccIotHubSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 	r := IoTHubSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("registry_read").HasValue("true"),
 				check.That(data.ResourceName).Key("registry_write").HasValue("true"),
@@ -42,7 +41,7 @@ func TestAccIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 	r := IoTHubSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.writeWithoutRead(data),
 			ExpectError: regexp.MustCompile("If `registry_write` is set to true, `registry_read` must also be set to true"),
@@ -54,10 +53,10 @@ func TestAccIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 	r := IoTHubSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -156,7 +155,7 @@ resource "azurerm_iothub_shared_access_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t IoTHubSharedAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t IoTHubSharedAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

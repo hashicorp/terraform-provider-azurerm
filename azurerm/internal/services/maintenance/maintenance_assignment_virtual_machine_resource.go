@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,16 +21,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMaintenanceAssignmentVirtualMachine() *schema.Resource {
-	return &schema.Resource{
+func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmMaintenanceAssignmentVirtualMachineCreate,
 		Read:   resourceArmMaintenanceAssignmentVirtualMachineRead,
 		Delete: resourceArmMaintenanceAssignmentVirtualMachineDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -40,18 +38,18 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"location": azure.SchemaLocation(),
 
 			"maintenance_configuration_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.MaintenanceConfigurationID,
 			},
 
 			"virtual_machine_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validateCompute.VirtualMachineID,
@@ -61,7 +59,7 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,12 +90,13 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *schema.ResourceData
 	}
 
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	//lintignore:R006
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, virtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", virtualMachineId.Name, assignmentName, assignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
-				return resource.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
+				return pluginsdk.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("issuing creating request for Maintenance Assignment (virtual machine ID %q): %+v", virtualMachineIdRaw, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("issuing creating request for Maintenance Assignment (virtual machine ID %q): %+v", virtualMachineIdRaw, err))
 		}
 
 		return nil
@@ -118,7 +117,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *schema.ResourceData
 	return resourceArmMaintenanceAssignmentVirtualMachineRead(d, meta)
 }
 
-func resourceArmMaintenanceAssignmentVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +147,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,9 +1,12 @@
 package loadbalancer
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"context"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // TODO: refactor this
@@ -107,15 +110,16 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 }
 
 func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalancerId, error)) *schema.ResourceImporter {
-	return &schema.ResourceImporter{
-		State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-			lbId, err := parser(d.Id())
-			if err != nil {
-				return nil, err
-			}
+	return pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+		_, err := parser(id)
+		return err
+	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		lbId, err := parser(d.Id())
+		if err != nil {
+			return nil, err
+		}
 
-			d.Set("loadbalancer_id", lbId.ID())
-			return []*schema.ResourceData{d}, nil
-		},
-	}
+		d.Set("loadbalancer_id", lbId.ID())
+		return []*pluginsdk.ResourceData{d}, nil
+	})
 }

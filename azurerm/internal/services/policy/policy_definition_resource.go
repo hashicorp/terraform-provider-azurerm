@@ -11,20 +11,17 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPolicyDefinition() *schema.Resource {
-	return &schema.Resource{
+func resourceArmPolicyDefinition() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmPolicyDefinitionCreateUpdate,
 		Update: resourceArmPolicyDefinitionCreateUpdate,
 		Read:   resourceArmPolicyDefinitionRead,
@@ -35,22 +32,22 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"policy_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -62,7 +59,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			},
 
 			"mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
@@ -81,7 +78,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			},
 
 			"management_group_id": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true,
@@ -90,7 +87,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			},
 
 			"management_group_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
@@ -98,31 +95,31 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"policy_rule": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"parameters": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"metadata": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
@@ -132,7 +129,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 	}
 }
 
-func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	var oldPolicyDefinitionsMetadata map[string]interface{}
 	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitionsMetadata)
 	if errOld != nil {
@@ -155,7 +152,7 @@ func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.Res
 	return reflect.DeepEqual(oldPolicyDefinitionsMetadata, newPolicyDefinitionsMetadata)
 }
 
-func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +191,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
-		policyRule, err := structure.ExpandJsonFromString(policyRuleString)
+		policyRule, err := pluginsdk.ExpandJsonFromString(policyRuleString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `policy_rule`: %+v", err)
 		}
@@ -202,7 +199,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
-		metaData, err := structure.ExpandJsonFromString(metaDataString)
+		metaData, err := pluginsdk.ExpandJsonFromString(metaDataString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
@@ -236,7 +233,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Definition %q to become available", name)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
@@ -245,12 +242,12 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
@@ -267,7 +264,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceArmPolicyDefinitionRead(d, meta)
 }
 
-func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,7 +319,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -356,7 +353,7 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
 		if err != nil {
@@ -370,7 +367,7 @@ func policyDefinitionRefreshFunc(ctx context.Context, client *policy.Definitions
 func flattenJSON(stringMap interface{}) string {
 	if stringMap != nil {
 		value := stringMap.(map[string]interface{})
-		jsonString, err := structure.FlattenJsonToString(value)
+		jsonString, err := pluginsdk.FlattenJsonToString(value)
 		if err == nil {
 			return jsonString
 		}

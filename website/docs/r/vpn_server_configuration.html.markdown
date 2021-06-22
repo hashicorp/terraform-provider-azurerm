@@ -62,9 +62,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where this VPN Server Configuration should be created. Changing this forces a new resource to be created.
 
-* `vpn_authentication_types` - (Required) A list of one of more Authentication Types applicable for this VPN Server Configuration. Possible values are `AAD` (Azure Active Directory), `Certificate` and `Radius`.
-
--> **NOTE:** At this time a maximum of one VPN Authentication Types can be specified.
+* `vpn_authentication_types` - (Required) A list of Authentication Types applicable for this VPN Server Configuration. Possible values are `AAD` (Azure Active Directory), `Certificate` and `Radius`.
 
 ---
 

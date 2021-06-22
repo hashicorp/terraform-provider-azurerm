@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAutomationRunbook_PSWorkflow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWorkflow(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccAutomationRunbook_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWorkflow(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWorkflowWithHash(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("runbook_type").HasValue("PowerShellWorkflow"),
 			),
@@ -67,10 +66,10 @@ func TestAccAutomationRunbook_PSWithContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWithContent(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("runbook_type").HasValue("PowerShell"),
 				check.That(data.ResourceName).Key("content").HasValue("# Some test content\n# for Terraform acceptance test\n"),
@@ -84,10 +83,10 @@ func TestAccAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWorkflowWithoutUri(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -99,31 +98,31 @@ func TestAccAutomationRunbook_withJobSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWorkflow(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("publish_content_link"),
 		{
 			Config: r.withJobSchedule(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("publish_content_link"),
 		{
 			Config: r.withJobScheduleUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("publish_content_link"),
 		{
 			Config: r.withoutJobSchedule(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -131,7 +130,7 @@ func TestAccAutomationRunbook_withJobSchedule(t *testing.T) {
 	})
 }
 
-func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

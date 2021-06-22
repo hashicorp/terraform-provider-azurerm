@@ -8,23 +8,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/migration"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,8 +28,8 @@ import (
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
 //       `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
 //       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
-func resourceVirtualMachineScaleSet() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineScaleSetCreateUpdate,
 		Read:   resourceVirtualMachineScaleSetRead,
 		Update: resourceVirtualMachineScaleSetCreateUpdate,
@@ -47,16 +43,16 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -69,14 +65,14 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			"zones": azure.SchemaZones(),
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -86,15 +82,15 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 							}, false),
 						},
 						"identity_ids": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: msivalidate.UserAssignedIdentityID,
 							},
 						},
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -102,26 +98,26 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"tier": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
@@ -130,7 +126,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"license_type": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -141,7 +137,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"upgrade_policy_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Automatic),
@@ -152,46 +148,46 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"health_probe_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"automatic_os_upgrade": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"rolling_upgrade_policy": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"max_batch_instance_percent": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      20,
 							ValidateFunc: validation.IntBetween(5, 100),
 						},
 
 						"max_unhealthy_instance_percent": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      20,
 							ValidateFunc: validation.IntBetween(5, 100),
 						},
 
 						"max_unhealthy_upgraded_instance_percent": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      20,
 							ValidateFunc: validation.IntBetween(5, 100),
 						},
 
 						"pause_time_between_batches": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT0S",
 							ValidateFunc: validate.ISO8601Duration,
@@ -202,20 +198,20 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"overprovision": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"single_placement_group": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
 			},
 
 			"priority": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -225,7 +221,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"eviction_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -235,32 +231,32 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"os_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"computer_name_prefix": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"admin_username": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"admin_password": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"custom_data": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							StateFunc:        userDataStateFunc,
 							DiffSuppressFunc: userDataDiffSuppressFunc,
@@ -270,27 +266,27 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"os_profile_secrets": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"source_vault_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"vault_certificates": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"certificate_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"certificate_store": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
@@ -302,54 +298,54 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"os_profile_windows_config": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"provision_vm_agent": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 						"enable_automatic_upgrades": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 						"winrm": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"protocol": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"certificate_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
 							},
 						},
 						"additional_unattend_config": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"pass": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"component": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"setting_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"content": {
-										Type:      schema.TypeString,
+										Type:      pluginsdk.TypeString,
 										Required:  true,
 										Sensitive: true,
 									},
@@ -363,29 +359,29 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"os_profile_linux_config": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disable_password_authentication": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 							ForceNew: true,
 						},
 						"ssh_keys": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"path": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"key_data": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
@@ -398,49 +394,49 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"network_profile": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"primary": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"accelerated_networking": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"ip_forwarding": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"network_security_group_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"dns_settings": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"dns_servers": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -449,79 +445,79 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 						},
 
 						"ip_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"subnet_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
 
 									"application_gateway_backend_address_pool_ids": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+										Set:      pluginsdk.HashString,
 									},
 
 									"application_security_group_ids": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
 										},
-										Set:      schema.HashString,
+										Set:      pluginsdk.HashString,
 										MaxItems: 20,
 									},
 
 									"load_balancer_backend_address_pool_ids": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+										Set:      pluginsdk.HashString,
 									},
 
 									"load_balancer_inbound_nat_rules_ids": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Computed: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+										Set:      pluginsdk.HashString,
 									},
 
 									"primary": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Required: true,
 									},
 
 									"public_ip_address_configuration": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"name": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 
 												"idle_timeout": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Required:     true,
 													ValidateFunc: validation.IntBetween(4, 32),
 												},
 
 												"domain_name_label": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
 											},
@@ -536,19 +532,19 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"boot_diagnostics": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
 						"storage_uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -557,30 +553,30 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"storage_profile_os_disk": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"image": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"vhd_containers": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 
 						"managed_disk_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -591,18 +587,18 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 						},
 
 						"caching": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"os_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"create_option": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -611,35 +607,35 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"storage_profile_data_disk": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"lun": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 
 						"create_option": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"caching": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
 						"disk_size_gb": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate2.DiskSizeGB,
 						},
 
 						"managed_disk_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -654,34 +650,34 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"storage_profile_image_reference": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"offer": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"sku": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -691,23 +687,23 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"plan": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"product": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -716,58 +712,58 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 
 			// lintignore:S018
 			"extension": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"type_handler_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"auto_upgrade_minor_version": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"provision_after_extensions": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 
 						"settings": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
 
 						"protected_settings": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Sensitive:        true,
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
 					},
 				},
@@ -775,7 +771,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"proximity_placement_group_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 
@@ -793,7 +789,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -941,7 +937,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta int
 	return resourceVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1103,7 +1099,7 @@ func resourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1115,7 +1111,7 @@ func resourceVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachineScaleSets"]
 
-	// @ArcturusZhang (mimicking from virtual_machine_resource.go): sending `nil` here omits this value from being sent
+	// @ArcturusZhang (mimicking from virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	var forceDeletion *bool = nil
 	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
@@ -1342,7 +1338,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 							}
 						}
 					}
-					config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
+					config["application_gateway_backend_address_pool_ids"] = pluginsdk.NewSet(pluginsdk.HashString, addressPools)
 
 					applicationSecurityGroups := make([]interface{}, 0)
 					if properties.ApplicationSecurityGroups != nil {
@@ -1352,7 +1348,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 							}
 						}
 					}
-					config["application_security_group_ids"] = schema.NewSet(schema.HashString, applicationSecurityGroups)
+					config["application_security_group_ids"] = pluginsdk.NewSet(pluginsdk.HashString, applicationSecurityGroups)
 
 					if properties.LoadBalancerBackendAddressPools != nil {
 						addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
@@ -1361,7 +1357,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 								addressPools = append(addressPools, *v)
 							}
 						}
-						config["load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
+						config["load_balancer_backend_address_pool_ids"] = pluginsdk.NewSet(pluginsdk.HashString, addressPools)
 					}
 
 					if properties.LoadBalancerInboundNatPools != nil {
@@ -1371,7 +1367,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 								inboundNatPools = append(inboundNatPools, *v)
 							}
 						}
-						config["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, inboundNatPools)
+						config["load_balancer_inbound_nat_rules_ids"] = pluginsdk.NewSet(pluginsdk.HashString, inboundNatPools)
 					}
 
 					if properties.Primary != nil {
@@ -1409,7 +1405,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 	return result
 }
 
-func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) []interface{} {
+func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) []interface{} {
 	result := make(map[string]interface{})
 
 	result["computer_name_prefix"] = *profile.ComputerNamePrefix
@@ -1448,7 +1444,7 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *compute.V
 			containers = append(containers, container)
 		}
 	}
-	result["vhd_containers"] = schema.NewSet(schema.HashString, containers)
+	result["vhd_containers"] = pluginsdk.NewSet(pluginsdk.HashString, containers)
 
 	if profile.ManagedDisk != nil {
 		result["managed_disk_type"] = string(profile.ManagedDisk.StorageAccountType)
@@ -1540,11 +1536,11 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 					provisionAfterExtensions = append(provisionAfterExtensions, provisionAfterExtension)
 				}
 			}
-			e["provision_after_extensions"] = schema.NewSet(schema.HashString, provisionAfterExtensions)
+			e["provision_after_extensions"] = pluginsdk.NewSet(pluginsdk.HashString, provisionAfterExtensions)
 
 			if settings := properties.Settings; settings != nil {
 				settingsVal := settings.(map[string]interface{})
-				settingsJson, err := structure.FlattenJsonToString(settingsVal)
+				settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return nil, err
 				}
@@ -1579,7 +1575,7 @@ func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
@@ -1589,11 +1585,11 @@ func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 
 		if v, ok := m["vhd_containers"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*schema.Set).List()))
+			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
@@ -1627,16 +1623,16 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 					buf.WriteString(fmt.Sprintf("%s-", subnetid.(string)))
 				}
 				if appPoolId, ok := config["application_gateway_backend_address_pool_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*schema.Set).List()))
+					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*pluginsdk.Set).List()))
 				}
 				if appSecGroup, ok := config["application_security_group_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*schema.Set).List()))
+					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*pluginsdk.Set).List()))
 				}
 				if lbPoolIds, ok := config["load_balancer_backend_address_pool_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", lbPoolIds.(*schema.Set).List()))
+					buf.WriteString(fmt.Sprintf("%s-", lbPoolIds.(*pluginsdk.Set).List()))
 				}
 				if lbInNatRules, ok := config["load_balancer_inbound_nat_rules_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", lbInNatRules.(*schema.Set).List()))
+					buf.WriteString(fmt.Sprintf("%s-", lbInNatRules.(*pluginsdk.Set).List()))
 				}
 				if primary, ok := config["primary"]; ok {
 					buf.WriteString(fmt.Sprintf("%t-", primary.(bool)))
@@ -1659,7 +1655,7 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
@@ -1681,7 +1677,7 @@ func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
@@ -1696,7 +1692,7 @@ func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
@@ -1713,15 +1709,15 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*schema.Set).List()))
+			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
 		}
 
 		// we need to ensure the whitespace is consistent
 		settings := m["settings"].(string)
 		if settings != "" {
-			expandedSettings, err := structure.ExpandJsonFromString(settings)
+			expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
 			if err == nil {
-				serializedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
 					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
 				}
@@ -1729,10 +1725,10 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func expandVirtualMachineScaleSetSku(d *schema.ResourceData) *compute.Sku {
+func expandVirtualMachineScaleSetSku(d *pluginsdk.ResourceData) *compute.Sku {
 	skuConfig := d.Get("sku").([]interface{})
 	config := skuConfig[0].(map[string]interface{})
 
@@ -1748,7 +1744,7 @@ func expandVirtualMachineScaleSetSku(d *schema.ResourceData) *compute.Sku {
 	return sku
 }
 
-func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingUpgradePolicy {
+func expandAzureRmRollingUpgradePolicy(d *pluginsdk.ResourceData) *compute.RollingUpgradePolicy {
 	if config, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
 		policy := config.(map[string]interface{})
 		return &compute.RollingUpgradePolicy{
@@ -1761,8 +1757,8 @@ func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingU
 	return nil
 }
 
-func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *compute.VirtualMachineScaleSetNetworkProfile {
-	scaleSetNetworkProfileConfigs := d.Get("network_profile").(*schema.Set).List()
+func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *pluginsdk.ResourceData) *compute.VirtualMachineScaleSetNetworkProfile {
+	scaleSetNetworkProfileConfigs := d.Get("network_profile").(*pluginsdk.Set).List()
 	networkProfileConfig := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0, len(scaleSetNetworkProfileConfigs))
 
 	for _, npProfileConfig := range scaleSetNetworkProfileConfigs {
@@ -1810,7 +1806,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 			ipConfiguration.Primary = &primary
 
 			if v := ipconfig["application_gateway_backend_address_pool_ids"]; v != nil {
-				pools := v.(*schema.Set).List()
+				pools := v.(*pluginsdk.Set).List()
 				resources := make([]compute.SubResource, 0, len(pools))
 				for _, p := range pools {
 					id := p.(string)
@@ -1822,7 +1818,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 			}
 
 			if v := ipconfig["application_security_group_ids"]; v != nil {
-				asgs := v.(*schema.Set).List()
+				asgs := v.(*pluginsdk.Set).List()
 				resources := make([]compute.SubResource, 0, len(asgs))
 				for _, p := range asgs {
 					id := p.(string)
@@ -1834,7 +1830,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 			}
 
 			if v := ipconfig["load_balancer_backend_address_pool_ids"]; v != nil {
-				pools := v.(*schema.Set).List()
+				pools := v.(*pluginsdk.Set).List()
 				resources := make([]compute.SubResource, 0, len(pools))
 				for _, p := range pools {
 					id := p.(string)
@@ -1846,7 +1842,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 			}
 
 			if v := ipconfig["load_balancer_inbound_nat_rules_ids"]; v != nil {
-				rules := v.(*schema.Set).List()
+				rules := v.(*pluginsdk.Set).List()
 				rulesResources := make([]compute.SubResource, 0, len(rules))
 				for _, m := range rules {
 					id := m.(string)
@@ -1911,7 +1907,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 	}
 }
 
-func expandAzureRMVirtualMachineScaleSetsOsProfile(d *schema.ResourceData) *compute.VirtualMachineScaleSetOSProfile {
+func expandAzureRMVirtualMachineScaleSetsOsProfile(d *pluginsdk.ResourceData) *compute.VirtualMachineScaleSetOSProfile {
 	osProfileConfigs := d.Get("os_profile").([]interface{})
 
 	osProfileConfig := osProfileConfigs[0].(map[string]interface{})
@@ -1955,7 +1951,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *schema.ResourceData) *comp
 	return osProfile
 }
 
-func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceData) compute.DiagnosticsProfile {
+func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *pluginsdk.ResourceData) compute.DiagnosticsProfile {
 	bootDiagnosticConfigs := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnosticConfig := bootDiagnosticConfigs[0].(map[string]interface{})
 
@@ -1974,7 +1970,7 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceDat
 	return diagnosticsProfile
 }
 
-func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *compute.VirtualMachineScaleSetIdentity {
+func expandAzureRmVirtualMachineScaleSetIdentity(d *pluginsdk.ResourceData) *compute.VirtualMachineScaleSetIdentity {
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
@@ -1996,13 +1992,13 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	return &vmssIdentity
 }
 
-func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {
-	osDiskConfigs := d.Get("storage_profile_os_disk").(*schema.Set).List()
+func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {
+	osDiskConfigs := d.Get("storage_profile_os_disk").(*pluginsdk.Set).List()
 
 	osDiskConfig := osDiskConfigs[0].(map[string]interface{})
 	name := osDiskConfig["name"].(string)
 	image := osDiskConfig["image"].(string)
-	vhd_containers := osDiskConfig["vhd_containers"].(*schema.Set).List()
+	vhd_containers := osDiskConfig["vhd_containers"].(*pluginsdk.Set).List()
 	caching := osDiskConfig["caching"].(string)
 	osType := osDiskConfig["os_type"].(string)
 	createOption := osDiskConfig["create_option"].(string)
@@ -2059,7 +2055,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	return osDisk, nil
 }
 
-func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.ResourceData) *[]compute.VirtualMachineScaleSetDataDisk {
+func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.ResourceData) *[]compute.VirtualMachineScaleSetDataDisk {
 	disks := d.Get("storage_profile_data_disk").([]interface{})
 	dataDisks := make([]compute.VirtualMachineScaleSetDataDisk, 0, len(disks))
 	for _, diskConfig := range disks {
@@ -2099,8 +2095,8 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.Resour
 	return &dataDisks
 }
 
-func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {
-	storageImageRefs := d.Get("storage_profile_image_reference").(*schema.Set).List()
+func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *pluginsdk.ResourceData) (*compute.ImageReference, error) {
+	storageImageRefs := d.Get("storage_profile_image_reference").(*pluginsdk.Set).List()
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 
@@ -2129,8 +2125,8 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 	return &imageReference, nil
 }
 
-func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *schema.ResourceData) *compute.LinuxConfiguration {
-	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*schema.Set).List()
+func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *pluginsdk.ResourceData) *compute.LinuxConfiguration {
+	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*pluginsdk.Set).List()
 
 	linuxConfig := osProfilesLinuxConfig[0].(map[string]interface{})
 	disablePasswordAuth := linuxConfig["disable_password_authentication"].(bool)
@@ -2163,8 +2159,8 @@ func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *schema.ResourceD
 	return config
 }
 
-func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.ResourceData) *compute.WindowsConfiguration {
-	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*schema.Set).List()
+func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.ResourceData) *compute.WindowsConfiguration {
+	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*pluginsdk.Set).List()
 
 	osProfileConfig := osProfilesWindowsConfig[0].(map[string]interface{})
 	config := &compute.WindowsConfiguration{}
@@ -2230,8 +2226,8 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 	return config
 }
 
-func expandAzureRmVirtualMachineScaleSetOsProfileSecrets(d *schema.ResourceData) *[]compute.VaultSecretGroup {
-	secretsConfig := d.Get("os_profile_secrets").(*schema.Set).List()
+func expandAzureRmVirtualMachineScaleSetOsProfileSecrets(d *pluginsdk.ResourceData) *[]compute.VaultSecretGroup {
+	secretsConfig := d.Get("os_profile_secrets").(*pluginsdk.Set).List()
 	secrets := make([]compute.VaultSecretGroup, 0, len(secretsConfig))
 
 	for _, secretConfig := range secretsConfig {
@@ -2269,8 +2265,8 @@ func expandAzureRmVirtualMachineScaleSetOsProfileSecrets(d *schema.ResourceData)
 	return &secrets
 }
 
-func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*compute.VirtualMachineScaleSetExtensionProfile, error) {
-	extensions := d.Get("extension").(*schema.Set).List()
+func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*compute.VirtualMachineScaleSetExtensionProfile, error) {
+	extensions := d.Get("extension").(*pluginsdk.Set).List()
 	resources := make([]compute.VirtualMachineScaleSetExtension, 0, len(extensions))
 	for _, e := range extensions {
 		config := e.(map[string]interface{})
@@ -2294,7 +2290,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		}
 
 		if a := config["provision_after_extensions"]; a != nil {
-			provision_after_extensions := config["provision_after_extensions"].(*schema.Set).List()
+			provision_after_extensions := config["provision_after_extensions"].(*pluginsdk.Set).List()
 			if len(provision_after_extensions) > 0 {
 				var provisionAfterExtensions []string
 				for _, a := range provision_after_extensions {
@@ -2306,7 +2302,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		}
 
 		if s := config["settings"].(string); s != "" {
-			settings, err := structure.ExpandJsonFromString(s)
+			settings, err := pluginsdk.ExpandJsonFromString(s)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse settings: %+v", err)
 			}
@@ -2314,7 +2310,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		}
 
 		if s := config["protected_settings"].(string); s != "" {
-			protectedSettings, err := structure.ExpandJsonFromString(s)
+			protectedSettings, err := pluginsdk.ExpandJsonFromString(s)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse protected_settings: %+v", err)
 			}
@@ -2329,8 +2325,8 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 	}, nil
 }
 
-func expandAzureRmVirtualMachineScaleSetPlan(d *schema.ResourceData) *compute.Plan {
-	planConfigs := d.Get("plan").(*schema.Set).List()
+func expandAzureRmVirtualMachineScaleSetPlan(d *pluginsdk.ResourceData) *compute.Plan {
+	planConfigs := d.Get("plan").(*pluginsdk.Set).List()
 
 	planConfig := planConfigs[0].(map[string]interface{})
 
@@ -2356,7 +2352,7 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 }
 
 // When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
-func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new string, d *schema.ResourceData) bool {
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new string, d *pluginsdk.ResourceData) bool {
 	if k == "rolling_upgrade_policy.#" && new == "0" {
 		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
 	}
@@ -2364,7 +2360,7 @@ func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new str
 }
 
 // Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
-func azureRmVirtualMachineScaleSetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func azureRmVirtualMachineScaleSetCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	mode := d.Get("upgrade_policy_mode").(string)
 	if strings.ToLower(mode) != "rolling" {
 		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {

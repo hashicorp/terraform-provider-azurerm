@@ -49,6 +49,12 @@ type DeleteOperationResult struct {
 	OperationResult *bool `json:"boolean,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeleteOperationResult.
+func (dor DeleteOperationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DNSConfig class containing DNS settings in a Traffic Manager profile.
 type DNSConfig struct {
 	// RelativeName - The relative DNS name provided by this Traffic Manager profile. This value is combined with the DNS domain name used by Azure Traffic Manager to form the fully-qualified domain name (FQDN) of the profile.
