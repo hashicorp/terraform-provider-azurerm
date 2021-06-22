@@ -10,15 +10,16 @@ import (
 )
 
 type Client struct {
-	AgentPoolsClient         *containerservice.AgentPoolsClient
-	GroupsClient             *containerinstance.ContainerGroupsClient
-	KubernetesClustersClient *containerservice.ManagedClustersClient
-	RegistriesClient         *containerregistry.RegistriesClient
-	ReplicationsClient       *containerregistry.ReplicationsClient
-	ServicesClient           *legacy.ContainerServicesClient
-	WebhooksClient           *containerregistry.WebhooksClient
-	TokensClient             *containerregistry.TokensClient
-	ScopeMapsClient          *containerregistry.ScopeMapsClient
+	AgentPoolsClient                *containerservice.AgentPoolsClient
+	GroupsClient                    *containerinstance.ContainerGroupsClient
+	KubernetesClustersClient        *containerservice.ManagedClustersClient
+	MaintenanceConfigurationsClient *containerservice.MaintenanceConfigurationsClient
+	RegistriesClient                *containerregistry.RegistriesClient
+	ReplicationsClient              *containerregistry.ReplicationsClient
+	ServicesClient                  *legacy.ContainerServicesClient
+	WebhooksClient                  *containerregistry.WebhooksClient
+	TokensClient                    *containerregistry.TokensClient
+	ScopeMapsClient                 *containerregistry.ScopeMapsClient
 
 	Environment azure.Environment
 }
@@ -49,19 +50,23 @@ func NewClient(o *common.ClientOptions) *Client {
 	agentPoolsClient := containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
+	maintenanceConfigurationsClient := containerservice.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&maintenanceConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+
 	servicesClient := legacy.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AgentPoolsClient:         &agentPoolsClient,
-		KubernetesClustersClient: &kubernetesClustersClient,
-		GroupsClient:             &groupsClient,
-		RegistriesClient:         &registriesClient,
-		WebhooksClient:           &webhooksClient,
-		ReplicationsClient:       &replicationsClient,
-		ServicesClient:           &servicesClient,
-		Environment:              o.Environment,
-		TokensClient:             &tokensClient,
-		ScopeMapsClient:          &scopeMapsClient,
+		AgentPoolsClient:                &agentPoolsClient,
+		KubernetesClustersClient:        &kubernetesClustersClient,
+		GroupsClient:                    &groupsClient,
+		MaintenanceConfigurationsClient: &maintenanceConfigurationsClient,
+		RegistriesClient:                &registriesClient,
+		WebhooksClient:                  &webhooksClient,
+		ReplicationsClient:              &replicationsClient,
+		ServicesClient:                  &servicesClient,
+		Environment:                     o.Environment,
+		TokensClient:                    &tokensClient,
+		ScopeMapsClient:                 &scopeMapsClient,
 	}
 }
