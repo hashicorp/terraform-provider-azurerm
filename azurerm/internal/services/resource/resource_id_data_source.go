@@ -49,7 +49,7 @@ func dataSourceResourceId() *pluginsdk.Resource {
 			"parent_resources": {
 				Type:        pluginsdk.TypeMap,
 				Computed:    true,
-				Description: "Resource name",
+				Description: "A map of parent resource types and names",
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
