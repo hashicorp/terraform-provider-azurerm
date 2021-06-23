@@ -171,38 +171,20 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 				metadata.ResourceData.Set("not_scopes", props.NotScopes)
 				metadata.ResourceData.Set("policy_definition_id", props.PolicyDefinitionID)
 
-				flattenedMetaData, err := br.flattenMetaData(props.Metadata)
-				if err != nil {
-					return fmt.Errorf("serializing `metadata`: %+v", err)
-				}
-				metadata.ResourceData.Set("metadata", *flattenedMetaData)
+				flattenedMetaData := flattenJSON(props.Metadata)
+				metadata.ResourceData.Set("metadata", flattenedMetaData)
 
-				json, err := flattenParameterValuesValueToString(props.Parameters)
+				flattenedParameters, err := flattenParameterValuesValueToString(props.Parameters)
 				if err != nil {
 					return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 				}
-				metadata.ResourceData.Set("parameters", json)
+				metadata.ResourceData.Set("parameters", flattenedParameters)
 			}
 
 			return nil
 		},
 		Timeout: 5 * time.Minute,
 	}
-}
-
-func (br assignmentBaseResource) flattenMetaData(input interface{}) (*string, error) {
-	// TODO: fixme
-	out := flattenJSON(input)
-	return &out, nil
-}
-
-func (br assignmentBaseResource) flattenParameterValues(input map[string]*policy.ParameterValuesValue) (*string, error) {
-	// TODO: fixme
-	out, err := flattenParameterValuesValueToString(input)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
 }
 
 func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
