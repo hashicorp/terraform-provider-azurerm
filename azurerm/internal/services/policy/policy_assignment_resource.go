@@ -21,7 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type policyAssignmentIdentity = identity.SystemAssigned
+// TODO: revert the identity behaviour back
 
 func resourceArmPolicyAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
