@@ -231,7 +231,11 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				if len(params) != 0 && params[0] != nil {
 					_, changedSKU := d.GetChange("sku")
 					config := params[0].(map[string]interface{})
-					oldConfig := oldParams[0].(map[string]interface{})
+
+					var oldConfig map[string]interface{}
+					if len(oldParams) != 0 && oldParams[0] != nil {
+						oldConfig = oldParams[0].(map[string]interface{})
+					}
 
 					cmkRaw := config["customer_managed_key"].([]interface{})
 					if len(cmkRaw) != 0 && cmkRaw[0] != nil {
@@ -593,7 +597,7 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 	config := input[0].(map[string]interface{})
 	parameters := databricks.WorkspaceCustomParameters{}
 
-	if v, ok := config["aml_workspace_id"].(string); ok {
+	if v, ok := config["aml_workspace_id"].(string); ok && v != "" {
 		parameters.AmlWorkspaceID = &databricks.WorkspaceCustomStringParameter{
 			Value: &v,
 		}
