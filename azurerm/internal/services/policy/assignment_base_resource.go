@@ -308,13 +308,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 
 func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
-		},
-
+		// NOTE: `name` isn't included since it varies depending on the resource, so it's expected to be passed in
 		"policy_definition_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,

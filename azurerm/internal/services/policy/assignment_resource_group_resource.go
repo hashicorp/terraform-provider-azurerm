@@ -5,6 +5,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 var _ sdk.ResourceWithUpdate = ResourceGroupAssignmentResource{}
@@ -15,6 +16,12 @@ type ResourceGroupAssignmentResource struct {
 
 func (r ResourceGroupAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
+		},
 		"resource_group_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
