@@ -17,6 +17,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ManagementGroupAssignmentResource{},
+		ResourceAssignmentResource{},
 		ResourceGroupAssignmentResource{},
 		SubscriptionAssignmentResource{},
 	}

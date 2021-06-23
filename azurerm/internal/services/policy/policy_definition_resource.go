@@ -75,6 +75,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				),
 			},
 
+			// TODO: deprecate Name in favour of this
 			"management_group_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
