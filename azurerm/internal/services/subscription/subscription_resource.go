@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -20,7 +21,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 )
 
 var SubscriptionResourceName = "azurerm_subscription"
@@ -109,12 +109,12 @@ func resourceSubscription() *pluginsdk.Resource {
 				Description: "The Tenant ID to which the subscription belongs",
 				Computed:    true,
 			},
-			
+
 			"tags": {
-				Type:     pluginsdk.TypeMap,
+				Type:        pluginsdk.TypeMap,
 				Description: "The tags of the resource",
-				Computed: true,
-				Optional: true,
+				Computed:    true,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -243,7 +243,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		locks.ByID(subscriptionId)
 		defer locks.UnlockByID(subscriptionId)
-		tagParameters := resources.TagsPatchResource{ Operation: "Merge", Properties: &resource_tags}
+		tagParameters := resources.TagsPatchResource{Operation: "Merge", Properties: &resource_tags}
 		updateTags, updateErr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagParameters)
 		if updateErr != nil {
 			if !utils.ResponseWasNotFound(updateTags.Response) {
@@ -291,7 +291,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
 		}
 	}
-    // Modify/update tags 
+	// Modify/update tags
 
 	if d.HasChange("tags") {
 		tagsDetails := d.Get("tags").(map[string]interface{})
@@ -300,11 +300,11 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		locks.ByID(*subscriptionId)
 		defer locks.UnlockByID(*subscriptionId)
-		tagParameters := resources.TagsPatchResource{ Operation: "Replace",Properties: &resource_tags,}
+		tagParameters := resources.TagsPatchResource{Operation: "Replace", Properties: &resource_tags}
 		updateTags, updateErr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+*subscriptionId, tagParameters)
 		if updateErr != nil {
 			if !utils.ResponseWasNotFound(updateTags.Response) {
-			return fmt.Errorf("Updating tag value %q for subscription %q: %+v", tags.Flatten(resource_tags.Tags), *subscriptionId, updateErr)
+				return fmt.Errorf("Updating tag value %q for subscription %q: %+v", tags.Flatten(resource_tags.Tags), *subscriptionId, updateErr)
 			}
 		}
 		d.Set("tags", *updateTags.ID)
@@ -318,9 +318,8 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 	client := meta.(*clients.Client).Subscription.Client
 	// tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	
-	defer cancel()
 
+	defer cancel()
 
 	id, err := parse.SubscriptionAliasID(d.Id())
 	if err != nil {
@@ -359,7 +358,7 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		t = resp.Tags
-		fmt.Println("Read resp tags %q",t)
+		fmt.Println("Read resp tags %q", t)
 	}
 
 	// (@jackofallops) A subscription's billing scope is not exposed in any way in the API/SDK so we cannot read it back here
@@ -431,19 +430,18 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("tags") {
 		tagsDetails := d.Get("tags").(map[string]interface{})
-		resource_tags := resources.Tags {
+		resource_tags := resources.Tags{
 			Tags: tags.Expand(tagsDetails),
 		}
 		locks.ByID(subscriptionId)
 		defer locks.UnlockByID(subscriptionId)
-		tagPatchParamter := resources.TagsPatchResource{ Operation: "Delete", Properties: &resource_tags}
+		tagPatchParamter := resources.TagsPatchResource{Operation: "Delete", Properties: &resource_tags}
 		updateTags, delerr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagPatchParamter)
 		if delerr != nil {
 			return fmt.Errorf("Failed to Remove tags %q from subscription %q: %+v", tags.Flatten(resource_tags.Tags), subscriptionId, delerr)
 		}
 		d.Set("tags", *updateTags.ID)
 	}
-	
 
 	resp, err := aliasClient.Delete(ctx, id.Name)
 	if err != nil {

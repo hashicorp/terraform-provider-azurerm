@@ -6,8 +6,7 @@ import (
 	"os"
 	"testing"
 
-  "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -224,8 +223,8 @@ resource "azurerm_subscription" "test" {
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
   workload          = "DevTest"
   tags = {
-	  environment = "Production"
-	  cost_center = "MSFT"
+    environment = "Production"
+    cost_center = "MSFT"
   }
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
