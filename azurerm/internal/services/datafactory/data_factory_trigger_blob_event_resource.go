@@ -335,7 +335,6 @@ func flattenDataFactoryTriggerPipeline(input *[]datafactory.TriggerPipelineRefer
 			"name":       name,
 			"parameters": item.Parameters,
 		})
-
 	}
 	return result
 }
