@@ -189,7 +189,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"storage_account_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
