@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -69,7 +68,7 @@ func dataSourceResourceIdRead(d *pluginsdk.ResourceData, meta interface{}) error
 	splits := strings.Split(strings.Trim(id, "/"), "/")
 
 	count := len(splits)
-	formatErr := errors.New(fmt.Sprintf("The specified ID %v is not a valid Azure resource ID.", id))
+	formatErr := fmt.Errorf("The specified ID %v is not a valid Azure resource ID.", id)
 
 	if count%2 == 1 {
 		return formatErr
