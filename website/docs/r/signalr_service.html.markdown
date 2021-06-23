@@ -86,7 +86,7 @@ A `features` block supports the following:
 
 A `network_acl` block supports the following:
 
-* `default_action` - (Optional) The default action when no other rule matches. Possible values are `Allow` and `Deny`.
+* `default_action` - (Optional) The default action when no other rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
 * `public_network` - (Optional) A `public_network` block as defined below.
 

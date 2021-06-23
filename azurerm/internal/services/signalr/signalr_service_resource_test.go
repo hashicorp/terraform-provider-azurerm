@@ -610,7 +610,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-signalr-%d"
   location = "%s"
 }
 
@@ -643,7 +643,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-signalr-%d"
   location = "%s"
 }
 
