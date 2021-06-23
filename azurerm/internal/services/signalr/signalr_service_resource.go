@@ -98,27 +98,8 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
-
-						"properties": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
 					},
 				},
-			},
-
-			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(signalr.SignalR),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(signalr.SignalR),
-					string(signalr.RawWebSockets),
-				}, false),
 			},
 
 			"upstream_endpoint": {
@@ -314,7 +295,6 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
-	kind := signalr.ServiceKind(d.Get("kind").(string))
 
 	expandedFeatures := expandSignalRFeatures(featureFlags)
 
@@ -343,7 +323,6 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Sku:        expandSignalRServiceSku(sku),
 		Tags:       expandedTags,
 		Properties: properties,
-		Kind:       kind,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resourceType)
@@ -393,7 +372,6 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("name", id.SignalRName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("kind", string(resp.Kind))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -549,11 +527,6 @@ func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 			Value: utils.String(value["value"].(string)),
 		}
 
-		properties := value["properties"].(map[string]interface{})
-		if len(properties) != 0 {
-			feature.Properties = utils.ExpandMapStringPtrString(properties)
-		}
-
 		features = append(features, feature)
 	}
 
@@ -572,15 +545,9 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 			value = *feature.Value
 		}
 
-		properties := make(map[string]interface{})
-		if feature.Properties != nil {
-			properties = utils.FlattenMapStringPtrString(feature.Properties)
-		}
-
 		result = append(result, map[string]interface{}{
-			"flag":       string(feature.Flag),
-			"value":      value,
-			"properties": properties,
+			"flag":  string(feature.Flag),
+			"value": value,
 		})
 	}
 	return result

@@ -62,8 +62,6 @@ The following arguments are supported:
 
 * `features` - (Optional) A `features` block as documented below.
 
-* `kind` - (Optional) The kind of the SignalR service. Possible values are `SignalR` and `RawWebSockets`. Defaults to `SignalR`.
-
 * `network_acl` - (Optional) A `network_acl` block as documented below.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
@@ -83,8 +81,6 @@ A `features` block supports the following:
 * `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
 
 * `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
-
-* `properties` - (Optional) Optional properties related to this feature.
 
 ---
 

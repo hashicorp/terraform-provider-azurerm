@@ -353,21 +353,21 @@ func TestAccSignalRService_updateFeaturePropertiesAndNetworkACL(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.featurePropertiesAndNetworkACL(data),
+			Config: r.NetworkACL(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateFeaturePropertiesAndNetworkACL(data),
+			Config: r.updateNetworkACL(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.featurePropertiesAndNetworkACL(data),
+			Config: r.NetworkACL(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -603,7 +603,7 @@ resource "azurerm_signalr_service" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SignalRServiceResource) featurePropertiesAndNetworkACL(data acceptance.TestData) string {
+func (r SignalRServiceResource) NetworkACL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -623,29 +623,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
-  }
-
-  features {
-    flag  = "ServiceMode"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableConnectivityLogs"
-    value = "False"
-    properties = {
-      description = "TestDescription"
-    }
-  }
-
-  features {
-    flag  = "EnableMessagingLogs"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableLiveTrace"
-    value = "False"
   }
 
   network_acl {
@@ -659,7 +636,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SignalRServiceResource) updateFeaturePropertiesAndNetworkACL(data acceptance.TestData) string {
+func (r SignalRServiceResource) updateNetworkACL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -679,29 +656,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
-  }
-
-  features {
-    flag  = "ServiceMode"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableConnectivityLogs"
-    value = "False"
-    properties = {
-      descrp = "TestDescription2"
-    }
-  }
-
-  features {
-    flag  = "EnableMessagingLogs"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableLiveTrace"
-    value = "False"
   }
 
   network_acl {
