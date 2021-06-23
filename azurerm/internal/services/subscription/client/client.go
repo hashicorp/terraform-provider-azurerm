@@ -11,6 +11,7 @@ type Client struct {
 	Client             *subscriptions.Client
 	AliasClient        *subscriptionAlias.AliasClient
 	SubscriptionClient *subscriptionAlias.Client
+	TagsClient         *resources.TagsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -30,5 +31,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		AliasClient:        &aliasClient,
 		Client:             &client,
 		SubscriptionClient: &subscriptionClient,
+		TagsClient:         &tagsClient,
 	}
 }

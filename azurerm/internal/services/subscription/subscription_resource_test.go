@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -35,24 +34,6 @@ func TestAccSubscriptionResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccSubscriptionResource_basicWithTag(t *testing.T) {
-	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
-		t.Skip("skipping tests - no billing account data provided")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
-	r := SubscriptionResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.withTagsConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccSubscriptionResource_requiresImport(t *testing.T) {
 	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
 		t.Skip("skipping tests - no billing account data provided")
@@ -75,52 +56,31 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
 		t.Skip("skipping tests - no billing account data provided")
 	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
+	assert := check.That(data.ResourceName)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEnrollmentAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				assert.ExistsInAzure(r),
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.cost_center").HasValue("MSFT"),
+				assert.Key("tags.environment").HasValue("Production"),
+			),
 		},
-		data.ImportStep("billing_scope_id"),
+		data.ImportStep(),
 		{
 			Config: r.basicEnrollmentAccountUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
-		},
-		data.ImportStep("billing_scope_id"),
-	})
-}
-
-func TestAccSubscriptionResource_updateWithTags(t *testing.T) {
-	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
-		t.Skip("skipping tests - no billing account data provided")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
-	r := SubscriptionResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.withTagsConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				assert.ExistsInAzure(r),
+				assert.Key("tags.%").HasValue("1"),
+				assert.Key("tags.environment").HasValue("staging"),
 			),
 		},
-		data.ImportStep("billing_scope_id"),
-		{
-			Config: r.withTagsUpdatedConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
-			),
-		},
-		data.ImportStep("billing_scope_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -154,7 +114,13 @@ func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, 
 		}
 		return nil, fmt.Errorf("retrieving Subscription Alias %q: %+v", id.Name, err)
 	}
-
+	subscriptionId := state.Attributes["subscription_id"]
+	// atags := state.Attributes["tags"]
+	tagsResp, err := client.Subscription.TagsClient.GetAtScope(ctx, "subscriptions/"+subscriptionId)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving tags from subscription %q: %+v", subscriptionId, err)
+	}
+	fmt.Println(tagsResp.Properties)
 	return utils.Bool(true), nil
 }
 
@@ -176,6 +142,9 @@ resource "azurerm_subscription" "test" {
   alias             = "testAcc-%[3]d"
   subscription_name = "testAccSubscription %[3]d"
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+  tags				= {
+	environment = "staging"
+  }
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
 }
@@ -199,6 +168,7 @@ resource "azurerm_subscription" "test" {
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
   tags = {
     environment = "staging"
+	data = "test random data %[3]d"
   }
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
@@ -215,6 +185,10 @@ provider "azurerm" {
 data "azurerm_billing_enrollment_account_scope" "test" {
   billing_account_name    = "%s"
   enrollment_account_name = "%s"
+  tags                    = {
+	environment = "Production"
+    cost_center = "MSFT"
+  }
 }
 
 resource "azurerm_subscription" "test" {
@@ -230,28 +204,6 @@ resource "azurerm_subscription" "test" {
 `, billingAccount, enrollmentAccount, data.RandomInteger)
 }
 
-func (SubscriptionResource) basicEnrollmentAccountDevTest(data acceptance.TestData) string {
-	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
-	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_billing_enrollment_account_scope" "test" {
-  billing_account_name    = "%s"
-  enrollment_account_name = "%s"
-}
-
-resource "azurerm_subscription" "test" {
-  alias             = "testAcc-%[3]d"
-  subscription_name = "testAccSubscription Renamed %[3]d"
-  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
-  workload          = "DevTest"
-}
-`, billingAccount, enrollmentAccount, data.RandomInteger)
-}
-
 func (r SubscriptionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -260,6 +212,7 @@ resource "azurerm_subscription" "import" {
   alias             = azurerm_subscription.test.alias
   subscription_name = azurerm_subscription.test.subscription_name
   billing_scope_id  = azurerm_subscription.test.billing_scope_id
+  tags =  azurerm_subscription.test.tags
 }
 `, r.basicEnrollmentAccount(data))
 }
