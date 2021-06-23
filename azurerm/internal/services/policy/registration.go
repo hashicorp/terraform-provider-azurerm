@@ -1,10 +1,22 @@
 package policy
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
+
 type Registration struct{}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
