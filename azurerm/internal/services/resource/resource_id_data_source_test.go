@@ -24,7 +24,7 @@ func TestAccDataSourceResourceId(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue("c90e9ba4-9a69-49d6-be99-2110471ec1a4"),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue("SomeResourceGroup"),
-				check.That(data.ResourceName).Key("provider").HasValue("Microsoft.ResourceProvider"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("Microsoft.ResourceProvider"),
 				check.That(data.ResourceName).Key("parts.instanceName").HasValue("MyResource"),
 			),
 		},

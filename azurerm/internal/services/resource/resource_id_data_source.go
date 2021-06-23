@@ -27,11 +27,11 @@ func dataSourceResourceId() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-			"provider": {
+			"resource_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-			"secondary_provider": {
+			"secondary_resource_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -51,8 +51,8 @@ func dataSourceResourceIdRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 	d.Set("subscription_id", resourceId.SubscriptionID)
 	d.Set("resource_group_name", resourceId.ResourceGroup)
-	d.Set("provider", resourceId.Provider)
-	d.Set("secondary_provider", resourceId.SecondaryProvider)
+	d.Set("resource_type", resourceId.Provider)
+	d.Set("secondary_resource_type", resourceId.SecondaryProvider)
 	d.Set("parts", resourceId.Path)
 	d.SetId(id)
 	return nil
