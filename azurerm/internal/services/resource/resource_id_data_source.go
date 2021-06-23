@@ -1,9 +1,11 @@
 package resource
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -18,51 +20,116 @@ func dataSourceResourceId() *pluginsdk.Resource {
 			"resource_id": {
 				Type:        pluginsdk.TypeString,
 				Required:    true,
-				Description: "The Azure resource id to parse.",
+				Description: "Resource id to parse",
 			},
 			"subscription_id": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The parsed Azure subscription.",
+				Description: "Resource subscription id",
 			},
 			"resource_group_name": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The parsed Azure resource group name.",
+				Description: "Resource group name",
+			},
+			"provider_namespace": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "Resource namespace",
 			},
 			"resource_type": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The type of the Resource. (e.g. `Microsoft.Network/virtualNetworks`).",
+				Description: "Resource type",
 			},
-			"secondary_resource_type": {
+			"name": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The type of the child resource",
+				Description: "Resource name",
 			},
-			"parts": {
-				Type:        pluginsdk.TypeMap,
+			"parent_resource_type": {
+				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "A map of any additional key-value pairs in the path, this includes the resource name, accessed using an index of the key name.",
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
+				Description: "Resource type",
+			},
+			"parent_name": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "Resource name",
+			},
+			"full_resource_type": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "Full resource type (including parent if applicable)",
 			},
 		},
 	}
 }
 
+func badIdError(id string) string {
+	return fmt.Sprintf("The specified ID %v is not a valid Azure resource ID.", id)
+}
+
 func dataSourceResourceIdRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id := d.Get("resource_id").(string)
-	resourceId, err := azure.ParseAzureResourceID(id)
-	if err != nil {
+	splits := strings.Split(strings.Trim(id, "/"), "/")
+
+	count := len(splits)
+	err := errors.New(badIdError(id))
+
+	if count%2 == 1 {
 		return err
 	}
-	d.Set("subscription_id", resourceId.SubscriptionID)
-	d.Set("resource_group_name", resourceId.ResourceGroup)
-	d.Set("resource_type", resourceId.Provider)
-	d.Set("secondary_resource_type", resourceId.SecondaryProvider)
-	d.Set("parts", resourceId.Path)
+
+	//   Format of id:
+	// 	   /
+	//   0 subscriptions/
+	//   1 subscriptionId/
+	//   2 resourceGroups/
+	//   3 resourceGroupName/
+	//   4 providers/
+	//   5 providerNamespace/
+	//  (6 parentResourceType/)*
+	//  (7 parentName/)*
+	//  ^1 resourceType/
+	//  ^0 name
+
+	if count < 2 {
+		return err
+	}
+
+	if !strings.EqualFold(splits[0], "subscriptions") {
+		return err
+	}
+
+	d.Set("subscription_id", splits[1])
+
+	if count >= 4 {
+		if !strings.EqualFold(splits[2], "resourceGroups") {
+			return err
+		}
+		d.Set("resource_group_name", splits[3])
+	}
+
+	if count >= 6 {
+		if !strings.EqualFold(splits[4], "providers") {
+			return err
+		}
+		d.Set("provider_namespace", splits[5])
+	}
+
+	if count >= 8 {
+		d.Set("resource_type", splits[count-2])
+		d.Set("name", splits[count-1])
+		d.Set("full_resource_type", fmt.Sprintf("%v/%v", splits[5], splits[count-2]))
+	}
+
+	if count == 10 {
+		d.Set("parent_resource_type", splits[6])
+		d.Set("parent_name", splits[7])
+		d.Set("full_resource_type", fmt.Sprintf("%v/%v/%v", splits[5], splits[6], splits[count-2]))
+	}
+
 	d.SetId(id)
 	return nil
 }

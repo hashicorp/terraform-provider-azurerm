@@ -22,26 +22,31 @@ locals {
   my_subscription_id = data.azurerm_resource_id.example.subscription_id
   # set to "c90e9ba4-9a69-49d6-be99-2110471ec1a4"
 
-  my_resource_name = data.azurerm_resource_id.example["instanceName"]
+  my_resource_name = data.azurerm_resource_id.example.name
   # set to "MyResource"
 }
 ```
 
 ## Argument Reference
 
-* `resource_id` - The Azure resource id to parse.
+* `resource_id` - Resource id to parse.
 
 ## Attributes Reference
 
-* `subscription_id` - The parsed Azure subscription.
+* `subscription_id` - Resource subscription id.
 
-* `resource_group_name` - The parsed Azure resource group name.
+* `resource_group_name` - Resource group name.
 
-* `resource_type` - The type of the primary resource. (e.g. `Microsoft.Network/virtualNetworks`).
+* `provider_namespace` - Resource namespace (e.g. `Microsoft.Network`).
 
-* `secondary_resource_type` - The type of the child resource.
+* `resource_type` - Resource type (e.g. `virtualNetworks`).
 
-* `parts` - A map of any additional key-value pairs in the path, this includes the resource name, accessed using an index of the key name.
+* `name` - Resource name.
+
+<!-- the parent fields need to be recursive resource_ids themselves -->
+
+* `parent` - Parent resource id, its own entire resource id (recursive)
+
 
 ## Timeouts
 
