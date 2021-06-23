@@ -16,28 +16,37 @@ func dataSourceResourceId() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"resource_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				Description: "The Azure resource id to parse.",
 			},
 			"subscription_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The parsed Azure subscription.",
 			},
 			"resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The parsed Azure resource group name.",
 			},
 			"resource_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The type of the Resource. (e.g. `Microsoft.Network/virtualNetworks`).",
 			},
 			"secondary_resource_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The type of the child resource",
 			},
 			"parts": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
+				Description: "A map of any additional key-value pairs in the path, this includes the resource name, accessed using an index of the key name.",
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 		},
 	}
