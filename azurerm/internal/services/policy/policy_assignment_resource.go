@@ -1,17 +1,14 @@
 package policy
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
@@ -20,8 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-// TODO: revert the identity behaviour back
 
 func resourceArmPolicyAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -77,7 +72,34 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocationOptional(),
 
-			"identity": policyAssignmentIdentity{}.Schema(),
+			//lintignore:XS003
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(policy.None),
+								string(policy.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"parameters": {
 				Type:             pluginsdk.TypeString,
@@ -145,11 +167,7 @@ func resourceArmPolicyAssignmentCreate(d *pluginsdk.ResourceData, meta interface
 		if assignment.Location == nil {
 			return fmt.Errorf("`location` must be set when `identity` is assigned")
 		}
-		identity, err := expandAzureRmPolicyIdentity(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		assignment.Identity = identity
+		assignment.Identity = expandAzureRmPolicyIdentity(v.([]interface{}))
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -236,11 +254,7 @@ func resourceArmPolicyAssignmentUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("`location` must be set when `identity` is assigned")
 		}
 		identityRaw := d.Get("identity").([]interface{})
-		identity, err := expandAzureRmPolicyIdentity(identityRaw)
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		update.Identity = identity
+		update.Identity = expandAzureRmPolicyIdentity(identityRaw)
 	}
 
 	if d.HasChange("metadata") {
@@ -356,64 +370,33 @@ func resourceArmPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func waitForPolicyAssignmentToStabilize(ctx context.Context, client *policy.AssignmentsClient, id parse.PolicyAssignmentId, shouldExist bool) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context was missing a deadline")
+func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"404"},
-		Target:  []string{"200"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, id.Scope, id.Name)
-			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return resp, strconv.Itoa(resp.StatusCode), nil
-				}
-
-				return nil, strconv.Itoa(resp.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
-			}
-
-			return resp, strconv.Itoa(resp.StatusCode), nil
-		},
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		PollInterval:              5 * time.Second,
-		Timeout:                   time.Until(deadline),
-	}
-	if !shouldExist {
-		stateConf.Pending = []string{"200"}
-		stateConf.Target = []string{"404"}
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func expandAzureRmPolicyIdentity(input []interface{}) (*policy.Identity, error) {
-	expanded, err := policyAssignmentIdentity{}.Expand(input)
-	if err != nil {
-		return nil, err
-	}
+	identity := input[0].(map[string]interface{})
 
 	return &policy.Identity{
-		Type: policy.ResourceIdentityType(expanded.Type),
-	}, nil
+		Type: policy.ResourceIdentityType(identity["type"].(string)),
+	}
 }
 
-func flattenAzureRmPolicyIdentity(input *policy.Identity) []interface{} {
-	var config *identity.ExpandedConfig
-	if input != nil {
-		config = &identity.ExpandedConfig{
-			Type:        string(input.Type),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
-		}
+func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
 	}
-	return policyAssignmentIdentity{}.Flatten(config)
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
 
 func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
@@ -424,12 +407,4 @@ func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	}
 
 	return &notScopesRes
-}
-
-func convertEnforcementMode(mode bool) policy.EnforcementMode {
-	if mode {
-		return policy.Default
-	} else {
-		return policy.DoNotEnforce
-	}
 }

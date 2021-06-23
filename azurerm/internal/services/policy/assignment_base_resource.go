@@ -66,7 +66,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				if assignment.Location == nil {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
-				identity, err := expandAzureRmPolicyIdentity(v.([]interface{}))
+				identity, err := br.expandIdentity(v.([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -160,7 +160,7 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
 
-			if err := metadata.ResourceData.Set("identity", flattenAzureRmPolicyIdentity(resp.Identity)); err != nil {
+			if err := metadata.ResourceData.Set("identity", br.flattenIdentity(resp.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -254,7 +254,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
 				identityRaw := metadata.ResourceData.Get("identity").([]interface{})
-				identity, err := expandAzureRmPolicyIdentity(identityRaw)
+				identity, err := br.expandIdentity(identityRaw)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -367,4 +367,27 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 
 func (br assignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (br assignmentBaseResource) expandIdentity(input []interface{}) (*policy.Identity, error) {
+	expanded, err := policyAssignmentIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &policy.Identity{
+		Type: policy.ResourceIdentityType(expanded.Type),
+	}, nil
+}
+
+func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []interface{} {
+	var config *identity.ExpandedConfig
+	if input != nil {
+		config = &identity.ExpandedConfig{
+			Type:        string(input.Type),
+			PrincipalId: input.PrincipalID,
+			TenantId:    input.TenantID,
+		}
+	}
+	return policyAssignmentIdentity{}.Flatten(config)
 }
