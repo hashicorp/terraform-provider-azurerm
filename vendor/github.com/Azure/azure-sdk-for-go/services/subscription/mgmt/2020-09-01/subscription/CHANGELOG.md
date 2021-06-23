@@ -1,8 +1,13 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/subscription/resource-manager/readme.md tag: `package-2020-09`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *AliasCreateFuture.UnmarshalJSON([]byte) error
+1. CanceledSubscriptionID.MarshalJSON() ([]byte, error)
+1. EnabledSubscriptionID.MarshalJSON() ([]byte, error)
+1. Location.MarshalJSON() ([]byte, error)
+1. Policies.MarshalJSON() ([]byte, error)
+1. PutAliasListResult.MarshalJSON() ([]byte, error)
+1. RenamedSubscriptionID.MarshalJSON() ([]byte, error)
+1. TenantIDDescription.MarshalJSON() ([]byte, error)

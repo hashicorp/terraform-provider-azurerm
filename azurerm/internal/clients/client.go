@@ -23,6 +23,7 @@ import (
 	cognitiveServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/client"
 	communication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/client"
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
+	consumption "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
@@ -32,6 +33,7 @@ import (
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
+	dataprotection "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/client"
 	datashare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
@@ -123,6 +125,7 @@ type Client struct {
 	Cognitive             *cognitiveServices.Client
 	Communication         *communication.Client
 	Compute               *compute.Client
+	Consumption           *consumption.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
@@ -132,6 +135,7 @@ type Client struct {
 	DataboxEdge           *databoxedge.Client
 	DataFactory           *datafactory.Client
 	Datalake              *datalake.Client
+	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
 	DesktopVirtualization *desktopvirtualization.Client
 	DevSpace              *devspace.Client
@@ -225,6 +229,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cognitive = cognitiveServices.NewClient(o)
 	client.Communication = communication.NewClient(o)
 	client.Compute = compute.NewClient(o)
+	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
@@ -234,6 +239,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataboxEdge = databoxedge.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
+	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)

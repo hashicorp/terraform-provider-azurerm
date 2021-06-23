@@ -1,6 +1,10 @@
-package azure
+package azure_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 func TestQuotedStringSlice(t *testing.T) {
 	testData := []struct {
@@ -28,7 +32,7 @@ func TestQuotedStringSlice(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		actual := QuotedStringSlice(v.input)
+		actual := azure.QuotedStringSlice(v.input)
 		if v.expected != actual {
 			t.Fatalf("Expected %s but got %s", v.expected, actual)
 		}

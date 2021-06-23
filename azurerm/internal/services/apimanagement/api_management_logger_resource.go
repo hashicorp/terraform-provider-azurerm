@@ -5,37 +5,36 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementLogger() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementLogger() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementLoggerCreate,
 		Read:   resourceApiManagementLoggerRead,
 		Update: resourceApiManagementLoggerUpdate,
 		Delete: resourceApiManagementLoggerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -43,27 +42,27 @@ func resourceApiManagementLogger() *schema.Resource {
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"eventhub": {
-				Type:          schema.TypeList,
+				Type:          pluginsdk.TypeList,
 				MaxItems:      1,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"application_insights"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ValidateEventHubName(),
 						},
 
 						"connection_string": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -73,15 +72,15 @@ func resourceApiManagementLogger() *schema.Resource {
 			},
 
 			"application_insights": {
-				Type:          schema.TypeList,
+				Type:          pluginsdk.TypeList,
 				MaxItems:      1,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"eventhub"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"instrumentation_key": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -91,20 +90,20 @@ func resourceApiManagementLogger() *schema.Resource {
 			},
 
 			"buffered": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 		},
 	}
 }
 
-func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +167,7 @@ func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{})
 	return resourceApiManagementLoggerRead(d, meta)
 }
 
-func resourceApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,7 +206,7 @@ func resourceApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +240,7 @@ func resourceApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{})
 	return resourceApiManagementLoggerRead(d, meta)
 }
 
-func resourceApiManagementLoggerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +254,7 @@ func resourceApiManagementLoggerDelete(d *schema.ResourceData, meta interface{})
 	serviceName := id.Path["service"]
 	name := id.Path["loggers"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", utils.Bool(false)); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}
@@ -279,7 +278,7 @@ func expandApiManagementLoggerApplicationInsights(input []interface{}) map[strin
 	return credentials
 }
 
-func flattenApiManagementLoggerEventHub(d *schema.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
+func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
 	result := make([]interface{}, 0)
 	if name := properties.Credentials["name"]; name != nil {
 		eventHub := make(map[string]interface{})

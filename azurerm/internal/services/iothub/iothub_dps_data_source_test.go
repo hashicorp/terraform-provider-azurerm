@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceIotHubDPS_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps", "test")
 	r := IotHubDPSDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("allocation_policy").Exists(),
 				check.That(data.ResourceName).Key("device_provisioning_host_name").Exists(),
 				check.That(data.ResourceName).Key("id_scope").Exists(),

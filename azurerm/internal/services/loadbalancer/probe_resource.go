@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -15,13 +13,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLoadBalancerProbe() *schema.Resource {
-	return &schema.Resource{
+func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerProbeCreateUpdate,
 		Read:   resourceArmLoadBalancerProbeRead,
 		Update: resourceArmLoadBalancerProbeCreateUpdate,
@@ -37,16 +37,16 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			return &lbId, nil
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -55,14 +55,14 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: loadBalancerValidate.LoadBalancerID,
 			},
 
 			"protocol": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Computed:         true,
 				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -74,43 +74,43 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			},
 
 			"port": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.PortNumber,
 			},
 
 			"request_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"interval_in_seconds": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      15,
 				ValidateFunc: validation.IntAtLeast(5),
 			},
 
 			"number_of_probes": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  2,
 			},
 
 			"load_balancer_rules": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 		},
 	}
 }
 
-func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -166,7 +166,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceArmLoadBalancerProbeRead(d, meta)
 }
 
-func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +234,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -279,7 +279,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
+func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *network.Probe {
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
 		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),

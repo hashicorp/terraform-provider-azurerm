@@ -3702,6 +3702,7 @@ func (future *IntegrationServiceEnvironmentManagedApisDeleteFuture) result(clien
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisDeleteFuture")
 		return
 	}
@@ -3738,6 +3739,7 @@ func (future *IntegrationServiceEnvironmentManagedApisPutFuture) result(client I
 		return
 	}
 	if !done {
+		ma.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisPutFuture")
 		return
 	}
@@ -3825,6 +3827,7 @@ func (future *IntegrationServiceEnvironmentsCreateOrUpdateFuture) result(client 
 		return
 	}
 	if !done {
+		ise.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture")
 		return
 	}
@@ -4077,6 +4080,7 @@ func (future *IntegrationServiceEnvironmentsUpdateFuture) result(client Integrat
 		return
 	}
 	if !done {
+		ise.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsUpdateFuture")
 		return
 	}
@@ -5077,6 +5081,12 @@ type Sku struct {
 type SubResource struct {
 	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubResource.
+func (sr SubResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SwaggerCustomDynamicList the swagger custom dynamic list.
@@ -6636,6 +6646,7 @@ func (future *WorkflowsMoveFuture) result(client WorkflowsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.WorkflowsMoveFuture")
 		return
 	}
@@ -7220,6 +7231,12 @@ type WorkflowTriggerProperties struct {
 	Recurrence *WorkflowTriggerRecurrence `json:"recurrence,omitempty"`
 	// Workflow - READ-ONLY; Gets the reference to workflow.
 	Workflow *ResourceReference `json:"workflow,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkflowTriggerProperties.
+func (wtp WorkflowTriggerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // WorkflowTriggerRecurrence the workflow trigger recurrence.

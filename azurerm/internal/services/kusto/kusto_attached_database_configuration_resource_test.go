@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
 	r := KustoAttachedDatabaseConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -32,7 +31,7 @@ func TestAccKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 	})
 }
 
-func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AttachedDatabaseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -86,7 +85,7 @@ resource "azurerm_kusto_database" "followed_database" {
   cluster_name        = azurerm_kusto_cluster.cluster1.name
 }
 
-resource "azurerm_kusto_attached_database_configuration" "configuration1" {
+resource "azurerm_kusto_attached_database_configuration" "test" {
   name                = "acctestka-%d"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location

@@ -191,6 +191,83 @@ func (client ExtensionsClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
+// DisableAzureMonitor disables the Azure Monitor on the HDInsight cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+func (client ExtensionsClient) DisableAzureMonitor(ctx context.Context, resourceGroupName string, clusterName string) (result ExtensionsDisableAzureMonitorFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.DisableAzureMonitor")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.DisableAzureMonitorPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "DisableAzureMonitor", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DisableAzureMonitorSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "DisableAzureMonitor", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DisableAzureMonitorPreparer prepares the DisableAzureMonitor request.
+func (client ExtensionsClient) DisableAzureMonitorPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/extensions/azureMonitor", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DisableAzureMonitorSender sends the DisableAzureMonitor request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtensionsClient) DisableAzureMonitorSender(req *http.Request) (future ExtensionsDisableAzureMonitorFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// DisableAzureMonitorResponder handles the response to the DisableAzureMonitor request. The method always
+// closes the http.Response Body.
+func (client ExtensionsClient) DisableAzureMonitorResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // DisableMonitoring disables the Operations Management Suite (OMS) on the HDInsight cluster.
 // Parameters:
 // resourceGroupName - the name of the resource group.
@@ -263,6 +340,86 @@ func (client ExtensionsClient) DisableMonitoringResponder(resp *http.Response) (
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// EnableAzureMonitor enables the Azure Monitor on the HDInsight cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// parameters - the Log Analytics workspace parameters.
+func (client ExtensionsClient) EnableAzureMonitor(ctx context.Context, resourceGroupName string, clusterName string, parameters AzureMonitorRequest) (result ExtensionsEnableAzureMonitorFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.EnableAzureMonitor")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.EnableAzureMonitorPreparer(ctx, resourceGroupName, clusterName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "EnableAzureMonitor", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.EnableAzureMonitorSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "EnableAzureMonitor", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// EnableAzureMonitorPreparer prepares the EnableAzureMonitor request.
+func (client ExtensionsClient) EnableAzureMonitorPreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters AzureMonitorRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/extensions/azureMonitor", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// EnableAzureMonitorSender sends the EnableAzureMonitor request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtensionsClient) EnableAzureMonitorSender(req *http.Request) (future ExtensionsEnableAzureMonitorFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// EnableAzureMonitorResponder handles the response to the EnableAzureMonitor request. The method always
+// closes the http.Response Body.
+func (client ExtensionsClient) EnableAzureMonitorResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -353,7 +510,7 @@ func (client ExtensionsClient) EnableMonitoringResponder(resp *http.Response) (r
 // resourceGroupName - the name of the resource group.
 // clusterName - the name of the cluster.
 // extensionName - the name of the cluster extension.
-func (client ExtensionsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, extensionName string) (result Extension, err error) {
+func (client ExtensionsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, extensionName string) (result ClusterMonitoringResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.Get")
 		defer func() {
@@ -416,7 +573,163 @@ func (client ExtensionsClient) GetSender(req *http.Request) (*http.Response, err
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ExtensionsClient) GetResponder(resp *http.Response) (result Extension, err error) {
+func (client ExtensionsClient) GetResponder(resp *http.Response) (result ClusterMonitoringResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAzureAsyncOperationStatus gets the async operation status.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// extensionName - the name of the cluster extension.
+// operationID - the long running operation id.
+func (client ExtensionsClient) GetAzureAsyncOperationStatus(ctx context.Context, resourceGroupName string, clusterName string, extensionName string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.GetAzureAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAzureAsyncOperationStatusPreparer(ctx, resourceGroupName, clusterName, extensionName, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAzureAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAzureAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAzureAsyncOperationStatusPreparer prepares the GetAzureAsyncOperationStatus request.
+func (client ExtensionsClient) GetAzureAsyncOperationStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string, extensionName string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"extensionName":     autorest.Encode("path", extensionName),
+		"operationId":       autorest.Encode("path", operationID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/extensions/{extensionName}/azureAsyncOperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAzureAsyncOperationStatusSender sends the GetAzureAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtensionsClient) GetAzureAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAzureAsyncOperationStatusResponder handles the response to the GetAzureAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client ExtensionsClient) GetAzureAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAzureMonitorStatus gets the status of Azure Monitor on the HDInsight cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+func (client ExtensionsClient) GetAzureMonitorStatus(ctx context.Context, resourceGroupName string, clusterName string) (result AzureMonitorResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtensionsClient.GetAzureMonitorStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAzureMonitorStatusPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureMonitorStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAzureMonitorStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureMonitorStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAzureMonitorStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetAzureMonitorStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAzureMonitorStatusPreparer prepares the GetAzureMonitorStatus request.
+func (client ExtensionsClient) GetAzureMonitorStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/extensions/azureMonitor", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAzureMonitorStatusSender sends the GetAzureMonitorStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtensionsClient) GetAzureMonitorStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAzureMonitorStatusResponder handles the response to the GetAzureMonitorStatus request. The method always
+// closes the http.Response Body.
+func (client ExtensionsClient) GetAzureMonitorStatusResponder(resp *http.Response) (result AzureMonitorResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

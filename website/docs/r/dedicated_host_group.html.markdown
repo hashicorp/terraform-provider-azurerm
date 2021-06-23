@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `platform_fault_domain_count` - (Required) The number of fault domains that the Dedicated Host Group spans. Changing this forces a new resource to be created.
 
+* `automatic_placement_enabled` - (Optional) Would virtual machines or virtual machine scale sets be placed automatically on this Dedicated Host Group? Defaults to `false`. Changing this forces a new resource to be created.
+
 * `zones` - (Optional) A list of Availability Zones in which the Dedicated Host Group should be located. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

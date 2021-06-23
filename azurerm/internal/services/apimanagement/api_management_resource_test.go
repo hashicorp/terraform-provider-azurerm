@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccApiManagement_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,24 +50,24 @@ func TestAccApiManagement_skuUpgradeDowngrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.standardSku(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -80,10 +79,10 @@ func TestAccApiManagement_customProps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customProps(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocols.0.enable_http2").HasValue("false"),
 			),
@@ -96,10 +95,10 @@ func TestAccApiManagement_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -126,10 +125,10 @@ func TestAccApiManagement_signInSignUpSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.signInSignUpSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -141,17 +140,17 @@ func TestAccApiManagement_policy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.policyXmlContent(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.policyXmlLink(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -165,7 +164,7 @@ func TestAccApiManagement_policy(t *testing.T) {
 		},
 		{
 			Config: r.policyRemoved(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -177,10 +176,10 @@ func TestAccApiManagement_virtualNetworkInternal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualNetworkInternal(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_type").HasValue("Internal"),
 				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
@@ -194,17 +193,17 @@ func TestAccApiManagement_virtualNetworkInternalUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.virtualNetworkInternal(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -216,10 +215,10 @@ func TestAccApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualNetworkInternalAdditionalLocation(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_type").HasValue("Internal"),
 				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
@@ -238,17 +237,17 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUpdateHostnameConfigurationsKeyVaultId(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultIdUpdateCD(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -260,17 +259,17 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUpdateHostnameConfigurationsKeyVaultId(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultIdUpdateCD(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -282,10 +281,10 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.consumption(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -293,7 +292,101 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	})
 }
 
-func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccApiManagement_clientCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionClientCertificateEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionClientCertificateDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_gatewayDiabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleLocations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gatewayDiabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleLocations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_minApiVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionMinApiVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionMinApiVersionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiManagementID(state.ID)
 	if err != nil {
 		return nil, err
@@ -313,10 +406,10 @@ func TestAccApiManagement_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identityUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -328,17 +421,17 @@ func TestAccApiManagement_identityNoneUpdateUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identityNone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identityUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -350,17 +443,17 @@ func TestAccApiManagement_identityUserAssignedUpdateNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identityUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identityNone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -372,10 +465,10 @@ func TestAccApiManagement_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -387,17 +480,17 @@ func TestAccApiManagement_identitySystemAssignedUpdateNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identityNone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -409,17 +502,17 @@ func TestAccApiManagement_identityNoneUpdateSystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identityNone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identitySystemAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -431,10 +524,10 @@ func TestAccApiManagement_identitySystemAssignedUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -446,17 +539,17 @@ func TestAccApiManagement_identitySystemAssignedUserAssignedUpdateNone(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identityNone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -468,17 +561,17 @@ func TestAccApiManagement_identityNoneUpdateSystemAssignedUserAssigned(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identityNone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -490,17 +583,17 @@ func TestAccApiManagement_identitySystemAssignedUserAssignedUpdateSystemAssigned
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identitySystemAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -512,17 +605,17 @@ func TestAccApiManagement_identitySystemAssignedUserAssignedUpdateUserAssigned(t
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.identityUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -534,10 +627,10 @@ func TestAccApiManagement_tenantAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tenantAccess(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tenant_access.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("tenant_access.0.tenant_id").Exists(),
@@ -871,7 +964,9 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku_name = "Premium_1"
+  sku_name = "Premium_2"
+
+  zones = [1, 2]
 
   tags = {
     "Acceptance" = "Test"
@@ -919,14 +1014,56 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
-resource "azurerm_network_security_rule" "port_3443" {
-  name                        = "Port_3443"
+resource "azurerm_network_security_rule" "client" {
+  name                        = "Client_communication_to_API_Management"
   priority                    = 100
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "secure_client" {
+  name                        = "Secure_Client_communication_to_API_Management"
+  priority                    = 110
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "443"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "endpoint" {
+  name                        = "Management_endpoint_for_Azure_portal_and_Powershell"
+  priority                    = 120
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
   destination_port_range      = "3443"
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "authenticate" {
+  name                        = "Authenticate_To_Azure_Active_Directory"
+  priority                    = 200
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["80", "443"]
   source_address_prefix       = "ApiManagement"
   destination_address_prefix  = "VirtualNetwork"
   resource_group_name         = azurerm_resource_group.test.name
@@ -991,9 +1128,37 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
   network_security_group_id = azurerm_network_security_group.test2.id
 }
 
-resource "azurerm_network_security_rule" "port_3443_2" {
-  name                        = "Port_3443"
+resource "azurerm_network_security_rule" "client2" {
+  name                        = "Client_communication_to_API_Management"
   priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
+resource "azurerm_network_security_rule" "secure_client2" {
+  name                        = "Secure_Client_communication_to_API_Management"
+  priority                    = 110
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "443"
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
+resource "azurerm_network_security_rule" "endpoint2" {
+  name                        = "Management_endpoint_for_Azure_portal_and_Powershell"
+  priority                    = 120
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -1004,6 +1169,21 @@ resource "azurerm_network_security_rule" "port_3443_2" {
   resource_group_name         = azurerm_resource_group.test2.name
   network_security_group_name = azurerm_network_security_group.test2.name
 }
+
+resource "azurerm_network_security_rule" "authenticate2" {
+  name                        = "Authenticate_To_Azure_Active_Directory"
+  priority                    = 200
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["80", "443"]
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%[2]d"
@@ -1153,11 +1333,14 @@ func (ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsT
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
+
 data "azurerm_client_config" "current" {}
+
 resource "azurerm_key_vault" "test" {
   name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
@@ -1165,6 +1348,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
+
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
@@ -1182,6 +1366,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Manageissuers",
     "Setissuers",
     "Update",
+    "Purge",
   ]
   secret_permissions = [
     "Delete",
@@ -1190,6 +1375,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
   ]
 }
+
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_api_management.test.identity[0].tenant_id
@@ -1199,6 +1385,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "List",
   ]
 }
+
 resource "azurerm_key_vault_certificate" "test" {
   depends_on   = [azurerm_key_vault_access_policy.test]
   name         = "acctestKVCert-%[3]d"
@@ -1229,9 +1416,9 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
       subject_alternative_names {
-        dns_names = ["api.terraform.io"]
+        dns_names = ["api.pluginsdk.io"]
       }
-      subject            = "CN=api.terraform.io"
+      subject            = "CN=api.pluginsdk.io"
       validity_in_months = 1
     }
   }
@@ -1272,7 +1459,7 @@ resource "azurerm_api_management" "test" {
   }
   hostname_configuration {
     proxy {
-      host_name                    = "api.terraform.io"
+      host_name                    = "api.pluginsdk.io"
       key_vault_id                 = "${azurerm_key_vault.test.vault_uri}secrets/${azurerm_key_vault_certificate.test.name}"
       default_ssl_binding          = true
       negotiate_client_certificate = false
@@ -1298,7 +1485,7 @@ resource "azurerm_api_management" "test" {
   }
   hostname_configuration {
     proxy {
-      host_name                    = "api.terraform.io"
+      host_name                    = "api.pluginsdk.io"
       key_vault_id                 = azurerm_key_vault_certificate.test.secret_id
       default_ssl_binding          = true
       negotiate_client_certificate = false
@@ -1326,6 +1513,149 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Consumption_0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionClientCertificateEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                       = "acctestAM-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  publisher_name             = "pub1"
+  publisher_email            = "pub1@email.com"
+  sku_name                   = "Consumption_0"
+  client_certificate_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionClientCertificateDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                       = "acctestAM-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  publisher_name             = "pub1"
+  publisher_email            = "pub1@email.com"
+  sku_name                   = "Consumption_0"
+  client_certificate_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) multipleLocations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Premium_1"
+  additional_location {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (ApiManagementResource) gatewayDiabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Premium_1"
+  gateway_disabled    = true
+  additional_location {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (ApiManagementResource) consumptionMinApiVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+  min_api_version     = "2019-12-01"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionMinApiVersionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+  min_api_version     = "2020-12-01"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

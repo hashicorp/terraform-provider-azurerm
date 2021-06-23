@@ -5,50 +5,47 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHPCCacheAccessPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHPCCacheAccessPolicyCreateUpdate,
 		Read:   resourceHPCCacheAccessPolicyRead,
 		Update: resourceHPCCacheAccessPolicyCreateUpdate,
 		Delete: resourceHPCCacheAccessPolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CacheAccessPolicyID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringNotInSlice([]string{"default"}, false),
 			},
 
 			"hpc_cache_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CacheID,
@@ -56,14 +53,14 @@ func resourceHPCCacheAccessPolicy() *schema.Resource {
 
 			"access_rule": {
 				// Order doesn't matter for the access policies, as each one will be selected by one namespace path.
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
 				MaxItems: 3,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"scope": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storagecache.Default),
@@ -73,7 +70,7 @@ func resourceHPCCacheAccessPolicy() *schema.Resource {
 						},
 
 						"access": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storagecache.NfsAccessRuleAccessRw),
@@ -83,34 +80,34 @@ func resourceHPCCacheAccessPolicy() *schema.Resource {
 						},
 
 						"filter": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"suid_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"submount_access_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"root_squash_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"anonymous_uid": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"anonymous_gid": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
@@ -121,7 +118,7 @@ func resourceHPCCacheAccessPolicy() *schema.Resource {
 	}
 }
 
-func resourceHPCCacheAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +162,7 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *schema.ResourceData, meta inter
 
 	p := storagecache.NfsAccessPolicy{
 		Name:        &id.Name,
-		AccessRules: expandStorageCacheNfsAccessRules(d.Get("access_rule").(*schema.Set).List()),
+		AccessRules: expandStorageCacheNfsAccessRules(d.Get("access_rule").(*pluginsdk.Set).List()),
 	}
 
 	*policies, err = CacheInsertOrUpdateAccessPolicy(*policies, p)
@@ -186,7 +183,7 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceHPCCacheAccessPolicyRead(d, meta)
 }
 
-func resourceHPCCacheAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,7 +241,7 @@ func resourceHPCCacheAccessPolicyRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceHPCCacheAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

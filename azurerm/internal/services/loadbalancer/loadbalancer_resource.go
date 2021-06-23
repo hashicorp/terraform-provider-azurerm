@@ -3,45 +3,45 @@ package loadbalancer
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLoadBalancer() *schema.Resource {
-	return &schema.Resource{
+func resourceArmLoadBalancer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerCreateUpdate,
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerCreateUpdate,
 		Delete: resourceArmLoadBalancerDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LoadBalancerID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -51,7 +51,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(network.LoadBalancerSkuNameBasic),
 				ForceNew: true,
@@ -63,26 +63,41 @@ func resourceArmLoadBalancer() *schema.Resource {
 			},
 
 			"frontend_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"availability_zone": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							//Default:  "Zone-Redundant",
+							Computed: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"No-Zone",
+								"1",
+								"2",
+								"3",
+								"Zone-Redundant",
+							}, false),
+						},
+
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.Any(
@@ -92,75 +107,87 @@ func resourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"private_ip_address_version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(network.IPv4),
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPv4),
-								string(network.IPv6),
+								string(network.IPVersionIPv4),
+								string(network.IPVersionIPv6),
 							}, false),
 						},
 
 						"public_ip_address_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"public_ip_prefix_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"private_ip_address_allocation": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
+								string(network.IPAllocationMethodDynamic),
+								string(network.IPAllocationMethodStatic),
 							}, true),
 							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"load_balancer_rules": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 
 						"inbound_nat_rules": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 
 						"outbound_rules": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 
-						"zones": azure.SchemaSingleZone(),
+						// TODO - 3.0 make Computed only
+						"zones": {
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ForceNew:   true,
+							Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
+							MaxItems:   1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -168,14 +195,14 @@ func resourceArmLoadBalancer() *schema.Resource {
 			},
 
 			"private_ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"private_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -184,7 +211,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -217,7 +244,11 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 	properties := network.LoadBalancerPropertiesFormat{}
 
 	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
-		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
+		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(d)
+		if err != nil {
+			return err
+		}
+		properties.FrontendIPConfigurations = frontendIPConfigurations
 	}
 
 	loadBalancer := network.LoadBalancer{
@@ -242,7 +273,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 	return resourceArmLoadBalancerRead(d, meta)
 }
 
-func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,7 +331,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,11 +353,12 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *[]network.FrontendIPConfiguration {
+func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.FrontendIPConfiguration, 0, len(configs))
+	sku := d.Get("sku").(string)
 
-	for _, configRaw := range configs {
+	for index, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
@@ -338,8 +370,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 			properties.PrivateIPAddress = &v
 		}
 
-		properties.PrivateIPAddressVersion = network.IPVersion(data["private_ip_address_version"].(string))
-
+		subnetSet := false
 		if v := data["public_ip_address_id"].(string); v != "" {
 			properties.PublicIPAddress = &network.PublicIPAddress{
 				ID: &v,
@@ -353,13 +384,51 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		if v := data["subnet_id"].(string); v != "" {
+			subnetSet = true
+			properties.PrivateIPAddressVersion = network.IPVersionIPv4
+			if v := data["private_ip_address_version"].(string); v != "" {
+				properties.PrivateIPAddressVersion = network.IPVersion(v)
+			}
 			properties.Subnet = &network.Subnet{
 				ID: &v,
 			}
 		}
 
 		name := data["name"].(string)
-		zones := azure.ExpandZones(data["zones"].([]interface{}))
+		// TODO - get zone list for each location by Resource API, instead of hardcode
+		zones := &[]string{"1", "2"}
+		zonesSet := false
+		// TODO - Remove in 3.0
+		if deprecatedZonesRaw, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)); ok {
+			zonesSet = true
+			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
+			if deprecatedZones != nil {
+				zones = deprecatedZones
+			}
+		}
+
+		if availabilityZones, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)); ok {
+			zonesSet = true
+			switch availabilityZones.(string) {
+			case "1", "2", "3":
+				zones = &[]string{availabilityZones.(string)}
+			case "Zone-Redundant":
+				zones = &[]string{"1", "2"}
+			case "No-Zone":
+				zones = &[]string{}
+			}
+		}
+		if !strings.EqualFold(sku, string(network.LoadBalancerSkuNameStandard)) {
+			if zonesSet && len(*zones) > 0 {
+				return nil, fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
+			}
+			zones = &[]string{}
+		} else if !subnetSet {
+			if zonesSet && len(*zones) > 0 {
+				return nil, fmt.Errorf("Networking supports zones only for frontendIpconfigurations which reference a subnet.")
+			}
+			zones = &[]string{}
+		}
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name:                                    &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
@@ -369,7 +438,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
 	}
 
-	return &frontEndConfigs
+	return &frontEndConfigs, nil
 }
 
 func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
@@ -389,11 +458,20 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 			ipConfig["id"] = *config.ID
 		}
 
-		zones := make([]string, 0)
-		if zs := config.Zones; zs != nil {
-			zones = *zs
+		availabilityZones := "No-Zone"
+		zonesDeprecated := make([]string, 0)
+		if config.Zones != nil {
+			if len(*config.Zones) > 1 {
+				availabilityZones = "Zone-Redundant"
+			}
+			if len(*config.Zones) == 1 {
+				zones := *config.Zones
+				availabilityZones = zones[0]
+				zonesDeprecated = zones
+			}
 		}
-		ipConfig["zones"] = zones
+		ipConfig["availability_zone"] = availabilityZones
+		ipConfig["zones"] = zonesDeprecated
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
@@ -424,7 +502,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 					loadBalancingRules = append(loadBalancingRules, *rule.ID)
 				}
 			}
-			ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
+			ipConfig["load_balancer_rules"] = pluginsdk.NewSet(pluginsdk.HashString, loadBalancingRules)
 
 			inboundNatRules := make([]interface{}, 0)
 			if rules := props.InboundNatRules; rules != nil {
@@ -432,7 +510,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 					inboundNatRules = append(inboundNatRules, *rule.ID)
 				}
 			}
-			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
+			ipConfig["inbound_nat_rules"] = pluginsdk.NewSet(pluginsdk.HashString, inboundNatRules)
 
 			outboundRules := make([]interface{}, 0)
 			if rules := props.OutboundRules; rules != nil {
@@ -440,7 +518,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 					outboundRules = append(outboundRules, *rule.ID)
 				}
 			}
-			ipConfig["outbound_rules"] = schema.NewSet(schema.HashString, outboundRules)
+			ipConfig["outbound_rules"] = pluginsdk.NewSet(pluginsdk.HashString, outboundRules)
 		}
 
 		result = append(result, ipConfig)

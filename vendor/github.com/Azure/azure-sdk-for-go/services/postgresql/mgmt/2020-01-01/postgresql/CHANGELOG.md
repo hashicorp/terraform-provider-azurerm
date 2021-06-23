@@ -1,26 +1,19 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/postgresql/resource-manager/readme.md tag: `package-2020-01-01`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *ConfigurationsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *DatabasesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *DatabasesDeleteFuture.UnmarshalJSON([]byte) error
-1. *FirewallRulesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *FirewallRulesDeleteFuture.UnmarshalJSON([]byte) error
-1. *PrivateEndpointConnectionsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *PrivateEndpointConnectionsDeleteFuture.UnmarshalJSON([]byte) error
-1. *PrivateEndpointConnectionsUpdateTagsFuture.UnmarshalJSON([]byte) error
-1. *ServerAdministratorsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerAdministratorsDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServerKeysCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServerKeysDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServerSecurityAlertPoliciesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServersCreateFuture.UnmarshalJSON([]byte) error
-1. *ServersDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServersRestartFuture.UnmarshalJSON([]byte) error
-1. *ServersUpdateFuture.UnmarshalJSON([]byte) error
-1. *VirtualNetworkRulesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *VirtualNetworkRulesDeleteFuture.UnmarshalJSON([]byte) error
+1. AzureEntityResource.MarshalJSON() ([]byte, error)
+1. ErrorAdditionalInfo.MarshalJSON() ([]byte, error)
+1. ErrorResponse.MarshalJSON() ([]byte, error)
+1. OperationDisplay.MarshalJSON() ([]byte, error)
+1. PrivateEndpointConnectionListResult.MarshalJSON() ([]byte, error)
+1. PrivateLinkResource.MarshalJSON() ([]byte, error)
+1. PrivateLinkResourceListResult.MarshalJSON() ([]byte, error)
+1. PrivateLinkResourceProperties.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)
+1. ServerKeyListResult.MarshalJSON() ([]byte, error)
+1. ServerPrivateEndpointConnection.MarshalJSON() ([]byte, error)
+1. VirtualNetworkRuleListResult.MarshalJSON() ([]byte, error)

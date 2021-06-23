@@ -5,11 +5,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,15 +43,15 @@ func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
 	return output
 }
 
-func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals, resourceName)
 }
 
-func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals, resourceName)
 }
 
-func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,15 +121,15 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	return nil
 }
 
-func resourceLogicAppActionRemove(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
+func resourceLogicAppActionRemove(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
 	return resourceLogicAppComponentRemove(d, meta, "Action", "actions", resourceGroup, logicAppName, name)
 }
 
-func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
+func resourceLogicAppTriggerRemove(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
 	return resourceLogicAppComponentRemove(d, meta, "Trigger", "triggers", resourceGroup, logicAppName, name)
 }
 
-func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
+func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,15 +179,15 @@ func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, k
 	return nil
 }
 
-func retrieveLogicAppAction(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
 	return retrieveLogicAppComponent(d, meta, resourceGroup, "Action", "actions", logicAppName, name)
 }
 
-func retrieveLogicAppTrigger(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+func retrieveLogicAppTrigger(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
 	return retrieveLogicAppComponent(d, meta, resourceGroup, "Trigger", "triggers", logicAppName, name)
 }
 
-func retrieveLogicAppComponent(d *schema.ResourceData, meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

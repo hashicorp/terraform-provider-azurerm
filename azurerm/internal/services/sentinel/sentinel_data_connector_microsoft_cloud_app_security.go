@@ -7,67 +7,66 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *schema.Resource {
-	return &schema.Resource{
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
 		Read:   resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead,
 		Update: resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
 		Delete: resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectorID(id)
 			return err
 		}, importSentinelDataConnector(securityinsight.DataConnectorKindMicrosoftCloudAppSecurity)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"alerts_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"discovery_logs_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -75,7 +74,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *schema.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,14 +112,14 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
 	}
 
-	alertState := securityinsight.Enabled
+	alertState := securityinsight.DataTypeStateEnabled
 	if !alertsEnabled {
-		alertState = securityinsight.Disabled
+		alertState = securityinsight.DataTypeStateDisabled
 	}
 
-	discoveryLogsState := securityinsight.Enabled
+	discoveryLogsState := securityinsight.DataTypeStateEnabled
 	if !discoveryLogsEnabled {
-		discoveryLogsState = securityinsight.Disabled
+		discoveryLogsState = securityinsight.DataTypeStateDisabled
 	}
 
 	param := securityinsight.MCASDataConnector{
@@ -136,7 +135,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 				},
 			},
 		},
-		Kind: securityinsight.KindMicrosoftCloudAppSecurity,
+		Kind: securityinsight.KindBasicDataConnectorKindMicrosoftCloudAppSecurity,
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -164,7 +163,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 	return resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d, meta)
 }
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,11 +200,11 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	)
 	if dt := dc.DataTypes; dt != nil {
 		if alert := dt.Alerts; alert != nil {
-			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.Enabled))
+			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.DataTypeStateEnabled))
 		}
 
 		if discoveryLogs := dt.DiscoveryLogs; discoveryLogs != nil {
-			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.Enabled))
+			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.DataTypeStateEnabled))
 		}
 	}
 	d.Set("discovery_logs_enabled", discoveryLogsEnabled)
@@ -214,7 +213,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	return nil
 }
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

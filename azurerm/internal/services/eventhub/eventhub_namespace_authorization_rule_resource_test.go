@@ -6,12 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,10 +37,10 @@ func testAccEventHubNamespaceAuthorizationRule(t *testing.T, listen, send, manag
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 	r := EventHubNamespaceAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, listen, send, manage),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
@@ -62,10 +61,10 @@ func TestAccEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 	r := EventHubNamespaceAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -80,10 +79,10 @@ func TestAccEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 	r := EventHubNamespaceAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, true, false, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("listen").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -92,7 +91,7 @@ func TestAccEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 		},
 		{
 			Config: r.base(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
@@ -113,20 +112,20 @@ func TestAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(t *test
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 	r := EventHubNamespaceAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// `primary_connection_string_alias` and `secondary_connection_string_alias` are still `nil` in `azurerm_eventhub_namespace_authorization_rule` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
 			// So these two properties should be checked in the second run.
 			// And `depends_on` cannot be applied to `azurerm_eventhub_namespace_authorization_rule`.
 			// Because it would throw error message `BreakPairing operation is only allowed on primary namespace with valid secondary namespace.` while destroying `azurerm_eventhub_namespace_disaster_recovery_config` if `depends_on` is applied.
 			Config: r.withAliasConnectionString(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.withAliasConnectionString(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
 			),
@@ -141,10 +140,10 @@ func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 	resourceTwoName := "azurerm_eventhub_namespace_authorization_rule.test2"
 	resourceThreeName := "azurerm_eventhub_namespace_authorization_rule.test3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multi(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
@@ -152,17 +151,17 @@ func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(resourceTwoName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
-				resource.TestCheckResourceAttr(resourceTwoName, "send", "true"),
-				resource.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
-				resource.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
-				resource.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
+				acceptance.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
+				acceptance.TestCheckResourceAttr(resourceTwoName, "send", "true"),
+				acceptance.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
+				acceptance.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
+				acceptance.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
 				check.That(resourceThreeName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
-				resource.TestCheckResourceAttr(resourceThreeName, "send", "true"),
-				resource.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
-				resource.TestCheckResourceAttrSet(resourceThreeName, "primary_connection_string"),
-				resource.TestCheckResourceAttrSet(resourceThreeName, "secondary_connection_string"),
+				acceptance.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
+				acceptance.TestCheckResourceAttr(resourceThreeName, "send", "true"),
+				acceptance.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
+				acceptance.TestCheckResourceAttrSet(resourceThreeName, "primary_connection_string"),
+				acceptance.TestCheckResourceAttrSet(resourceThreeName, "secondary_connection_string"),
 			),
 		},
 		data.ImportStep(),
@@ -171,18 +170,18 @@ func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 	})
 }
 
-func (EventHubNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceAuthorizationRuleID(state.ID)
+func (EventHubNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := authorizationrulesnamespaces.AuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.NamespacesClient.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
+	resp, err := clients.Eventhub.NamespaceAuthorizationRulesClient.NamespacesGetAuthorizationRule(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.AuthorizationRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubNamespaceAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {

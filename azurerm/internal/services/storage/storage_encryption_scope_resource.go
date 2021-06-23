@@ -7,54 +7,53 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageEncryptionScope() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageEncryptionScope() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageEncryptionScopeCreate,
 		Read:   resourceStorageEncryptionScopeRead,
 		Update: resourceStorageEncryptionScopeUpdate,
 		Delete: resourceStorageEncryptionScopeDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EncryptionScopeID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageEncryptionScopeName,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"source": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MicrosoftKeyVault),
@@ -63,15 +62,21 @@ func resourceStorageEncryptionScope() *schema.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+			},
+
+			"infrastructure_encryption_required": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
 }
 
-func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,6 +113,11 @@ func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface
 			},
 		},
 	}
+
+	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
+		props.EncryptionScopeProperties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
+	}
+
 	if _, err := client.Put(ctx, accountId.ResourceGroup, accountId.Name, name, props); err != nil {
 		return fmt.Errorf("creating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
@@ -116,7 +126,7 @@ func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +158,7 @@ func resourceStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interface
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,12 +202,15 @@ func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}
 			}
 		}
 		d.Set("key_vault_key_id", keyId)
+		if props.RequireInfrastructureEncryption != nil {
+			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
+		}
 	}
 
 	return nil
 }
 
-func resourceStorageEncryptionScopeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

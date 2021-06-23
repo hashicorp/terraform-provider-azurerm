@@ -6,38 +6,37 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDnsPtrRecord() *schema.Resource {
-	return &schema.Resource{
+func resourceDnsPtrRecord() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDnsPtrRecordCreateUpdate,
 		Read:   resourceDnsPtrRecordRead,
 		Update: resourceDnsPtrRecordCreateUpdate,
 		Delete: resourceDnsPtrRecordDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PtrRecordID(id)
 			return err
 		}),
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -45,24 +44,24 @@ func resourceDnsPtrRecord() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"records": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"ttl": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -71,7 +70,7 @@ func resourceDnsPtrRecord() *schema.Resource {
 	}
 }
 
-func resourceDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -118,7 +117,7 @@ func resourceDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceDnsPtrRecordRead(d, meta)
 }
 
-func resourceDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
 	dnsClient := client.Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -151,7 +150,7 @@ func resourceDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
 	dnsClient := client.Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -186,8 +185,8 @@ func flattenAzureRmDnsPtrRecords(records *[]dns.PtrRecord) []string {
 	return results
 }
 
-func expandAzureRmDnsPtrRecords(d *schema.ResourceData) *[]dns.PtrRecord {
-	recordStrings := d.Get("records").(*schema.Set).List()
+func expandAzureRmDnsPtrRecords(d *pluginsdk.ResourceData) *[]dns.PtrRecord {
+	recordStrings := d.Get("records").(*pluginsdk.Set).List()
 	records := make([]dns.PtrRecord, len(recordStrings))
 
 	for i, v := range recordStrings {

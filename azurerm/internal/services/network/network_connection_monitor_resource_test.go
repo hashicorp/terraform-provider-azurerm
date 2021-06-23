@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func testAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,10 +54,10 @@ func testAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -70,16 +69,16 @@ func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.completeAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -91,10 +90,10 @@ func testAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVmConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -106,10 +105,10 @@ func testAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeVmConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -121,16 +120,16 @@ func testAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVmConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.completeVmConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -142,22 +141,22 @@ func testAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicVmConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicAddressConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -169,10 +168,10 @@ func testAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.missingDestinationConfig(data),
-			ExpectError: regexp.MustCompile("must have at least 2 endpoints"),
+			ExpectError: regexp.MustCompile("should have at least one destination"),
 		},
 	})
 }
@@ -181,7 +180,7 @@ func testAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.conflictingDestinationsConfig(data),
 			ExpectError: regexp.MustCompile("don't allow creating different endpoints for the same VM"),
@@ -193,10 +192,10 @@ func testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAddressAndVirtualMachineIdConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -208,10 +207,10 @@ func testAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpConfigurationConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -223,10 +222,10 @@ func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.icmpConfigurationConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -234,7 +233,58 @@ func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	})
 }
 
-func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func testAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.endpointDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicAddressConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.endpointDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.endpointIPAddressAndCoverageLevel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateEndpointIPAddressAndCoverageLevel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ConnectionMonitorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -276,7 +326,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "src" {
@@ -395,12 +445,12 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
     name    = "destination"
-    address = "terraform.io"
+    address = "pluginsdk.io"
   }
 
   test_configuration {
@@ -442,7 +492,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
 
     filter {
       item {
@@ -456,7 +506,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name    = "destination"
-    address = "terraform.io"
+    address = "pluginsdk.io"
   }
 
   test_configuration {
@@ -507,12 +557,12 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
     name               = "destination"
-    virtual_machine_id = azurerm_virtual_machine.dest.id
+    target_resource_id = azurerm_virtual_machine.dest.id
   }
 
   test_configuration {
@@ -547,12 +597,12 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
     name               = "destination"
-    virtual_machine_id = azurerm_virtual_machine.dest.id
+    target_resource_id = azurerm_virtual_machine.dest.id
     address            = azurerm_network_interface.dest.private_ip_address
   }
 
@@ -588,7 +638,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
 
     filter {
       item {
@@ -602,7 +652,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "destination"
-    virtual_machine_id = azurerm_virtual_machine.dest.id
+    target_resource_id = azurerm_virtual_machine.dest.id
   }
 
   test_configuration {
@@ -643,7 +693,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   test_configuration {
@@ -678,12 +728,12 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
     name               = "destination"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   test_configuration {
@@ -718,12 +768,12 @@ resource "azurerm_network_connection_monitor" "import" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
     name    = "destination"
-    address = "terraform.io"
+    address = "pluginsdk.io"
   }
 
   test_configuration {
@@ -758,12 +808,12 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
-    name    = "destination"
-    address = "terraform.io"
+    name               = "destination"
+    target_resource_id = azurerm_virtual_machine.dest.id
   }
 
   test_configuration {
@@ -793,7 +843,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, r.baseConfig(data), data.RandomInteger)
+`, r.baseWithDestConfig(data), data.RandomInteger)
 }
 
 func (r NetworkConnectionMonitorResource) icmpConfigurationConfig(data acceptance.TestData) string {
@@ -807,12 +857,12 @@ resource "azurerm_network_connection_monitor" "test" {
 
   endpoint {
     name               = "source"
-    virtual_machine_id = azurerm_virtual_machine.src.id
+    target_resource_id = azurerm_virtual_machine.src.id
   }
 
   endpoint {
     name    = "destination"
-    address = "terraform.io"
+    address = "pluginsdk.io"
   }
 
   test_configuration {
@@ -834,4 +884,149 @@ resource "azurerm_network_connection_monitor" "test" {
   depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, r.baseConfig(data), data.RandomInteger)
+}
+
+func (r NetworkConnectionMonitorResource) endpointDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name                 = "source"
+    target_resource_type = "MMAWorkspaceMachine"
+    address              = "test.internal.domain.com"
+    target_resource_id   = azurerm_log_analytics_workspace.test.id
+  }
+
+  endpoint {
+    name    = "destination"
+    address = "pluginsdk.io"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetworkConnectionMonitorResource) endpointIPAddressAndCoverageLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name                  = "source"
+    target_resource_type  = "AzureVNet"
+    target_resource_id    = azurerm_virtual_network.test.id
+    included_ip_addresses = azurerm_subnet.test.address_prefixes
+    excluded_ip_addresses = ["10.0.2.2", "10.0.2.3"]
+    coverage_level        = "Default"
+  }
+
+  endpoint {
+    address = "pluginsdk.io"
+    name    = "destination"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, r.baseConfig(data), data.RandomInteger)
+}
+
+func (r NetworkConnectionMonitorResource) updateEndpointIPAddressAndCoverageLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test2" {
+  name                 = "accttest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
+}
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name                  = "source"
+    target_resource_type  = "AzureVNet"
+    target_resource_id    = azurerm_virtual_network.test.id
+    included_ip_addresses = azurerm_subnet.test2.address_prefixes
+    excluded_ip_addresses = ["10.0.3.2"]
+    coverage_level        = "Average"
+  }
+
+  endpoint {
+    address = "pluginsdk.io"
+    name    = "destination"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
 }

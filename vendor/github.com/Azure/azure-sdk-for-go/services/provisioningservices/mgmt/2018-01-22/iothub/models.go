@@ -58,6 +58,12 @@ type CertificateProperties struct {
 	Updated *date.TimeRFC1123 `json:"updated,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CertificateProperties.
+func (cp CertificateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CertificateResponse the X509 Certificate.
 type CertificateResponse struct {
 	autorest.Response `json:"-"`
@@ -124,6 +130,12 @@ type ErrorDetails struct {
 	Message *string `json:"message,omitempty"`
 	// Details - READ-ONLY; The error details.
 	Details *string `json:"details,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorDetails.
+func (ed ErrorDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorMesssage error response containing message and code.
@@ -207,6 +219,7 @@ func (future *IotDpsResourceCreateOrUpdateFuture) result(client IotDpsResourceCl
 		return
 	}
 	if !done {
+		psd.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceCreateOrUpdateFuture")
 		return
 	}
@@ -249,6 +262,7 @@ func (future *IotDpsResourceDeleteFuture) result(client IotDpsResourceClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceDeleteFuture")
 		return
 	}
@@ -285,6 +299,7 @@ func (future *IotDpsResourceUpdateFuture) result(client IotDpsResourceClient) (p
 		return
 	}
 	if !done {
+		psd.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceUpdateFuture")
 		return
 	}
@@ -533,6 +548,12 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (o OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationInputs input values for operation results call.
 type OperationInputs struct {
 	// Name - The name of the Provisioning Service to check.
@@ -547,6 +568,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.

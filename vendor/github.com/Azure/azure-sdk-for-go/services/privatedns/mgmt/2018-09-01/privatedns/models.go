@@ -364,6 +364,12 @@ type PrivateZoneProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateZoneProperties.
+func (pzp PrivateZoneProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateZonesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateZonesCreateOrUpdateFuture struct {
@@ -393,6 +399,7 @@ func (future *PrivateZonesCreateOrUpdateFuture) result(client PrivateZonesClient
 		return
 	}
 	if !done {
+		pz.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesCreateOrUpdateFuture")
 		return
 	}
@@ -435,6 +442,7 @@ func (future *PrivateZonesDeleteFuture) result(client PrivateZonesClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesDeleteFuture")
 		return
 	}
@@ -471,6 +479,7 @@ func (future *PrivateZonesUpdateFuture) result(client PrivateZonesClient) (pz Pr
 		return
 	}
 	if !done {
+		pz.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesUpdateFuture")
 		return
 	}
@@ -492,6 +501,12 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Example - 'Microsoft.Network/privateDnsZones'.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PtrRecord a PTR record.
@@ -828,6 +843,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Example - 'Microsoft.Network/privateDnsZones'.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SoaRecord an SOA record.
@@ -1234,6 +1255,7 @@ func (future *VirtualNetworkLinksCreateOrUpdateFuture) result(client VirtualNetw
 		return
 	}
 	if !done {
+		vnl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksCreateOrUpdateFuture")
 		return
 	}
@@ -1276,6 +1298,7 @@ func (future *VirtualNetworkLinksDeleteFuture) result(client VirtualNetworkLinks
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksDeleteFuture")
 		return
 	}
@@ -1312,6 +1335,7 @@ func (future *VirtualNetworkLinksUpdateFuture) result(client VirtualNetworkLinks
 		return
 	}
 	if !done {
+		vnl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksUpdateFuture")
 		return
 	}

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementAuthorizationServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 	r := ApiManagementAuthorizationServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccApiManagementAuthorizationServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 	r := ApiManagementAuthorizationServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,18 +50,18 @@ func TestAccApiManagementAuthorizationServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 	r := ApiManagementAuthorizationServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("client_secret"),
+		data.ImportStep("client_secret", "resource_owner_password", "resource_owner_username"),
 	})
 }
 
-func (ApiManagementAuthorizationServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementAuthorizationServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -89,9 +88,9 @@ resource "azurerm_api_management_authorization_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   api_management_name          = azurerm_api_management.test.name
   display_name                 = "Test Group"
-  authorization_endpoint       = "https://azacctest.hashicorptest.com/client/authorize"
+  authorization_endpoint       = "https://azacceptance.hashicorptest.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
-  client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
+  client_registration_endpoint = "https://azacceptance.hashicorptest.com/client/register"
 
   grant_types = [
     "implicit",
@@ -134,9 +133,9 @@ resource "azurerm_api_management_authorization_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   api_management_name          = azurerm_api_management.test.name
   display_name                 = "Test Group"
-  authorization_endpoint       = "https://azacctest.hashicorptest.com/client/authorize"
+  authorization_endpoint       = "https://azacceptance.hashicorptest.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
-  client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
+  client_registration_endpoint = "https://azacceptance.hashicorptest.com/client/register"
 
   grant_types = [
     "authorizationCode",
@@ -153,7 +152,7 @@ resource "azurerm_api_management_authorization_server" "test" {
 
   client_secret           = "n1n3-m0re-s3a5on5-m0r1y"
   default_scope           = "read write"
-  token_endpoint          = "https://azacctest.hashicorptest.com/client/token"
+  token_endpoint          = "https://azacceptance.hashicorptest.com/client/token"
   resource_owner_username = "rick"
   resource_owner_password = "C-193P"
   support_state           = true

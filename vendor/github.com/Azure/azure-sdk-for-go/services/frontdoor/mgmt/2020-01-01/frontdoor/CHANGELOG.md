@@ -1,22 +1,13 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/frontdoor/resource-manager/readme.md tag: `package-2020-01`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *EndpointsPurgeContentFuture.UnmarshalJSON([]byte) error
-1. *ExperimentsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ExperimentsDeleteFuture.UnmarshalJSON([]byte) error
-1. *ExperimentsUpdateFuture.UnmarshalJSON([]byte) error
-1. *FrontDoorsCreateOrUpdateFutureType.UnmarshalJSON([]byte) error
-1. *FrontDoorsDeleteFutureType.UnmarshalJSON([]byte) error
-1. *FrontendEndpointsDisableHTTPSFuture.UnmarshalJSON([]byte) error
-1. *FrontendEndpointsEnableHTTPSFuture.UnmarshalJSON([]byte) error
-1. *NetworkExperimentProfilesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *NetworkExperimentProfilesDeleteFuture.UnmarshalJSON([]byte) error
-1. *NetworkExperimentProfilesUpdateFuture.UnmarshalJSON([]byte) error
-1. *PoliciesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *PoliciesDeleteFuture.UnmarshalJSON([]byte) error
-1. *RulesEnginesCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *RulesEnginesDeleteFuture.UnmarshalJSON([]byte) error
+1. CheckNameAvailabilityOutput.MarshalJSON() ([]byte, error)
+1. ErrorResponse.MarshalJSON() ([]byte, error)
+1. LatencyMetric.MarshalJSON() ([]byte, error)
+1. ManagedRuleDefinition.MarshalJSON() ([]byte, error)
+1. ManagedRuleGroupDefinition.MarshalJSON() ([]byte, error)
+1. ManagedRuleSetDefinitionProperties.MarshalJSON() ([]byte, error)
+1. ValidateCustomDomainOutput.MarshalJSON() ([]byte, error)

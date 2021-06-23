@@ -6,14 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,7 +68,7 @@ func TestAccContainerRegistryName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := containers.ValidateContainerRegistryName(tc.Value, "azurerm_container_registry")
+		_, errors := validate.ContainerRegistryName(tc.Value, "azurerm_container_registry")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Container Registry Name to trigger a validation error: %v", errors)
@@ -81,10 +80,10 @@ func TestAccContainerRegistry_basic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,10 +95,10 @@ func TestAccContainerRegistry_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicManaged(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -114,10 +113,10 @@ func TestAccContainerRegistry_basic_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicManaged(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -129,10 +128,10 @@ func TestAccContainerRegistry_basic_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicManaged(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -144,24 +143,24 @@ func TestAccContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
 			),
 		},
 		{
 			Config: r.basicManaged(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
 			),
@@ -173,10 +172,10 @@ func TestAccContainerRegistry_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -188,17 +187,80 @@ func TestAccContainerRegistry_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.completeUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	skuPremium := "Premium"
+	skuBasic := "Basic"
+
+	secondaryLocation := location.Normalize(data.Locations.Secondary)
+	ternaryLocation := location.Normalize(data.Locations.Ternary)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// first config creates an ACR with locations
+		{
+			Config: r.geoReplicationLocation(data, []string{secondaryLocation}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(secondaryLocation),
+			),
+		},
+		// second config updates the ACR with updated locations
+		{
+			Config: r.geoReplicationLocation(data, []string{ternaryLocation}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(ternaryLocation),
+			),
+		},
+		// third config updates the ACR with updated locations
+		{
+			Config: r.geoReplicationLocation(data, []string{secondaryLocation, ternaryLocation}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		// For compatibility, downgrade from Premium to Basic should remove all replications first, but it's unnecessary. Once georeplication_locations is deprecated, this can be done in single update.
+		// fourth config updates the ACR with no location.
+		{
+			Config: r.geoReplicationUpdateWithNoLocation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("0"),
+			),
+		},
+		// fifth config updates the SKU to basic.
+		{
+			Config: r.geoReplicationUpdateWithNoLocation_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuBasic),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("0"),
 			),
 		},
 	})
@@ -214,54 +276,98 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 	secondaryLocation := location.Normalize(data.Locations.Secondary)
 	ternaryLocation := location.Normalize(data.Locations.Ternary)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// first config creates an ACR with locations
 		{
-			Config: r.geoReplication(data, skuPremium, []string{secondaryLocation}),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.geoReplication(data, secondaryLocation),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
-				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplications.0.location").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplications.0.tags.Environment").HasValue("Production"),
 			),
 		},
+		data.ImportStep(),
 		// second config updates the ACR with updated locations
 		{
-			Config: r.geoReplication(data, skuPremium, []string{ternaryLocation}),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.geoReplication(data, ternaryLocation),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
-				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(ternaryLocation),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplications.0.location").HasValue(ternaryLocation),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplications.0.tags.Environment").HasValue("Production"),
 			),
 		},
-		// third config updates the ACR with no location
+		data.ImportStep(),
+		// third config updates the ACR with updated locations
 		{
-			Config: r.geoReplicationUpdateWithNoLocation(data, skuPremium),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.geoReplicationMultipleLocations(data, secondaryLocation, ternaryLocation),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("0"),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("2"),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("georeplications.1.tags.%").HasValue("0"),
 			),
 		},
-		// fourth config updates an ACR with replicas
+		data.ImportStep(),
+		// For compatibility, downgrade from Premium to Basic should remove all replications first, but it's unnecessary. Once georeplication_locations is deprecated, this can be done in single update.
+		// fourth config updates the ACR with no location
 		{
-			Config: r.geoReplication(data, skuPremium, []string{secondaryLocation}),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.geoReplicationUpdateWithNoReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
-				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("0"),
 			),
 		},
-		// fifth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
+		data.ImportStep(),
+		// fifth config updates the SKU to basic.
 		{
-			Config: r.geoReplicationUpdateWithNoLocation_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.geoReplicationUpdateWithNoReplication_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuBasic),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("0"),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("0"),
 			),
 		},
+	})
+}
+
+func TestAccContainerRegistry_geoReplicationSwitch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	skuPremium := "Premium"
+
+	secondaryLocation := location.Normalize(data.Locations.Secondary)
+	ternaryLocation := location.Normalize(data.Locations.Ternary)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// first config creates an ACR using georeplication_locations
+		{
+			Config: r.geoReplicationLocation(data, []string{secondaryLocation, ternaryLocation}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		// second config updates the ACR using georeplications
+		{
+			Config: r.geoReplicationMultipleLocations(data, secondaryLocation, ternaryLocation),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -269,10 +375,10 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.networkAccessProfile_ip(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("2"),
@@ -286,16 +392,16 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicManaged(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.networkAccessProfile_ip(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("2"),
@@ -304,7 +410,7 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.networkAccessProfile_vnet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
 				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("1"),
@@ -313,7 +419,7 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.networkAccessProfile_both(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
 				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("1"),
@@ -327,10 +433,10 @@ func TestAccContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.networkAccessProfile_vnet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
 				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("1"),
@@ -344,10 +450,10 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.policies(data, 10),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("0"),
@@ -359,7 +465,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 		},
 		{
 			Config: r.policies(data, 20),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("0"),
@@ -371,7 +477,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 		},
 		{
 			Config: r.policies_downgradeUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.#").HasValue("0"),
 				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("false"),
@@ -383,7 +489,56 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 	})
 }
 
-func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccContainerRegistry_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+	skuPremium := "Premium"
+	userAssigned := "userAssigned"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// creates an ACR with encryption
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue(userAssigned),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_zoneRedundancy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundancy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_geoReplicationZoneRedundancy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplicationZoneRedundancy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -406,7 +561,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -417,7 +572,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Basic"
 
   # make sure network_rule_set is empty for basic SKU
-  # premiuim SKU will automaticcally populate network_rule_set.default_action to allow
+  # premiuim SKU will automatically populate network_rule_set.default_action to allow
   network_rule_set = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -430,7 +585,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -463,7 +618,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -488,7 +643,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -507,7 +662,7 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerRegistryResource) geoReplication(data acceptance.TestData, sku string, replicationRegions []string) string {
+func (ContainerRegistryResource) geoReplicationLocation(data acceptance.TestData, replicationRegions []string) string {
 	regions := make([]string, 0)
 	for _, region := range replicationRegions {
 		// ensure they're quoted
@@ -519,7 +674,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -527,20 +682,20 @@ resource "azurerm_container_registry" "test" {
   name                     = "testacccr%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  sku                      = "%s"
+  sku                      = "Premium"
   georeplication_locations = [%s]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, strings.Join(regions, ","))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.Join(regions, ","))
 }
 
-func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation(data acceptance.TestData, sku string) string {
+func (ContainerRegistryResource) geoReplication(data acceptance.TestData, replication string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -548,11 +703,84 @@ resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "Premium"
+  georeplications {
+    location = "%s"
+    tags = {
+      Environment = "Production"
+    }
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replication)
 }
 
+func (ContainerRegistryResource) geoReplicationMultipleLocations(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location = "%s"
+  }
+  georeplications {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+}
+
+func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                     = "testacccr%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Premium"
+  georeplication_locations = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) geoReplicationUpdateWithNoReplication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications     = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -560,7 +788,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -571,8 +799,34 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Basic"
 
   # make sure network_rule_set is empty for basic SKU
-  # premiuim SKU will automaticcally populate network_rule_set.default_action to allow
+  # premiuim SKU will automatically populate network_rule_set.default_action to allow
   network_rule_set = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) geoReplicationUpdateWithNoReplication_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+
+  # make sure network_rule_set is empty for basic SKU
+  # premiuim SKU will automatically populate network_rule_set.default_action to allow
+  network_rule_set = []
+
+  georeplications = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -777,4 +1031,78 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "testaccuai%d"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) zoneRedundancy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                    = "testacccr%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  sku                     = "Premium"
+  zone_redundancy_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) geoReplicationZoneRedundancy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                = "%s"
+    zone_redundancy_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }

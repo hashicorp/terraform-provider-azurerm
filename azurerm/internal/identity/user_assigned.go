@@ -1,8 +1,10 @@
 package identity
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var _ Identity = UserAssigned{}
@@ -16,8 +18,11 @@ func (u UserAssigned) Expand(input []interface{}) (*ExpandedConfig, error) {
 		}, nil
 	}
 
+	v := input[0].(map[string]interface{})
+
 	return &ExpandedConfig{
-		Type: systemAssigned,
+		Type:                    userAssigned,
+		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].(*pluginsdk.Set).List()),
 	}, nil
 }
 
@@ -26,43 +31,34 @@ func (u UserAssigned) Flatten(input *ExpandedConfig) []interface{} {
 		return []interface{}{}
 	}
 
-	var coalesce = func(input *string) string {
-		if input == nil {
-			return ""
-		}
-
-		return *input
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"type":         input.Type,
-			"principal_id": coalesce(input.PrincipalId),
-			"tenant_id":    coalesce(input.TenantId),
+			"identity_ids": utils.FlattenStringSlice(input.UserAssignedIdentityIds),
 		},
 	}
 }
 
-func (u UserAssigned) Schema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func (u UserAssigned) Schema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						userAssigned,
 					}, false),
 				},
 				"identity_ids": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Required: true,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validation.NoZeroValues,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 			},
@@ -70,21 +66,21 @@ func (u UserAssigned) Schema() *schema.Schema {
 	}
 }
 
-func (u UserAssigned) SchemaDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func (u UserAssigned) SchemaDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 				"identity_ids": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Computed: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 			},

@@ -6,12 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,10 +37,10 @@ func testAccEventHubAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, listen, send, manage),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
@@ -65,10 +64,10 @@ func TestAccEventHubAuthorizationRule_multi(t *testing.T) {
 	resourceTwoName := "azurerm_eventhub_authorization_rule.test2"
 	resourceThreeName := "azurerm_eventhub_authorization_rule.test3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multi(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
@@ -76,17 +75,17 @@ func TestAccEventHubAuthorizationRule_multi(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(resourceTwoName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
-				resource.TestCheckResourceAttr(resourceTwoName, "send", "true"),
-				resource.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
-				resource.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
-				resource.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
+				acceptance.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
+				acceptance.TestCheckResourceAttr(resourceTwoName, "send", "true"),
+				acceptance.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
+				acceptance.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
+				acceptance.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
 				check.That(resourceThreeName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
-				resource.TestCheckResourceAttr(resourceThreeName, "send", "true"),
-				resource.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
-				resource.TestCheckResourceAttrSet(resourceThreeName, "primary_connection_string"),
-				resource.TestCheckResourceAttrSet(resourceThreeName, "secondary_connection_string"),
+				acceptance.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
+				acceptance.TestCheckResourceAttr(resourceThreeName, "send", "true"),
+				acceptance.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
+				acceptance.TestCheckResourceAttrSet(resourceThreeName, "primary_connection_string"),
+				acceptance.TestCheckResourceAttrSet(resourceThreeName, "secondary_connection_string"),
 			),
 		},
 		data.ImportStep(),
@@ -107,10 +106,10 @@ func TestAccEventHubAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -125,10 +124,10 @@ func TestAccEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, true, false, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("listen").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -137,7 +136,7 @@ func TestAccEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 		},
 		{
 			Config: r.base(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
@@ -158,10 +157,10 @@ func TestAccEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAliasConnectionString(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
@@ -171,22 +170,18 @@ func TestAccEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	})
 }
 
-func (EventHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+func (EventHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := eventhubs.AuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["authorizationRules"]
-	namespaceName := id.Path["namespaces"]
-	eventHubName := id.Path["eventhubs"]
-
-	resp, err := clients.Eventhub.EventHubsClient.GetAuthorizationRule(ctx, id.ResourceGroup, namespaceName, eventHubName, name)
+	resp, err := clients.Eventhub.EventHubsClient.GetAuthorizationRule(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Event Hub Authorization Rule %q (eventhub %s / namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AuthorizationRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccIoTCentralApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("ST1"),
 			),
@@ -37,12 +36,12 @@ func TestAccIoTCentralApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("template").HasValue("iotc-default@1.0.0"),
+				check.That(data.ResourceName).Key("template").HasValue("iotc-pnp-preview@1.0.0"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
 		},
@@ -54,16 +53,17 @@ func TestAccIoTCentralApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("ST1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
@@ -73,25 +73,22 @@ func TestAccIoTCentralApplication_update(t *testing.T) {
 	})
 }
 
-func TestAccIoTCentralApplication_requiresImportErrorStep(t *testing.T) {
+func TestAccIoTCentralApplication_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_iotcentral_application"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func (IoTCentralApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (IoTCentralApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +96,7 @@ func (IoTCentralApplicationResource) Exists(ctx context.Context, clients *client
 
 	resp, err := clients.IoTCentral.AppsClient.Get(ctx, id.ResourceGroup, id.IoTAppName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.IoTAppName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.AppProperties != nil), nil
@@ -120,7 +117,7 @@ resource "azurerm_iotcentral_application" "test" {
   name                = "acctest-iotcentralapp-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sub_domain          = "acctest-iotcentralapp-%[1]d"
+  sub_domain          = "subdomain-%[1]d"
   sku                 = "ST1"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -133,23 +130,23 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[2]d"
-  location = "%[1]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_iotcentral_application" "test" {
-  name                = "acctest-iotcentralapp-%[2]d"
+  name                = "acctest-iotcentralapp-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sub_domain          = "acctest-iotcentralapp-%[2]d"
-  display_name        = "acctest-iotcentralapp-%[2]d"
+  sub_domain          = "subdomain-%[1]d"
+  display_name        = "some-display-name"
   sku                 = "ST1"
-  template            = "iotc-default@1.0.0"
+  template            = "iotc-pnp-preview@1.0.0"
   tags = {
     ENV = "Test"
   }
 }
-`, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (IoTCentralApplicationResource) update(data acceptance.TestData) string {
@@ -159,35 +156,36 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[2]d"
-  location = "%[1]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_iotcentral_application" "test" {
-  name                = "acctest-iotcentralapp-%[2]d"
+  name                = "acctest-iotcentralapp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sub_domain          = "acctest-iotcentralapp-%[2]d"
-  display_name        = "acctest-iotcentralapp-%[2]d"
+  sub_domain          = "subdomain-%[1]d"
+  display_name        = "some-display-name"
   sku                 = "ST1"
   tags = {
     ENV = "Test"
   }
 }
-`, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (IoTCentralApplicationResource) requiresImport(data acceptance.TestData) string {
-	template := IoTCentralApplicationResource{}.basic(data)
+func (r IoTCentralApplicationResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_iotcentral_application" "import" {
   name                = azurerm_iotcentral_application.test.name
   resource_group_name = azurerm_iotcentral_application.test.resource_group_name
   location            = azurerm_iotcentral_application.test.location
   sub_domain          = azurerm_iotcentral_application.test.sub_domain
   display_name        = azurerm_iotcentral_application.test.display_name
-  sku                 = "ST1"
+  sku                 = azurerm_iotcentral_application.test.sku
 }
 `, template)
 }

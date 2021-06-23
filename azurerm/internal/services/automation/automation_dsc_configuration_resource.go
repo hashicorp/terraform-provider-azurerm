@@ -8,38 +8,37 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAutomationDscConfiguration() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomationDscConfiguration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomationDscConfigurationCreateUpdate,
 		Read:   resourceAutomationDscConfigurationRead,
 		Update: resourceAutomationDscConfigurationCreateUpdate,
 		Delete: resourceAutomationDscConfigurationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -49,14 +48,14 @@ func resourceAutomationDscConfiguration() *schema.Resource {
 			},
 
 			"automation_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"content_embedded": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -66,18 +65,18 @@ func resourceAutomationDscConfiguration() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"log_verbose": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -86,7 +85,7 @@ func resourceAutomationDscConfiguration() *schema.Resource {
 	}
 }
 
-func resourceAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +146,7 @@ func resourceAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta
 	return resourceAutomationDscConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +199,7 @@ func resourceAutomationDscConfigurationRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

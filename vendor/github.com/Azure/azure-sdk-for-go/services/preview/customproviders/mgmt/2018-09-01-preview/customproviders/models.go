@@ -138,6 +138,7 @@ func (future *AssociationsCreateOrUpdateFuture) result(client AssociationsClient
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsCreateOrUpdateFuture")
 		return
 	}
@@ -180,6 +181,7 @@ func (future *AssociationsDeleteFuture) result(client AssociationsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsDeleteFuture")
 		return
 	}
@@ -375,6 +377,7 @@ func (future *CustomResourceProviderCreateOrUpdateFuture) result(client CustomRe
 		return
 	}
 	if !done {
+		crm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderCreateOrUpdateFuture")
 		return
 	}
@@ -417,6 +420,7 @@ func (future *CustomResourceProviderDeleteFuture) result(client CustomResourcePr
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderDeleteFuture")
 		return
 	}
@@ -599,6 +603,12 @@ type ErrorDefinition struct {
 	Message *string `json:"message,omitempty"`
 	// Details - READ-ONLY; Internal error details.
 	Details *[]ErrorDefinition `json:"details,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorDefinition.
+func (ed ErrorDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponse error response.

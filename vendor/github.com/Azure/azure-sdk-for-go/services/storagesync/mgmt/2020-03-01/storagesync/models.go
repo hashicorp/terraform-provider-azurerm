@@ -44,6 +44,12 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BackupRequest backup request
 type BackupRequest struct {
 	// AzureFileShare - Azure File Share.
@@ -67,6 +73,12 @@ type CheckNameAvailabilityResult struct {
 	Reason NameAvailabilityReason `json:"reason,omitempty"`
 	// Message - READ-ONLY; Gets an error message explaining the Reason value in more detail.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResult.
+func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudEndpoint cloud Endpoint object.
@@ -314,6 +326,7 @@ func (future *CloudEndpointsCreateFuture) result(client CloudEndpointsClient) (c
 		return
 	}
 	if !done {
+		ce.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsCreateFuture")
 		return
 	}
@@ -356,6 +369,7 @@ func (future *CloudEndpointsDeleteFuture) result(client CloudEndpointsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsDeleteFuture")
 		return
 	}
@@ -392,6 +406,7 @@ func (future *CloudEndpointsPostBackupFuture) result(client CloudEndpointsClient
 		return
 	}
 	if !done {
+		pbr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPostBackupFuture")
 		return
 	}
@@ -434,6 +449,7 @@ func (future *CloudEndpointsPostRestoreFuture) result(client CloudEndpointsClien
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPostRestoreFuture")
 		return
 	}
@@ -470,6 +486,7 @@ func (future *CloudEndpointsPreBackupFuture) result(client CloudEndpointsClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPreBackupFuture")
 		return
 	}
@@ -506,6 +523,7 @@ func (future *CloudEndpointsPreRestoreFuture) result(client CloudEndpointsClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPreRestoreFuture")
 		return
 	}
@@ -542,6 +560,7 @@ func (future *CloudEndpointsTriggerChangeDetectionFuture) result(client CloudEnd
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsTriggerChangeDetectionFuture")
 		return
 	}
@@ -561,12 +580,24 @@ type CloudTieringCachePerformance struct {
 	CacheHitBytesPercent *int32 `json:"cacheHitBytesPercent,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CloudTieringCachePerformance.
+func (ctcp CloudTieringCachePerformance) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CloudTieringDatePolicyStatus status of the date policy
 type CloudTieringDatePolicyStatus struct {
 	// LastUpdatedTimestamp - READ-ONLY; Last updated timestamp
 	LastUpdatedTimestamp *date.Time `json:"lastUpdatedTimestamp,omitempty"`
 	// TieredFilesMostRecentAccessTimestamp - READ-ONLY; Most recent access time of tiered files
 	TieredFilesMostRecentAccessTimestamp *date.Time `json:"tieredFilesMostRecentAccessTimestamp,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CloudTieringDatePolicyStatus.
+func (ctdps CloudTieringDatePolicyStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudTieringFilesNotTiering server endpoint cloud tiering status object.
@@ -577,6 +608,12 @@ type CloudTieringFilesNotTiering struct {
 	TotalFileCount *int64 `json:"totalFileCount,omitempty"`
 	// Errors - READ-ONLY; Array of tiering errors
 	Errors *[]FilesNotTieringError `json:"errors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CloudTieringFilesNotTiering.
+func (ctfnt CloudTieringFilesNotTiering) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudTieringSpaceSavings server endpoint cloud tiering status object.
@@ -595,6 +632,12 @@ type CloudTieringSpaceSavings struct {
 	SpaceSavingsBytes *int64 `json:"spaceSavingsBytes,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CloudTieringSpaceSavings.
+func (ctss CloudTieringSpaceSavings) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CloudTieringVolumeFreeSpacePolicyStatus status of the volume free space policy
 type CloudTieringVolumeFreeSpacePolicyStatus struct {
 	// LastUpdatedTimestamp - READ-ONLY; Last updated timestamp
@@ -603,6 +646,12 @@ type CloudTieringVolumeFreeSpacePolicyStatus struct {
 	EffectiveVolumeFreeSpacePolicy *int32 `json:"effectiveVolumeFreeSpacePolicy,omitempty"`
 	// CurrentVolumeFreeSpacePercent - READ-ONLY; Current volume free space percentage.
 	CurrentVolumeFreeSpacePercent *int32 `json:"currentVolumeFreeSpacePercent,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CloudTieringVolumeFreeSpacePolicyStatus.
+func (ctvfsps CloudTieringVolumeFreeSpacePolicyStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Error error type
@@ -629,6 +678,12 @@ type FilesNotTieringError struct {
 	ErrorCode *int32 `json:"errorCode,omitempty"`
 	// FileCount - READ-ONLY; Count of files with this error
 	FileCount *int64 `json:"fileCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FilesNotTieringError.
+func (fnte FilesNotTieringError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplayInfo the operation supported by storage sync.
@@ -839,6 +894,12 @@ type OperationStatus struct {
 	Error *APIError `json:"error,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationStatus.
+func (osVar OperationStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PostBackupResponse post Backup Response
 type PostBackupResponse struct {
 	autorest.Response `json:"-"`
@@ -883,6 +944,12 @@ func (pbr *PostBackupResponse) UnmarshalJSON(body []byte) error {
 type PostBackupResponseProperties struct {
 	// CloudEndpointName - READ-ONLY; cloud endpoint Name.
 	CloudEndpointName *string `json:"cloudEndpointName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PostBackupResponseProperties.
+func (pbrp PostBackupResponseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PostRestoreRequest post Restore Request
@@ -931,6 +998,12 @@ type PreRestoreRequest struct {
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; The ARM identifier for Private Endpoint
 	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnection the Private Endpoint Connection resource.
@@ -1053,6 +1126,7 @@ func (future *PrivateEndpointConnectionsCreateFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.PrivateEndpointConnectionsCreateFuture")
 		return
 	}
@@ -1095,6 +1169,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -1220,6 +1295,12 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RecallActionParameters the parameters used when calling recall action on server endpoint.
@@ -1477,6 +1558,7 @@ func (future *RegisteredServersCreateFuture) result(client RegisteredServersClie
 		return
 	}
 	if !done {
+		rs.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.RegisteredServersCreateFuture")
 		return
 	}
@@ -1519,6 +1601,7 @@ func (future *RegisteredServersDeleteFuture) result(client RegisteredServersClie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.RegisteredServersDeleteFuture")
 		return
 	}
@@ -1555,6 +1638,7 @@ func (future *RegisteredServersTriggerRolloverFuture) result(client RegisteredSe
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.RegisteredServersTriggerRolloverFuture")
 		return
 	}
@@ -1570,6 +1654,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourcesMoveInfo resource Move Info.
@@ -1692,6 +1782,12 @@ type ServerEndpointCloudTieringStatus struct {
 	DatePolicyStatus *CloudTieringDatePolicyStatus `json:"datePolicyStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerEndpointCloudTieringStatus.
+func (sects ServerEndpointCloudTieringStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerEndpointCreateParameters the parameters used when creating a server endpoint.
 type ServerEndpointCreateParameters struct {
 	// ServerEndpointCreateParametersProperties - The parameters used to create the server endpoint.
@@ -1798,6 +1894,12 @@ type ServerEndpointFilesNotSyncingError struct {
 	TransientCount *int64 `json:"transientCount,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerEndpointFilesNotSyncingError.
+func (sefnse ServerEndpointFilesNotSyncingError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerEndpointProperties serverEndpoint Properties object.
 type ServerEndpointProperties struct {
 	// ServerLocalPath - Server Local path.
@@ -1882,6 +1984,12 @@ type ServerEndpointRecallError struct {
 	Count *int64 `json:"count,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerEndpointRecallError.
+func (sere ServerEndpointRecallError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerEndpointRecallStatus server endpoint recall status object.
 type ServerEndpointRecallStatus struct {
 	// LastUpdatedTimestamp - READ-ONLY; Last updated timestamp
@@ -1890,6 +1998,12 @@ type ServerEndpointRecallStatus struct {
 	TotalRecallErrorsCount *int64 `json:"totalRecallErrorsCount,omitempty"`
 	// RecallErrors - READ-ONLY; Array of recall errors
 	RecallErrors *[]ServerEndpointRecallError `json:"recallErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerEndpointRecallStatus.
+func (sers ServerEndpointRecallStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerEndpointsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -1921,6 +2035,7 @@ func (future *ServerEndpointsCreateFuture) result(client ServerEndpointsClient) 
 		return
 	}
 	if !done {
+		se.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsCreateFuture")
 		return
 	}
@@ -1963,6 +2078,7 @@ func (future *ServerEndpointsDeleteFuture) result(client ServerEndpointsClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsDeleteFuture")
 		return
 	}
@@ -1999,6 +2115,7 @@ func (future *ServerEndpointsRecallActionFuture) result(client ServerEndpointsCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsRecallActionFuture")
 		return
 	}
@@ -2035,6 +2152,7 @@ func (future *ServerEndpointsUpdateFuture) result(client ServerEndpointsClient) 
 		return
 	}
 	if !done {
+		se.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsUpdateFuture")
 		return
 	}
@@ -2064,6 +2182,12 @@ type ServerEndpointSyncActivityStatus struct {
 	TotalBytes *int64 `json:"totalBytes,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerEndpointSyncActivityStatus.
+func (sesas ServerEndpointSyncActivityStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerEndpointSyncSessionStatus sync Session status object.
 type ServerEndpointSyncSessionStatus struct {
 	// LastSyncResult - READ-ONLY; Last sync result (HResult)
@@ -2080,6 +2204,12 @@ type ServerEndpointSyncSessionStatus struct {
 	TransientFilesNotSyncingCount *int64 `json:"transientFilesNotSyncingCount,omitempty"`
 	// FilesNotSyncingErrors - READ-ONLY; Array of per-item errors coming from the last sync session.
 	FilesNotSyncingErrors *[]ServerEndpointFilesNotSyncingError `json:"filesNotSyncingErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerEndpointSyncSessionStatus.
+func (sesss ServerEndpointSyncSessionStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerEndpointSyncStatus server Endpoint sync status
@@ -2106,6 +2236,12 @@ type ServerEndpointSyncStatus struct {
 	DownloadActivity *ServerEndpointSyncActivityStatus `json:"downloadActivity,omitempty"`
 	// OfflineDataTransferStatus - READ-ONLY; Offline Data Transfer State. Possible values include: 'InProgress', 'Stopping', 'NotRunning', 'Complete'
 	OfflineDataTransferStatus ServerEndpointOfflineDataTransferState `json:"offlineDataTransferStatus,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerEndpointSyncStatus.
+func (sess ServerEndpointSyncStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerEndpointUpdateParameters parameters for updating an Server Endpoint.
@@ -2400,6 +2536,7 @@ func (future *ServicesCreateFuture) result(client ServicesClient) (s Service, er
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServicesCreateFuture")
 		return
 	}
@@ -2442,6 +2579,7 @@ func (future *ServicesDeleteFuture) result(client ServicesClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServicesDeleteFuture")
 		return
 	}
@@ -2478,6 +2616,7 @@ func (future *ServicesUpdateFuture) result(client ServicesClient) (s Service, er
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("storagesync.ServicesUpdateFuture")
 		return
 	}
@@ -2679,6 +2818,12 @@ type SyncGroupProperties struct {
 	UniqueID *string `json:"uniqueId,omitempty"`
 	// SyncGroupStatus - READ-ONLY; Sync group status
 	SyncGroupStatus *string `json:"syncGroupStatus,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncGroupProperties.
+func (sgp SyncGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource

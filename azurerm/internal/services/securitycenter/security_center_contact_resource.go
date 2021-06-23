@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/azuresdkhacks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,51 +21,50 @@ import (
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
 const securityCenterContactName = "default1"
 
-func resourceSecurityCenterContact() *schema.Resource {
-	return &schema.Resource{
+func resourceSecurityCenterContact() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterContactCreateUpdate,
 		Read:   resourceSecurityCenterContactRead,
 		Update: resourceSecurityCenterContactCreateUpdate,
 		Delete: resourceSecurityCenterContactDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"email": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"phone": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"alert_notifications": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 
 			"alerts_to_admins": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 		},
 	}
 }
 
-func resourceSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +126,7 @@ func resourceSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceSecurityCenterContactRead(d, meta)
 }
 
-func resourceSecurityCenterContactRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +154,7 @@ func resourceSecurityCenterContactRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSecurityCenterContactDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

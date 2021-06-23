@@ -15,13 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,12 +29,12 @@ type AttestationProviderResource struct {
 func TestAccAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,12 +45,12 @@ func TestAccAttestationProvider_basic(t *testing.T) {
 func TestAccAttestationProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -63,16 +61,16 @@ func TestAccAttestationProvider_requiresImport(t *testing.T) {
 func TestAccAttestationProvider_completeString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 	testCertificate, err := testGenerateTestCertificate("ENCOM")
 	if err != nil {
 		t.Fatalf("Test case failed: '%+v'", err)
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeString(data, randStr, testCertificate),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -84,12 +82,12 @@ func TestAccAttestationProvider_completeString(t *testing.T) {
 func TestAccAttestationProvider_completeFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeFile(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -101,26 +99,26 @@ func TestAccAttestationProvider_completeFile(t *testing.T) {
 func TestAccAttestationProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -128,7 +126,7 @@ func TestAccAttestationProvider_update(t *testing.T) {
 	})
 }
 
-func (t AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProviderID(state.ID)
 	if err != nil {
 		return nil, err
@@ -220,7 +218,7 @@ resource "azurerm_attestation_provider" "test" {
 }
 
 func (AttestationProviderResource) requiresImport(data acceptance.TestData) string {
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 	config := AttestationProviderResource{}.basic(data, randStr)
 
 	return fmt.Sprintf(`

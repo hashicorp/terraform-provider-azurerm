@@ -6,16 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	network2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct {
@@ -24,11 +22,11 @@ type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource str
 func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_gateway_backend_address_pool_association", "test")
 	r := NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -39,11 +37,11 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basi
 func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_gateway_backend_address_pool_association", "test")
 	r := NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -58,11 +56,11 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_dele
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_gateway_backend_address_pool_association", "test")
 	r := NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentionally not using a DisappearsStep as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.destroy),
 			),
@@ -74,18 +72,18 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_dele
 func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_gateway_backend_address_pool_association", "test")
 	r := NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateNIC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -93,7 +91,7 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_upda
 	})
 }
 
-func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	splitId := strings.Split(state.ID, "|")
 	if len(splitId) != 2 {
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
@@ -149,7 +147,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 	return utils.Bool(found), nil
 }
 
-func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	nicID, err := azure.ParseAzureResourceID(state.Attributes["network_interface_id"])
 	if err != nil {
 		return err

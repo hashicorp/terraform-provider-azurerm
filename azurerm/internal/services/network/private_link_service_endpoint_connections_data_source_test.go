@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourcePrivateLinkServiceEndpointConnections_complete(t *testing.
 	data := acceptance.BuildTestData(t, "data.azurerm_private_link_service_endpoint_connections", "test")
 	r := PrivateLinkServiceEndpointConnectionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("private_endpoint_connections.0.action_required").HasValue("None"),
 				check.That(data.ResourceName).Key("private_endpoint_connections.0.description").HasValue("Approved"),
 				check.That(data.ResourceName).Key("private_endpoint_connections.0.status").HasValue("Approved"),
@@ -43,5 +42,5 @@ data "azurerm_private_link_service_endpoint_connections" "test" {
   service_id          = azurerm_private_endpoint.test.private_service_connection.0.private_connection_resource_id
   resource_group_name = azurerm_resource_group.test.name
 }
-`, PrivateLinkServiceResource{}.basic(data))
+`, PrivateEndpointResource{}.basic(data))
 }

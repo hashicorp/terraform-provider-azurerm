@@ -8,8 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,40 +15,41 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLogAnalyticsWorkspace() *schema.Resource {
-	return &schema.Resource{
+func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreateUpdate,
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceCreateUpdate,
 		Delete: resourceLogAnalyticsWorkspaceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsWorkspaceID(id)
 			return err
 		}),
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.WorkspaceV0ToV1(),
-			migration.WorkspaceV1ToV2(),
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WorkspaceV0ToV1{},
+			1: migration.WorkspaceV1ToV2{},
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsWorkspaceName,
@@ -61,19 +60,19 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"internet_ingestion_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"internet_query_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
@@ -91,20 +90,20 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 			},
 
 			"reservation_capcity_in_gb_per_day": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
 			},
 
 			"retention_in_days": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
 			},
 
 			"daily_quota_gb": {
-				Type:             schema.TypeFloat,
+				Type:             pluginsdk.TypeFloat,
 				Optional:         true,
 				Default:          -1.0,
 				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
@@ -112,24 +111,24 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 			},
 
 			"workspace_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"portal_url": {
-				Type:       schema.TypeString,
+				Type:       pluginsdk.TypeString,
 				Computed:   true,
 				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"primary_shared_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_shared_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -139,7 +138,7 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 	}
 }
 
-func resourceLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -244,7 +243,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceLogAnalyticsWorkspaceRead(d, meta)
 }
 
-func resourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -302,7 +301,7 @@ func resourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,7 +324,7 @@ func resourceLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
+func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *pluginsdk.ResourceData) bool {
 	// (@jackofallops) - 'free' is a legacy special case that is always set to 0.5GB
 	if skuName := d.Get("sku").(string); strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		return true
@@ -334,7 +333,7 @@ func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
 	return false
 }
 
-func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *schema.ResourceData) bool {
+func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *pluginsdk.ResourceData) bool {
 	// (@WodansSon) - This is needed because if you connect your workspace to a log analytics linked service resource it
 	// will modify the value of your sku to "lacluster". We are currently in negotiations with the service team to
 	// see if there is another way of doing this, for now this is the workaround

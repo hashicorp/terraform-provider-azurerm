@@ -7,110 +7,109 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePrivateDnsZone() *schema.Resource {
-	return &schema.Resource{
+func resourcePrivateDnsZone() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePrivateDnsZoneCreateUpdate,
 		Read:   resourcePrivateDnsZoneRead,
 		Update: resourcePrivateDnsZoneCreateUpdate,
 		Delete: resourcePrivateDnsZoneDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PrivateDnsZoneID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"number_of_record_sets": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_virtual_network_links": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_virtual_network_links_with_registration": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"soa_record": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"email": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.PrivateDnsZoneSOARecordEmail,
 						},
 
 						"expire_time": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      2419200,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"minimum_ttl": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      10,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"refresh_time": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3600,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"retry_time": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      300,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"ttl": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3600,
 							ValidateFunc: validation.IntBetween(0, 2147483647),
@@ -119,7 +118,7 @@ func resourcePrivateDnsZone() *schema.Resource {
 						"tags": tags.Schema(),
 
 						"fqdn": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
@@ -127,7 +126,7 @@ func resourcePrivateDnsZone() *schema.Resource {
 						// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
 						// Once the issue is fixed, the field will be updated to `Required` property.
 						"host_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
@@ -135,7 +134,7 @@ func resourcePrivateDnsZone() *schema.Resource {
 						// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
 						// Once the issue is fixed, the field will be updated to `Optional` property with `Default` attribute.
 						"serial_number": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
@@ -147,7 +146,7 @@ func resourcePrivateDnsZone() *schema.Resource {
 	}
 }
 
-func resourcePrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -212,7 +211,7 @@ func resourcePrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourcePrivateDnsZoneRead(d, meta)
 }
 
-func resourcePrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -254,7 +253,7 @@ func resourcePrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcePrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

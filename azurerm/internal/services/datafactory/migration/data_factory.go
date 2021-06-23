@@ -1,143 +1,299 @@
 package migration
 
 import (
+	"context"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func DataFactoryUpgradeV0Schema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-			},
+var _ pluginsdk.StateUpgrade = DataFactoryV0ToV1{}
+var _ pluginsdk.StateUpgrade = DataFactoryV1ToV2{}
 
-			"location": azure.SchemaLocation(),
+type DataFactoryV0ToV1 struct{}
 
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+func (DataFactoryV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"identity": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"principal_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
+		},
 
-			"github_configuration": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"vsts_configuration"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"account_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"branch_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"git_url": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"repository_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"root_folder": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"github_configuration": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"vsts_configuration"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"account_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"branch_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"git_url": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"repository_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"root_folder": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 				},
 			},
+		},
 
-			"vsts_configuration": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"github_configuration"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"account_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"branch_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"project_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"repository_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"root_folder": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"tenant_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
+		"vsts_configuration": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"github_configuration"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"account_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"branch_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"project_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"repository_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"root_folder": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 				},
 			},
-			"tags": tags.Schema(),
+		},
+		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
 }
 
-func DataFactoryUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	log.Printf("[DEBUG] Updating `public_network_enabled` to %q", datafactory.PublicNetworkAccessEnabled)
+func (DataFactoryV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		log.Printf("[DEBUG] Updating `public_network_enabled` to %q", datafactory.PublicNetworkAccessEnabled)
 
-	rawState["public_network_enabled"] = true
+		rawState["public_network_enabled"] = true
 
-	return rawState, nil
+		return rawState, nil
+	}
+}
+
+type DataFactoryV1ToV2 struct{}
+
+func (DataFactoryV1ToV2) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"identity": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"identity_ids": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"principal_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"github_configuration": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"vsts_configuration"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"account_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"branch_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"git_url": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"repository_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"root_folder": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"vsts_configuration": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"github_configuration"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"account_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"branch_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"project_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"repository_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"root_folder": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+		"public_network_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"customer_managed_key_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"identity.0.identity_ids"},
+		},
+
+		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+	}
+}
+
+func (DataFactoryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		log.Printf("[DEBUG] Updating `id` if resourceName is in upper case")
+
+		oldId := rawState["id"].(string)
+		id, err := parse.DataFactoryID(oldId)
+		if err != nil {
+			return nil, err
+		}
+
+		id.FactoryName = rawState["name"].(string)
+		rawState["id"] = id.ID()
+
+		return rawState, nil
+	}
 }

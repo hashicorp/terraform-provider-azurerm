@@ -1,13 +1,13 @@
 package managedapplications
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,33 +16,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceManagedApplication() *schema.Resource {
-	return &schema.Resource{
+func resourceManagedApplication() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceManagedApplicationCreateUpdate,
 		Read:   resourceManagedApplicationRead,
 		Update: resourceManagedApplicationCreateUpdate,
 		Delete: resourceManagedApplicationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApplicationID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ApplicationName,
@@ -53,7 +54,7 @@ func resourceManagedApplication() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,47 +66,58 @@ func resourceManagedApplication() *schema.Resource {
 			"managed_resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_definition_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ApplicationDefinitionID,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Type:          pluginsdk.TypeMap,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"parameter_values"},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
+			"parameter_values": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				ConflictsWith:    []string{"parameters"},
+			},
+
 			"plan": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"product": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"publisher": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"version": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"promotion_code": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -116,17 +128,17 @@ func resourceManagedApplication() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"outputs": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,26 +170,20 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 			ManagedResourceGroupID: utils.String(targetResourceGroupId),
 		}
 	}
+
 	if v, ok := d.GetOk("application_definition_id"); ok {
 		parameters.ApplicationDefinitionID = utils.String(v.(string))
 	}
+
 	if v, ok := d.GetOk("plan"); ok {
 		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
 	}
-	if v, ok := d.GetOk("parameters"); ok {
-		params := v.(map[string]interface{})
 
-		newParams := make(map[string]interface{}, len(params))
-		for key, val := range params {
-			newParams[key] = struct {
-				Value interface{} `json:"value"`
-			}{
-				Value: val,
-			}
-		}
-
-		parameters.Parameters = &newParams
+	params, err := expandManagedApplicationParameters(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `parameters` or `parameter_values`: %+v", err)
 	}
+	parameters.Parameters = params
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
@@ -199,7 +205,7 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceManagedApplicationRead(d, meta)
 }
 
-func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,6 +241,12 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("managed_resource_group_name", id.ResourceGroup)
 		d.Set("application_definition_id", props.ApplicationDefinitionID)
 
+		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(props.Parameters)
+		if err != nil {
+			return fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
+		}
+		d.Set("parameter_values", parameterValues)
+
 		if err = d.Set("parameters", flattenManagedApplicationParametersOrOutputs(props.Parameters)); err != nil {
 			return err
 		}
@@ -247,7 +259,7 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceManagedApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,6 +294,30 @@ func expandManagedApplicationPlan(input []interface{}) *managedapplications.Plan
 		Version:       utils.String(plan["version"].(string)),
 		PromotionCode: utils.String(plan["promotion_code"].(string)),
 	}
+}
+
+func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]interface{}, error) {
+	newParams := make(map[string]interface{})
+
+	if v, ok := d.GetOk("parameter_values"); ok {
+		if err := json.Unmarshal([]byte(v.(string)), &newParams); err != nil {
+			return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
+		}
+	}
+
+	if v, ok := d.GetOk("parameters"); ok {
+		params := v.(map[string]interface{})
+
+		for key, val := range params {
+			newParams[key] = struct {
+				Value interface{} `json:"value"`
+			}{
+				Value: val,
+			}
+		}
+	}
+
+	return &newParams, nil
 }
 
 func flattenManagedApplicationPlan(input *managedapplications.Plan) []interface{} {
@@ -335,4 +371,28 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]
 	}
 
 	return results
+}
+
+func flattenManagedApplicationParameterValuesValueToString(input interface{}) (string, error) {
+	if input == nil {
+		return "", nil
+	}
+
+	for k, v := range input.(map[string]interface{}) {
+		if v != nil {
+			delete(input.(map[string]interface{})[k].(map[string]interface{}), "type")
+		}
+	}
+
+	result, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	compactJson := bytes.Buffer{}
+	if err := json.Compact(&compactJson, result); err != nil {
+		return "", err
+	}
+
+	return compactJson.String(), nil
 }

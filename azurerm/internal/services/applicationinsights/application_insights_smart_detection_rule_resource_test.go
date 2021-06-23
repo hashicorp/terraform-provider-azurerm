@@ -6,13 +6,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +21,10 @@ func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
 	r := AppInsightsSmartDetectionRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,22 +35,22 @@ func TestAccApplicationInsightsSmartDetectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
 	r := AppInsightsSmartDetectionRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -63,10 +61,10 @@ func TestAccApplicationInsightsSmartDetectionRule_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
 	r := AppInsightsSmartDetectionRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multiple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_application_insights_smart_detection_rule.test2").ExistsInAzure(r),
 			),
@@ -78,17 +76,17 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
 	r := AppInsightsSmartDetectionRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.longDependencyDuration(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
 }
 
-func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SmartDetectionRuleID(state.Attributes["id"])
 	if err != nil {
 		return nil, err

@@ -6,42 +6,40 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLogAnalyticsLinkedStorageAccount() *schema.Resource {
-	return &schema.Resource{
+func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
 		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
 		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
 		Delete: resourceLogAnalyticsLinkedStorageAccountDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsLinkedStorageAccountID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"data_source_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -57,18 +55,18 @@ func resourceLogAnalyticsLinkedStorageAccount() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsWorkspaceID,
 			},
 
 			"storage_account_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
@@ -76,7 +74,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *schema.Resource {
 	}
 }
 
-func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,7 +100,7 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData
 
 	parameters := operationalinsights.LinkedStorageAccountsResource{
 		LinkedStorageAccountsProperties: &operationalinsights.LinkedStorageAccountsProperties{
-			StorageAccountIds: utils.ExpandStringSlice(d.Get("storage_account_ids").(*schema.Set).List()),
+			StorageAccountIds: utils.ExpandStringSlice(d.Get("storage_account_ids").(*pluginsdk.Set).List()),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType, parameters); err != nil {
@@ -122,7 +120,7 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData
 	return resourceLogAnalyticsLinkedStorageAccountRead(d, meta)
 }
 
-func resourceLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +151,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -5,34 +5,32 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementGroupUser() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementGroupUser() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementGroupUserCreate,
 		Read:   resourceApiManagementGroupUserRead,
 		Delete: resourceApiManagementGroupUserDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"user_id": schemaz.SchemaApiManagementChildName(),
 
 			"group_name": schemaz.SchemaApiManagementChildName(),
@@ -44,7 +42,7 @@ func resourceApiManagementGroupUser() *schema.Resource {
 	}
 }
 
-func resourceApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,7 +77,7 @@ func resourceApiManagementGroupUserCreate(d *schema.ResourceData, meta interface
 	return resourceApiManagementGroupUserRead(d, meta)
 }
 
-func resourceApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +110,7 @@ func resourceApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

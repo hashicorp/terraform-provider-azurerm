@@ -5,20 +5,18 @@ TESTTIMEOUT=180m
 
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
-  GO111MODULE=on
-  GOFLAGS=-mod=vendor
 
 default: build
 
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
-	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
-	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
-	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
-	GO111MODULE=off go get -u github.com/katbyte/terrafmt
-	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
-	GO111MODULE=off go get -u mvdan.cc/gofumpt
+	go install github.com/client9/misspell/cmd/misspell@latest
+	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
+	go install github.com/bflad/tfproviderdocs@latest
+	go install github.com/katbyte/terrafmt@latest
+	go install golang.org/x/tools/cmd/goimports@latest
+	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
 
 build: fmtcheck generate
@@ -56,7 +54,7 @@ generate:
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
-	goimports -w $(PKG_NAME)/
+	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
 
 lint:
 	./scripts/run-lint.sh

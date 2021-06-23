@@ -411,6 +411,7 @@ func (future *ControllersCreateFuture) result(client ControllersClient) (c Contr
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("devspaces.ControllersCreateFuture")
 		return
 	}
@@ -453,6 +454,7 @@ func (future *ControllersDeleteFuture) result(client ControllersClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("devspaces.ControllersDeleteFuture")
 		return
 	}
@@ -526,6 +528,12 @@ type ErrorDetails struct {
 	Message *string `json:"message,omitempty"`
 	// Target - READ-ONLY; The target of the particular error.
 	Target *string `json:"target,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorDetails.
+func (ed ErrorDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponse error response indicates that the service is not able to process the incoming request. The
@@ -662,6 +670,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceProviderOperationDefinition ...

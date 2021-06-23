@@ -534,6 +534,7 @@ func (future *DeploymentsCreateOrUpdateFuture) result(client DeploymentsClient) 
 		return
 	}
 	if !done {
+		de.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsCreateOrUpdateFuture")
 		return
 	}
@@ -576,6 +577,7 @@ func (future *DeploymentsDeleteFuture) result(client DeploymentsClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsDeleteFuture")
 		return
 	}
@@ -600,6 +602,12 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
 // failed operations. (This also follows the OData error response format.)
 type ErrorResponse struct {
@@ -613,6 +621,12 @@ type ErrorResponse struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExportTemplateRequest export resource group template request parameters.
@@ -966,6 +980,12 @@ type GroupProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for GroupProperties.
+func (gp GroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // GroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type GroupsDeleteFuture struct {
 	azure.FutureAPI
@@ -994,6 +1014,7 @@ func (future *GroupsDeleteFuture) result(client GroupsClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("resources.GroupsDeleteFuture")
 		return
 	}
@@ -1234,6 +1255,7 @@ func (future *MoveResourcesFuture) result(client Client) (ar autorest.Response, 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("resources.MoveResourcesFuture")
 		return
 	}
@@ -1804,6 +1826,7 @@ func (future *UpdateFuture) result(client Client) (gr GenericResource, err error
 		return
 	}
 	if !done {
+		gr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("resources.UpdateFuture")
 		return
 	}

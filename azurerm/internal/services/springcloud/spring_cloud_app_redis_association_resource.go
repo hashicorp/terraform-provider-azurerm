@@ -7,69 +7,68 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	redisValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const springCloudAppRedisAssociationKeySSL = "useSsl"
 
-func resourceSpringCloudAppRedisAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceSpringCloudAppRedisAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSpringCloudAppRedisAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppRedisAssociationRead,
 		Update: resourceSpringCloudAppRedisAssociationCreateUpdate,
 		Delete: resourceSpringCloudAppRedisAssociationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SpringCloudAppAssociationID(id)
 			return err
 		}, importSpringCloudAppAssociation(springCloudAppAssociationTypeRedis)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppAssociationName,
 			},
 
 			"spring_cloud_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
 			"redis_cache_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: redisValidate.CacheID,
 			},
 
 			"redis_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"ssl_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -77,7 +76,7 @@ func resourceSpringCloudAppRedisAssociation() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudAppRedisAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +117,7 @@ func resourceSpringCloudAppRedisAssociationCreateUpdate(d *schema.ResourceData, 
 	return resourceSpringCloudAppRedisAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppRedisAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +151,7 @@ func resourceSpringCloudAppRedisAssociationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceSpringCloudAppRedisAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

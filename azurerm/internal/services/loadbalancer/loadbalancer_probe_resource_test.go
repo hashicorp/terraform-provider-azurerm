@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +21,10 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
 	r := LoadBalancerProbe{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +36,10 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
 	r := LoadBalancerProbe{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,7 +51,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
 	r := LoadBalancerProbe{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -66,10 +64,10 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_probe", "test2")
 	r := LoadBalancerProbe{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleProbes(data, data2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("port").HasValue("80"),
@@ -79,7 +77,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 		data2.ImportStep(),
 		{
 			Config: r.multipleProbesUpdate(data, data2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("port").HasValue("8080"),
@@ -92,10 +90,10 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
 	r := LoadBalancerProbe{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.updateProtocolBefore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("Http"),
 			),
@@ -103,7 +101,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateProtocolAfter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("Tcp"),
 			),
@@ -111,7 +109,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerProbe) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancerProbe) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerProbeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -141,7 +139,7 @@ func (r LoadBalancerProbe) Exists(ctx context.Context, client *clients.Client, s
 	return utils.Bool(found), nil
 }
 
-func (r LoadBalancerProbe) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancerProbe) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerProbeID(state.ID)
 	if err != nil {
 		return nil, err

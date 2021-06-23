@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_sql_server" "example" {
+resource "azurerm_mssql_server" "example" {
   name                         = "example-sqlserver"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
@@ -43,7 +43,7 @@ resource "azurerm_sql_server" "example" {
 
 resource "azurerm_mssql_database" "test" {
   name           = "acctest-db-d"
-  server_id      = azurerm_sql_server.example.id
+  server_id      = azurerm_mssql_server.example.id
   collation      = "SQL_Latin1_General_CP1_CI_AS"
   license_type   = "LicenseIncluded"
   max_size_gb    = 4
@@ -96,7 +96,9 @@ The following arguments are supported:
 
 * `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
 
-* `max_size_gb` - (Optional) The max size of the database in gigabytes. 
+* `max_size_gb` - (Optional) The max size of the database in gigabytes.
+
+~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-scale#geo-replicated-database).
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for General Purpose Serverless databases.
 
@@ -168,6 +170,7 @@ A `short_term_retention_policy` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the MS SQL Database.
+* `name` - The Name of the MS SQL Database.
 
 ## Timeouts
 

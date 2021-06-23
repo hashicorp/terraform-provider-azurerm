@@ -6,15 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	network2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,11 +23,11 @@ type NetworkInterfaceNATRuleAssociationResource struct {
 func TestAccNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
 	r := NetworkInterfaceNATRuleAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -39,11 +38,11 @@ func TestAccNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 func TestAccNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
 	r := NetworkInterfaceNATRuleAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -58,11 +57,11 @@ func TestAccNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
 	r := NetworkInterfaceNATRuleAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentionally not using a DisappearsStep as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.destroy),
 			),
@@ -74,18 +73,18 @@ func TestAccNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 func TestAccNetworkInterfaceNATRuleAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
 	r := NetworkInterfaceNATRuleAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateNIC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -93,7 +92,7 @@ func TestAccNetworkInterfaceNATRuleAssociation_updateNIC(t *testing.T) {
 	})
 }
 
-func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	splitId := strings.Split(state.ID, "|")
 	if len(splitId) != 2 {
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", state.ID)
@@ -133,7 +132,7 @@ func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, 
 	return utils.Bool(found), nil
 }
 
-func (NetworkInterfaceNATRuleAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (NetworkInterfaceNATRuleAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
 	if err != nil {
 		return err

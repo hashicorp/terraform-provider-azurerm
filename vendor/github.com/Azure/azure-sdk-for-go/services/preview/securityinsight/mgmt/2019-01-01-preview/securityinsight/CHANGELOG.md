@@ -1,5 +1,39 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/138759b8a5987252fd66658078907e1d93969c85//specification/securityinsights/resource-manager/readme.md tag: `package-2019-01-preview-only`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
+## Breaking Changes
 
+### Removed Constants
 
+1. ActionType.ActionTypeActionTypeAutomationRuleAction
+1. ActionType.ActionTypeActionTypeModifyProperties
+1. ActionType.ActionTypeActionTypeRunPlaybook
+1. ConditionType.ConditionTypeConditionTypeAutomationRuleCondition
+1. ConditionType.ConditionTypeConditionTypeProperty
+1. Kind.KindKindAggregations
+1. Kind.KindKindCasesAggregation
+
+## Additive Changes
+
+### New Constants
+
+1. ActionType.ActionTypeAutomationRuleAction
+1. ActionType.ActionTypeModifyProperties
+1. ActionType.ActionTypeRunPlaybook
+1. ConditionType.ConditionTypeAutomationRuleCondition
+1. ConditionType.ConditionTypeProperty
+1. Kind.KindAggregations
+1. Kind.KindCasesAggregation
+
+### New Funcs
+
+1. CasesAggregationBySeverityProperties.MarshalJSON() ([]byte, error)
+1. CasesAggregationByStatusProperties.MarshalJSON() ([]byte, error)
+1. CloudErrorBody.MarshalJSON() ([]byte, error)
+1. EntityAnalyticsProperties.MarshalJSON() ([]byte, error)
+1. EyesOnSettingsProperties.MarshalJSON() ([]byte, error)
+1. GeoLocation.MarshalJSON() ([]byte, error)
+1. IPSyncerSettingsProperties.MarshalJSON() ([]byte, error)
+1. IncidentAdditionalData.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)
+1. SecurityAlertPropertiesConfidenceReasonsItem.MarshalJSON() ([]byte, error)
+1. ThreatIntelligence.MarshalJSON() ([]byte, error)

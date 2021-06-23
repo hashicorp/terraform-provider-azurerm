@@ -54,6 +54,7 @@ func (future *CreateOrUpdateFuture) result(client Client) (rt ResourceType, err 
 		return
 	}
 	if !done {
+		rt.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("signalr.CreateOrUpdateFuture")
 		return
 	}
@@ -115,6 +116,7 @@ func (future *DeleteFuture) result(client Client) (ar autorest.Response, err err
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("signalr.DeleteFuture")
 		return
 	}
@@ -593,6 +595,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("signalr.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -920,6 +923,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RegenerateKeyFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type RegenerateKeyFuture struct {
@@ -949,6 +958,7 @@ func (future *RegenerateKeyFuture) result(client Client) (kVar Keys, err error) 
 		return
 	}
 	if !done {
+		kVar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("signalr.RegenerateKeyFuture")
 		return
 	}
@@ -976,6 +986,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource - e.g. "Microsoft.SignalRService/SignalR"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceList object that includes an array of SignalR services and a possible link for next set.
@@ -1317,6 +1333,7 @@ func (future *RestartFuture) result(client Client) (ar autorest.Response, err er
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("signalr.RestartFuture")
 		return
 	}
@@ -1392,6 +1409,7 @@ func (future *UpdateFuture) result(client Client) (rt ResourceType, err error) {
 		return
 	}
 	if !done {
+		rt.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("signalr.UpdateFuture")
 		return
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccEventHubNamespaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
 			),
 		},
@@ -30,10 +29,10 @@ func TestAccEventHubNamespaceDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("auto_inflate_enabled").HasValue("true"),
@@ -47,15 +46,15 @@ func TestAccEventHubNamespaceDataSource_withAliasConnectionString(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+			// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving acceptance. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
 			// So these two properties should be checked in the second run.
 			Config: r.withAliasConnectionString(data),
 		},
 		{
 			Config: r.withAliasConnectionString(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("default_primary_connection_string_alias").Exists(),
 				check.That(data.ResourceName).Key("default_secondary_connection_string_alias").Exists(),
 			),

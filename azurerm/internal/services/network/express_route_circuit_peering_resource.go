@@ -6,50 +6,49 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceExpressRouteCircuitPeering() *schema.Resource {
-	return &schema.Resource{
+func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceExpressRouteCircuitPeeringCreateUpdate,
 		Read:   resourceExpressRouteCircuitPeeringRead,
 		Update: resourceExpressRouteCircuitPeeringCreateUpdate,
 		Delete: resourceExpressRouteCircuitPeeringDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"peering_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzurePrivatePeering),
-					string(network.AzurePublicPeering),
-					string(network.MicrosoftPeering),
+					string(network.ExpressRoutePeeringTypeAzurePrivatePeering),
+					string(network.ExpressRoutePeeringTypeAzurePublicPeering),
+					string(network.ExpressRoutePeeringTypeMicrosoftPeering),
 				}, false),
 			},
 
 			"express_route_circuit_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -57,53 +56,53 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"primary_peer_address_prefix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"secondary_peer_address_prefix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"vlan_id": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"shared_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringLenBetween(1, 25),
 			},
 
 			"peer_asn": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
 
 			"microsoft_peering_config": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"advertised_public_prefixes": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"customer_asn": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Default:  0,
 						},
 
 						"routing_registry_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "NONE",
 						},
@@ -112,35 +111,35 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 			},
 
 			"ipv6": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"microsoft_peering": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"advertised_public_prefixes": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										MinItems: 1,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsCIDR,
 										},
 									},
 
 									"customer_asn": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Optional: true,
 										Default:  0,
 									},
 
 									"routing_registry_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "NONE",
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -150,17 +149,17 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 						},
 
 						"primary_peer_address_prefix": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"secondary_peer_address_prefix": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"route_filter_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -169,22 +168,22 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 			},
 
 			"azure_asn": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"primary_azure_port": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_azure_port": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"route_filter_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -192,7 +191,7 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +238,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
-	if strings.EqualFold(peeringType, string(network.MicrosoftPeering)) {
+	if strings.EqualFold(peeringType, string(network.ExpressRoutePeeringTypeMicrosoftPeering)) {
 		peerings := d.Get("microsoft_peering_config").([]interface{})
 		if len(peerings) == 0 {
 			return fmt.Errorf("`microsoft_peering_config` must be specified when `peering_type` is set to `MicrosoftPeering`")
@@ -290,7 +289,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta
 	return resourceExpressRouteCircuitPeeringRead(d, meta)
 }
 
-func resourceExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -343,7 +342,7 @@ func resourceExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

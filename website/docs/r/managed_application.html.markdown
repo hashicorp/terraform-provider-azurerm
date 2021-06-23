@@ -77,6 +77,8 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
 
+* `parameter_values` - (Optional) The parameter values to pass to the Managed Application. This field is a json object that allows you to assign parameters to this Managed Application.
+
 * `plan` - (Optional) One `plan` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

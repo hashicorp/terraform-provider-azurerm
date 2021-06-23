@@ -1,7 +1,7 @@
 package apimanagement
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,8 +19,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_api_management":                 dataSourceApiManagementService(),
 		"azurerm_api_management_api":             dataSourceApiManagementApi(),
 		"azurerm_api_management_api_version_set": dataSourceApiManagementApiVersionSet(),
@@ -31,8 +31,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_api_management":                             resourceApiManagementService(),
 		"azurerm_api_management_api":                         resourceApiManagementApi(),
 		"azurerm_api_management_api_diagnostic":              resourceApiManagementApiDiagnostic(),
@@ -64,6 +64,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_product_group":               resourceApiManagementProductGroup(),
 		"azurerm_api_management_product_policy":              resourceApiManagementProductPolicy(),
 		"azurerm_api_management_property":                    resourceApiManagementProperty(),
+		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
 		"azurerm_api_management_user":                        resourceApiManagementUser(),
 	}

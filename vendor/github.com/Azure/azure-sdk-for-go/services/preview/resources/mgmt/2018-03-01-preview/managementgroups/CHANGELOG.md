@@ -1,9 +1,11 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/managementgroups/resource-manager/readme.md tag: `package-2018-03`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *CreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *DeleteFuture.UnmarshalJSON([]byte) error
+1. CheckNameAvailabilityResult.MarshalJSON() ([]byte, error)
+1. CreateManagementGroupChildInfo.MarshalJSON() ([]byte, error)
+1. OperationDisplayProperties.MarshalJSON() ([]byte, error)
+1. OperationListResult.MarshalJSON() ([]byte, error)
+1. TenantBackfillStatusResult.MarshalJSON() ([]byte, error)

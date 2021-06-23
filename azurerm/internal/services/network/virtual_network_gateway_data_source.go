@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceVirtualNetworkGateway() *schema.Resource {
-	return &schema.Resource{
+func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceVirtualNetworkGatewayRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -34,62 +34,62 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"vpn_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"enable_bgp": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"private_ip_address_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"active_active": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"generation": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"private_ip_address_allocation": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"public_ip_address_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -97,45 +97,45 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"vpn_client_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"address_space": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"aad_tenant": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"aad_audience": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"aad_issuer": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"root_certificate": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"public_cert_data": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -143,17 +143,17 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 						},
 
 						"revoked_certificate": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"thumbprint": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 								},
@@ -161,20 +161,20 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 						},
 
 						"radius_server_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"radius_server_secret": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"vpn_client_protocols": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -182,22 +182,22 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"bgp_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 
 						"peering_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"peer_weight": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
@@ -205,15 +205,15 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"custom_route": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"address_prefixes": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -221,7 +221,7 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"default_local_network_gateway_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -230,7 +230,7 @@ func dataSourceVirtualNetworkGateway() *schema.Resource {
 	}
 }
 
-func dataSourceVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

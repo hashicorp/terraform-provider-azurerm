@@ -26,6 +26,12 @@ type ActivationProperties struct {
 	Status ActivationStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ActivationProperties.
+func (ap ActivationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ActiveDirectoryObject the Active Directory Object that will be used for authenticating the token of a
 // container registry.
 type ActiveDirectoryObject struct {
@@ -388,6 +394,7 @@ func (future *AgentPoolsCreateFuture) result(client AgentPoolsClient) (ap AgentP
 		return
 	}
 	if !done {
+		ap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.AgentPoolsCreateFuture")
 		return
 	}
@@ -430,6 +437,7 @@ func (future *AgentPoolsDeleteFuture) result(client AgentPoolsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.AgentPoolsDeleteFuture")
 		return
 	}
@@ -466,6 +474,7 @@ func (future *AgentPoolsUpdateFuture) result(client AgentPoolsClient) (ap AgentP
 		return
 	}
 	if !done {
+		ap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.AgentPoolsUpdateFuture")
 		return
 	}
@@ -668,6 +677,7 @@ func (future *ConnectedRegistriesCreateFuture) result(client ConnectedRegistries
 		return
 	}
 	if !done {
+		cr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ConnectedRegistriesCreateFuture")
 		return
 	}
@@ -710,6 +720,7 @@ func (future *ConnectedRegistriesDeactivateFuture) result(client ConnectedRegist
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ConnectedRegistriesDeactivateFuture")
 		return
 	}
@@ -746,6 +757,7 @@ func (future *ConnectedRegistriesDeleteFuture) result(client ConnectedRegistries
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ConnectedRegistriesDeleteFuture")
 		return
 	}
@@ -782,6 +794,7 @@ func (future *ConnectedRegistriesUpdateFuture) result(client ConnectedRegistries
 		return
 	}
 	if !done {
+		cr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ConnectedRegistriesUpdateFuture")
 		return
 	}
@@ -2302,6 +2315,7 @@ func (future *ExportPipelinesCreateFuture) result(client ExportPipelinesClient) 
 		return
 	}
 	if !done {
+		ep.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ExportPipelinesCreateFuture")
 		return
 	}
@@ -2344,6 +2358,7 @@ func (future *ExportPipelinesDeleteFuture) result(client ExportPipelinesClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ExportPipelinesDeleteFuture")
 		return
 	}
@@ -3013,6 +3028,7 @@ func (future *ImportPipelinesCreateFuture) result(client ImportPipelinesClient) 
 		return
 	}
 	if !done {
+		IP.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ImportPipelinesCreateFuture")
 		return
 	}
@@ -3055,6 +3071,7 @@ func (future *ImportPipelinesDeleteFuture) result(client ImportPipelinesClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ImportPipelinesDeleteFuture")
 		return
 	}
@@ -3155,6 +3172,12 @@ type LoginServerProperties struct {
 	Host *string `json:"host,omitempty"`
 	// TLS - READ-ONLY; The TLS properties of the connected registry login server.
 	TLS *TLSProperties `json:"tls,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LoginServerProperties.
+func (lsp LoginServerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // NetworkRuleSet the network rule set for a container registry.
@@ -3809,6 +3832,7 @@ func (future *PipelineRunsCreateFuture) result(client PipelineRunsClient) (pr Pi
 		return
 	}
 	if !done {
+		pr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.PipelineRunsCreateFuture")
 		return
 	}
@@ -3851,6 +3875,7 @@ func (future *PipelineRunsDeleteFuture) result(client PipelineRunsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.PipelineRunsDeleteFuture")
 		return
 	}
@@ -4231,6 +4256,7 @@ func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) result(client Priv
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.PrivateEndpointConnectionsCreateOrUpdateFuture")
 		return
 	}
@@ -4273,6 +4299,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -4558,6 +4585,12 @@ type ProxyResource struct {
 	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // QuarantinePolicy the quarantine policy for a container registry.
 type QuarantinePolicy struct {
 	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'PolicyStatusEnabled', 'PolicyStatusDisabled'
@@ -4599,6 +4632,7 @@ func (future *RegistriesCreateFuture) result(client RegistriesClient) (r Registr
 		return
 	}
 	if !done {
+		r.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesCreateFuture")
 		return
 	}
@@ -4641,6 +4675,7 @@ func (future *RegistriesDeleteFuture) result(client RegistriesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesDeleteFuture")
 		return
 	}
@@ -4677,6 +4712,7 @@ func (future *RegistriesGenerateCredentialsFuture) result(client RegistriesClien
 		return
 	}
 	if !done {
+		gcr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesGenerateCredentialsFuture")
 		return
 	}
@@ -4719,6 +4755,7 @@ func (future *RegistriesImportImageFuture) result(client RegistriesClient) (ar a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesImportImageFuture")
 		return
 	}
@@ -4755,6 +4792,7 @@ func (future *RegistriesScheduleRunFuture) result(client RegistriesClient) (r Ru
 		return
 	}
 	if !done {
+		r.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesScheduleRunFuture")
 		return
 	}
@@ -4797,6 +4835,7 @@ func (future *RegistriesUpdateFuture) result(client RegistriesClient) (r Registr
 		return
 	}
 	if !done {
+		r.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesUpdateFuture")
 		return
 	}
@@ -5654,6 +5693,7 @@ func (future *ReplicationsCreateFuture) result(client ReplicationsClient) (r Rep
 		return
 	}
 	if !done {
+		r.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ReplicationsCreateFuture")
 		return
 	}
@@ -5696,6 +5736,7 @@ func (future *ReplicationsDeleteFuture) result(client ReplicationsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ReplicationsDeleteFuture")
 		return
 	}
@@ -5732,6 +5773,7 @@ func (future *ReplicationsUpdateFuture) result(client ReplicationsClient) (r Rep
 		return
 	}
 	if !done {
+		r.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ReplicationsUpdateFuture")
 		return
 	}
@@ -6404,6 +6446,7 @@ func (future *RunsCancelFuture) result(client RunsClient) (ar autorest.Response,
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RunsCancelFuture")
 		return
 	}
@@ -6439,6 +6482,7 @@ func (future *RunsUpdateFuture) result(client RunsClient) (r Run, err error) {
 		return
 	}
 	if !done {
+		r.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.RunsUpdateFuture")
 		return
 	}
@@ -6768,6 +6812,7 @@ func (future *ScopeMapsCreateFuture) result(client ScopeMapsClient) (sm ScopeMap
 		return
 	}
 	if !done {
+		sm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ScopeMapsCreateFuture")
 		return
 	}
@@ -6810,6 +6855,7 @@ func (future *ScopeMapsDeleteFuture) result(client ScopeMapsClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ScopeMapsDeleteFuture")
 		return
 	}
@@ -6846,6 +6892,7 @@ func (future *ScopeMapsUpdateFuture) result(client ScopeMapsClient) (sm ScopeMap
 		return
 	}
 	if !done {
+		sm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.ScopeMapsUpdateFuture")
 		return
 	}
@@ -7040,6 +7087,12 @@ type Status struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Status.
+func (s Status) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // StatusDetailProperties the status detail properties of the connected registry.
 type StatusDetailProperties struct {
 	// Type - READ-ONLY; The component of the connected registry corresponding to the status.
@@ -7052,6 +7105,12 @@ type StatusDetailProperties struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 	// CorrelationID - READ-ONLY; The correlation ID of the status.
 	CorrelationID *string `json:"correlationId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StatusDetailProperties.
+func (sdp StatusDetailProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // StorageAccountProperties the properties of a storage account for a container registry. Only applicable
@@ -8215,6 +8274,7 @@ func (future *TaskRunsCreateFuture) result(client TaskRunsClient) (tr TaskRun, e
 		return
 	}
 	if !done {
+		tr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TaskRunsCreateFuture")
 		return
 	}
@@ -8257,6 +8317,7 @@ func (future *TaskRunsDeleteFuture) result(client TaskRunsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TaskRunsDeleteFuture")
 		return
 	}
@@ -8293,6 +8354,7 @@ func (future *TaskRunsUpdateFuture) result(client TaskRunsClient) (tr TaskRun, e
 		return
 	}
 	if !done {
+		tr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TaskRunsUpdateFuture")
 		return
 	}
@@ -8415,6 +8477,7 @@ func (future *TasksCreateFuture) result(client TasksClient) (t Task, err error) 
 		return
 	}
 	if !done {
+		t.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TasksCreateFuture")
 		return
 	}
@@ -8456,6 +8519,7 @@ func (future *TasksDeleteFuture) result(client TasksClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TasksDeleteFuture")
 		return
 	}
@@ -8701,6 +8765,7 @@ func (future *TasksUpdateFuture) result(client TasksClient) (t Task, err error) 
 		return
 	}
 	if !done {
+		t.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TasksUpdateFuture")
 		return
 	}
@@ -8817,12 +8882,24 @@ type TLSCertificateProperties struct {
 	Location *string `json:"location,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TLSCertificateProperties.
+func (TCP TLSCertificateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TLSProperties the TLS properties of the connected registry login server.
 type TLSProperties struct {
 	// Status - READ-ONLY; Indicates whether HTTPS is enabled for the login server. Possible values include: 'TLSStatusEnabled', 'TLSStatusDisabled'
 	Status TLSStatus `json:"status,omitempty"`
 	// Certificate - READ-ONLY; The certificate used to configure HTTPS for the login server.
 	Certificate *TLSCertificateProperties `json:"certificate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TLSProperties.
+func (tp TLSProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Token an object that represents a token for a container registry.
@@ -9171,6 +9248,7 @@ func (future *TokensCreateFuture) result(client TokensClient) (t Token, err erro
 		return
 	}
 	if !done {
+		t.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TokensCreateFuture")
 		return
 	}
@@ -9212,6 +9290,7 @@ func (future *TokensDeleteFuture) result(client TokensClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TokensDeleteFuture")
 		return
 	}
@@ -9247,6 +9326,7 @@ func (future *TokensUpdateFuture) result(client TokensClient) (t Token, err erro
 		return
 	}
 	if !done {
+		t.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.TokensUpdateFuture")
 		return
 	}
@@ -9817,6 +9897,7 @@ func (future *WebhooksCreateFuture) result(client WebhooksClient) (w Webhook, er
 		return
 	}
 	if !done {
+		w.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.WebhooksCreateFuture")
 		return
 	}
@@ -9859,6 +9940,7 @@ func (future *WebhooksDeleteFuture) result(client WebhooksClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.WebhooksDeleteFuture")
 		return
 	}
@@ -9895,6 +9977,7 @@ func (future *WebhooksUpdateFuture) result(client WebhooksClient) (w Webhook, er
 		return
 	}
 	if !done {
+		w.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerregistry.WebhooksUpdateFuture")
 		return
 	}

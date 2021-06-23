@@ -1,11 +1,17 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/containerinstance/resource-manager/readme.md tag: `package-2019-12`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *ContainerGroupsCreateOrUpdateFuture.UnmarshalJSON([]byte) error
-1. *ContainerGroupsDeleteFuture.UnmarshalJSON([]byte) error
-1. *ContainerGroupsRestartFuture.UnmarshalJSON([]byte) error
-1. *ContainerGroupsStartFuture.UnmarshalJSON([]byte) error
+1. Capabilities.MarshalJSON() ([]byte, error)
+1. CapabilitiesCapabilities.MarshalJSON() ([]byte, error)
+1. ContainerGroupIdentityUserAssignedIdentitiesValue.MarshalJSON() ([]byte, error)
+1. ContainerGroupPropertiesInstanceView.MarshalJSON() ([]byte, error)
+1. ContainerPropertiesInstanceView.MarshalJSON() ([]byte, error)
+1. ContainerState.MarshalJSON() ([]byte, error)
+1. Event.MarshalJSON() ([]byte, error)
+1. InitContainerPropertiesDefinitionInstanceView.MarshalJSON() ([]byte, error)
+1. Usage.MarshalJSON() ([]byte, error)
+1. UsageListResult.MarshalJSON() ([]byte, error)
+1. UsageName.MarshalJSON() ([]byte, error)

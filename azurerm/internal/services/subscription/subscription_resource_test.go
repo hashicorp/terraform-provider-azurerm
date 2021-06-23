@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+  "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -50,7 +50,7 @@ func TestAccSubscriptionResource_basicWithTag(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
-		data.ImportStep("billing_account", "enrollment_account"),
+		data.ImportStep(),
 	})
 }
 
@@ -227,6 +227,28 @@ resource "azurerm_subscription" "test" {
 	  environment = "Production"
 	  cost_center = "MSFT"
   }
+}
+`, billingAccount, enrollmentAccount, data.RandomInteger)
+}
+
+func (SubscriptionResource) basicEnrollmentAccountDevTest(data acceptance.TestData) string {
+	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
+	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_billing_enrollment_account_scope" "test" {
+  billing_account_name    = "%s"
+  enrollment_account_name = "%s"
+}
+
+resource "azurerm_subscription" "test" {
+  alias             = "testAcc-%[3]d"
+  subscription_name = "testAccSubscription Renamed %[3]d"
+  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+  workload          = "DevTest"
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
 }

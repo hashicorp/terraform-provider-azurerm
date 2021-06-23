@@ -1,10 +1,22 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/datalake-store/resource-manager/readme.md tag: `package-2016-11`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *AccountsCreateFutureType.UnmarshalJSON([]byte) error
-1. *AccountsDeleteFutureType.UnmarshalJSON([]byte) error
-1. *AccountsUpdateFutureType.UnmarshalJSON([]byte) error
+1. CapabilityInformation.MarshalJSON() ([]byte, error)
+1. DataLakeStoreAccountListResult.MarshalJSON() ([]byte, error)
+1. DataLakeStoreAccountProperties.MarshalJSON() ([]byte, error)
+1. DataLakeStoreAccountPropertiesBasic.MarshalJSON() ([]byte, error)
+1. FirewallRuleListResult.MarshalJSON() ([]byte, error)
+1. FirewallRuleProperties.MarshalJSON() ([]byte, error)
+1. NameAvailabilityInformation.MarshalJSON() ([]byte, error)
+1. OperationDisplay.MarshalJSON() ([]byte, error)
+1. OperationListResult.MarshalJSON() ([]byte, error)
+1. SubResource.MarshalJSON() ([]byte, error)
+1. TrustedIDProviderListResult.MarshalJSON() ([]byte, error)
+1. TrustedIDProviderProperties.MarshalJSON() ([]byte, error)
+1. Usage.MarshalJSON() ([]byte, error)
+1. UsageName.MarshalJSON() ([]byte, error)
+1. VirtualNetworkRuleListResult.MarshalJSON() ([]byte, error)
+1. VirtualNetworkRuleProperties.MarshalJSON() ([]byte, error)

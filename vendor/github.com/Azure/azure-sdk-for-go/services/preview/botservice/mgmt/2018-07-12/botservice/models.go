@@ -797,6 +797,12 @@ type ConnectionItemName struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConnectionItemName.
+func (cin ConnectionItemName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ConnectionSetting bot channel resource definition
 type ConnectionSetting struct {
 	autorest.Response `json:"-"`
@@ -1588,6 +1594,7 @@ func (future *EnterpriseChannelsCreateFuture) result(client EnterpriseChannelsCl
 		return
 	}
 	if !done {
+		ec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsCreateFuture")
 		return
 	}
@@ -1630,6 +1637,7 @@ func (future *EnterpriseChannelsDeleteFuture) result(client EnterpriseChannelsCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsDeleteFuture")
 		return
 	}
@@ -1666,6 +1674,7 @@ func (future *EnterpriseChannelsUpdateFuture) result(client EnterpriseChannelsCl
 		return
 	}
 	if !done {
+		ec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsUpdateFuture")
 		return
 	}
@@ -2244,6 +2253,12 @@ type ServiceProviderParameter struct {
 	HelpURL *string `json:"helpUrl,omitempty"`
 	// Default - READ-ONLY; Default Name for the Service Provider
 	Default *string `json:"default,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceProviderParameter.
+func (spp ServiceProviderParameter) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServiceProviderProperties the Object used to describe a Service Provider supported by Bot Service

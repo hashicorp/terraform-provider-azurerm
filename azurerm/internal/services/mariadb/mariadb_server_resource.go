@@ -1,6 +1,7 @@
 package mariadb
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -10,78 +11,75 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMariaDbServer() *schema.Resource {
-	return &schema.Resource{
+func resourceMariaDbServer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMariaDbServerCreate,
 		Read:   resourceMariaDbServerRead,
 		Update: resourceMariaDbServerUpdate,
 		Delete: resourceMariaDbServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.ServerID(d.Id()); err != nil {
-					return []*schema.ResourceData{d}, err
-				}
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			d.Set("create_mode", "Default")
+			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+				d.Set("create_mode", v)
+			}
 
-				d.Set("create_mode", "Default")
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
-				}
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
-				return []*schema.ResourceData{d}, nil
-			},
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
 			"administrator_login_password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Sensitive: true,
 			},
 
 			"auto_grow_enabled": {
-				Type:          schema.TypeBool,
+				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				Computed:      true, // TODO: remove in 3.0 and default to true
 				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 
 			"backup_retention_days": {
-				Type:          schema.TypeInt,
+				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"storage_profile.0.backup_retention_days"},
@@ -89,7 +87,7 @@ func resourceMariaDbServer() *schema.Resource {
 			},
 
 			"create_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(mariadb.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -101,18 +99,18 @@ func resourceMariaDbServer() *schema.Resource {
 			},
 
 			"creation_source_server_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ServerID,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          schema.TypeBool,
+				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"storage_profile.0.geo_redundant_backup"},
@@ -121,7 +119,7 @@ func resourceMariaDbServer() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -129,13 +127,13 @@ func resourceMariaDbServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"restore_point_in_time": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B_Gen5_1",
@@ -153,7 +151,7 @@ func resourceMariaDbServer() *schema.Resource {
 			},
 
 			"ssl_enforcement": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				Deprecated:       "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
@@ -166,13 +164,13 @@ func resourceMariaDbServer() *schema.Resource {
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         schema.TypeBool,
+				Type:         pluginsdk.TypeBool,
 				Optional:     true, // required in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
 			"storage_mb": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: []string{"storage_profile.0.storage_mb"},
@@ -183,15 +181,15 @@ func resourceMariaDbServer() *schema.Resource {
 			},
 
 			"storage_profile": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
 				Deprecated: "all storage_profile properties have been moved to the top level. This block will be removed in version 3.0 of the provider.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"auto_grow": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"auto_grow_enabled"},
@@ -201,19 +199,25 @@ func resourceMariaDbServer() *schema.Resource {
 								string(mariadb.StorageAutogrowEnabled),
 								string(mariadb.StorageAutogrowDisabled),
 							}, false),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 
 						"backup_retention_days": {
-							Type:          schema.TypeInt,
+							Type:          pluginsdk.TypeInt,
 							Optional:      true,
 							Computed:      true,
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc:  validation.IntBetween(7, 35),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 
 						"geo_redundant_backup": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
 							ForceNew:         true,
@@ -224,10 +228,13 @@ func resourceMariaDbServer() *schema.Resource {
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
 							}, false),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 
 						"storage_mb": {
-							Type:          schema.TypeInt,
+							Type:          pluginsdk.TypeInt,
 							Optional:      true,
 							ConflictsWith: []string{"storage_mb"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
@@ -235,6 +242,9 @@ func resourceMariaDbServer() *schema.Resource {
 								validation.IntBetween(5120, 4096000),
 								validation.IntDivisibleBy(1024),
 							),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
+							},
 						},
 					},
 				},
@@ -243,7 +253,7 @@ func resourceMariaDbServer() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -255,7 +265,7 @@ func resourceMariaDbServer() *schema.Resource {
 	}
 }
 
-func resourceMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -393,7 +403,7 @@ func resourceMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error
 	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -457,7 +467,7 @@ func resourceMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error
 	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -514,7 +524,7 @@ func resourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -575,7 +585,7 @@ func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
 	}, nil
 }
 
-func expandMariaDbStorageProfile(d *schema.ResourceData) *mariadb.StorageProfile {
+func expandMariaDbStorageProfile(d *pluginsdk.ResourceData) *mariadb.StorageProfile {
 	storage := mariadb.StorageProfile{}
 	if v, ok := d.GetOk("storage_profile"); ok {
 		storageprofile := v.([]interface{})[0].(map[string]interface{})

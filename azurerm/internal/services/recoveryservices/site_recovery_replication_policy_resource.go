@@ -5,35 +5,35 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSiteRecoveryReplicationPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicationPolicyCreate,
 		Read:   resourceSiteRecoveryReplicationPolicyRead,
 		Update: resourceSiteRecoveryReplicationPolicyUpdate,
 		Delete: resourceSiteRecoveryReplicationPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -41,19 +41,19 @@ func resourceSiteRecoveryReplicationPolicy() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"recovery_point_retention_in_minutes": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(1, 365*24*60),
 			},
 			"application_consistent_snapshot_frequency_in_minutes": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(1, 365*24*60),
@@ -62,7 +62,7 @@ func resourceSiteRecoveryReplicationPolicy() *schema.Resource {
 	}
 }
 
-func resourceSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
@@ -114,7 +114,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta in
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
@@ -153,7 +153,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta in
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceSiteRecoveryReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func resourceSiteRecoveryReplicationPolicyRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

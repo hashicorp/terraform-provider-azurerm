@@ -390,6 +390,7 @@ func (future *ApplicationsCreateFuture) result(client ApplicationsClient) (ar Ap
 		return
 	}
 	if !done {
+		ar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationsCreateFuture")
 		return
 	}
@@ -432,6 +433,7 @@ func (future *ApplicationsDeleteFuture) result(client ApplicationsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationsDeleteFuture")
 		return
 	}
@@ -468,6 +470,7 @@ func (future *ApplicationsUpdateFuture) result(client ApplicationsClient) (ar Ap
 		return
 	}
 	if !done {
+		ar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationsUpdateFuture")
 		return
 	}
@@ -580,6 +583,12 @@ type ApplicationTypeResourceProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationTypeResourceProperties.
+func (atrp ApplicationTypeResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ApplicationTypesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ApplicationTypesDeleteFuture struct {
@@ -609,6 +618,7 @@ func (future *ApplicationTypesDeleteFuture) result(client ApplicationTypesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationTypesDeleteFuture")
 		return
 	}
@@ -759,6 +769,7 @@ func (future *ApplicationTypeVersionsCreateFuture) result(client ApplicationType
 		return
 	}
 	if !done {
+		atvr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationTypeVersionsCreateFuture")
 		return
 	}
@@ -801,6 +812,7 @@ func (future *ApplicationTypeVersionsDeleteFuture) result(client ApplicationType
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationTypeVersionsDeleteFuture")
 		return
 	}
@@ -1356,6 +1368,7 @@ func (future *ClustersCreateFuture) result(client ClustersClient) (c Cluster, er
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ClustersCreateFuture")
 		return
 	}
@@ -1398,6 +1411,7 @@ func (future *ClustersUpdateFuture) result(client ClustersClient) (c Cluster, er
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ClustersUpdateFuture")
 		return
 	}
@@ -2779,6 +2793,7 @@ func (future *ServicesCreateFuture) result(client ServicesClient) (sr ServiceRes
 		return
 	}
 	if !done {
+		sr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ServicesCreateFuture")
 		return
 	}
@@ -2821,6 +2836,7 @@ func (future *ServicesDeleteFuture) result(client ServicesClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ServicesDeleteFuture")
 		return
 	}
@@ -2857,6 +2873,7 @@ func (future *ServicesUpdateFuture) result(client ServicesClient) (sr ServiceRes
 		return
 	}
 	if !done {
+		sr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicefabric.ServicesUpdateFuture")
 		return
 	}

@@ -441,6 +441,7 @@ func (future *AgentPoolsCreateOrUpdateFuture) result(client AgentPoolsClient) (a
 		return
 	}
 	if !done {
+		ap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsCreateOrUpdateFuture")
 		return
 	}
@@ -483,6 +484,7 @@ func (future *AgentPoolsDeleteFuture) result(client AgentPoolsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsDeleteFuture")
 		return
 	}
@@ -729,6 +731,7 @@ func (future *ContainerServicesCreateOrUpdateFutureType) result(client Container
 		return
 	}
 	if !done {
+		cs.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ContainerServicesCreateOrUpdateFutureType")
 		return
 	}
@@ -771,6 +774,7 @@ func (future *ContainerServicesDeleteFutureType) result(client ContainerServices
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ContainerServicesDeleteFutureType")
 		return
 	}
@@ -786,11 +790,23 @@ type CredentialResult struct {
 	Value *[]byte `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CredentialResult.
+func (cr CredentialResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CredentialResults the list of credential result response.
 type CredentialResults struct {
 	autorest.Response `json:"-"`
 	// Kubeconfigs - READ-ONLY; Base64-encoded Kubernetes configuration file.
 	Kubeconfigs *[]CredentialResult `json:"kubeconfigs,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CredentialResults.
+func (cr CredentialResults) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CustomProfile properties to configure a custom container service cluster.
@@ -1786,6 +1802,7 @@ func (future *ManagedClustersCreateOrUpdateFuture) result(client ManagedClusters
 		return
 	}
 	if !done {
+		mc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersCreateOrUpdateFuture")
 		return
 	}
@@ -1828,6 +1845,7 @@ func (future *ManagedClustersDeleteFuture) result(client ManagedClustersClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersDeleteFuture")
 		return
 	}
@@ -1873,6 +1891,7 @@ func (future *ManagedClustersResetAADProfileFuture) result(client ManagedCluster
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersResetAADProfileFuture")
 		return
 	}
@@ -1909,6 +1928,7 @@ func (future *ManagedClustersResetServicePrincipalProfileFuture) result(client M
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersResetServicePrincipalProfileFuture")
 		return
 	}
@@ -1945,6 +1965,7 @@ func (future *ManagedClustersRotateClusterCertificatesFuture) result(client Mana
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersRotateClusterCertificatesFuture")
 		return
 	}
@@ -1981,6 +2002,7 @@ func (future *ManagedClustersUpdateTagsFuture) result(client ManagedClustersClie
 		return
 	}
 	if !done {
+		mc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersUpdateTagsFuture")
 		return
 	}
@@ -2725,6 +2747,7 @@ func (future *OpenShiftManagedClustersCreateOrUpdateFuture) result(client OpenSh
 		return
 	}
 	if !done {
+		osmc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersCreateOrUpdateFuture")
 		return
 	}
@@ -2767,6 +2790,7 @@ func (future *OpenShiftManagedClustersDeleteFuture) result(client OpenShiftManag
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersDeleteFuture")
 		return
 	}
@@ -2803,6 +2827,7 @@ func (future *OpenShiftManagedClustersUpdateTagsFuture) result(client OpenShiftM
 		return
 	}
 	if !done {
+		osmc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersUpdateTagsFuture")
 		return
 	}
@@ -2840,6 +2865,12 @@ type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of compute operations
 	Value *[]OperationValue `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationValue describes the properties of a Compute Operation value.
@@ -2913,6 +2944,12 @@ type OperationValueDisplay struct {
 	Description *string `json:"description,omitempty"`
 	// Provider - READ-ONLY; The resource provider for the operation.
 	Provider *string `json:"provider,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationValueDisplay.
+func (ovd OperationValueDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OrchestratorProfile contains information about orchestrator.
@@ -3153,6 +3190,12 @@ type SubResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubResource.
+func (sr SubResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TagsObject tags object for patch operations.

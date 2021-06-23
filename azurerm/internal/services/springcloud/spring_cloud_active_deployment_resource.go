@@ -6,45 +6,44 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSpringCloudActiveDeployment() *schema.Resource {
-	return &schema.Resource{
+func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSpringCloudActiveDeploymentCreate,
 		Read:   resourceSpringCloudActiveDeploymentRead,
 		Update: resourceSpringCloudActiveDeploymentUpdate,
 		Delete: resourceSpringCloudActiveDeploymentDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudAppID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"spring_cloud_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
 			"deployment_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SpringCloudDeploymentName,
 			},
@@ -52,7 +51,7 @@ func resourceSpringCloudActiveDeployment() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudActiveDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,7 +91,7 @@ func resourceSpringCloudActiveDeploymentCreate(d *schema.ResourceData, meta inte
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudActiveDeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +120,7 @@ func resourceSpringCloudActiveDeploymentUpdate(d *schema.ResourceData, meta inte
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudActiveDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +152,7 @@ func resourceSpringCloudActiveDeploymentRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceSpringCloudActiveDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -7,38 +7,37 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMySQLAdministrator() *schema.Resource {
-	return &schema.Resource{
+func resourceMySQLAdministrator() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMySQLAdministratorCreateUpdate,
 		Read:   resourceMySQLAdministratorRead,
 		Update: resourceMySQLAdministratorCreateUpdate,
 		Delete: resourceMySQLAdministratorDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AzureActiveDirectoryAdministratorID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"server_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -46,18 +45,18 @@ func resourceMySQLAdministrator() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"login": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"object_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -65,7 +64,7 @@ func resourceMySQLAdministrator() *schema.Resource {
 	}
 }
 
-func resourceMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -113,7 +112,7 @@ func resourceMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceMySQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +142,7 @@ func resourceMySQLAdministratorRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

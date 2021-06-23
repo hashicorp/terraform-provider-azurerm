@@ -30,6 +30,12 @@ type AdministratorListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AdministratorListResult.
+func (alr AdministratorListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AdministratorListResultIterator provides access to a complete listing of ServerAzureADAdministrator
 // values.
 type AdministratorListResultIterator struct {
@@ -293,6 +299,12 @@ type AutoPauseDelayTimeRange struct {
 	DoNotPauseValue *int32 `json:"doNotPauseValue,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AutoPauseDelayTimeRange.
+func (apdtr AutoPauseDelayTimeRange) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureADOnlyAuthListResult a list of active directory only authentications.
 type AzureADOnlyAuthListResult struct {
 	autorest.Response `json:"-"`
@@ -300,6 +312,12 @@ type AzureADOnlyAuthListResult struct {
 	Value *[]ServerAzureADOnlyAuthentication `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureADOnlyAuthListResult.
+func (aaoalr AzureADOnlyAuthListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AzureADOnlyAuthListResultIterator provides access to a complete listing of
@@ -488,6 +506,7 @@ func (future *BackupLongTermRetentionPoliciesCreateOrUpdateFuture) result(client
 		return
 	}
 	if !done {
+		bltrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -603,6 +622,7 @@ func (future *BackupShortTermRetentionPoliciesCreateOrUpdateFuture) result(clien
 		return
 	}
 	if !done {
+		bstrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.BackupShortTermRetentionPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -645,6 +665,7 @@ func (future *BackupShortTermRetentionPoliciesUpdateFuture) result(client Backup
 		return
 	}
 	if !done {
+		bstrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.BackupShortTermRetentionPoliciesUpdateFuture")
 		return
 	}
@@ -738,6 +759,12 @@ type BackupShortTermRetentionPolicyListResult struct {
 	Value *[]BackupShortTermRetentionPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BackupShortTermRetentionPolicyListResult.
+func (bstrplr BackupShortTermRetentionPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BackupShortTermRetentionPolicyListResultIterator provides access to a complete listing of
@@ -926,6 +953,12 @@ type CheckNameAvailabilityResponse struct {
 	Reason CheckNameAvailabilityReason `json:"reason,omitempty"`
 	// Message - READ-ONLY; A message explaining why the name is unavailable. Will be undefined if the name is available.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResponse.
+func (cnar CheckNameAvailabilityResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CompleteDatabaseRestoreDefinition contains the information necessary to perform a complete database
@@ -1277,6 +1310,12 @@ type DatabaseBlobAuditingPolicyListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseBlobAuditingPolicyListResult.
+func (dbaplr DatabaseBlobAuditingPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseBlobAuditingPolicyListResultIterator provides access to a complete listing of
 // DatabaseBlobAuditingPolicy values.
 type DatabaseBlobAuditingPolicyListResultIterator struct {
@@ -1531,6 +1570,12 @@ type DatabaseListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseListResult.
+func (dlr DatabaseListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseListResultIterator provides access to a complete listing of Database values.
 type DatabaseListResultIterator struct {
 	i    int
@@ -1762,6 +1807,12 @@ type DatabaseOperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseOperationListResult.
+func (dolr DatabaseOperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseOperationListResultIterator provides access to a complete listing of DatabaseOperation values.
 type DatabaseOperationListResultIterator struct {
 	i    int
@@ -1944,6 +1995,12 @@ type DatabaseOperationProperties struct {
 	IsCancellable *bool `json:"isCancellable,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseOperationProperties.
+func (dop DatabaseOperationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseProperties the database's properties.
 type DatabaseProperties struct {
 	// CreateMode - Specifies the mode of database creation.
@@ -2123,6 +2180,7 @@ func (future *DatabasesCreateOrUpdateFuture) result(client DatabasesClient) (d D
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesCreateOrUpdateFuture")
 		return
 	}
@@ -2165,6 +2223,7 @@ func (future *DatabasesDeleteFuture) result(client DatabasesClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesDeleteFuture")
 		return
 	}
@@ -2319,6 +2378,7 @@ func (future *DatabasesExportFuture) result(client DatabasesClient) (ieor Import
 		return
 	}
 	if !done {
+		ieor.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesExportFuture")
 		return
 	}
@@ -2361,6 +2421,7 @@ func (future *DatabasesFailoverFuture) result(client DatabasesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesFailoverFuture")
 		return
 	}
@@ -2397,6 +2458,7 @@ func (future *DatabasesPauseFuture) result(client DatabasesClient) (d Database, 
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesPauseFuture")
 		return
 	}
@@ -2439,6 +2501,7 @@ func (future *DatabasesResumeFuture) result(client DatabasesClient) (d Database,
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesResumeFuture")
 		return
 	}
@@ -2481,6 +2544,7 @@ func (future *DatabasesUpdateFuture) result(client DatabasesClient) (d Database,
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesUpdateFuture")
 		return
 	}
@@ -2523,6 +2587,7 @@ func (future *DatabasesUpgradeDataWarehouseFuture) result(client DatabasesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabasesUpgradeDataWarehouseFuture")
 		return
 	}
@@ -2615,6 +2680,12 @@ type DatabaseUsage struct {
 	NextResetTime *date.Time `json:"nextResetTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseUsage.
+func (du DatabaseUsage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseUsageListResult the response to a list database metrics request.
 type DatabaseUsageListResult struct {
 	autorest.Response `json:"-"`
@@ -2702,6 +2773,12 @@ type DatabaseVulnerabilityAssessmentListResult struct {
 	Value *[]DatabaseVulnerabilityAssessment `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DatabaseVulnerabilityAssessmentListResult.
+func (dvalr DatabaseVulnerabilityAssessmentListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DatabaseVulnerabilityAssessmentListResultIterator provides access to a complete listing of
@@ -2960,6 +3037,12 @@ type DatabaseVulnerabilityAssessmentScanExportProperties struct {
 	ExportedReportLocation *string `json:"exportedReportLocation,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseVulnerabilityAssessmentScanExportProperties.
+func (dvasep DatabaseVulnerabilityAssessmentScanExportProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DatabaseVulnerabilityAssessmentScansExport a database Vulnerability Assessment scan export resource.
 type DatabaseVulnerabilityAssessmentScansExport struct {
 	autorest.Response `json:"-"`
@@ -3062,6 +3145,7 @@ func (future *DatabaseVulnerabilityAssessmentScansInitiateScanFuture) result(cli
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.DatabaseVulnerabilityAssessmentScansInitiateScanFuture")
 		return
 	}
@@ -3653,6 +3737,12 @@ type ElasticPoolActivityProperties struct {
 	RequestedDtuGuarantee *int32 `json:"requestedDtuGuarantee,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolActivityProperties.
+func (epap ElasticPoolActivityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolDatabaseActivity represents the activity on an elastic pool.
 type ElasticPoolDatabaseActivity struct {
 	// Location - The geo-location where the resource lives
@@ -3781,6 +3871,12 @@ type ElasticPoolDatabaseActivityProperties struct {
 	State *string `json:"state,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolDatabaseActivityProperties.
+func (epdap ElasticPoolDatabaseActivityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolEditionCapability the elastic pool edition capability.
 type ElasticPoolEditionCapability struct {
 	// Name - READ-ONLY; The elastic pool edition name.
@@ -3811,6 +3907,12 @@ type ElasticPoolListResult struct {
 	Value *[]ElasticPool `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ElasticPoolListResult.
+func (eplr ElasticPoolListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ElasticPoolListResultIterator provides access to a complete listing of ElasticPool values.
@@ -4044,6 +4146,12 @@ type ElasticPoolOperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolOperationListResult.
+func (epolr ElasticPoolOperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolOperationListResultIterator provides access to a complete listing of ElasticPoolOperation
 // values.
 type ElasticPoolOperationListResultIterator struct {
@@ -4227,6 +4335,12 @@ type ElasticPoolOperationProperties struct {
 	IsCancellable *bool `json:"isCancellable,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolOperationProperties.
+func (epop ElasticPoolOperationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolPerDatabaseMaxPerformanceLevelCapability the max per-database performance level capability.
 type ElasticPoolPerDatabaseMaxPerformanceLevelCapability struct {
 	// Limit - READ-ONLY; The maximum performance level per database.
@@ -4378,6 +4492,7 @@ func (future *ElasticPoolsCreateOrUpdateFuture) result(client ElasticPoolsClient
 		return
 	}
 	if !done {
+		ep.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ElasticPoolsCreateOrUpdateFuture")
 		return
 	}
@@ -4420,6 +4535,7 @@ func (future *ElasticPoolsDeleteFuture) result(client ElasticPoolsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ElasticPoolsDeleteFuture")
 		return
 	}
@@ -4456,6 +4572,7 @@ func (future *ElasticPoolsFailoverFuture) result(client ElasticPoolsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ElasticPoolsFailoverFuture")
 		return
 	}
@@ -4492,6 +4609,7 @@ func (future *ElasticPoolsUpdateFuture) result(client ElasticPoolsClient) (ep El
 		return
 	}
 	if !done {
+		ep.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ElasticPoolsUpdateFuture")
 		return
 	}
@@ -4685,6 +4803,12 @@ type EncryptionProtectorListResult struct {
 	Value *[]EncryptionProtector `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EncryptionProtectorListResult.
+func (eplr EncryptionProtectorListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EncryptionProtectorListResultIterator provides access to a complete listing of EncryptionProtector
@@ -4893,6 +5017,7 @@ func (future *EncryptionProtectorsCreateOrUpdateFuture) result(client Encryption
 		return
 	}
 	if !done {
+		ep.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.EncryptionProtectorsCreateOrUpdateFuture")
 		return
 	}
@@ -4935,6 +5060,7 @@ func (future *EncryptionProtectorsRevalidateFuture) result(client EncryptionProt
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.EncryptionProtectorsRevalidateFuture")
 		return
 	}
@@ -5040,6 +5166,12 @@ type ExtendedDatabaseBlobAuditingPolicyListResult struct {
 	Value *[]ExtendedDatabaseBlobAuditingPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExtendedDatabaseBlobAuditingPolicyListResult.
+func (edbaplr ExtendedDatabaseBlobAuditingPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExtendedDatabaseBlobAuditingPolicyListResultIterator provides access to a complete listing of
@@ -5319,6 +5451,7 @@ func (future *ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture) result(cli
 		return
 	}
 	if !done {
+		esbap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -5412,6 +5545,12 @@ type ExtendedServerBlobAuditingPolicyListResult struct {
 	Value *[]ExtendedServerBlobAuditingPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExtendedServerBlobAuditingPolicyListResult.
+func (esbaplr ExtendedServerBlobAuditingPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExtendedServerBlobAuditingPolicyListResultIterator provides access to a complete listing of
@@ -5769,6 +5908,12 @@ type FailoverGroupListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FailoverGroupListResult.
+func (fglr FailoverGroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // FailoverGroupListResultIterator provides access to a complete listing of FailoverGroup values.
 type FailoverGroupListResultIterator struct {
 	i    int
@@ -5996,6 +6141,7 @@ func (future *FailoverGroupsCreateOrUpdateFuture) result(client FailoverGroupsCl
 		return
 	}
 	if !done {
+		fg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.FailoverGroupsCreateOrUpdateFuture")
 		return
 	}
@@ -6038,6 +6184,7 @@ func (future *FailoverGroupsDeleteFuture) result(client FailoverGroupsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.FailoverGroupsDeleteFuture")
 		return
 	}
@@ -6074,6 +6221,7 @@ func (future *FailoverGroupsFailoverFuture) result(client FailoverGroupsClient) 
 		return
 	}
 	if !done {
+		fg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.FailoverGroupsFailoverFuture")
 		return
 	}
@@ -6116,6 +6264,7 @@ func (future *FailoverGroupsForceFailoverAllowDataLossFuture) result(client Fail
 		return
 	}
 	if !done {
+		fg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.FailoverGroupsForceFailoverAllowDataLossFuture")
 		return
 	}
@@ -6158,6 +6307,7 @@ func (future *FailoverGroupsUpdateFuture) result(client FailoverGroupsClient) (f
 		return
 	}
 	if !done {
+		fg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.FailoverGroupsUpdateFuture")
 		return
 	}
@@ -6511,6 +6661,7 @@ func (future *ImportExportImportFuture) result(client ImportExportClient) (ieor 
 		return
 	}
 	if !done {
+		ieor.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ImportExportImportFuture")
 		return
 	}
@@ -6622,6 +6773,12 @@ type ImportExportOperationResultProperties struct {
 	PrivateEndpointConnections *[]PrivateEndpointConnectionRequestStatus `json:"privateEndpointConnections,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ImportExportOperationResultProperties.
+func (ieorp ImportExportOperationResultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ImportNewDatabaseDefinition contains the information necessary to perform import operation for new
 // database.
 type ImportNewDatabaseDefinition struct {
@@ -6729,6 +6886,12 @@ type InstanceFailoverGroupListResult struct {
 	Value *[]InstanceFailoverGroup `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InstanceFailoverGroupListResult.
+func (ifglr InstanceFailoverGroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // InstanceFailoverGroupListResultIterator provides access to a complete listing of InstanceFailoverGroup
@@ -6959,6 +7122,7 @@ func (future *InstanceFailoverGroupsCreateOrUpdateFuture) result(client Instance
 		return
 	}
 	if !done {
+		ifg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstanceFailoverGroupsCreateOrUpdateFuture")
 		return
 	}
@@ -7001,6 +7165,7 @@ func (future *InstanceFailoverGroupsDeleteFuture) result(client InstanceFailover
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstanceFailoverGroupsDeleteFuture")
 		return
 	}
@@ -7037,6 +7202,7 @@ func (future *InstanceFailoverGroupsFailoverFuture) result(client InstanceFailov
 		return
 	}
 	if !done {
+		ifg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstanceFailoverGroupsFailoverFuture")
 		return
 	}
@@ -7079,6 +7245,7 @@ func (future *InstanceFailoverGroupsForceFailoverAllowDataLossFuture) result(cli
 		return
 	}
 	if !done {
+		ifg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstanceFailoverGroupsForceFailoverAllowDataLossFuture")
 		return
 	}
@@ -7258,6 +7425,12 @@ type InstancePoolListResult struct {
 	Value *[]InstancePool `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InstancePoolListResult.
+func (iplr InstancePoolListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // InstancePoolListResultIterator provides access to a complete listing of InstancePool values.
@@ -7449,6 +7622,7 @@ func (future *InstancePoolsCreateOrUpdateFuture) result(client InstancePoolsClie
 		return
 	}
 	if !done {
+		IP.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstancePoolsCreateOrUpdateFuture")
 		return
 	}
@@ -7491,6 +7665,7 @@ func (future *InstancePoolsDeleteFuture) result(client InstancePoolsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstancePoolsDeleteFuture")
 		return
 	}
@@ -7527,6 +7702,7 @@ func (future *InstancePoolsUpdateFuture) result(client InstancePoolsClient) (IP 
 		return
 	}
 	if !done {
+		IP.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.InstancePoolsUpdateFuture")
 		return
 	}
@@ -7775,6 +7951,12 @@ type JobAgentListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobAgentListResult.
+func (jalr JobAgentListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobAgentListResultIterator provides access to a complete listing of JobAgent values.
 type JobAgentListResultIterator struct {
 	i    int
@@ -7971,6 +8153,7 @@ func (future *JobAgentsCreateOrUpdateFuture) result(client JobAgentsClient) (ja 
 		return
 	}
 	if !done {
+		ja.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.JobAgentsCreateOrUpdateFuture")
 		return
 	}
@@ -8013,6 +8196,7 @@ func (future *JobAgentsDeleteFuture) result(client JobAgentsClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.JobAgentsDeleteFuture")
 		return
 	}
@@ -8049,6 +8233,7 @@ func (future *JobAgentsUpdateFuture) result(client JobAgentsClient) (ja JobAgent
 		return
 	}
 	if !done {
+		ja.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.JobAgentsUpdateFuture")
 		return
 	}
@@ -8157,6 +8342,12 @@ type JobCredentialListResult struct {
 	Value *[]JobCredential `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobCredentialListResult.
+func (jclr JobCredentialListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // JobCredentialListResultIterator provides access to a complete listing of JobCredential values.
@@ -8399,6 +8590,12 @@ type JobExecutionListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobExecutionListResult.
+func (jelr JobExecutionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobExecutionListResultIterator provides access to a complete listing of JobExecution values.
 type JobExecutionListResultIterator struct {
 	i    int
@@ -8617,6 +8814,7 @@ func (future *JobExecutionsCreateFuture) result(client JobExecutionsClient) (je 
 		return
 	}
 	if !done {
+		je.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.JobExecutionsCreateFuture")
 		return
 	}
@@ -8659,6 +8857,7 @@ func (future *JobExecutionsCreateOrUpdateFuture) result(client JobExecutionsClie
 		return
 	}
 	if !done {
+		je.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.JobExecutionsCreateOrUpdateFuture")
 		return
 	}
@@ -8682,6 +8881,12 @@ type JobExecutionTarget struct {
 	DatabaseName *string `json:"databaseName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobExecutionTarget.
+func (jet JobExecutionTarget) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobListResult a list of jobs.
 type JobListResult struct {
 	autorest.Response `json:"-"`
@@ -8689,6 +8894,12 @@ type JobListResult struct {
 	Value *[]Job `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobListResult.
+func (jlr JobListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // JobListResultIterator provides access to a complete listing of Job values.
@@ -8983,6 +9194,12 @@ type JobStepListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobStepListResult.
+func (jslr JobStepListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobStepListResultIterator provides access to a complete listing of JobStep values.
 type JobStepListResultIterator struct {
 	i    int
@@ -9270,6 +9487,12 @@ type JobTargetGroupListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobTargetGroupListResult.
+func (jtglr JobTargetGroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobTargetGroupListResultIterator provides access to a complete listing of JobTargetGroup values.
 type JobTargetGroupListResultIterator struct {
 	i    int
@@ -9437,6 +9660,12 @@ type JobVersion struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JobVersion.
+func (jv JobVersion) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // JobVersionListResult a list of job versions.
 type JobVersionListResult struct {
 	autorest.Response `json:"-"`
@@ -9444,6 +9673,12 @@ type JobVersionListResult struct {
 	Value *[]JobVersion `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobVersionListResult.
+func (jvlr JobVersionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // JobVersionListResultIterator provides access to a complete listing of JobVersion values.
@@ -9648,6 +9883,12 @@ type LogicalServerSecurityAlertPolicyListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LogicalServerSecurityAlertPolicyListResult.
+func (lssaplr LogicalServerSecurityAlertPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LogicalServerSecurityAlertPolicyListResultIterator provides access to a complete listing of
 // ServerSecurityAlertPolicy values.
 type LogicalServerSecurityAlertPolicyListResultIterator struct {
@@ -9807,6 +10048,12 @@ type LogSizeCapability struct {
 	Unit LogSizeUnit `json:"unit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LogSizeCapability.
+func (lsc LogSizeCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LongTermRetentionBackup a long term retention backup.
 type LongTermRetentionBackup struct {
 	autorest.Response `json:"-"`
@@ -9887,6 +10134,12 @@ type LongTermRetentionBackupListResult struct {
 	Value *[]LongTermRetentionBackup `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LongTermRetentionBackupListResult.
+func (ltrblr LongTermRetentionBackupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // LongTermRetentionBackupListResultIterator provides access to a complete listing of
@@ -10056,6 +10309,12 @@ type LongTermRetentionBackupProperties struct {
 	BackupExpirationTime *date.Time `json:"backupExpirationTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LongTermRetentionBackupProperties.
+func (ltrbp LongTermRetentionBackupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LongTermRetentionBackupsDeleteByResourceGroupFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type LongTermRetentionBackupsDeleteByResourceGroupFuture struct {
@@ -10085,6 +10344,7 @@ func (future *LongTermRetentionBackupsDeleteByResourceGroupFuture) result(client
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteByResourceGroupFuture")
 		return
 	}
@@ -10121,6 +10381,7 @@ func (future *LongTermRetentionBackupsDeleteFuture) result(client LongTermRetent
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteFuture")
 		return
 	}
@@ -10157,6 +10418,7 @@ func (future *LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture")
 		return
 	}
@@ -10193,6 +10455,7 @@ func (future *LongTermRetentionManagedInstanceBackupsDeleteFuture) result(client
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionManagedInstanceBackupsDeleteFuture")
 		return
 	}
@@ -10241,6 +10504,7 @@ func (future *ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture) resul
 		return
 	}
 	if !done {
+		mbstrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -10283,6 +10547,7 @@ func (future *ManagedBackupShortTermRetentionPoliciesUpdateFuture) result(client
 		return
 	}
 	if !done {
+		mbstrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedBackupShortTermRetentionPoliciesUpdateFuture")
 		return
 	}
@@ -10376,6 +10641,12 @@ type ManagedBackupShortTermRetentionPolicyListResult struct {
 	Value *[]ManagedBackupShortTermRetentionPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedBackupShortTermRetentionPolicyListResult.
+func (mbstrplr ManagedBackupShortTermRetentionPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedBackupShortTermRetentionPolicyListResultIterator provides access to a complete listing of
@@ -10646,6 +10917,12 @@ type ManagedDatabaseListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedDatabaseListResult.
+func (mdlr ManagedDatabaseListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedDatabaseListResultIterator provides access to a complete listing of ManagedDatabase values.
 type ManagedDatabaseListResultIterator struct {
 	i    int
@@ -10900,6 +11177,12 @@ type ManagedDatabaseRestoreDetailsProperties struct {
 	BlockReason *string `json:"blockReason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedDatabaseRestoreDetailsProperties.
+func (mdrdp ManagedDatabaseRestoreDetailsProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedDatabaseRestoreDetailsResult a managed database restore details.
 type ManagedDatabaseRestoreDetailsResult struct {
 	autorest.Response `json:"-"`
@@ -11002,6 +11285,7 @@ func (future *ManagedDatabasesCompleteRestoreFuture) result(client ManagedDataba
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesCompleteRestoreFuture")
 		return
 	}
@@ -11038,6 +11322,7 @@ func (future *ManagedDatabasesCreateOrUpdateFuture) result(client ManagedDatabas
 		return
 	}
 	if !done {
+		md.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesCreateOrUpdateFuture")
 		return
 	}
@@ -11080,6 +11365,7 @@ func (future *ManagedDatabasesDeleteFuture) result(client ManagedDatabasesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesDeleteFuture")
 		return
 	}
@@ -11167,6 +11453,12 @@ type ManagedDatabaseSecurityAlertPolicyListResult struct {
 	Value *[]ManagedDatabaseSecurityAlertPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedDatabaseSecurityAlertPolicyListResult.
+func (mdsaplr ManagedDatabaseSecurityAlertPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedDatabaseSecurityAlertPolicyListResultIterator provides access to a complete listing of
@@ -11350,6 +11642,7 @@ func (future *ManagedDatabasesUpdateFuture) result(client ManagedDatabasesClient
 		return
 	}
 	if !done {
+		md.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesUpdateFuture")
 		return
 	}
@@ -11445,6 +11738,7 @@ func (future *ManagedDatabaseVulnerabilityAssessmentScansInitiateScanFuture) res
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabaseVulnerabilityAssessmentScansInitiateScanFuture")
 		return
 	}
@@ -11663,6 +11957,12 @@ type ManagedInstanceAdministratorListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceAdministratorListResult.
+func (mialr ManagedInstanceAdministratorListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceAdministratorListResultIterator provides access to a complete listing of
 // ManagedInstanceAdministrator values.
 type ManagedInstanceAdministratorListResultIterator struct {
@@ -11855,6 +12155,7 @@ func (future *ManagedInstanceAdministratorsCreateOrUpdateFuture) result(client M
 		return
 	}
 	if !done {
+		mia.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAdministratorsCreateOrUpdateFuture")
 		return
 	}
@@ -11897,6 +12198,7 @@ func (future *ManagedInstanceAdministratorsDeleteFuture) result(client ManagedIn
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAdministratorsDeleteFuture")
 		return
 	}
@@ -12006,6 +12308,7 @@ func (future *ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture) res
 		return
 	}
 	if !done {
+		miaaoa.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture")
 		return
 	}
@@ -12048,6 +12351,7 @@ func (future *ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture) result(clie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture")
 		return
 	}
@@ -12062,6 +12366,12 @@ type ManagedInstanceAzureADOnlyAuthListResult struct {
 	Value *[]ManagedInstanceAzureADOnlyAuthentication `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceAzureADOnlyAuthListResult.
+func (miaaoalr ManagedInstanceAzureADOnlyAuthListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceAzureADOnlyAuthListResultIterator provides access to a complete listing of
@@ -12337,6 +12647,12 @@ type ManagedInstanceEncryptionProtectorListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceEncryptionProtectorListResult.
+func (mieplr ManagedInstanceEncryptionProtectorListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceEncryptionProtectorListResultIterator provides access to a complete listing of
 // ManagedInstanceEncryptionProtector values.
 type ManagedInstanceEncryptionProtectorListResultIterator struct {
@@ -12542,6 +12858,7 @@ func (future *ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture) result(cl
 		return
 	}
 	if !done {
+		miep.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture")
 		return
 	}
@@ -12584,6 +12901,7 @@ func (future *ManagedInstanceEncryptionProtectorsRevalidateFuture) result(client
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceEncryptionProtectorsRevalidateFuture")
 		return
 	}
@@ -12707,6 +13025,12 @@ type ManagedInstanceKeyListResult struct {
 	Value *[]ManagedInstanceKey `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceKeyListResult.
+func (miklr ManagedInstanceKeyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceKeyListResultIterator provides access to a complete listing of ManagedInstanceKey values.
@@ -12912,6 +13236,7 @@ func (future *ManagedInstanceKeysCreateOrUpdateFuture) result(client ManagedInst
 		return
 	}
 	if !done {
+		mik.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceKeysCreateOrUpdateFuture")
 		return
 	}
@@ -12954,6 +13279,7 @@ func (future *ManagedInstanceKeysDeleteFuture) result(client ManagedInstanceKeys
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceKeysDeleteFuture")
 		return
 	}
@@ -12968,6 +13294,12 @@ type ManagedInstanceListResult struct {
 	Value *[]ManagedInstance `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceListResult.
+func (milr ManagedInstanceListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceListResultIterator provides access to a complete listing of ManagedInstance values.
@@ -13203,6 +13535,12 @@ type ManagedInstanceLongTermRetentionBackupListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceLongTermRetentionBackupListResult.
+func (miltrblr ManagedInstanceLongTermRetentionBackupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceLongTermRetentionBackupListResultIterator provides access to a complete listing of
 // ManagedInstanceLongTermRetentionBackup values.
 type ManagedInstanceLongTermRetentionBackupListResultIterator struct {
@@ -13371,6 +13709,12 @@ type ManagedInstanceLongTermRetentionBackupProperties struct {
 	BackupExpirationTime *date.Time `json:"backupExpirationTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceLongTermRetentionBackupProperties.
+func (miltrbp ManagedInstanceLongTermRetentionBackupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture an abstraction for monitoring and
 // retrieving the results of a long-running operation.
 type ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture struct {
@@ -13400,6 +13744,7 @@ func (future *ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture) resu
 		return
 	}
 	if !done {
+		miltrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -13493,6 +13838,12 @@ type ManagedInstanceLongTermRetentionPolicyListResult struct {
 	Value *[]ManagedInstanceLongTermRetentionPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceLongTermRetentionPolicyListResult.
+func (miltrplr ManagedInstanceLongTermRetentionPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceLongTermRetentionPolicyListResultIterator provides access to a complete listing of
@@ -13729,6 +14080,12 @@ type ManagedInstanceOperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceOperationListResult.
+func (miolr ManagedInstanceOperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceOperationListResultIterator provides access to a complete listing of
 // ManagedInstanceOperation values.
 type ManagedInstanceOperationListResultIterator struct {
@@ -13888,6 +14245,12 @@ type ManagedInstanceOperationParametersPair struct {
 	RequestedParameters *UpsertManagedServerOperationParameters `json:"requestedParameters,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceOperationParametersPair.
+func (miopp ManagedInstanceOperationParametersPair) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceOperationProperties the properties of a managed instance operation.
 type ManagedInstanceOperationProperties struct {
 	// ManagedInstanceName - READ-ONLY; The name of the managed instance the operation is being performed on.
@@ -13922,6 +14285,12 @@ type ManagedInstanceOperationProperties struct {
 	OperationSteps *ManagedInstanceOperationSteps `json:"operationSteps,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceOperationProperties.
+func (miop ManagedInstanceOperationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceOperationSteps the steps of a managed instance operation.
 type ManagedInstanceOperationSteps struct {
 	// TotalSteps - READ-ONLY; The total number of operation steps.
@@ -13930,6 +14299,12 @@ type ManagedInstanceOperationSteps struct {
 	CurrentStep *int32 `json:"currentStep,omitempty"`
 	// StepsList - READ-ONLY; The operation steps list.
 	StepsList *[]UpsertManagedServerOperationStep `json:"stepsList,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceOperationSteps.
+func (mios ManagedInstanceOperationSteps) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstancePairInfo pairs of Managed Instances in the failover group.
@@ -14108,6 +14483,7 @@ func (future *ManagedInstancesCreateOrUpdateFuture) result(client ManagedInstanc
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesCreateOrUpdateFuture")
 		return
 	}
@@ -14150,6 +14526,7 @@ func (future *ManagedInstancesDeleteFuture) result(client ManagedInstancesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesDeleteFuture")
 		return
 	}
@@ -14186,6 +14563,7 @@ func (future *ManagedInstancesFailoverFuture) result(client ManagedInstancesClie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesFailoverFuture")
 		return
 	}
@@ -14222,6 +14600,7 @@ func (future *ManagedInstancesUpdateFuture) result(client ManagedInstancesClient
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesUpdateFuture")
 		return
 	}
@@ -14264,6 +14643,7 @@ func (future *ManagedInstanceTdeCertificatesCreateFuture) result(client ManagedI
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceTdeCertificatesCreateFuture")
 		return
 	}
@@ -14473,6 +14853,12 @@ type ManagedInstanceVulnerabilityAssessmentListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceVulnerabilityAssessmentListResult.
+func (mivalr ManagedInstanceVulnerabilityAssessmentListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceVulnerabilityAssessmentListResultIterator provides access to a complete listing of
 // ManagedInstanceVulnerabilityAssessment values.
 type ManagedInstanceVulnerabilityAssessmentListResultIterator struct {
@@ -14667,6 +15053,7 @@ func (future *ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCr
 		return
 	}
 	if !done {
+		mbstrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -14709,6 +15096,7 @@ func (future *ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesUp
 		return
 	}
 	if !done {
+		mbstrp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesUpdateFuture")
 		return
 	}
@@ -14751,6 +15139,7 @@ func (future *ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture) result(cli
 		return
 	}
 	if !done {
+		mssap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -14844,6 +15233,12 @@ type ManagedServerSecurityAlertPolicyListResult struct {
 	Value *[]ManagedServerSecurityAlertPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedServerSecurityAlertPolicyListResult.
+func (mssaplr ManagedServerSecurityAlertPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ManagedServerSecurityAlertPolicyListResultIterator provides access to a complete listing of
@@ -15006,6 +15401,12 @@ type MaxSizeCapability struct {
 	Unit MaxSizeUnit `json:"unit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MaxSizeCapability.
+func (msc MaxSizeCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MaxSizeRangeCapability the maximum size range capability.
 type MaxSizeRangeCapability struct {
 	// MinValue - READ-ONLY; Minimum value.
@@ -15047,12 +15448,24 @@ type Metric struct {
 	MetricValues *[]MetricValue `json:"metricValues,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Metric.
+func (mVar Metric) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MetricAvailability a metric availability value.
 type MetricAvailability struct {
 	// Retention - READ-ONLY; The length of retention for the database metric.
 	Retention *string `json:"retention,omitempty"`
 	// TimeGrain - READ-ONLY; The granularity of the database metric.
 	TimeGrain *string `json:"timeGrain,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricAvailability.
+func (ma MetricAvailability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MetricDefinition a database metric definition.
@@ -15067,6 +15480,12 @@ type MetricDefinition struct {
 	Unit UnitDefinitionType `json:"unit,omitempty"`
 	// MetricAvailabilities - READ-ONLY; The list of database metric availabilities for the metric.
 	MetricAvailabilities *[]MetricAvailability `json:"metricAvailabilities,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricDefinition.
+func (md MetricDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MetricDefinitionListResult the response to a list database metric definitions request.
@@ -15091,6 +15510,12 @@ type MetricName struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MetricName.
+func (mn MetricName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MetricValue represents database metrics.
 type MetricValue struct {
 	// Count - READ-ONLY; The number of values for the metric.
@@ -15105,6 +15530,12 @@ type MetricValue struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 	// Total - READ-ONLY; The total value of the metric.
 	Total *float64 `json:"total,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricValue.
+func (mv MetricValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MinCapacityCapability the min capacity capability
@@ -15172,6 +15603,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (od OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationImpact the impact of an operation, both in absolute and relative terms.
 type OperationImpact struct {
 	// Name - READ-ONLY; The name of the impact dimension.
@@ -15184,6 +15621,12 @@ type OperationImpact struct {
 	ChangeValueRelative *float64 `json:"changeValueRelative,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationImpact.
+func (oi OperationImpact) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult result of the request to list SQL operations.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
@@ -15191,6 +15634,12 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -15387,6 +15836,12 @@ type PerformanceLevelCapability struct {
 	Unit PerformanceLevelUnit `json:"unit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PerformanceLevelCapability.
+func (plc PerformanceLevelCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnection a private endpoint connection
 type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
@@ -15467,6 +15922,12 @@ type PrivateEndpointConnectionListResult struct {
 	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionListResult.
+func (peclr PrivateEndpointConnectionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnectionListResultIterator provides access to a complete listing of
@@ -15652,6 +16113,12 @@ type PrivateEndpointConnectionRequestStatus struct {
 	Status *string `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionRequestStatus.
+func (pecrs PrivateEndpointConnectionRequestStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type PrivateEndpointConnectionsCreateOrUpdateFuture struct {
@@ -15681,6 +16148,7 @@ func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) result(client Priv
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.PrivateEndpointConnectionsCreateOrUpdateFuture")
 		return
 	}
@@ -15723,6 +16191,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -15749,6 +16218,12 @@ type PrivateLinkResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkResourceListResult a list of private link resources
 type PrivateLinkResourceListResult struct {
 	autorest.Response `json:"-"`
@@ -15756,6 +16231,12 @@ type PrivateLinkResourceListResult struct {
 	Value *[]PrivateLinkResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceListResult.
+func (plrlr PrivateLinkResourceListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateLinkResourceListResultIterator provides access to a complete listing of PrivateLinkResource
@@ -15917,6 +16398,12 @@ type PrivateLinkResourceProperties struct {
 	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkServiceConnectionStateProperty ...
 type PrivateLinkServiceConnectionStateProperty struct {
 	// Status - The private link service connection status. Possible values include: 'Approved', 'Pending', 'Rejected', 'Disconnected'
@@ -15947,6 +16434,12 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ReadScaleCapability the read scale capability.
@@ -16207,6 +16700,12 @@ type RecommendedIndexProperties struct {
 	ReportedImpact *[]OperationImpact `json:"reportedImpact,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecommendedIndexProperties.
+func (rip RecommendedIndexProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RecoverableDatabase a recoverable database
 type RecoverableDatabase struct {
 	autorest.Response `json:"-"`
@@ -16299,6 +16798,12 @@ type RecoverableDatabaseProperties struct {
 	LastAvailableBackupDate *date.Time `json:"lastAvailableBackupDate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecoverableDatabaseProperties.
+func (rdp RecoverableDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RecoverableManagedDatabase a recoverable managed database resource.
 type RecoverableManagedDatabase struct {
 	autorest.Response `json:"-"`
@@ -16379,6 +16884,12 @@ type RecoverableManagedDatabaseListResult struct {
 	Value *[]RecoverableManagedDatabase `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RecoverableManagedDatabaseListResult.
+func (rmdlr RecoverableManagedDatabaseListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RecoverableManagedDatabaseListResultIterator provides access to a complete listing of
@@ -16538,6 +17049,12 @@ type RecoverableManagedDatabaseProperties struct {
 	LastAvailableBackupDate *string `json:"lastAvailableBackupDate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecoverableManagedDatabaseProperties.
+func (rmdp RecoverableManagedDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReplicationLink represents a database replication link.
 type ReplicationLink struct {
 	autorest.Response `json:"-"`
@@ -16653,6 +17170,12 @@ type ReplicationLinkProperties struct {
 	ReplicationState ReplicationState `json:"replicationState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ReplicationLinkProperties.
+func (rlp ReplicationLinkProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReplicationLinksFailoverAllowDataLossFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type ReplicationLinksFailoverAllowDataLossFuture struct {
@@ -16682,6 +17205,7 @@ func (future *ReplicationLinksFailoverAllowDataLossFuture) result(client Replica
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksFailoverAllowDataLossFuture")
 		return
 	}
@@ -16718,6 +17242,7 @@ func (future *ReplicationLinksFailoverFuture) result(client ReplicationLinksClie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksFailoverFuture")
 		return
 	}
@@ -16754,6 +17279,7 @@ func (future *ReplicationLinksUnlinkFuture) result(client ReplicationLinksClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksUnlinkFuture")
 		return
 	}
@@ -16769,6 +17295,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceIdentity azure Active Directory identity configuration for a resource.
@@ -16907,6 +17439,12 @@ type RestorableDroppedDatabaseProperties struct {
 	EarliestRestoreDate *date.Time `json:"earliestRestoreDate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RestorableDroppedDatabaseProperties.
+func (rddp RestorableDroppedDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RestorableDroppedManagedDatabase a restorable dropped managed database resource.
 type RestorableDroppedManagedDatabase struct {
 	autorest.Response `json:"-"`
@@ -17015,6 +17553,12 @@ type RestorableDroppedManagedDatabaseListResult struct {
 	Value *[]RestorableDroppedManagedDatabase `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RestorableDroppedManagedDatabaseListResult.
+func (rdmdlr RestorableDroppedManagedDatabaseListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RestorableDroppedManagedDatabaseListResultIterator provides access to a complete listing of
@@ -17181,6 +17725,12 @@ type RestorableDroppedManagedDatabaseProperties struct {
 	EarliestRestoreDate *date.Time `json:"earliestRestoreDate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RestorableDroppedManagedDatabaseProperties.
+func (rdmdp RestorableDroppedManagedDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RestorePoint database restore points.
 type RestorePoint struct {
 	autorest.Response `json:"-"`
@@ -17274,6 +17824,12 @@ type RestorePointListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RestorePointListResult.
+func (rplr RestorePointListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RestorePointProperties properties of a database restore point
 type RestorePointProperties struct {
 	// RestorePointType - READ-ONLY; The type of restore point. Possible values include: 'CONTINUOUS', 'DISCRETE'
@@ -17284,6 +17840,12 @@ type RestorePointProperties struct {
 	RestorePointCreationDate *date.Time `json:"restorePointCreationDate,omitempty"`
 	// RestorePointLabel - READ-ONLY; The label of restore point for backup request by user
 	RestorePointLabel *string `json:"restorePointLabel,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RestorePointProperties.
+func (rpp RestorePointProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RestorePointsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -17315,6 +17877,7 @@ func (future *RestorePointsCreateFuture) result(client RestorePointsClient) (rp 
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.RestorePointsCreateFuture")
 		return
 	}
@@ -17455,6 +18018,12 @@ type SensitivityLabelListResult struct {
 	Value *[]SensitivityLabel `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SensitivityLabelListResult.
+func (sllr SensitivityLabelListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SensitivityLabelListResultIterator provides access to a complete listing of SensitivityLabel values.
@@ -17945,6 +18514,7 @@ func (future *ServerAzureADAdministratorsCreateOrUpdateFuture) result(client Ser
 		return
 	}
 	if !done {
+		saaa.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsCreateOrUpdateFuture")
 		return
 	}
@@ -17987,6 +18557,7 @@ func (future *ServerAzureADAdministratorsDeleteFuture) result(client ServerAzure
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsDeleteFuture")
 		return
 	}
@@ -18096,6 +18667,7 @@ func (future *ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture) result(clien
 		return
 	}
 	if !done {
+		saaoa.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture")
 		return
 	}
@@ -18138,6 +18710,7 @@ func (future *ServerAzureADOnlyAuthenticationsDeleteFuture) result(client Server
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADOnlyAuthenticationsDeleteFuture")
 		return
 	}
@@ -18174,6 +18747,7 @@ func (future *ServerBlobAuditingPoliciesCreateOrUpdateFuture) result(client Serv
 		return
 	}
 	if !done {
+		sbap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerBlobAuditingPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -18267,6 +18841,12 @@ type ServerBlobAuditingPolicyListResult struct {
 	Value *[]ServerBlobAuditingPolicy `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerBlobAuditingPolicyListResult.
+func (sbaplr ServerBlobAuditingPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerBlobAuditingPolicyListResultIterator provides access to a complete listing of
@@ -18662,6 +19242,7 @@ func (future *ServerCommunicationLinksCreateOrUpdateFuture) result(client Server
 		return
 	}
 	if !done {
+		scl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerCommunicationLinksCreateOrUpdateFuture")
 		return
 	}
@@ -18884,6 +19465,7 @@ func (future *ServerDNSAliasesAcquireFuture) result(client ServerDNSAliasesClien
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerDNSAliasesAcquireFuture")
 		return
 	}
@@ -18920,6 +19502,7 @@ func (future *ServerDNSAliasesCreateOrUpdateFuture) result(client ServerDNSAlias
 		return
 	}
 	if !done {
+		sda.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerDNSAliasesCreateOrUpdateFuture")
 		return
 	}
@@ -18962,6 +19545,7 @@ func (future *ServerDNSAliasesDeleteFuture) result(client ServerDNSAliasesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerDNSAliasesDeleteFuture")
 		return
 	}
@@ -18976,6 +19560,12 @@ type ServerDNSAliasListResult struct {
 	Value *[]ServerDNSAlias `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerDNSAliasListResult.
+func (sdalr ServerDNSAliasListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerDNSAliasListResultIterator provides access to a complete listing of ServerDNSAlias values.
@@ -19134,6 +19724,12 @@ type ServerDNSAliasProperties struct {
 	AzureDNSRecord *string `json:"azureDnsRecord,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerDNSAliasProperties.
+func (sdap ServerDNSAliasProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerInfo server info for the server trust group.
 type ServerInfo struct {
 	// ServerID - Server Id.
@@ -19245,6 +19841,12 @@ type ServerKeyListResult struct {
 	Value *[]ServerKey `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerKeyListResult.
+func (sklr ServerKeyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerKeyListResultIterator provides access to a complete listing of ServerKey values.
@@ -19458,6 +20060,7 @@ func (future *ServerKeysCreateOrUpdateFuture) result(client ServerKeysClient) (s
 		return
 	}
 	if !done {
+		sk.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerKeysCreateOrUpdateFuture")
 		return
 	}
@@ -19500,6 +20103,7 @@ func (future *ServerKeysDeleteFuture) result(client ServerKeysClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerKeysDeleteFuture")
 		return
 	}
@@ -19514,6 +20118,12 @@ type ServerListResult struct {
 	Value *[]Server `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerListResult.
+func (slr ServerListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerListResultIterator provides access to a complete listing of Server values.
@@ -19674,6 +20284,12 @@ type ServerPrivateEndpointConnection struct {
 	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerPrivateEndpointConnection.
+func (spec ServerPrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerProperties the properties of a server.
 type ServerProperties struct {
 	// AdministratorLogin - Administrator username for the server. Once created it cannot be changed.
@@ -19744,6 +20360,7 @@ func (future *ServersCreateOrUpdateFuture) result(client ServersClient) (s Serve
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServersCreateOrUpdateFuture")
 		return
 	}
@@ -19786,6 +20403,7 @@ func (future *ServersDeleteFuture) result(client ServersClient) (ar autorest.Res
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServersDeleteFuture")
 		return
 	}
@@ -19822,6 +20440,7 @@ func (future *ServerSecurityAlertPoliciesCreateOrUpdateFuture) result(client Ser
 		return
 	}
 	if !done {
+		ssap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerSecurityAlertPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -19937,6 +20556,7 @@ func (future *ServersImportDatabaseFuture) result(client ServersClient) (ieor Im
 		return
 	}
 	if !done {
+		ieor.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServersImportDatabaseFuture")
 		return
 	}
@@ -19979,6 +20599,7 @@ func (future *ServersUpdateFuture) result(client ServersClient) (s Server, err e
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServersUpdateFuture")
 		return
 	}
@@ -20072,6 +20693,12 @@ type ServerTrustGroupListResult struct {
 	Value *[]ServerTrustGroup `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerTrustGroupListResult.
+func (stglr ServerTrustGroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerTrustGroupListResultIterator provides access to a complete listing of ServerTrustGroup values.
@@ -20261,6 +20888,7 @@ func (future *ServerTrustGroupsCreateOrUpdateFuture) result(client ServerTrustGr
 		return
 	}
 	if !done {
+		stg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerTrustGroupsCreateOrUpdateFuture")
 		return
 	}
@@ -20303,6 +20931,7 @@ func (future *ServerTrustGroupsDeleteFuture) result(client ServerTrustGroupsClie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.ServerTrustGroupsDeleteFuture")
 		return
 	}
@@ -20379,6 +21008,12 @@ type ServerUsage struct {
 	Unit *string `json:"unit,omitempty"`
 	// NextResetTime - READ-ONLY; The next reset time for the metric (ISO8601 format).
 	NextResetTime *date.Time `json:"nextResetTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerUsage.
+func (su ServerUsage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerUsageListResult represents the response to a list server metrics request.
@@ -20491,6 +21126,12 @@ type ServerVulnerabilityAssessmentListResult struct {
 	Value *[]ServerVulnerabilityAssessment `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerVulnerabilityAssessmentListResult.
+func (svalr ServerVulnerabilityAssessmentListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerVulnerabilityAssessmentListResultIterator provides access to a complete listing of
@@ -20789,6 +21430,12 @@ type ServiceObjectiveProperties struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceObjectiveProperties.
+func (sop ServiceObjectiveProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServiceTierAdvisor represents a Service Tier Advisor.
 type ServiceTierAdvisor struct {
 	autorest.Response `json:"-"`
@@ -20908,6 +21555,12 @@ type ServiceTierAdvisorProperties struct {
 	Confidence *float64 `json:"confidence,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceTierAdvisorProperties.
+func (stap ServiceTierAdvisorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Sku an ARM Resource SKU.
 type Sku struct {
 	// Name - The name of the SKU, typically, a letter + Number code, e.g. P3.
@@ -20930,6 +21583,12 @@ type SloUsageMetric struct {
 	ServiceLevelObjectiveID *uuid.UUID `json:"serviceLevelObjectiveId,omitempty"`
 	// InRangeTimeRatio - READ-ONLY; Gets or sets inRangeTimeRatio for SLO usage metric.
 	InRangeTimeRatio *float64 `json:"inRangeTimeRatio,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SloUsageMetric.
+func (sum SloUsageMetric) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // StorageCapability the storage account type capability.
@@ -21031,6 +21690,12 @@ type SubscriptionUsageListResult struct {
 	Value *[]SubscriptionUsage `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubscriptionUsageListResult.
+func (sulr SubscriptionUsageListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SubscriptionUsageListResultIterator provides access to a complete listing of SubscriptionUsage values.
@@ -21195,6 +21860,12 @@ type SubscriptionUsageProperties struct {
 	Unit *string `json:"unit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubscriptionUsageProperties.
+func (sup SubscriptionUsageProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SyncAgent an Azure SQL Database sync agent.
 type SyncAgent struct {
 	autorest.Response `json:"-"`
@@ -21273,6 +21944,12 @@ type SyncAgentKeyProperties struct {
 	autorest.Response `json:"-"`
 	// SyncAgentKey - READ-ONLY; Key of sync agent.
 	SyncAgentKey *string `json:"syncAgentKey,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncAgentKeyProperties.
+func (sakp SyncAgentKeyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncAgentLinkedDatabase an Azure SQL Database sync agent linked database.
@@ -21354,6 +22031,12 @@ type SyncAgentLinkedDatabaseListResult struct {
 	Value *[]SyncAgentLinkedDatabase `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncAgentLinkedDatabaseListResult.
+func (saldlr SyncAgentLinkedDatabaseListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncAgentLinkedDatabaseListResultIterator provides access to a complete listing of
@@ -21523,6 +22206,12 @@ type SyncAgentLinkedDatabaseProperties struct {
 	UserName *string `json:"userName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SyncAgentLinkedDatabaseProperties.
+func (saldp SyncAgentLinkedDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SyncAgentListResult a list of sync agents.
 type SyncAgentListResult struct {
 	autorest.Response `json:"-"`
@@ -21530,6 +22219,12 @@ type SyncAgentListResult struct {
 	Value *[]SyncAgent `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncAgentListResult.
+func (salr SyncAgentListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncAgentListResultIterator provides access to a complete listing of SyncAgent values.
@@ -21738,6 +22433,7 @@ func (future *SyncAgentsCreateOrUpdateFuture) result(client SyncAgentsClient) (s
 		return
 	}
 	if !done {
+		sa.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncAgentsCreateOrUpdateFuture")
 		return
 	}
@@ -21780,6 +22476,7 @@ func (future *SyncAgentsDeleteFuture) result(client SyncAgentsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncAgentsDeleteFuture")
 		return
 	}
@@ -21794,6 +22491,12 @@ type SyncDatabaseIDListResult struct {
 	Value *[]SyncDatabaseIDProperties `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncDatabaseIDListResult.
+func (sdilr SyncDatabaseIDListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncDatabaseIDListResultIterator provides access to a complete listing of SyncDatabaseIDProperties
@@ -21953,12 +22656,24 @@ type SyncDatabaseIDProperties struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SyncDatabaseIDProperties.
+func (sdip SyncDatabaseIDProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SyncFullSchemaProperties properties of the database full schema.
 type SyncFullSchemaProperties struct {
 	// Tables - READ-ONLY; List of tables in the database full schema.
 	Tables *[]SyncFullSchemaTable `json:"tables,omitempty"`
 	// LastUpdateTime - READ-ONLY; Last update time of the database schema.
 	LastUpdateTime *date.Time `json:"lastUpdateTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncFullSchemaProperties.
+func (sfsp SyncFullSchemaProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncFullSchemaPropertiesListResult a list of sync schema properties.
@@ -21968,6 +22683,12 @@ type SyncFullSchemaPropertiesListResult struct {
 	Value *[]SyncFullSchemaProperties `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncFullSchemaPropertiesListResult.
+func (sfsplr SyncFullSchemaPropertiesListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncFullSchemaPropertiesListResultIterator provides access to a complete listing of
@@ -22135,6 +22856,12 @@ type SyncFullSchemaTable struct {
 	QuotedName *string `json:"quotedName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SyncFullSchemaTable.
+func (sfst SyncFullSchemaTable) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SyncFullSchemaTableColumn properties of the column in the table of database full schema.
 type SyncFullSchemaTableColumn struct {
 	// DataSize - READ-ONLY; Data size of the column.
@@ -22151,6 +22878,12 @@ type SyncFullSchemaTableColumn struct {
 	Name *string `json:"name,omitempty"`
 	// QuotedName - READ-ONLY; Quoted name of the column.
 	QuotedName *string `json:"quotedName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncFullSchemaTableColumn.
+func (sfstc SyncFullSchemaTableColumn) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncGroup an Azure SQL Database sync group.
@@ -22233,6 +22966,12 @@ type SyncGroupListResult struct {
 	Value *[]SyncGroup `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncGroupListResult.
+func (sglr SyncGroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncGroupListResultIterator provides access to a complete listing of SyncGroup values.
@@ -22392,6 +23131,12 @@ type SyncGroupLogListResult struct {
 	Value *[]SyncGroupLogProperties `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncGroupLogListResult.
+func (sgllr SyncGroupLogListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncGroupLogListResultIterator provides access to a complete listing of SyncGroupLogProperties values.
@@ -22560,6 +23305,12 @@ type SyncGroupLogProperties struct {
 	OperationStatus *string `json:"operationStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SyncGroupLogProperties.
+func (sglp SyncGroupLogProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SyncGroupProperties properties of a sync group.
 type SyncGroupProperties struct {
 	// Interval - Sync interval of the sync group.
@@ -22666,6 +23417,7 @@ func (future *SyncGroupsCreateOrUpdateFuture) result(client SyncGroupsClient) (s
 		return
 	}
 	if !done {
+		sg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncGroupsCreateOrUpdateFuture")
 		return
 	}
@@ -22708,6 +23460,7 @@ func (future *SyncGroupsDeleteFuture) result(client SyncGroupsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncGroupsDeleteFuture")
 		return
 	}
@@ -22744,6 +23497,7 @@ func (future *SyncGroupsRefreshHubSchemaFuture) result(client SyncGroupsClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncGroupsRefreshHubSchemaFuture")
 		return
 	}
@@ -22780,6 +23534,7 @@ func (future *SyncGroupsUpdateFuture) result(client SyncGroupsClient) (sg SyncGr
 		return
 	}
 	if !done {
+		sg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncGroupsUpdateFuture")
 		return
 	}
@@ -22873,6 +23628,12 @@ type SyncMemberListResult struct {
 	Value *[]SyncMember `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncMemberListResult.
+func (smlr SyncMemberListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SyncMemberListResultIterator provides access to a complete listing of SyncMember values.
@@ -23118,6 +23879,7 @@ func (future *SyncMembersCreateOrUpdateFuture) result(client SyncMembersClient) 
 		return
 	}
 	if !done {
+		sm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncMembersCreateOrUpdateFuture")
 		return
 	}
@@ -23160,6 +23922,7 @@ func (future *SyncMembersDeleteFuture) result(client SyncMembersClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncMembersDeleteFuture")
 		return
 	}
@@ -23196,6 +23959,7 @@ func (future *SyncMembersRefreshMemberSchemaFuture) result(client SyncMembersCli
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncMembersRefreshMemberSchemaFuture")
 		return
 	}
@@ -23232,6 +23996,7 @@ func (future *SyncMembersUpdateFuture) result(client SyncMembersClient) (sm Sync
 		return
 	}
 	if !done {
+		sm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.SyncMembersUpdateFuture")
 		return
 	}
@@ -23354,6 +24119,7 @@ func (future *TdeCertificatesCreateFuture) result(client TdeCertificatesClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.TdeCertificatesCreateFuture")
 		return
 	}
@@ -23571,6 +24337,12 @@ type TransparentDataEncryptionActivityProperties struct {
 	PercentComplete *float64 `json:"percentComplete,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TransparentDataEncryptionActivityProperties.
+func (tdeap TransparentDataEncryptionActivityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TransparentDataEncryptionProperties represents the properties of a database transparent data encryption.
 type TransparentDataEncryptionProperties struct {
 	// Status - The status of the database transparent data encryption. Possible values include: 'TransparentDataEncryptionStatusEnabled', 'TransparentDataEncryptionStatusDisabled'
@@ -23617,6 +24389,12 @@ type Usage struct {
 	RequestedLimit *int32 `json:"requestedLimit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Usage.
+func (u Usage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UsageListResult a list of usages.
 type UsageListResult struct {
 	autorest.Response `json:"-"`
@@ -23624,6 +24402,12 @@ type UsageListResult struct {
 	Value *[]Usage `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UsageListResult.
+func (ulr UsageListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UsageListResultIterator provides access to a complete listing of Usage values.
@@ -23886,6 +24670,12 @@ type VirtualClusterListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualClusterListResult.
+func (vclr VirtualClusterListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualClusterListResultIterator provides access to a complete listing of VirtualCluster values.
 type VirtualClusterListResultIterator struct {
 	i    int
@@ -24084,6 +24874,7 @@ func (future *VirtualClustersDeleteFuture) result(client VirtualClustersClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.VirtualClustersDeleteFuture")
 		return
 	}
@@ -24120,6 +24911,7 @@ func (future *VirtualClustersUpdateFuture) result(client VirtualClustersClient) 
 		return
 	}
 	if !done {
+		vc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.VirtualClustersUpdateFuture")
 		return
 	}
@@ -24266,6 +25058,12 @@ type VirtualNetworkRuleListResult struct {
 	Value *[]VirtualNetworkRule `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkRuleListResult.
+func (vnrlr VirtualNetworkRuleListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkRuleListResultIterator provides access to a complete listing of VirtualNetworkRule values.
@@ -24469,6 +25267,7 @@ func (future *VirtualNetworkRulesCreateOrUpdateFuture) result(client VirtualNetw
 		return
 	}
 	if !done {
+		vnr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.VirtualNetworkRulesCreateOrUpdateFuture")
 		return
 	}
@@ -24511,6 +25310,7 @@ func (future *VirtualNetworkRulesDeleteFuture) result(client VirtualNetworkRules
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.VirtualNetworkRulesDeleteFuture")
 		return
 	}
@@ -24535,6 +25335,12 @@ type VulnerabilityAssessmentScanError struct {
 	Code *string `json:"code,omitempty"`
 	// Message - READ-ONLY; The error message.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VulnerabilityAssessmentScanError.
+func (vase VulnerabilityAssessmentScanError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VulnerabilityAssessmentScanRecord a vulnerability assessment scan record.
@@ -24617,6 +25423,12 @@ type VulnerabilityAssessmentScanRecordListResult struct {
 	Value *[]VulnerabilityAssessmentScanRecord `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VulnerabilityAssessmentScanRecordListResult.
+func (vasrlr VulnerabilityAssessmentScanRecordListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VulnerabilityAssessmentScanRecordListResultIterator provides access to a complete listing of
@@ -24791,6 +25603,12 @@ type VulnerabilityAssessmentScanRecordProperties struct {
 	NumberOfFailedSecurityChecks *int32 `json:"numberOfFailedSecurityChecks,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VulnerabilityAssessmentScanRecordProperties.
+func (vasrp VulnerabilityAssessmentScanRecordProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // WorkloadClassifier workload classifier operations for a data warehouse
 type WorkloadClassifier struct {
 	autorest.Response `json:"-"`
@@ -24871,6 +25689,12 @@ type WorkloadClassifierListResult struct {
 	Value *[]WorkloadClassifier `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkloadClassifierListResult.
+func (wclr WorkloadClassifierListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // WorkloadClassifierListResultIterator provides access to a complete listing of WorkloadClassifier values.
@@ -25069,6 +25893,7 @@ func (future *WorkloadClassifiersCreateOrUpdateFuture) result(client WorkloadCla
 		return
 	}
 	if !done {
+		wc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.WorkloadClassifiersCreateOrUpdateFuture")
 		return
 	}
@@ -25111,6 +25936,7 @@ func (future *WorkloadClassifiersDeleteFuture) result(client WorkloadClassifiers
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.WorkloadClassifiersDeleteFuture")
 		return
 	}
@@ -25198,6 +26024,12 @@ type WorkloadGroupListResult struct {
 	Value *[]WorkloadGroup `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkloadGroupListResult.
+func (wglr WorkloadGroupListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // WorkloadGroupListResultIterator provides access to a complete listing of WorkloadGroup values.
@@ -25396,6 +26228,7 @@ func (future *WorkloadGroupsCreateOrUpdateFuture) result(client WorkloadGroupsCl
 		return
 	}
 	if !done {
+		wg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.WorkloadGroupsCreateOrUpdateFuture")
 		return
 	}
@@ -25438,6 +26271,7 @@ func (future *WorkloadGroupsDeleteFuture) result(client WorkloadGroupsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("sql.WorkloadGroupsDeleteFuture")
 		return
 	}

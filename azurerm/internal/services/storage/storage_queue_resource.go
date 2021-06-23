@@ -5,46 +5,48 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceStorageQueue() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageQueue() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageQueueCreate,
 		Read:   resourceStorageQueueRead,
 		Update: resourceStorageQueueUpdate,
 		Delete: resourceStorageQueueDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer:      pluginsdk.DefaultImporter(),
 		SchemaVersion: 1,
-		MigrateState:  ResourceStorageQueueMigrateState,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.QueueV0ToV1{},
+		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageQueueName,
 			},
 
 			"storage_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"metadata": MetaDataSchema(),
@@ -52,7 +54,7 @@ func resourceStorageQueue() *schema.Resource {
 	}
 }
 
-func resourceStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -94,7 +96,7 @@ func resourceStorageQueueCreate(d *schema.ResourceData, meta interface{}) error 
 	return resourceStorageQueueRead(d, meta)
 }
 
-func resourceStorageQueueUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +129,7 @@ func resourceStorageQueueUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceStorageQueueRead(d, meta)
 }
 
-func resourceStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +174,7 @@ func resourceStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceStorageQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,50 +6,49 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate,
 		Read:   resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead,
 		Delete: resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"ip_configuration_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"backend_address_pool_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -58,7 +57,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 	}
 }
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +147,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 	return resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +225,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead
 	return nil
 }
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

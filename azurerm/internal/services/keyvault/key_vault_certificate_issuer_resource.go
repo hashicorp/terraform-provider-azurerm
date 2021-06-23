@@ -5,51 +5,52 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKeyVaultCertificateIssuer() *schema.Resource {
-	return &schema.Resource{
+func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultCertificateIssuerCreateOrUpdate,
 		Update: resourceKeyVaultCertificateIssuerCreateOrUpdate,
 		Read:   resourceKeyVaultCertificateIssuerRead,
 		Delete: resourceKeyVaultCertificateIssuerDelete,
-		Importer: &schema.ResourceImporter{
-			State: nestedItemResourceImporter,
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VaultID,
 			},
 
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CertificateIssuerName,
 			},
 
 			"provider_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DigiCert",
@@ -61,35 +62,35 @@ func resourceKeyVaultCertificateIssuer() *schema.Resource {
 			},
 
 			"org_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"account_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"admin": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"email_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"first_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"last_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"phone": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -97,7 +98,7 @@ func resourceKeyVaultCertificateIssuer() *schema.Resource {
 			},
 
 			"password": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Sensitive: true,
 			},
@@ -105,7 +106,7 @@ func resourceKeyVaultCertificateIssuer() *schema.Resource {
 	}
 }
 
-func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -175,7 +176,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, met
 	return resourceKeyVaultCertificateIssuerRead(d, meta)
 }
 
-func resourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
@@ -243,7 +244,7 @@ func resourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource

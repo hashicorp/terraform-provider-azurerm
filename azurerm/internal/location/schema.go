@@ -1,14 +1,14 @@
 package location
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // Schema returns the default Schema which should be used for Location fields
 // where these are Required and Cannot be Changed
-func Schema() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
+func Schema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ForceNew:         true,
 		ValidateFunc:     EnhancedValidate,
@@ -18,9 +18,9 @@ func Schema() *schema.Schema {
 }
 
 // SchemaOptional returns the Schema for a Location field where this can be optionally specified
-func SchemaOptional() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
+func SchemaOptional() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:             pluginsdk.TypeString,
 		Optional:         true,
 		ForceNew:         true,
 		StateFunc:        StateFunc,
@@ -28,18 +28,18 @@ func SchemaOptional() *schema.Schema {
 	}
 }
 
-func SchemaComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeString,
+func SchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
 		Computed: true,
 	}
 }
 
 // Schema returns the Schema which should be used for Location fields
 // where these are Required and can be changed
-func SchemaWithoutForceNew() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
+func SchemaWithoutForceNew() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ValidateFunc:     EnhancedValidate,
 		StateFunc:        StateFunc,
@@ -47,13 +47,13 @@ func SchemaWithoutForceNew() *schema.Schema {
 	}
 }
 
-func DiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+func DiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return Normalize(old) == Normalize(new)
 }
 
 func HashCode(location interface{}) int {
 	loc := location.(string)
-	return schema.HashString(Normalize(loc))
+	return pluginsdk.HashString(Normalize(loc))
 }
 
 func StateFunc(location interface{}) string {

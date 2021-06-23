@@ -1,26 +1,27 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/storagesync/resource-manager/readme.md tag: `package-2020-03-01`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
-
+## Additive Changes
 
 ### New Funcs
 
-1. *CloudEndpointsCreateFuture.UnmarshalJSON([]byte) error
-1. *CloudEndpointsDeleteFuture.UnmarshalJSON([]byte) error
-1. *CloudEndpointsPostBackupFuture.UnmarshalJSON([]byte) error
-1. *CloudEndpointsPostRestoreFuture.UnmarshalJSON([]byte) error
-1. *CloudEndpointsPreBackupFuture.UnmarshalJSON([]byte) error
-1. *CloudEndpointsPreRestoreFuture.UnmarshalJSON([]byte) error
-1. *CloudEndpointsTriggerChangeDetectionFuture.UnmarshalJSON([]byte) error
-1. *PrivateEndpointConnectionsCreateFuture.UnmarshalJSON([]byte) error
-1. *PrivateEndpointConnectionsDeleteFuture.UnmarshalJSON([]byte) error
-1. *RegisteredServersCreateFuture.UnmarshalJSON([]byte) error
-1. *RegisteredServersDeleteFuture.UnmarshalJSON([]byte) error
-1. *RegisteredServersTriggerRolloverFuture.UnmarshalJSON([]byte) error
-1. *ServerEndpointsCreateFuture.UnmarshalJSON([]byte) error
-1. *ServerEndpointsDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServerEndpointsRecallActionFuture.UnmarshalJSON([]byte) error
-1. *ServerEndpointsUpdateFuture.UnmarshalJSON([]byte) error
-1. *ServicesCreateFuture.UnmarshalJSON([]byte) error
-1. *ServicesDeleteFuture.UnmarshalJSON([]byte) error
-1. *ServicesUpdateFuture.UnmarshalJSON([]byte) error
+1. AzureEntityResource.MarshalJSON() ([]byte, error)
+1. CheckNameAvailabilityResult.MarshalJSON() ([]byte, error)
+1. CloudTieringCachePerformance.MarshalJSON() ([]byte, error)
+1. CloudTieringDatePolicyStatus.MarshalJSON() ([]byte, error)
+1. CloudTieringFilesNotTiering.MarshalJSON() ([]byte, error)
+1. CloudTieringSpaceSavings.MarshalJSON() ([]byte, error)
+1. CloudTieringVolumeFreeSpacePolicyStatus.MarshalJSON() ([]byte, error)
+1. FilesNotTieringError.MarshalJSON() ([]byte, error)
+1. OperationStatus.MarshalJSON() ([]byte, error)
+1. PostBackupResponseProperties.MarshalJSON() ([]byte, error)
+1. PrivateEndpoint.MarshalJSON() ([]byte, error)
+1. ProxyResource.MarshalJSON() ([]byte, error)
+1. Resource.MarshalJSON() ([]byte, error)
+1. ServerEndpointCloudTieringStatus.MarshalJSON() ([]byte, error)
+1. ServerEndpointFilesNotSyncingError.MarshalJSON() ([]byte, error)
+1. ServerEndpointRecallError.MarshalJSON() ([]byte, error)
+1. ServerEndpointRecallStatus.MarshalJSON() ([]byte, error)
+1. ServerEndpointSyncActivityStatus.MarshalJSON() ([]byte, error)
+1. ServerEndpointSyncSessionStatus.MarshalJSON() ([]byte, error)
+1. ServerEndpointSyncStatus.MarshalJSON() ([]byte, error)
+1. SyncGroupProperties.MarshalJSON() ([]byte, error)

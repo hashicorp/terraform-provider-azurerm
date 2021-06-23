@@ -7,41 +7,40 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppServicePlan() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServicePlan() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServicePlanCreateUpdate,
 		Read:   resourceAppServicePlanRead,
 		Update: resourceAppServicePlanCreateUpdate,
 		Delete: resourceAppServicePlanDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServicePlanID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServicePlanName,
@@ -52,7 +51,7 @@ func resourceAppServicePlan() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "Windows",
 				ForceNew: true,
@@ -72,21 +71,21 @@ func resourceAppServicePlan() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"tier": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"size": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"capacity": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
@@ -96,35 +95,35 @@ func resourceAppServicePlan() *schema.Resource {
 
 			// / AppServicePlanProperties
 			"app_service_environment_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"per_site_scaling": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"reserved": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"maximum_elastic_worker_count": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"maximum_number_of_workers": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"is_xenon": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
@@ -133,7 +132,7 @@ func resourceAppServicePlan() *schema.Resource {
 	}
 }
 
-func resourceAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +226,7 @@ func resourceAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourceAppServicePlanRead(d, meta)
 }
 
-func resourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +293,7 @@ func resourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,7 +315,7 @@ func resourceAppServicePlanDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
+func expandAppServicePlanSku(d *pluginsdk.ResourceData) web.SkuDescription {
 	configs := d.Get("sku").([]interface{})
 	config := configs[0].(map[string]interface{})
 

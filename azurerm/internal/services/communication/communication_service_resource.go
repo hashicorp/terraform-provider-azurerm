@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCommunicationService() *schema.Resource {
-	return &schema.Resource{
+func resourceArmCommunicationService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmCommunicationServiceCreateUpdate,
 		Read:   resourceArmCommunicationServiceRead,
 		Update: resourceArmCommunicationServiceCreateUpdate,
 		Delete: resourceArmCommunicationServiceDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CommunicationServiceID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CommunicationServiceName,
@@ -50,7 +49,7 @@ func resourceArmCommunicationService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"data_location": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "United States",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -67,7 +66,7 @@ func resourceArmCommunicationService() *schema.Resource {
 	}
 }
 
-func resourceArmCommunicationServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCommunicationServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Communication.ServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -114,7 +113,7 @@ func resourceArmCommunicationServiceCreateUpdate(d *schema.ResourceData, meta in
 	return resourceArmCommunicationServiceRead(d, meta)
 }
 
-func resourceArmCommunicationServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Communication.ServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +144,7 @@ func resourceArmCommunicationServiceRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCommunicationServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCommunicationServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Communication.ServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

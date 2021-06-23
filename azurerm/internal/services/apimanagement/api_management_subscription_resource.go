@@ -5,40 +5,39 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementSubscription() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementSubscription() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementSubscriptionCreateUpdate,
 		Read:   resourceApiManagementSubscriptionRead,
 		Update: resourceApiManagementSubscriptionCreateUpdate,
 		Delete: resourceApiManagementSubscriptionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"subscription_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -47,7 +46,7 @@ func resourceApiManagementSubscription() *schema.Resource {
 
 			// 3.0 this seems to have been renamed to owner id?
 			"user_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -58,21 +57,29 @@ func resourceApiManagementSubscription() *schema.Resource {
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO this now sets the scope property - either a scope block needs adding or additional properties `api_id` and maybe `all_apis`
 			"product_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ProductID,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.ProductID,
+				ConflictsWith: []string{"api_id"},
+			},
+
+			"api_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.ApiID,
+				ConflictsWith: []string{"product_id"},
 			},
 
 			"state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(apimanagement.Submitted),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -86,21 +93,21 @@ func resourceApiManagementSubscription() *schema.Resource {
 			},
 
 			"primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"allow_tracing": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -108,7 +115,7 @@ func resourceApiManagementSubscription() *schema.Resource {
 	}
 }
 
-func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,14 +146,25 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	displayName := d.Get("display_name").(string)
-	productId := d.Get("product_id").(string)
+	productId, productSet := d.GetOk("product_id")
+	apiId, apiSet := d.GetOk("api_id")
 	state := d.Get("state").(string)
 	allowTracing := d.Get("allow_tracing").(bool)
+
+	var scope string
+	switch {
+	case productSet:
+		scope = productId.(string)
+	case apiSet:
+		scope = apiId.(string)
+	default:
+		scope = "all_apis"
+	}
 
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
 			DisplayName:  utils.String(displayName),
-			Scope:        utils.String(productId),
+			Scope:        utils.String(scope),
 			State:        apimanagement.SubscriptionState(state),
 			AllowTracing: utils.Bool(allowTracing),
 		},
@@ -179,7 +197,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	return resourceApiManagementSubscriptionRead(d, meta)
 }
 
-func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,14 +226,22 @@ func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("display_name", props.DisplayName)
 		d.Set("state", string(props.State))
 		productId := ""
+		apiId := ""
 		if *props.Scope != "" {
+			// the scope is either a product or api id or "all_apis" constant
 			parseId, err := parse.ProductID(*props.Scope)
-			if err != nil {
-				return fmt.Errorf("parsing product id %q: %+v", *props.Scope, err)
+			if err == nil {
+				productId = parseId.ID()
+			} else {
+				parsedApiId, err := parse.ApiID(*props.Scope)
+				if err != nil {
+					return fmt.Errorf("parsing scope into product/ api id %q: %+v", *props.Scope, err)
+				}
+				apiId = parsedApiId.ID()
 			}
-			productId = parseId.ID()
 		}
 		d.Set("product_id", productId)
+		d.Set("api_id", apiId)
 		d.Set("user_id", props.OwnerID)
 		d.Set("allow_tracing", props.AllowTracing)
 	}
@@ -231,7 +257,7 @@ func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

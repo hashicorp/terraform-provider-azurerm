@@ -168,6 +168,12 @@ type AccountEndpoints struct {
 	Scan *string `json:"scan,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountEndpoints.
+func (ae AccountEndpoints) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountList paged list of account resources
 type AccountList struct {
 	autorest.Response `json:"-"`
@@ -376,6 +382,12 @@ type AccountPropertiesEndpoints struct {
 	Scan *string `json:"scan,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountPropertiesEndpoints.
+func (ap AccountPropertiesEndpoints) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountPropertiesManagedResources gets the resource identifiers of the managed resources.
 type AccountPropertiesManagedResources struct {
 	// EventHubNamespace - READ-ONLY; Gets the managed event hub namespace resource identifier.
@@ -384,6 +396,12 @@ type AccountPropertiesManagedResources struct {
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
 	// StorageAccount - READ-ONLY; Gets the managed storage account resource identifier.
 	StorageAccount *string `json:"storageAccount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountPropertiesManagedResources.
+func (apR AccountPropertiesManagedResources) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AccountsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -415,6 +433,7 @@ func (future *AccountsCreateOrUpdateFuture) result(client AccountsClient) (a Acc
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.AccountsCreateOrUpdateFuture")
 		return
 	}
@@ -457,6 +476,7 @@ func (future *AccountsDeleteFuture) result(client AccountsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.AccountsDeleteFuture")
 		return
 	}
@@ -501,6 +521,7 @@ func (future *AccountsUpdateFuture) result(client AccountsClient) (a Account, er
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.AccountsUpdateFuture")
 		return
 	}
@@ -591,6 +612,12 @@ type CloudConnectors struct {
 	// AwsExternalID - READ-ONLY; AWS external identifier.
 	// Configured in AWS to allow use of the role arn used for scanning
 	AwsExternalID *string `json:"awsExternalId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CloudConnectors.
+func (cc CloudConnectors) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DefaultAccountPayload payload to get and set the default account in the given scope
@@ -755,10 +782,22 @@ type ErrorModel struct {
 	Target *string `json:"target,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorModel.
+func (em ErrorModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorResponseModel default error response model
 type ErrorResponseModel struct {
 	// Error - READ-ONLY; Gets or sets the error.
 	Error *ErrorResponseModelError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponseModel.
+func (erm ErrorResponseModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponseModelError gets or sets the error.
@@ -771,6 +810,12 @@ type ErrorResponseModelError struct {
 	Message *string `json:"message,omitempty"`
 	// Target - READ-ONLY; Gets or sets the target.
 	Target *string `json:"target,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponseModelError.
+func (erm ErrorResponseModelError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Identity the Managed Identity of the resource
@@ -800,6 +845,12 @@ type ManagedResources struct {
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
 	// StorageAccount - READ-ONLY; Gets the managed storage account resource identifier.
 	StorageAccount *string `json:"storageAccount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedResources.
+func (mr ManagedResources) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Operation operation resource
@@ -1416,6 +1467,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -1664,6 +1716,12 @@ type PrivateLinkResourceProperties struct {
 	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkServiceConnectionState the private link service connection state.
 type PrivateLinkServiceConnectionState struct {
 	// ActionsRequired - The required actions.
@@ -1682,6 +1740,12 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Gets or sets the type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrackedResource azure ARM Tracked Resource

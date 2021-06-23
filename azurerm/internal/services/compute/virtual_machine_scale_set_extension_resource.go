@@ -7,112 +7,110 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE (also in the docs): this is not intended to be used with the `azurerm_virtual_machine_scale_set` resource
 
-func resourceVirtualMachineScaleSetExtension() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineScaleSetExtensionCreate,
 		Read:   resourceVirtualMachineScaleSetExtensionRead,
 		Update: resourceVirtualMachineScaleSetExtensionUpdate,
 		Delete: resourceVirtualMachineScaleSetExtensionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetExtensionID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"virtual_machine_scale_set_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualMachineScaleSetID,
 			},
 
 			"publisher": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"type": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"type_handler_version": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"auto_upgrade_minor_version": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"force_update_tag": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"protected_settings": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Sensitive:        true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"provision_after_extensions": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"settings": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 		},
 	}
 }
 
-func resourceVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +136,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta 
 
 	settings := map[string]interface{}{}
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		s, err := structure.ExpandJsonFromString(settingsString)
+		s, err := pluginsdk.ExpandJsonFromString(settingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse `settings`: %s", err)
 		}
@@ -150,7 +148,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta 
 
 	protectedSettings := map[string]interface{}{}
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		ps, err := structure.ExpandJsonFromString(protectedSettingsString)
+		ps, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse `protected_settings`: %s", err)
 		}
@@ -191,7 +189,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta 
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +211,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta 
 	if d.HasChange("protected_settings") {
 		protectedSettings := map[string]interface{}{}
 		if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-			ps, err := structure.ExpandJsonFromString(protectedSettingsString)
+			ps, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
 			if err != nil {
 				return fmt.Errorf("unable to parse `protected_settings`: %s", err)
 			}
@@ -236,7 +234,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta 
 		settings := map[string]interface{}{}
 
 		if settingsString := d.Get("settings").(string); settingsString != "" {
-			s, err := structure.ExpandJsonFromString(settingsString)
+			s, err := pluginsdk.ExpandJsonFromString(settingsString)
 			if err != nil {
 				return fmt.Errorf("unable to parse `settings`: %s", err)
 			}
@@ -270,7 +268,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta 
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	vmssClient := meta.(*clients.Client).Compute.VMScaleSetClient
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -318,7 +316,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta in
 		if props.Settings != nil {
 			settingsVal, ok := props.Settings.(map[string]interface{})
 			if ok {
-				settingsJson, err := structure.FlattenJsonToString(settingsVal)
+				settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return fmt.Errorf("unable to parse settings from response: %s", err)
 				}
@@ -331,7 +329,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

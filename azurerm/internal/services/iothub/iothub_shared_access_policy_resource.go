@@ -1,6 +1,7 @@
 package iothub
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -8,36 +9,35 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIotHubSharedAccessPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIotHubSharedAccessPolicyCreateUpdate,
 		Read:   resourceIotHubSharedAccessPolicyRead,
 		Update: resourceIotHubSharedAccessPolicyCreateUpdate,
 		Delete: resourceIotHubSharedAccessPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IotHubSharedAccessPolicyName,
@@ -46,65 +46,65 @@ func resourceIotHubSharedAccessPolicy() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"iothub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubName,
 			},
 
 			"registry_read": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"registry_write": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"service_connect": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"device_connect": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 
 			"primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 
 			"secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 
 			"secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 		},
-		CustomizeDiff: iothubSharedAccessPolicyCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(iothubSharedAccessPolicyCustomizeDiff),
 	}
 }
 
-func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	registryRead, hasRegistryRead := d.GetOk("registry_read")
 	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
 	serviceConnect, hasServieConnect := d.GetOk("service_connect")
@@ -125,7 +125,7 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 	return
 }
 
-func resourceIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +205,7 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta i
 	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }
 
-func resourceIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +257,7 @@ func resourceIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,7 +317,7 @@ type accessRights struct {
 	deviceConnect  bool
 }
 
-func expandAccessRights(d *schema.ResourceData) string {
+func expandAccessRights(d *pluginsdk.ResourceData) string {
 	possibleAccessRights := []struct {
 		schema string
 		right  string

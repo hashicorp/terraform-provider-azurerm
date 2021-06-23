@@ -4,31 +4,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type applicationGatewayDataSourceIdentity = identity.UserAssigned
 
-func dataSourceApplicationGateway() *schema.Resource {
-	return &schema.Resource{
+func dataSourceApplicationGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceApplicationGatewayRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
@@ -43,7 +45,7 @@ func dataSourceApplicationGateway() *schema.Resource {
 	}
 }
 
-func dataSourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -63,7 +65,10 @@ func dataSourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	identity := flattenApplicationGatewayDataSourceIdentity(resp.Identity)
+	identity, err := flattenApplicationGatewayDataSourceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	flattenedIdentity := applicationGatewayDataSourceIdentity{}.Flatten(identity)
 	if err = d.Set("identity", flattenedIdentity); err != nil {
 		return err
@@ -72,14 +77,21 @@ func dataSourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceIdentity) *identity.ExpandedConfig {
+func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceIdentity) (*identity.ExpandedConfig, error) {
 	var config *identity.ExpandedConfig
 	if input != nil {
+		identityIds := make([]string, 0, len(input.UserAssignedIdentities))
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
 		config = &identity.ExpandedConfig{
-			Type:        string(input.Type),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
+			Type:                    string(input.Type),
+			UserAssignedIdentityIds: &identityIds,
 		}
 	}
-	return config
+	return config, nil
 }

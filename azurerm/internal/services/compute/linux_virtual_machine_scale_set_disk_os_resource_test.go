@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +12,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskCaching(data, "None"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -25,7 +24,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 		),
 		{
 			Config: r.disksOSDiskCaching(data, "ReadOnly"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,7 +33,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 		),
 		{
 			Config: r.disksOSDiskCaching(data, "ReadWrite"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -48,11 +47,11 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// unset
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,7 +60,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 		),
 		{
 			Config: r.disksOSDiskCustomSize(data, 30),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,7 +70,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 		{
 			// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
 			Config: r.disksOSDiskCustomSize(data, 60),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,10 +84,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDisk_diskEncryptionSet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -102,10 +101,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskEphemeral(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -119,10 +118,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardLRS
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskStorageAccountType(data, "Standard_LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -136,10 +135,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSD
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskStorageAccountType(data, "StandardSSD_LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -153,10 +152,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskStorageAccountType(data, "Premium_LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -170,10 +169,10 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *te
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskWriteAcceleratorEnabled(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -424,7 +423,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, r.disksOSDisk_diskEncryptionSetDependencies(data), data.RandomInteger)
+`, r.disksOSDisk_diskEncryptionSetResource(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksOSDiskEphemeral(data acceptance.TestData) string {

@@ -37,11 +37,15 @@ The following arguments are supported:
 
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
 
+* `global_parameter` - (Optional)  A list of `global_parameter` blocks as defined above.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
 
 * `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
+
+* `customer_managed_key_id` -  (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -63,9 +67,21 @@ A `github_configuration` block supports the following:
 
 ---
 
+A `global_parameter` block supports the following:
+
+* `name` - (Required) Specifies the global parameter name.
+
+* `type` - (Required) Specifies the global parameter type. Possible Values are `Array`, `Bool`, `Float`, `Int`, `Object` or `String`.
+
+* `value` - (Required) Specifies the global parameter value.
+
+---
+
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Requiered if `UserAssigned` type is used.
 
 ---
 

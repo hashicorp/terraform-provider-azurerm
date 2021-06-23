@@ -43,6 +43,10 @@ The following attributes are exported:
 
 * `id` - The ID of the Spatial Anchors Account.
 
+* `account_domain` - The domain of the Spatial Anchors Account.
+
+* `account_id` - The account ID of the Spatial Anchors Account.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

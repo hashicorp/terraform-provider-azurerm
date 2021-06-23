@@ -2,53 +2,54 @@ package cdn
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/deliveryruleactions"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func endpointGlobalDeliveryRule() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func endpointGlobalDeliveryRule() *pluginsdk.Schema {
+	//lintignore:XS003
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"cache_expiration_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.CacheExpiration(),
 				},
 
 				"cache_key_query_string_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.CacheKeyQueryString(),
 				},
 
 				"modify_request_header_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleactions.ModifyRequestHeader(),
 				},
 
 				"modify_response_header_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem:     deliveryruleactions.ModifyResponseHeader(),
 				},
 
 				"url_redirect_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.URLRedirect(),
 				},
 
 				"url_rewrite_action": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.URLRewrite(),

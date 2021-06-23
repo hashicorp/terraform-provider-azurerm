@@ -1,5 +1,16 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82//specification/applicationinsights/resource-manager/readme.md tag: `package-2015-05`
+# Change History
 
-Code generator @microsoft.azure/autorest.go@2.1.178
+## Additive Changes
 
+### New Funcs
 
+1. AnnotationsListResult.MarshalJSON() ([]byte, error)
+1. ApplicationInsightsComponentAvailableFeatures.MarshalJSON() ([]byte, error)
+1. ApplicationInsightsComponentFeature.MarshalJSON() ([]byte, error)
+1. ApplicationInsightsComponentFeatureCapabilities.MarshalJSON() ([]byte, error)
+1. ApplicationInsightsComponentFeatureCapability.MarshalJSON() ([]byte, error)
+1. ApplicationInsightsComponentQuotaStatus.MarshalJSON() ([]byte, error)
+1. ApplicationInsightsComponentWebTestLocation.MarshalJSON() ([]byte, error)
+1. MyWorkbooksListResult.MarshalJSON() ([]byte, error)
+1. WorkItemConfigurationsListResult.MarshalJSON() ([]byte, error)
+1. WorkbooksListResult.MarshalJSON() ([]byte, error)

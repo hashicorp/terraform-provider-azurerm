@@ -4,81 +4,96 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaAppServiceSiteSourceControl() *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeList,
+func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		Optional:      true,
 		MaxItems:      1,
 		Computed:      true,
 		ConflictsWith: []string{"site_config.0.scm_type"},
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"repo_url": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"branch": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"manual_integration": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"use_mercurial": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"rollback_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 			},
 		},
 	}
 }
 
-func schemaAppServiceSiteSourceControlDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaAppServiceSiteSourceControlDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"repo_url": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"branch": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"manual_integration": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"use_mercurial": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"rollback_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},
@@ -86,7 +101,7 @@ func schemaAppServiceSiteSourceControlDataSource() *schema.Schema {
 	}
 }
 
-func expandAppServiceSiteSourceControl(d *schema.ResourceData) *web.SiteSourceControlProperties {
+func expandAppServiceSiteSourceControl(d *pluginsdk.ResourceData) *web.SiteSourceControlProperties {
 	sourceControlRaw := d.Get("source_control").([]interface{})
 	sourceControl := sourceControlRaw[0].(map[string]interface{})
 

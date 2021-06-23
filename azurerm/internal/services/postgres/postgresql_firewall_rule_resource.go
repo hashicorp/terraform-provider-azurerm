@@ -8,38 +8,37 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePostgreSQLFirewallRule() *schema.Resource {
-	return &schema.Resource{
+func resourcePostgreSQLFirewallRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePostgreSQLFirewallRuleCreate,
 		Read:   resourcePostgreSQLFirewallRuleRead,
 		Delete: resourcePostgreSQLFirewallRuleDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -51,21 +50,21 @@ func resourcePostgreSQLFirewallRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"end_ip_address": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
@@ -74,7 +73,7 @@ func resourcePostgreSQLFirewallRule() *schema.Resource {
 	}
 }
 
-func resourcePostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLFirewallRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +126,7 @@ func resourcePostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface
 	return resourcePostgreSQLFirewallRuleRead(d, meta)
 }
 
-func resourcePostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +159,7 @@ func resourcePostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourcePostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

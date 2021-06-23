@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ type PostgreSQLVirtualNetworkRuleResource struct {
 func TestAccPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +34,10 @@ func TestAccPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 func TestAccPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -54,19 +53,19 @@ func TestAccPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN1-%d)$|(acctest-SN[^2]-%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN2-%d)$|(acctest-SN-[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnetSwitchPre(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 			),
 		},
 		{
 			Config: r.subnetSwitchPost(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
 			),
 		},
 	})
@@ -75,7 +74,7 @@ func TestAccPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 func TestAccPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -86,10 +85,10 @@ func TestAccPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 func TestAccPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "rule1")
 	r := PostgreSQLVirtualNetworkRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleSubnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -99,10 +98,10 @@ func TestAccPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 func TestAccPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ignoreEndpointValid(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("true"),
 			),
@@ -110,7 +109,7 @@ func TestAccPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	})
 }
 
-func (r PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -124,7 +123,7 @@ func (r PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r PostgreSQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PostgreSQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
