@@ -8,6 +8,10 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` [GH-12209]
 * dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` [GH-12290]
 
+ENHANCEMENTS:
+
+* `azurerm_security_center_assessment_metadata` - support for the `categories` property [GH-12278]
+
 BUG FIXES:
 
 * `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing [GH-12128]
