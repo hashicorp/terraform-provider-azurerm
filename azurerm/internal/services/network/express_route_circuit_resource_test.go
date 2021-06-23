@@ -35,24 +35,24 @@ func TestAccExpressRouteCircuit(t *testing.T) {
 			"port":                         testAccExpressRouteCircuit_withExpressRoutePort,
 			"updatePort":                   testAccExpressRouteCircuit_updateExpressRoutePort,
 		},
-		"PrivatePeering": {
-			"azurePrivatePeering":           testAccExpressRouteCircuitPeering_azurePrivatePeering,
-			"azurePrivatePeeringWithUpdate": testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
-			"requiresImport":                testAccExpressRouteCircuitPeering_requiresImport,
-		},
-		"MicrosoftPeering": {
-			"microsoftPeering":                    testAccExpressRouteCircuitPeering_microsoftPeering,
-			"microsoftPeeringCustomerRouting":     testAccExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
-			"microsoftPeeringWithRouteFilter":     testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
-			"microsoftPeeringIpv6":                testAccExpressRouteCircuitPeering_microsoftPeeringIpv6,
-			"microsoftPeeringIpv6CustomerRouting": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
-			"microsoftPeeringIpv6WithRouteFilter": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
-		},
-		"authorization": {
-			"basic":          testAccExpressRouteCircuitAuthorization_basic,
-			"multiple":       testAccExpressRouteCircuitAuthorization_multiple,
-			"requiresImport": testAccExpressRouteCircuitAuthorization_requiresImport,
-		},
+		//"PrivatePeering": {
+		//	"azurePrivatePeering":           testAccExpressRouteCircuitPeering_azurePrivatePeering,
+		//	"azurePrivatePeeringWithUpdate": testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
+		//	"requiresImport":                testAccExpressRouteCircuitPeering_requiresImport,
+		//},
+		//"MicrosoftPeering": {
+		//	"microsoftPeering":                    testAccExpressRouteCircuitPeering_microsoftPeering,
+		//	"microsoftPeeringCustomerRouting":     testAccExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
+		//	"microsoftPeeringWithRouteFilter":     testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+		//	"microsoftPeeringIpv6":                testAccExpressRouteCircuitPeering_microsoftPeeringIpv6,
+		//	"microsoftPeeringIpv6CustomerRouting": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
+		//	"microsoftPeeringIpv6WithRouteFilter": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
+		//},
+		//"authorization": {
+		//	"basic":          testAccExpressRouteCircuitAuthorization_basic,
+		//	"multiple":       testAccExpressRouteCircuitAuthorization_multiple,
+		//	"requiresImport": testAccExpressRouteCircuitAuthorization_requiresImport,
+		//},
 	}
 
 	for group, m := range testCases {
@@ -72,7 +72,7 @@ func testAccExpressRouteCircuit_basicMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMeteredConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -87,7 +87,7 @@ func testAccExpressRouteCircuit_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMeteredConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -105,7 +105,7 @@ func testAccExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicUnlimitedConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -120,7 +120,7 @@ func testAccExpressRouteCircuit_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMeteredConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -142,7 +142,7 @@ func testAccExpressRouteCircuit_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMeteredConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -164,7 +164,7 @@ func testAccExpressRouteCircuit_tierUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "Standard", "MeteredData"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -186,7 +186,7 @@ func testAccExpressRouteCircuit_premiumMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "Premium", "MeteredData"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -203,7 +203,7 @@ func testAccExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "Premium", "UnlimitedData"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -220,7 +220,7 @@ func testAccExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.allowClassicOperations(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -242,7 +242,7 @@ func testAccExpressRouteCircuit_bandwidthReduction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.bandwidthReductionConfig(data, "100"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -264,7 +264,7 @@ func testAccExpressRouteCircuit_withExpressRoutePort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withExpressRoutePort(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -279,7 +279,7 @@ func testAccExpressRouteCircuit_updateExpressRoutePort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withExpressRoutePort(data),
 			Check: acceptance.ComposeTestCheckFunc(
