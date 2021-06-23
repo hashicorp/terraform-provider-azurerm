@@ -493,6 +493,11 @@ resource "azurerm_signalr_service" "test" {
     flag  = "EnableMessagingLogs"
     value = "False"
   }
+
+  features {
+    flag  = "EnableLiveTrace"
+    value = "False"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
 }
@@ -530,6 +535,11 @@ resource "azurerm_signalr_service" "test" {
 
   features {
     flag  = "EnableMessagingLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableLiveTrace"
     value = "False"
   }
 

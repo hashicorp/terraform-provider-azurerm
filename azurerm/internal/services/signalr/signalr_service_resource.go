@@ -86,8 +86,9 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								// Looks like the default has changed, ours will need to be updated in AzureRM 3.0.
-								// issue has been created https://github.com/Azure/azure-sdk-for-go/issues/9619
+								// issues have been created https://github.com/Azure/azure-sdk-for-go/issues/9619 and https://github.com/Azure/azure-rest-api-specs/issues/14926
 								"EnableMessagingLogs",
+								"EnableLiveTrace",
 								string(signalr.EnableConnectivityLogs),
 								string(signalr.ServiceMode),
 							}, false),
@@ -96,6 +97,14 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 						"value": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
+						},
+
+						"properties": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 					},
 				},
@@ -109,7 +118,6 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(signalr.SignalR),
 					string(signalr.RawWebSockets),
-					"ServiceCatalog",
 				}, false),
 			},
 
@@ -164,6 +172,106 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						},
+					},
+				},
+			},
+
+			"network_acl": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(signalr.Deny),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(signalr.Allow),
+								string(signalr.Deny),
+							}, false),
+						},
+
+						"private_endpoint": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+
+									// API response includes the `Trace` type but it isn't in rest api client.
+									// https://github.com/Azure/azure-rest-api-specs/issues/14923
+									"allowed_request_types": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(signalr.ClientConnection),
+												string(signalr.RESTAPI),
+												string(signalr.ServerConnection),
+												"Trace",
+											}, false),
+										},
+									},
+
+									"denied_request_types": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(signalr.ClientConnection),
+												string(signalr.RESTAPI),
+												string(signalr.ServerConnection),
+												"Trace",
+											}, false),
+										},
+									},
+								},
+							},
+						},
+
+						"public_network": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_request_types": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(signalr.ClientConnection),
+												string(signalr.RESTAPI),
+												string(signalr.ServerConnection),
+												"Trace",
+											}, false),
+										},
+									},
+
+									"denied_request_types": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(signalr.ClientConnection),
+												string(signalr.RESTAPI),
+												string(signalr.ServerConnection),
+												"Trace",
+											}, false),
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -254,9 +362,10 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	properties := &signalr.Properties{
-		Cors:     expandSignalRCors(cors),
-		Features: expandedFeatures,
-		Upstream: expandUpstreamSettings(upstreamSettings),
+		Cors:        expandSignalRCors(cors),
+		Features:    expandedFeatures,
+		Upstream:    expandUpstreamSettings(upstreamSettings),
+		NetworkACLs: expandSignalRServiceNetworkACL(d.Get("network_acl").([]interface{})),
 	}
 
 	resourceType := &signalr.ResourceType{
@@ -341,6 +450,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("upstream_endpoint", flattenUpstreamSettings(properties.Upstream)); err != nil {
 			return fmt.Errorf("Error setting `upstream_endpoint`: %+v", err)
 		}
+
+		if err := d.Set("network_acl", flattenSignalRServiceNetworkACL(properties.NetworkACLs)); err != nil {
+			return fmt.Errorf("setting `network_acl`: %+v", err)
+		}
 	}
 
 	d.Set("primary_access_key", keys.PrimaryKey)
@@ -363,7 +476,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceType := &signalr.ResourceType{}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint") {
+	if d.HasChanges("cors", "features", "upstream_endpoint", "network_acl") {
 		resourceType.Properties = &signalr.Properties{}
 
 		if d.HasChange("cors") {
@@ -379,6 +492,11 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if d.HasChange("upstream_endpoint") {
 			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
+		}
+
+		if d.HasChange("network_acl") {
+			networkAcl := d.Get("network_acl").([]interface{})
+			resourceType.Properties.NetworkACLs = expandSignalRServiceNetworkACL(networkAcl)
 		}
 	}
 
@@ -453,6 +571,11 @@ func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 			Value: utils.String(value["value"].(string)),
 		}
 
+		properties := value["properties"].(map[string]interface{})
+		if len(properties) != 0 {
+			feature.Properties = utils.ExpandMapStringPtrString(properties)
+		}
+
 		features = append(features, feature)
 	}
 
@@ -471,9 +594,15 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 			value = *feature.Value
 		}
 
+		properties := make(map[string]interface{})
+		if feature.Properties != nil {
+			properties = utils.FlattenMapStringPtrString(feature.Properties)
+		}
+
 		result = append(result, map[string]interface{}{
-			"flag":  string(feature.Flag),
-			"value": value,
+			"flag":       string(feature.Flag),
+			"value":      value,
+			"properties": properties,
 		})
 	}
 	return result
@@ -587,6 +716,67 @@ func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
 	}
 }
 
+func expandSignalRServiceNetworkACL(input []interface{}) *signalr.NetworkACLs {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &signalr.NetworkACLs{
+		DefaultAction:    signalr.ACLAction(v["default_action"].(string)),
+		PublicNetwork:    expandSignalRServicePublicNetwork(v["public_network"].([]interface{})),
+		PrivateEndpoints: expandSignalRServicePrivateEndpoint(v["private_endpoint"].(*pluginsdk.Set).List()),
+	}
+}
+
+func expandSignalRServicePublicNetwork(input []interface{}) *signalr.NetworkACL {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	allow := make([]signalr.RequestType, 0)
+	for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+		allow = append(allow, (signalr.RequestType)(item))
+	}
+
+	deny := make([]signalr.RequestType, 0)
+	for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+		deny = append(deny, (signalr.RequestType)(item))
+	}
+
+	return &signalr.NetworkACL{
+		Allow: &allow,
+		Deny:  &deny,
+	}
+}
+
+func expandSignalRServicePrivateEndpoint(input []interface{}) *[]signalr.PrivateEndpointACL {
+	results := make([]signalr.PrivateEndpointACL, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		allow := make([]signalr.RequestType, 0)
+		for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+			allow = append(allow, (signalr.RequestType)(item))
+		}
+
+		deny := make([]signalr.RequestType, 0)
+		for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+			deny = append(deny, (signalr.RequestType)(item))
+		}
+
+		results = append(results, signalr.PrivateEndpointACL{
+			Allow: &allow,
+			Deny:  &deny,
+			Name:  utils.String(v["name"].(string)),
+		})
+	}
+
+	return &results
+}
+
 func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -606,6 +796,88 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 		map[string]interface{}{
 			"capacity": capacity,
 			"name":     name,
+		},
+	}
+}
+
+func flattenSignalRServiceNetworkACL(input *signalr.NetworkACLs) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var defaultAction signalr.ACLAction
+	if input.DefaultAction != "" {
+		defaultAction = input.DefaultAction
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"default_action":   defaultAction,
+			"public_network":   flattenSignalRServicePublicNetwork(input.PublicNetwork),
+			"private_endpoint": flattenSignalRServicePrivateEndpoint(input.PrivateEndpoints),
+		},
+	}
+}
+
+func flattenSignalRServicePrivateEndpoint(input *[]signalr.PrivateEndpointACL) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var name string
+		if item.Name != nil {
+			name = *item.Name
+		}
+
+		allowCast := make([]string, 0)
+		for _, item := range *item.Allow {
+			allowCast = append(allowCast, (string)(item))
+		}
+
+		allow := utils.FlattenStringSlice(&allowCast)
+		denyCast := make([]string, 0)
+		for _, item := range *item.Deny {
+			denyCast = append(denyCast, (string)(item))
+		}
+
+		deny := utils.FlattenStringSlice(&denyCast)
+		results = append(results, map[string]interface{}{
+			"name":                  name,
+			"allowed_request_types": allow,
+			"denied_request_types":  deny,
+		})
+	}
+
+	return results
+}
+
+func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	allowCast := make([]string, 0)
+	if input.Allow != nil {
+		for _, item := range *input.Allow {
+			allowCast = append(allowCast, (string)(item))
+		}
+	}
+	allow := utils.FlattenStringSlice(&allowCast)
+
+	denyCast := make([]string, 0)
+	if input.Deny != nil {
+		for _, item := range *input.Deny {
+			denyCast = append(denyCast, (string)(item))
+		}
+	}
+	deny := utils.FlattenStringSlice(&denyCast)
+
+	return []interface{}{
+		map[string]interface{}{
+			"allowed_request_types": allow,
+			"denied_request_types":  deny,
 		},
 	}
 }
