@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -37,29 +36,30 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"server_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerName,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"server_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FlexibleServerID,
 			},
 
 			"value": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
 
 func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -67,8 +67,12 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for Azure Postgresql Flexible Server configuration creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
+	serverId, err := parse.FlexibleServerID(d.Get("server_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewFlexibleServerConfigurationID(subscriptionId, serverId.ResourceGroup, serverId.Name, name)
 
 	props := postgresqlflexibleservers.Configuration{
 		ConfigurationProperties: &postgresqlflexibleservers.ConfigurationProperties{
@@ -77,29 +81,22 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	future, err := client.Update(ctx, resGroup, serverName, name, props)
+	future, err := client.Update(ctx, serverId.ResourceGroup, serverId.Name, name, props)
 	if err != nil {
-		return err
+		return fmt.Errorf("update Azure Postgresql Flexible Server configuration %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for the Azure Postgresql Flexible Server configuration update %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, serverName, name)
-	if err != nil {
-		return err
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Azure Postgresql Flexible Server configuration %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceFlexibleServerConfigurationRead(d, meta)
 }
 
 func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,12 +114,11 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Postgresql Flexible Server configuration %s: %+v", id.ConfigurationName, err)
+		return fmt.Errorf("making Read request on Azure Postgresql Flexible Server configuration %s: %+v", id.ConfigurationName, err)
 	}
 
 	d.Set("name", id.ConfigurationName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("server_name", id.FlexibleServerName)
+	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroup, id.FlexibleServerName).ID())
 
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("value", props.Value)
@@ -143,7 +139,7 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Postgresql Flexible Server configuration '%s': %+v", id.ConfigurationName, err)
+		return fmt.Errorf("retrieving Azure Postgresql Flexible Server configuration '%s': %+v", id.ConfigurationName, err)
 	}
 
 	props := postgresqlflexibleservers.Configuration{
@@ -155,17 +151,11 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName, props)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return err
+		return fmt.Errorf("deleting Azure Postgresql Flexible Server configuration %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return err
+		return fmt.Errorf("waiting for Azure Postgresql Flexible Server configuration deletion %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
 	}
 
 	return nil

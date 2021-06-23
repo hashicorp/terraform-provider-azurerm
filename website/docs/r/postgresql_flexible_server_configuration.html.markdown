@@ -36,10 +36,9 @@ resource "azurerm_postgresql_flexible_server" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "example" {
-  name                = "backslash_quote"
-  resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_postgresql_flexible_server.example.name
-  value               = "on"
+  name      = "backslash_quote"
+  server_id = azurerm_postgresql_flexible_server.example.id
+  value     = "on"
 }
 ```
 
@@ -49,9 +48,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the PostgreSQL Configuration, which needs [to be a valid PostgreSQL configuration name](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIER). Changing this forces a new resource to be created.
 
-* `server_name` - (Required) Specifies the name of the Azure PostgreSQL Flexible Server. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the Azure PostgreSQL Flexible Server exists. Changing this forces a new resource to be created.
+* `server_id` - (Required) The ID of the PostgreSQL Flexible Server where we want to change configuration. Changing this forces a new PostgreSQL Flexible Server Configuration resource.
 
 * `value` - (Required) Specifies the value of the PostgreSQL Configuration. See the PostgreSQL documentation for valid values.
 

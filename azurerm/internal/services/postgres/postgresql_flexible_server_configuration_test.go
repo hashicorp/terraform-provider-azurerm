@@ -22,7 +22,7 @@ func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 	name := "backslash_quote"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data, name, "on"),
+			Config: r.basic(data, name, "on"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(name),
@@ -31,7 +31,7 @@ func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.empty(data),
+			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
 			),
@@ -45,7 +45,7 @@ func TestAccFlexibleServerConfiguration_pgbouncerEnabled(t *testing.T) {
 	name := "pgbouncer.enabled"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data, name, "true"),
+			Config: r.basic(data, name, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(name),
@@ -54,7 +54,7 @@ func TestAccFlexibleServerConfiguration_pgbouncerEnabled(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.empty(data),
+			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
 			),
@@ -68,7 +68,7 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 	name := "application_name"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data, name, "Test APP before"),
+			Config: r.basic(data, name, "Test APP before"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(name),
@@ -77,7 +77,7 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.template(data, name, "Test APP after"),
+			Config: r.basic(data, name, "Test APP after"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(name),
@@ -89,7 +89,7 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 
 func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.FlexibleServerID(state.Attributes["id"])
+		id, err := parse.FlexibleServerID(state.ID)
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func (t PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
+	resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, state.Attributes["name"])
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql Configuration (%s): %+v", id.String(), err)
 	}
@@ -128,19 +128,18 @@ func (t PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Contex
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (PostgresqlFlexibleServerConfigurationResource) empty(data acceptance.TestData) string {
+func (PostgresqlFlexibleServerConfigurationResource) template(data acceptance.TestData) string {
 	return PostgresqlFlexibleServerResource{}.basic(data)
 }
 
-func (r PostgresqlFlexibleServerConfigurationResource) template(data acceptance.TestData, name, value string) string {
+func (r PostgresqlFlexibleServerConfigurationResource) basic(data acceptance.TestData, name, value string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
-  name                = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_postgresql_flexible_server.test.name
-  value               = "%s"
+  name      = "%s"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "%s"
 }
-`, r.empty(data), name, value)
+`, r.template(data), name, value)
 }
