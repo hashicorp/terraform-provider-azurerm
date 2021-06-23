@@ -43,9 +43,9 @@ locals {
 
 * `name` - Resource name.
 
-<!-- the parent fields need to be recursive resource_ids themselves -->
+* `full_resource_type` - Full resource type (including parent types if applicable).
 
-* `parent` - Parent resource id, its own entire resource id (recursive)
+* `parent_resources` - A map of parent resource types and names
 
 
 ## Timeouts

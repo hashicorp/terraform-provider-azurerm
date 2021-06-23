@@ -47,27 +47,21 @@ func dataSourceResourceId() *pluginsdk.Resource {
 				Computed:    true,
 				Description: "Resource name",
 			},
-			"parent_resource_type": {
-				Type:        pluginsdk.TypeString,
-				Computed:    true,
-				Description: "Resource type",
-			},
-			"parent_name": {
-				Type:        pluginsdk.TypeString,
+			"parent_resources": {
+				Type:        pluginsdk.TypeMap,
 				Computed:    true,
 				Description: "Resource name",
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 			"full_resource_type": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "Full resource type (including parent if applicable)",
+				Description: "Full resource type (including parents if applicable)",
 			},
 		},
 	}
-}
-
-func badIdError(id string) string {
-	return fmt.Sprintf("The specified ID %v is not a valid Azure resource ID.", id)
 }
 
 func dataSourceResourceIdRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -75,10 +69,10 @@ func dataSourceResourceIdRead(d *pluginsdk.ResourceData, meta interface{}) error
 	splits := strings.Split(strings.Trim(id, "/"), "/")
 
 	count := len(splits)
-	err := errors.New(badIdError(id))
+	formatErr := errors.New(fmt.Sprintf("The specified ID %v is not a valid Azure resource ID.", id))
 
 	if count%2 == 1 {
-		return err
+		return formatErr
 	}
 
 	//   Format of id:
@@ -95,40 +89,47 @@ func dataSourceResourceIdRead(d *pluginsdk.ResourceData, meta interface{}) error
 	//  ^0 name
 
 	if count < 2 {
-		return err
+		return formatErr
 	}
 
 	if !strings.EqualFold(splits[0], "subscriptions") {
-		return err
+		return formatErr
 	}
 
 	d.Set("subscription_id", splits[1])
 
 	if count >= 4 {
 		if !strings.EqualFold(splits[2], "resourceGroups") {
-			return err
+			return formatErr
 		}
 		d.Set("resource_group_name", splits[3])
 	}
 
+	fullResourceType := ""
 	if count >= 6 {
 		if !strings.EqualFold(splits[4], "providers") {
-			return err
+			return formatErr
 		}
 		d.Set("provider_namespace", splits[5])
+		fullResourceType = splits[5]
 	}
 
-	if count >= 8 {
-		d.Set("resource_type", splits[count-2])
-		d.Set("name", splits[count-1])
-		d.Set("full_resource_type", fmt.Sprintf("%v/%v", splits[5], splits[count-2]))
+	parentResources := make(map[string]string)
+
+	for i := 8; i <= count; i += 2 {
+		resType := splits[i-2]
+		resName := splits[i-1]
+		fullResourceType += fmt.Sprintf("/%v", resType)
+		if i == count {
+			d.Set("resource_type", resType)
+			d.Set("name", resName)
+		} else {
+			parentResources[resType] = resName
+		}
 	}
 
-	if count == 10 {
-		d.Set("parent_resource_type", splits[6])
-		d.Set("parent_name", splits[7])
-		d.Set("full_resource_type", fmt.Sprintf("%v/%v/%v", splits[5], splits[6], splits[count-2]))
-	}
+	d.Set("full_resource_type", fullResourceType)
+	d.Set("parent_resources", parentResources)
 
 	d.SetId(id)
 	return nil
