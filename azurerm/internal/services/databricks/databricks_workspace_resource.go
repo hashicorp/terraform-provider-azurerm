@@ -105,19 +105,16 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 										}, true),
 									},
 									"key_name": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
 									},
 									"key_version": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
 									},
 									"key_vault_uri": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
 									},
 								},
 							},
@@ -171,29 +168,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			// "provider_authorization": {
-			// 	Type:     pluginsdk.TypeList,
-			// 	Optional: true,
-			// 	Computed: true,
-			// 	MaxItems: 100,
-			// 	Elem: &pluginsdk.Resource{
-			// 		Schema: map[string]*pluginsdk.Schema{
-			// 			"principal_id": {
-			// 				Type:         pluginsdk.TypeString,
-			// 				ForceNew:     true,
-			// 				Required:     true,
-			// 				ValidateFunc: validation.IsUUID,
-			// 			},
-			// 			"role_definition_id": {
-			// 				Type:         pluginsdk.TypeString,
-			// 				ForceNew:     true,
-			// 				Required:     true,
-			// 				ValidateFunc: validation.IsUUID,
-			// 			},
-			// 		},
-			// 	},
-			// },
 
 			"tags": tags.Schema(),
 
@@ -249,33 +223,73 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			customParamsRaw := d.Get("custom_parameters").([]interface{})
-			if len(customParamsRaw) != 0 && customParamsRaw[0] != nil {
-				cmkEncrypt := false
-				infraEncypt := false
-				config := customParamsRaw[0].(map[string]interface{})
-				sku := d.Get("sku").(string)
+			if d.HasChange("custom_parameters") {
+				oldParamsRaw, paramsRaw := d.GetChange("custom_parameters")
+				params := paramsRaw.([]interface{})
+				oldParams := oldParamsRaw.([]interface{})
 
-				if v, ok := config["enable_cmk_encryption"].(bool); ok {
-					cmkEncrypt = v
-				}
+				if len(params) != 0 && params[0] != nil {
+					_, changedSKU := d.GetChange("sku")
+					config := params[0].(map[string]interface{})
+					oldConfig := oldParams[0].(map[string]interface{})
 
-				if v, ok := config["enable_infrastructure_encryption"].(bool); ok {
-					infraEncypt = v
-				}
+					cmkRaw := config["customer_managed_key"].([]interface{})
+					if len(cmkRaw) != 0 && cmkRaw[0] != nil {
+						cmk := cmkRaw[0].(map[string]interface{})
 
-				if cmkEncrypt && infraEncypt {
-					return fmt.Errorf("'enable_cmk_encryption' and 'enable_infrastructure_encryption' cannot both be 'true'")
-				}
+						cmkSource := cmk["key_source"].(string)
+						cmkName := cmk["key_name"].(string)
+						cmkVersion := cmk["key_version"].(string)
+						cmkUri := cmk["key_vault_uri"].(string)
 
-				if cmkEncrypt && !strings.EqualFold("premium", sku) {
-					return fmt.Errorf("'enable_cmk_encryption' is only available with a 'premium' workspace 'sku', 'sku' is %q", sku)
-				}
+						cmkEncrypt := false
+						oldCmkEncrypt := false
+						infraEncypt := false
 
-				if v, ok := config["customer_managed_key"]; ok {
-					if v != nil {
-						if !cmkEncrypt {
-							return fmt.Errorf("you must first set the 'enable_cmk_encryption' to 'true' before setting 'customer_managed_key', 'enable_cmk_encryption' is '%v'", cmkEncrypt)
+						if v, ok := config["enable_cmk_encryption"].(bool); ok {
+							cmkEncrypt = v
+						}
+
+						if v, ok := oldConfig["enable_cmk_encryption"].(bool); ok {
+							oldCmkEncrypt = v
+						}
+
+						if v, ok := config["enable_infrastructure_encryption"].(bool); ok {
+							infraEncypt = v
+						}
+
+						if cmkEncrypt && infraEncypt {
+							return fmt.Errorf("'enable_cmk_encryption' and 'enable_infrastructure_encryption' cannot both be 'true'")
+						}
+
+						if oldCmkEncrypt && !cmkEncrypt {
+							return fmt.Errorf("'enable_cmk_encryption' cannot be set to 'false' once it has been set to 'true'")
+						}
+
+						// Key Source: Default
+						if strings.EqualFold(cmkSource, "default") {
+							if cmkEncrypt {
+								return fmt.Errorf("'enable_cmk_encryption' is only valid if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault', got %q", cmkSource)
+							} else {
+								if cmkName != "" || cmkVersion != "" || cmkUri != "" {
+									return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be empty if the 'customer_managed_key' 'key_source' is set to 'Default'")
+								}
+							}
+						}
+
+						// Key Source: Microsoft.Keyvault
+						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") {
+							if cmkEncrypt {
+								if cmkName == "" || cmkVersion == "" || cmkUri == "" {
+									return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be set if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
+								}
+							} else {
+								return fmt.Errorf("'enable_cmk_encryption' cannot be 'false' if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
+							}
+						}
+
+						if cmkEncrypt && !strings.EqualFold("premium", changedSKU.(string)) {
+							return fmt.Errorf("'enable_cmk_encryption' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
 						}
 					}
 				}
@@ -323,9 +337,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams := expandWorkspaceCustomParameters(customParamsRaw)
 
-	// authsRaw := d.Get("provider_authorization").([]interface{})
-	// auths := expandWorkspaceAuthorizations(authsRaw)
-
 	if len(customParamsRaw) != 0 && customParamsRaw[0] != nil {
 		configCmk := false
 		config := customParamsRaw[0].(map[string]interface{})
@@ -354,10 +365,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Tags: expandedTags,
 	}
-
-	// if auths != nil {
-	// 	workspace.WorkspaceProperties.Authorizations = auths
-	// }
 
 	future, err := client.CreateOrUpdate(ctx, workspace, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -435,10 +442,6 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `custom_parameters`: %+v", err)
 		}
-
-		// if err := d.Set("provider_authorization", flattenWorkspaceAuthorizations(props.Authorizations)); err != nil {
-		// 	return fmt.Errorf("setting `provider_authorization`: %+v", err)
-		// }
 
 		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
@@ -582,34 +585,6 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 	return []interface{}{parameters}
 }
 
-// func flattenWorkspaceAuthorizations(input *[]databricks.WorkspaceProviderAuthorization) []interface{} {
-// 	if input == nil {
-// 		return nil
-// 	}
-
-// 	auths := make([]interface{}, 0)
-
-// 	for _, x := range *input {
-// 		auth := make(map[string]interface{})
-
-// 		if v := x.PrincipalID; v != nil {
-// 			if pId := v.String(); pId != "" {
-// 				auth["principal_id"] = pId
-// 			}
-// 		}
-
-// 		if v := x.RoleDefinitionID; v != nil {
-// 			if rId := v.String(); rId != "" {
-// 				auth["role_definition_id"] = rId
-// 			}
-// 		}
-
-// 		auths = append(auths, auth)
-// 	}
-
-// 	return auths
-// }
-
 func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceCustomParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -705,29 +680,6 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 
 	return &parameters
 }
-
-// func expandWorkspaceAuthorizations(input []interface{}) *[]databricks.WorkspaceProviderAuthorization {
-// 	if len(input) == 0 || input[0] == nil {
-// 		return nil
-// 	}
-
-// 	output := []databricks.WorkspaceProviderAuthorization{}
-
-// 	for _, x := range input {
-// 		config := x.(map[string]interface{})
-// 		pId := uuid.FromStringOrNil(config["principal_id"].(string))
-// 		rId := uuid.FromStringOrNil(config["role_definition_id"].(string))
-
-// 		auth := databricks.WorkspaceProviderAuthorization{
-// 			PrincipalID:      &pId,
-// 			RoleDefinitionID: &rId,
-// 		}
-
-// 		output = append(output, auth)
-// 	}
-
-// 	return &output
-// }
 
 func workspaceCustomParametersString() []string {
 	return []string{"custom_parameters.0.aml_workspace_id", "custom_parameters.0.customer_managed_key", "custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",

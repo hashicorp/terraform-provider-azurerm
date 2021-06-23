@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
 
-~> **NOTE** While downgrading to `trial`, the Databricks Workspace resource would be recreated.
+~> **NOTE** Downgrading the `sku` to the `trial` version of the Databricks Workspace will force a new resource to be created.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
@@ -61,6 +61,8 @@ A `custom_parameters` block supports the following:
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
 * `enable_cmk_encryption` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`.
+
+~> **NOTE** Once `enable_cmk_encryption` has been set to `true` it cannot be set back to `false`. If you wish to remove your customer managed key encryption from your workspace you will need to update the `customer_managed_key` blocks `key_source` field to be `Default`.
 
 * `enable_infrastructure_encryption`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
