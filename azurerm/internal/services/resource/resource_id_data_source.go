@@ -9,7 +9,7 @@ import (
 
 func dataSourceResourceId() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceResourcesRead,
+		Read: dataSourceResourceIdRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Second),
 		},
