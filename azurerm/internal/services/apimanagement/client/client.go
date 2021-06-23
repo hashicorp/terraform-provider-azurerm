@@ -34,6 +34,7 @@ type Client struct {
 	SignInClient               *apimanagement.SignInSettingsClient
 	SignUpClient               *apimanagement.SignUpSettingsClient
 	SubscriptionsClient        *apimanagement.SubscriptionClient
+	TagClient                  *apimanagement.TagClient
 	TenantAccessClient         *apimanagement.TenantAccessClient
 	UsersClient                *apimanagement.UserClient
 }
@@ -123,6 +124,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&subscriptionsClient.Client, o.ResourceManagerAuthorizer)
 
+	tagClient := apimanagement.NewTagClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&tagClient.Client, o.ResourceManagerAuthorizer)
+
 	tenantAccessClient := apimanagement.NewTenantAccessClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tenantAccessClient.Client, o.ResourceManagerAuthorizer)
 
@@ -158,6 +162,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SignInClient:               &signInClient,
 		SignUpClient:               &signUpClient,
 		SubscriptionsClient:        &subscriptionsClient,
+		TagClient:                  &tagClient,
 		TenantAccessClient:         &tenantAccessClient,
 		UsersClient:                &usersClient,
 	}
