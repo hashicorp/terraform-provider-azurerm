@@ -696,31 +696,6 @@ func expandSignalRServicePublicNetwork(input []interface{}) *signalr.NetworkACL 
 	}
 }
 
-func expandSignalRServicePrivateEndpoint(input []interface{}) *[]signalr.PrivateEndpointACL {
-	results := make([]signalr.PrivateEndpointACL, 0)
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		allow := make([]signalr.RequestType, 0)
-		for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
-			allow = append(allow, (signalr.RequestType)(item))
-		}
-
-		deny := make([]signalr.RequestType, 0)
-		for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
-			deny = append(deny, (signalr.RequestType)(item))
-		}
-
-		results = append(results, signalr.PrivateEndpointACL{
-			Allow: &allow,
-			Deny:  &deny,
-			Name:  utils.String(v["name"].(string)),
-		})
-	}
-
-	return &results
-}
-
 func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -760,44 +735,6 @@ func flattenSignalRServiceNetworkACL(input *signalr.NetworkACLs) []interface{} {
 			"public_network": flattenSignalRServicePublicNetwork(input.PublicNetwork),
 		},
 	}
-}
-
-func flattenSignalRServicePrivateEndpoint(input *[]signalr.PrivateEndpointACL) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		allowedRequestTypes := make([]string, 0)
-		if item.Allow != nil {
-			for _, item := range *item.Allow {
-				allowedRequestTypes = append(allowedRequestTypes, (string)(item))
-			}
-		}
-		allow := utils.FlattenStringSlice(&allowedRequestTypes)
-
-		deniedRequestTypes := make([]string, 0)
-		if item.Deny != nil {
-			for _, item := range *item.Deny {
-				deniedRequestTypes = append(deniedRequestTypes, (string)(item))
-			}
-		}
-		deny := utils.FlattenStringSlice(&deniedRequestTypes)
-
-		results = append(results, map[string]interface{}{
-			"name":                  name,
-			"allowed_request_types": allow,
-			"denied_request_types":  deny,
-		})
-	}
-
-	return results
 }
 
 func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{} {

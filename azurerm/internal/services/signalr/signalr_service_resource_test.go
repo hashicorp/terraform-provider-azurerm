@@ -347,7 +347,7 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	})
 }
 
-func TestAccSignalRService_updateFeaturePropertiesAndNetworkACL(t *testing.T) {
+func TestAccSignalRService_updateNetworkACL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
