@@ -62,6 +62,10 @@ The following arguments are supported:
 
 * `features` - (Optional) A `features` block as documented below.
 
+* `kind` - (Optional) The kind of the SignalR service. Possible values are `SignalR` and `RawWebSockets`. Defaults to `SignalR`.
+
+* `network_acl` - (Optional) A `network_acl` block as documented below.
+
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -79,6 +83,30 @@ A `features` block supports the following:
 * `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
 
 * `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
+
+* `properties` - (Optional) Optional properties related to this feature.
+
+---
+
+A `network_acl` block supports the following:
+
+* `default_action` - (Optional) The default action when no other rule matches. Possible values are `Allow` and `Deny`.
+
+* `public_network` - (Optional) A `public_network` block as defined below.
+
+---
+
+A `public_network` block supports the following:
+
+**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
+
+* `allowed_request_types` - (Optional) The allowed request types. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
+
+**Note:** When `default_action` is `Allow`, `allowed_request_types`cannot be set.
+
+* `denied_request_types` - (Optional) The denied request types. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
+
+**Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
 ---
 

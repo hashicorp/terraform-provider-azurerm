@@ -347,6 +347,35 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_updateFeaturePropertiesAndNetworkACL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featurePropertiesAndNetworkACL(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateFeaturePropertiesAndNetworkACL(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.featurePropertiesAndNetworkACL(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServiceID(state.ID)
 	if err != nil {
@@ -572,4 +601,116 @@ resource "azurerm_signalr_service" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) featurePropertiesAndNetworkACL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "SignalR"
+
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+    properties = {
+      description = "TestDescription"
+    }
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableLiveTrace"
+    value = "False"
+  }
+
+  network_acl {
+    default_action = "Allow"
+
+    public_network {
+      denied_request_types = ["ServerConnection"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) updateFeaturePropertiesAndNetworkACL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "SignalR"
+
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+    properties = {
+      descrp = "TestDescription2"
+    }
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableLiveTrace"
+    value = "False"
+  }
+
+  network_acl {
+    default_action = "Deny"
+
+    public_network {
+      allowed_request_types = ["ClientConnection"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
