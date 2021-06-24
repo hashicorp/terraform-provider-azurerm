@@ -1,5 +1,9 @@
 ## 2.65.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource** `azurerm_hpc_cache_blob_nfs_target` [GH-11671]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v2.6.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-12209]
