@@ -652,9 +652,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                            = "acctestDF%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
   managed_virtual_network_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
