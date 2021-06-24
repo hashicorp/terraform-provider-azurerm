@@ -7,10 +7,9 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.11.19` of `github.com/Azure/go-autorest/autorest` [GH-12209]
 * dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` [GH-12209]
 * dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` [GH-12290]
-
-ENHANCEMENTS:
-
 * `azurerm_security_center_assessment_metadata` - support for the `categories` property [GH-12278]
+* `azurerm_express_route_circuit_peering` - support for the `bandwidth_in_gbps` and `express_route_port_id` properties [GH-12289]
+
 
 BUG FIXES:
 
