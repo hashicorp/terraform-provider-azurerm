@@ -20,7 +20,7 @@ func testAccExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privatePeering(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -37,7 +37,7 @@ func testAccExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privatePeering(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -52,7 +52,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeering(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -69,7 +69,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringIpv6(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -84,7 +84,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting(t *te
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringIpv6CustomerRouting(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -99,7 +99,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter(t *te
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringIpv6WithRouteFilter(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -114,7 +114,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringCustomerRouting(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringCustomerRouting(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -133,7 +133,7 @@ func testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate(t *t
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privatePeering(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -158,7 +158,7 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 	r := ExpressRouteCircuitPeeringResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msPeeringWithRouteFilter(data),
 			Check: acceptance.ComposeTestCheckFunc(
