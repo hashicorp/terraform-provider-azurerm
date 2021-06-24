@@ -10,6 +10,8 @@ description: |-
 
 Configures the specified Policy Definition at the specified Scope. Also, Policy Set Definitions are supported.
 
+!> **Note:** The `azurerm_policy_assignment` resource has been deprecated in favour of the `azurerm_management_group_policy_assignment`, `azurerm_resource_policy_assignment`, `azurerm_resource_group_policy_assignment` and `azurerm_subscription_policy_assignment` resources and will be removed in v3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl

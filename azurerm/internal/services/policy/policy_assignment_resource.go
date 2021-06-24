@@ -3,6 +3,7 @@ package policy
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
@@ -29,6 +30,19 @@ func resourceArmPolicyAssignment() *pluginsdk.Resource {
 			_, err := parse.PolicyAssignmentID(id)
 			return err
 		}),
+
+		DeprecationMessage: func() string {
+			msg := `The 'azurerm_policy_assignment' resource is deprecated in favour of the:
+
+- 'azurerm_management_group_policy_assignment'
+- 'azurerm_resource_policy_assignment'
+- 'azurerm_resource_group_policy_assignment'
+- 'azurerm_subscription_policy_assignment'
+
+resources and will be removed in version 3.0 of the Azure Provider.
+`
+			return strings.ReplaceAll(msg, "'", "`")
+		}(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
