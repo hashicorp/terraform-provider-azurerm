@@ -62,9 +62,11 @@ A `custom_parameters` block supports the following:
 
 * `enable_cmk_encryption` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`.
 
-~> **NOTE** Once `enable_cmk_encryption` has been set to `true` it cannot be set back to `false`. If you wish to remove your customer managed key encryption from your workspace you will need to update the `customer_managed_key` blocks `key_source` field to be `Default`.
+~> **NOTE** Once `enable_cmk_encryption` has been set to `true` it cannot be set back to `false`. If you wish to remove your customer managed key encryption from your workspace you will need to update the `customer_managed_key` blocks `key_source` field to be `Default` and remove the `enable_cmk_encryption` attribute from the `custom_parameters` block. `enable_cmk_encryption` is olny available with the `premium` Databricks Workspace `sku`.
 
-* `enable_infrastructure_encryption`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
+* `enable_infrastructure_encryption`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`.
+
+~> **NOTE** Once `enable_infrastructure_encryption` has been set to `true` it cannot be set back to `false`. `enable_infrastructure_encryption` is olny available with the `premium` Databricks Workspace `sku`.
 
 * `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 

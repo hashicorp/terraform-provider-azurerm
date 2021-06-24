@@ -61,34 +61,46 @@ func TestAccDatabricksWorkspace_machineLearning(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_customerManagedKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-	r := DatabricksWorkspaceResource{}
+// This is currently untestable due to https://github.com/Azure/azure-rest-api-specs/issues/8075
+// Per jlichwa: It is as designed, purge protection is irreversible. Otherwise hacker would be able
+// to delete your key vault without option to recover. #please-close
+// Unable to delete key vault since purge protection is required by the resource:
+// Code="StorageAccountOperationFailed" Message="Unable to update storage account 'dbstoragel2bko37m6ebog': 'Keyvault policy recoverable is not set'."
+// If I Add Purge Protection to be true the clean up gets the below error:
+// keyvault.BaseClient#PurgeDeletedKey: Failure responding to request: StatusCode=403 -- Original Error: autorest/azure: Service returned an error.
+// Status=403 Code="Forbidden" Message="The user, group or application 'appid=XXXX;oid=XXXX;iss=https://sts.windows.net/XXXX/' does not have keys
+// purge permission on key vault 'acctest-kv-rczeo;location=westeurope'. InnerError={"code":"ForbiddenByPolicy"}
+// If you look at the azurerm_key_vault_access_policy that was created it does have purge enable, but since the default policy is 90 days you cannot purge
+// the keys for at least 90 days.
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.customerManagedKeysStepOne(data, "premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.customerManagedKeysStepTwo(data, "premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.customerManagedKeysStepThree(data, "premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+// func TestAccDatabricksWorkspace_customerManagedKey(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+// 	r := DatabricksWorkspaceResource{}
+
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		{
+// 			Config: r.customerManagedKeysStepOne(data, "premium"),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep(),
+// 		{
+// 			Config: r.customerManagedKeysStepTwo(data, "premium"),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep(),
+// 		{
+// 			Config: r.customerManagedKeysStepThree(data, "premium"),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep(),
+// 	})
+// }
 
 func TestAccDatabricksWorkspace_infrastructureEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -96,7 +108,14 @@ func TestAccDatabricksWorkspace_infrastructureEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.infrastructureEncryption(data, "standard"),
+			Config: r.infrastructureEncryptionStepOne(data, "premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.infrastructureEncryptionStepTwo(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -838,7 +857,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
 }
 
-func (DatabricksWorkspaceResource) infrastructureEncryption(data acceptance.TestData, sku string) string {
+func (DatabricksWorkspaceResource) infrastructureEncryptionStepOne(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -860,6 +879,28 @@ resource "azurerm_databricks_workspace" "test" {
   custom_parameters {
     enable_infrastructure_encryption = true
   }
+}
+`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
+}
+
+func (DatabricksWorkspaceResource) infrastructureEncryptionStepTwo(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-db-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
 }
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
 }
