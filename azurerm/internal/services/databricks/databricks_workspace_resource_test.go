@@ -3,7 +3,6 @@ package databricks_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -26,9 +25,6 @@ func TestAccDatabricksWorkspace_basic(t *testing.T) {
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
-				check.That(data.ResourceName).Key("workspace_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -59,12 +55,6 @@ func TestAccDatabricksWorkspace_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
-				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
-				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -86,12 +76,6 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
-				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
-				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -105,10 +89,6 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
-				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -424,24 +404,24 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%d"
-  location = "%s"
+  name     = "acctestRG-db-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%d"
+  name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "standard"
-  managed_resource_group_name = "acctestRG-DBW-%d-managed"
-
-  tags = {
-    Pricing = "Standard"
-  }
+  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
     no_public_ip = false
   }
+
+  tags = {
+    Pricing = "Standard"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
