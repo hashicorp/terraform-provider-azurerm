@@ -273,20 +273,16 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						if strings.EqualFold(cmkSource, "default") {
 							if cmkEncrypt {
 								return fmt.Errorf("'enable_cmk_encryption' is only valid if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault', got %q", cmkSource)
-							} else {
-								if cmkName != "" || cmkVersion != "" || cmkUri != "" {
-									return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be empty if the 'customer_managed_key' 'key_source' is set to 'Default'")
-								}
+							} else if !cmkEncrypt && (cmkName != "" || cmkVersion != "" || cmkUri != "") {
+								return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be empty if the 'customer_managed_key' 'key_source' is set to 'Default'")
 							}
 						}
 
 						// Key Source: Microsoft.Keyvault
 						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") {
-							if cmkEncrypt {
-								if cmkName == "" || cmkVersion == "" || cmkUri == "" {
-									return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be set if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
-								}
-							} else {
+							if cmkEncrypt && (cmkName == "" || cmkVersion == "" || cmkUri == "") {
+								return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be set if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
+							} else if !cmkEncrypt {
 								return fmt.Errorf("'enable_cmk_encryption' cannot be 'false' if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
 							}
 						}
