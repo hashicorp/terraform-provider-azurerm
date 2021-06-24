@@ -75,6 +75,10 @@ resource "azurerm_kusto_iothub_data_connection" "example" {
   consumer_group            = azurerm_iothub_consumer_group.example.name
   shared_access_policy_name = azurerm_iothub_shared_access_policy.example.name
   event_system_properties   = ["message-id", "sequence-number", "to"]
+
+  table_name        = "my-table"
+  mapping_rule_name = "my-table-mapping"
+  data_format       = "JSON"
 }
 ```
 
@@ -99,6 +103,12 @@ The following arguments are supported:
 * `shared_access_policy_name` - (Required) Specifies the IotHub Shared Access Policy this data connection will use for ingestion, which must have read permission. Changing this forces a new resource to be created.
 
 * `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Changing this forces a new resource to be created.
+
+* `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created.
+
+* `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
+
+* `data_format` - (Optional) Specifies the data format of the IoTHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV`, `TSVE`, `TXT` and `W3CLOGFILE`.
 
 ## Attributes Reference
 
