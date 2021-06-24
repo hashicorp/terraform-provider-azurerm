@@ -147,6 +147,35 @@ func TestAccManagementGroupPolicyAssignment_basicWithCustomPolicyComplete(t *tes
 	})
 }
 
+func TestAccManagementGroupPolicyAssignment_basicComplexWithCustomPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_assignment", "test")
+	r := ManagementGroupAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withComplexCustomPolicyAndParameters(data, "Acceptance"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withComplexCustomPolicyAndParameters(data, "Testing"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withComplexCustomPolicyAndParameters(data, "Acceptance Testing"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ManagementGroupAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PolicyAssignmentID(state.ID)
 	if err != nil {
@@ -327,6 +356,120 @@ resource "azurerm_management_group_policy_assignment" "import" {
   policy_definition_id = azurerm_management_group_policy_assignment.test.policy_definition_id
 }
 `, template)
+}
+
+func (r ManagementGroupAssignmentTestResource) withComplexCustomPolicyAndParameters(data acceptance.TestData, metadataValue string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_policy_definition" "test" {
+  name                = "acctestpol-%[2]s"
+  policy_type         = "Custom"
+  mode                = "All"
+  display_name        = "acctestpol-%[2]s"
+  description         = "Description for %[2]s"
+  management_group_id  = azurerm_management_group.test.group_id
+  metadata            = <<METADATA
+  {
+    "category": "%[3]s"
+  }
+METADATA
+
+  parameters = <<PARAMETERS
+  {
+    "effect": {
+      "type": "String",
+      "metadata": {
+        "displayName": "Effect",
+        "description": "Enable or disable the execution of the policy"
+      },
+      "allowedValues": [
+        "Deny",
+        "Audit",
+        "Disabled"
+      ],
+      "defaultValue": "Deny"
+    },
+    "sourceIp": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Source IP ranges",
+        "description": "The inbound IP range to deny. Default to *, ANY, Internet"
+      },
+      "defaultValue": [
+        "*",
+        "Any",
+        "Internet",
+        "0.0.0.0"
+      ]
+    }
+  }
+PARAMETERS
+
+  policy_rule = <<POLICY_RULE
+  {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Network/networkSecurityGroups/securityRules"
+        },
+        {
+          "allOf": [
+            {
+              "field": "Microsoft.Network/networkSecurityGroups/securityRules/access",
+              "equals": "Allow"
+            },
+            {
+              "field": "Microsoft.Network/networkSecurityGroups/securityRules/direction",
+              "equals": "Inbound"
+            },
+            {
+              "anyOf": [
+                {
+                  "field": "Microsoft.Network/networkSecurityGroups/securityRules/destinationPortRange",
+                  "equals": "*"
+                },
+                {
+                  "not": {
+                    "field": "Microsoft.Network/networkSecurityGroups/securityRules/destinationPortRanges[*]",
+                    "notEquals": "*"
+                  }
+                },
+                {
+                  "field": "Microsoft.Network/networkSecurityGroups/securityRules/sourceAddressPrefix",
+                  "in": "[parameters('sourceIP')]"
+                },
+                {
+                  "not": {
+                    "field": "Microsoft.Network/networkSecurityGroups/securityRules/sourceAddressPrefixes[*]",
+                    "notIn": "[parameters('sourceIP')]"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
+  }
+POLICY_RULE
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = azurerm_policy_definition.test.id
+}
+`, template, data.RandomString, metadataValue)
 }
 
 func (r ManagementGroupAssignmentTestResource) withCustomPolicyUpdated(data acceptance.TestData) string {
