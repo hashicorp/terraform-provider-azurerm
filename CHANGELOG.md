@@ -14,8 +14,10 @@ ENHANCEMENTS:
 * dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` [GH-12290]
 * `azurerm_express_route_circuit_peering` - support for the `bandwidth_in_gbps` and `express_route_port_id` properties [GH-12289]
 * `azurerm_kusto_iothub_data_connection` - support for the `data_format`, `mapping_rule_name` and `table_name` properties [GH-12293]
+* `azurerm_linux_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce [GH-11790]
 * `azurerm_security_center_assessment_metadata` - support for the `categories` property [GH-12278]
-
+* `azurerm_windows_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce [GH-11790]
+* 
 BUG FIXES:
 
 * `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing [GH-12128]
