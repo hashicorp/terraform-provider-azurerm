@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -55,25 +57,6 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"service_provider_name": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"peering_location": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"bandwidth_in_mbps": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
-			},
-
 			"sku": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -109,6 +92,47 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"service_provider_name": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"bandwidth_in_mbps", "peering_location"},
+				ConflictsWith:    []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"peering_location": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"bandwidth_in_mbps", "service_provider_name"},
+				ConflictsWith:    []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"bandwidth_in_mbps": {
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				RequiredWith:  []string{"peering_location", "service_provider_name"},
+				ConflictsWith: []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"bandwidth_in_gbps": {
+				Type:          pluginsdk.TypeFloat,
+				Optional:      true,
+				RequiredWith:  []string{"express_route_port_id"},
+				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
+			},
+
+			"express_route_port_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				RequiredWith:  []string{"bandwidth_in_gbps"},
+				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
+				ValidateFunc:  validate.ExpressRoutePortID,
 			},
 
 			"service_provider_provisioning_state": {
@@ -154,12 +178,9 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	serviceProviderName := d.Get("service_provider_name").(string)
-	peeringLocation := d.Get("peering_location").(string)
-	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
 	sku := expandExpressRouteCircuitSku(d)
-	allowRdfeOps := d.Get("allow_classic_operations").(bool)
 	t := d.Get("tags").(map[string]interface{})
+	allowRdfeOps := d.Get("allow_classic_operations").(bool)
 	expandedTags := tags.Expand(t)
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
@@ -191,22 +212,26 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	erc.Sku = sku
 	erc.Tags = expandedTags
 
-	if erc.ExpressRouteCircuitPropertiesFormat != nil {
+	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
-		if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = &serviceProviderName
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = &peeringLocation
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = &bandwidthInMbps
-		}
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
-			AllowClassicOperations: &allowRdfeOps,
-			ServiceProviderProperties: &network.ExpressRouteCircuitServiceProviderProperties{
-				ServiceProviderName: &serviceProviderName,
-				PeeringLocation:     &peeringLocation,
-				BandwidthInMbps:     &bandwidthInMbps,
-			},
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
+
+		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
+		if _, ok := d.GetOk("express_route_port_id"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = &network.SubResource{}
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties = &network.ExpressRouteCircuitServiceProviderProperties{}
 		}
+	}
+
+	if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(d.Get("service_provider_name").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(d.Get("peering_location").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(d.Get("bandwidth_in_mbps").(int)))
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = utils.String(d.Get("express_route_port_id").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
@@ -280,6 +305,18 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		sku := flattenExpressRouteCircuitSku(resp.Sku)
 		if err := d.Set("sku", sku); err != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+	}
+
+	if resp.ExpressRoutePort != nil {
+		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
+
+		if resp.ExpressRoutePort.ID != nil {
+			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			if err != nil {
+				return err
+			}
+			d.Set("express_route_port_id", portID.ID())
 		}
 	}
 
