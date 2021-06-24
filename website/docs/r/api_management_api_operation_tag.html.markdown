@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `api_operation_id` - (Required) The ID of the API Management API Operation. Changing this forces a new API Management API Operation Tag to be created.
 
-* `name` - (Required) The name which should be used for this API Management API Operation Tag. Changing this forces a new API Management API Operation Tag to be created.
+* `name` - (Required) The name which should be used for this API Management API Operation Tag. Changing this forces a new API Management API Operation Tag to be created. The name must be unique in the API Management Service.
 
 ---
 

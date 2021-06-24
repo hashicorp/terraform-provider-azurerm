@@ -77,7 +77,7 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 		existing, err := client.Get(ctx, apiOperationId.ResourceGroup, apiOperationId.ServiceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Tag %q, `name` must be unique in the api management service: %s", id, err)
+				return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
 			}
 		}
 

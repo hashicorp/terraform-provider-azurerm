@@ -37,7 +37,7 @@ func TestAccApiManagementApiOperationTag_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.requiresImport(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -105,7 +105,7 @@ func (r ApiManagementApiOperationTagResource) requiresImport(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_api_operation_tag" "test" {
+resource "azurerm_api_management_api_operation_tag" "import" {
   api_operation_id = azurerm_api_management_api_operation_tag.test.api_operation_id
   name             = azurerm_api_management_api_operation_tag.test.name
   display_name     = azurerm_api_management_api_operation_tag.test.display_name
