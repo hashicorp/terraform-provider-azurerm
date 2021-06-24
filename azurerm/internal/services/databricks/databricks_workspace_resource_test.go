@@ -96,6 +96,12 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.completeCleanup(data),
+		},
+		{
+			Config: r.completeCleanupNsg(data),
+		},
+		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
