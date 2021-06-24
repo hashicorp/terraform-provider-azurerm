@@ -110,9 +110,9 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		},
 
 		SchemaVersion: 1,
-		StateUpgraders: []pluginsdk.StateUpgrader{
-			migration.DatabaseV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DatabaseV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

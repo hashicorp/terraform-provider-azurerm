@@ -96,7 +96,7 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 				PollInterval: 30 * time.Second,
 				Timeout:      metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
 			}
-			if _, err := stateConf.WaitForState(); err != nil {
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Resource Provider Namespace %q to be registered: %s", resourceId.ResourceProvider, err)
 			}
 			log.Printf("[DEBUG] Registered Resource Provider %q.", resourceId.ResourceProvider)
@@ -173,7 +173,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 				MinTimeout: 15 * time.Second,
 				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete),
 			}
-			if _, err := stateConf.WaitForState(); err != nil {
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Resource Provider %q to become unregistered: %+v", id.ResourceProvider, err)
 			}
 

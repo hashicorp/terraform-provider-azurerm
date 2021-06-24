@@ -4,18 +4,16 @@ import (
 	"fmt"
 	"testing"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func TestProvider(t *testing.T) {
-	if err := TestAzureProvider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := TestAzureProvider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 
 func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
-	provider := TestAzureProvider().(*schema.Provider)
+	provider := TestAzureProvider()
 	for dataSourceName, dataSource := range provider.DataSourcesMap {
 		t.Run(fmt.Sprintf("DataSource/%s", dataSourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Data Source %q..", dataSourceName)
@@ -51,7 +49,7 @@ func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
 }
 
 func TestResourcesSupportCustomTimeouts(t *testing.T) {
-	provider := TestAzureProvider().(*schema.Provider)
+	provider := TestAzureProvider()
 	for resourceName, resource := range provider.ResourcesMap {
 		t.Run(fmt.Sprintf("Resource/%s", resourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Resource %q..", resourceName)
@@ -66,7 +64,7 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 
 			// every Resource has to have a Create, Read & Destroy timeout
-			if resource.Timeouts.Create == nil && resource.Create != nil {
+			if resource.Timeouts.Create == nil && resource.Create != nil { //nolint:SA1019
 				t.Fatalf("Resource %q defines a Create method but no Create Timeout", resourceName)
 			}
 			if resource.Timeouts.Delete == nil && resource.Delete != nil {

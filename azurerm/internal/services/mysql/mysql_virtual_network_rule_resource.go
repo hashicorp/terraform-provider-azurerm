@@ -109,7 +109,7 @@ func resourceMySQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
 	}
 

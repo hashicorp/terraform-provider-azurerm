@@ -165,6 +165,51 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_ZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availability_zone(data, "Zone-Redundant"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_NoZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availability_zone(data, "No-Zone"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_SingleZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availability_zone(data, "1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	loadBalancerName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
@@ -496,4 +541,47 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancer) availability_zone(data acceptance.TestData, zone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
+    subnet_id                     = azurerm_subnet.test.id
+    availability_zone             = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, zone)
 }

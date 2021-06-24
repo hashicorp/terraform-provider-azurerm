@@ -29,6 +29,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_desktop_workspace":                               resourceArmDesktopVirtualizationWorkspace(),
 		"azurerm_virtual_desktop_host_pool":                               resourceVirtualDesktopHostPool(),
 		"azurerm_virtual_desktop_application_group":                       resourceVirtualDesktopApplicationGroup(),
+		"azurerm_virtual_desktop_application":                             resourceVirtualDesktopApplication(),
 		"azurerm_virtual_desktop_workspace_application_group_association": resourceVirtualDesktopWorkspaceApplicationGroupAssociation(),
 	}
 }

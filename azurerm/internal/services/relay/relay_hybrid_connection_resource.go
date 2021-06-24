@@ -168,7 +168,7 @@ func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta inte
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted: %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 

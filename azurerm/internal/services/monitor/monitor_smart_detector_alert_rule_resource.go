@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -113,7 +112,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
 					},
 				},

@@ -180,7 +180,7 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	respRaw, err := stateConf.WaitForState()
+	respRaw, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for Virtual Hub %q (Host Group Name %q) provisioning route: %+v", name, resourceGroup, err)
 	}

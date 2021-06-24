@@ -68,11 +68,23 @@ type CanceledSubscriptionID struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CanceledSubscriptionID.
+func (csi CanceledSubscriptionID) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // EnabledSubscriptionID the ID of the subscriptions that is being enabled
 type EnabledSubscriptionID struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The ID of the subscriptions that is being enabled
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EnabledSubscriptionID.
+func (esi EnabledSubscriptionID) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponse describes the format of Error response.
@@ -265,6 +277,12 @@ type Location struct {
 	Longitude *string `json:"longitude,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Location.
+func (l Location) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LocationListResult location list operation response.
 type LocationListResult struct {
 	autorest.Response `json:"-"`
@@ -345,6 +363,12 @@ type Policies struct {
 	SpendingLimit SpendingLimit `json:"spendingLimit,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Policies.
+func (p Policies) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PutAliasListResult the list of aliases.
 type PutAliasListResult struct {
 	autorest.Response `json:"-"`
@@ -352,6 +376,12 @@ type PutAliasListResult struct {
 	Value *[]PutAliasResponse `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PutAliasListResult.
+func (palr PutAliasListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PutAliasRequest the parameters required to create a new subscription.
@@ -420,12 +450,24 @@ type RenamedSubscriptionID struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RenamedSubscriptionID.
+func (rsi RenamedSubscriptionID) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TenantIDDescription tenant Id information.
 type TenantIDDescription struct {
 	// ID - READ-ONLY; The fully qualified ID of the tenant. For example, /tenants/00000000-0000-0000-0000-000000000000.
 	ID *string `json:"id,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID. For example, 00000000-0000-0000-0000-000000000000.
 	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TenantIDDescription.
+func (tid TenantIDDescription) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TenantListResult tenant Ids information.

@@ -146,6 +146,12 @@ type AppAvailabilityInfo struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AppAvailabilityInfo.
+func (aai AppAvailabilityInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AppListResult a list of IoT Central Applications with a next link.
 type AppListResult struct {
 	autorest.Response `json:"-"`
@@ -546,12 +552,24 @@ type AppTemplate struct {
 	Locations *[]AppTemplateLocations `json:"locations,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AppTemplate.
+func (at AppTemplate) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AppTemplateLocations ioT Central Application Template Locations.
 type AppTemplateLocations struct {
 	// ID - READ-ONLY; The ID of the location.
 	ID *string `json:"id,omitempty"`
 	// DisplayName - READ-ONLY; The display name of the location.
 	DisplayName *string `json:"displayName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppTemplateLocations.
+func (atl AppTemplateLocations) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AppTemplatesResult a list of IoT Central Application Templates with a next link.
@@ -813,6 +831,12 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 	// Description - READ-ONLY; Friendly description for the operation,
 	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (od OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationInputs input values.
