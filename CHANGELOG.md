@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource** `azurerm_hpc_cache_blob_nfs_target` [GH-11671]
+* **New Resource** `azurerm_nat_gateway_public_ip_prefix_association` [GH-12353]
 
 ENHANCEMENTS:
 
