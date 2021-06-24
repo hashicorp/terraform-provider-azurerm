@@ -1,6 +1,7 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -207,6 +208,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 				},
 			},
 
+			"managed_virtual_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"public_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -227,6 +233,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,6 +323,24 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	managedVirtualNetworkEnabled := d.Get("managed_virtual_network_enabled").(bool)
+	// only pass datafactory.ManagedVirtualNetworkResource{} will cause rest api error
+	resource := datafactory.ManagedVirtualNetworkResource{
+		Properties: &datafactory.ManagedVirtualNetwork{},
+	}
+	if d.IsNewResource() && managedVirtualNetworkEnabled {
+		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, "default", resource, ""); err != nil {
+			return fmt.Errorf("creating virtual network for %s: %+v", id, err)
+		}
+	} else if !d.IsNewResource() && d.HasChange("managed_virtual_network_enabled") {
+		if !managedVirtualNetworkEnabled {
+			return fmt.Errorf("updating %s: once Managed Virtual Network has been Enabled it's not possible to disable it", id)
+		}
+		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, "default", resource, ""); err != nil {
+			return fmt.Errorf("creating virtual network for %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceDataFactoryRead(d, meta)
@@ -323,6 +348,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -392,6 +418,16 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if resp.PublicNetworkAccess != "" {
 		d.Set("public_network_enabled", resp.PublicNetworkAccess == datafactory.PublicNetworkAccessEnabled)
 	}
+
+	managedVirtualNetworkEnabled := false
+	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.ResourceGroup, id.FactoryName)
+	if err != nil {
+		return err
+	}
+	if managedVirtualNetworkName != nil {
+		managedVirtualNetworkEnabled = true
+	}
+	d.Set("managed_virtual_network_enabled", managedVirtualNetworkEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -576,4 +612,17 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 		})
 	}
 	return result
+}
+
+// Only one VNet is allowed per factory
+func getManagedVirtualNetworkName(ctx context.Context, client *datafactory.ManagedVirtualNetworksClient, resourceGroup, factoryName string) (*string, error) {
+	resp, err := client.ListByFactory(ctx, resourceGroup, factoryName)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.Values()) == 0 {
+		return nil, nil
+	}
+	managedVirtualNetwork := resp.Values()[0]
+	return managedVirtualNetwork.Name, nil
 }
