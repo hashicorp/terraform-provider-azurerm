@@ -1416,9 +1416,9 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
       subject_alternative_names {
-        dns_names = ["api.pluginsdk.io"]
+        dns_names = ["api.terraform.io"]
       }
-      subject            = "CN=api.pluginsdk.io"
+      subject            = "CN=api.terraform.io"
       validity_in_months = 1
     }
   }
