@@ -1,5 +1,7 @@
 package utils
 
+import "strings"
+
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
 	for _, item := range input {
@@ -75,6 +77,29 @@ func FlattenInt32Slice(input *[]int32) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *string {
+	result := make([]string, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, item.(string))
+		} else {
+			result = append(result, "")
+		}
+	}
+	return String(strings.Join(result, delimiter))
+}
+
+func FlattenStringSliceWithDelimiter(input *string, delimiter string) []interface{} {
+	result := make([]interface{}, 0)
+	if input != nil {
+		inputStrings := strings.Split(*input, delimiter)
+		for _, item := range inputStrings {
 			result = append(result, item)
 		}
 	}

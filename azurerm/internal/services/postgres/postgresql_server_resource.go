@@ -592,7 +592,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", name, resourceGroup, err)
 	}
 
@@ -675,7 +675,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if _, err = stateConf.WaitForState(); err != nil {
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
 		}
 	}

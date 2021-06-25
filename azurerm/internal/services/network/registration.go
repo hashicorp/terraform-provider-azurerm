@@ -80,6 +80,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_private_link_service":                                                   resourcePrivateLinkService(),
 		"azurerm_public_ip":                                                              resourcePublicIp(),
 		"azurerm_nat_gateway_public_ip_association":                                      resourceNATGatewayPublicIpAssociation(),
+		"azurerm_nat_gateway_public_ip_prefix_association":                               resourceNATGatewayPublicIpPrefixAssociation(),
 		"azurerm_public_ip_prefix":                                                       resourcePublicIpPrefix(),
 		"azurerm_network_security_group":                                                 resourceNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceNetworkSecurityRule(),

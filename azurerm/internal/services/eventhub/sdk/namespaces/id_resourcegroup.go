@@ -32,8 +32,8 @@ func (id ResourceGroupId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup)
 }
 
-// ResourceGroupID parses a ResourceGroup ID into an ResourceGroupId struct
-func ResourceGroupID(input string) (*ResourceGroupId, error) {
+// ParseResourceGroupID parses a ResourceGroup ID into an ResourceGroupId struct
+func ParseResourceGroupID(input string) (*ResourceGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -59,10 +59,10 @@ func ResourceGroupID(input string) (*ResourceGroupId, error) {
 	return &resourceId, nil
 }
 
-// ResourceGroupIDInsensitively parses an ResourceGroup ID into an ResourceGroupId struct, insensitively
+// ParseResourceGroupIDInsensitively parses an ResourceGroup ID into an ResourceGroupId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the ResourceGroupID method should be used instead for validation etc.
-func ResourceGroupIDInsensitively(input string) (*ResourceGroupId, error) {
+// the ParseResourceGroupID method should be used instead for validation etc.
+func ParseResourceGroupIDInsensitively(input string) (*ResourceGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

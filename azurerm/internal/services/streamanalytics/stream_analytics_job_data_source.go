@@ -59,6 +59,27 @@ func dataSourceArmStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"output_error_policy": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -100,6 +121,9 @@ func dataSourceArmStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", resourceGroup)
 	if resp.Location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
+	}
+	if err := d.Set("identity", flattenStreamAnalyticsJobIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %v", err)
 	}
 
 	if props := resp.StreamingJobProperties; props != nil {

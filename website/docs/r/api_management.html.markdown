@@ -67,6 +67,14 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more (up to 10) `certificate` blocks as defined below.
 
+* `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when sku type is `Consumption`.
+
+* `gateway_disabled` - (Optional) Disable the gateway in master region? This is only supported when `additional_location` is set.
+
+* `min_api_version` - (Optional)  The version which the control plane API calls to API Management service are limited with version equal to or newer than.
+
+* `zones` - (Optional) A list of availability zones.
+
 * `identity` - (Optional) An `identity` block is documented below.
 
 * `hostname_configuration` - (Optional) A `hostname_configuration` block as defined below.

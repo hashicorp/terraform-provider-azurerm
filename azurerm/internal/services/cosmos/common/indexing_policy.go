@@ -66,7 +66,7 @@ func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 	return &indexes
 }
 
-func expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]documentdb.SpatialSpec {
+func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]documentdb.SpatialSpec {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -110,7 +110,7 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *documentdb.
 		policy.CompositeIndexes = ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 
-	policy.SpatialIndexes = expandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+	policy.SpatialIndexes = ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
 
 	return policy
 }
@@ -190,7 +190,7 @@ func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]documentdb.IncludedPath
 	return includedPaths
 }
 
-func flattenCosmosDBIndexingPolicySpatialIndexes(input *[]documentdb.SpatialSpec) []interface{} {
+func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]documentdb.SpatialSpec) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -236,7 +236,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
-	result["spatial_index"] = flattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
+	result["spatial_index"] = FlattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
 
 	results = append(results, result)
 	return results

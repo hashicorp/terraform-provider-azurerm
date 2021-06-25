@@ -2,6 +2,7 @@ package recoveryservices
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -299,8 +300,11 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	// We are only allowed to update the configuration once the VM is fully protected
-	state, err := waitForReplicationToBeHealthy(d, meta)
+	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
 	if err != nil {
 		return err
 	}
@@ -317,9 +321,6 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	} else {
 		targetAvailabilitySetID = nil
 	}
-
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	vmNics := []siterecovery.VMNicInputDetails{}
 	for _, raw := range d.Get("network_interface").(*pluginsdk.Set).List() {
@@ -528,7 +529,7 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func waitForReplicationToBeHealthy(d *pluginsdk.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
+func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
 	log.Printf("Waiting for Site Recover to replicate VM.")
 	stateConf := &pluginsdk.StateChangeConf{
 		Target:       []string{"Protected"},
@@ -538,7 +539,7 @@ func waitForReplicationToBeHealthy(d *pluginsdk.ResourceData, meta interface{}) 
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
-	result, err := stateConf.WaitForState()
+	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for site recovery to replicate vm: %+v", err)
 	}

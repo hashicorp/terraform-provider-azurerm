@@ -130,7 +130,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
@@ -148,7 +148,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
@@ -234,7 +234,7 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 		ContinuousTargetOccurence: 6,
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
@@ -248,7 +248,7 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
