@@ -388,7 +388,7 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func expandHDInsightKafkaComponentVersion(input []interface{}) map[string]*string {
-	if input == nil || len(input) == 0 || input[0] == nil {
+	if len(input) == 0 || input[0] == nil {
 		return map[string]*string{"kafka": utils.String("")}
 	}
 	vs := input[0].(map[string]interface{})
