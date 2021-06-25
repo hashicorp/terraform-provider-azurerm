@@ -94,7 +94,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"key_source": {
+									"source": {
 										Type:             pluginsdk.TypeString,
 										Optional:         true,
 										Default:          "Default",
