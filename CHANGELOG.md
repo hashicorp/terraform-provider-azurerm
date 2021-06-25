@@ -4,6 +4,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_lighthouse_definition` - supports for the `plan` block [GH-12360]
+
+
 BUG FIXES:
 
 * `azurerm_hdinsight_kafka_cluster` - will no longer panics from an empty `component_version` property [GH-12261]
