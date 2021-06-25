@@ -26,6 +26,7 @@ func TestAccApplicationInsights_basicWeb(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("web"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -42,6 +43,7 @@ func TestAccApplicationInsights_requiresImport(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("web"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		{
@@ -61,6 +63,7 @@ func TestAccApplicationInsights_basicJava(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("java"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -77,6 +80,7 @@ func TestAccApplicationInsights_basicMobileCenter(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("MobileCenter"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -93,6 +97,7 @@ func TestAccApplicationInsights_basicOther(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("other"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -109,6 +114,7 @@ func TestAccApplicationInsights_basicPhone(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("phone"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -125,6 +131,7 @@ func TestAccApplicationInsights_basicStore(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("store"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -141,6 +148,7 @@ func TestAccApplicationInsights_basiciOS(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("ios"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -171,6 +179,7 @@ func TestAccApplicationInsights_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("web"),
+				check.That(data.ResourceName).Key("custom_metrics_opted_in_type").HasValue("WithDimensions"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("120"),
 				check.That(data.ResourceName).Key("sampling_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("daily_data_cap_in_gb").HasValue("50"),
@@ -233,6 +242,7 @@ resource "azurerm_application_insights" "test" {
   location                              = azurerm_resource_group.test.location
   resource_group_name                   = azurerm_resource_group.test.name
   application_type                      = "%s"
+  custom_metrics_opted_in_type          = "WithDimensions"
   retention_in_days                     = 120
   sampling_percentage                   = 50
   daily_data_cap_in_gb                  = 50

@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `ios` for _iOS_, `java` for _Java web_, `MobileCenter` for _App Center_, `Node.JS` for _Node.js_, `other` for _General_, `phone` for _Windows Phone_, `store` for _Windows Store_ and `web` for _ASP.NET_. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure. Changing this forces a new resource to be created.
 
+* `custom_metrics_opted_in_type` - (Optional) Specifies how to Application Insights should handle custom metrics. Valid value is `WithDimensions` - it enables storing custom metric dimensions for [pre-aggregations](https://docs.microsoft.com/en-us/azure/azure-monitor/app/pre-aggregated-metrics-log-metrics#custom-metrics-dimensions-and-pre-aggregation).
+
 * `daily_data_cap_in_gb` - (Optional) Specifies the Application Insights component daily data volume cap in GB.
 
 * `daily_data_cap_notifications_disabled` - (Optional) Specifies if a notification email will be send when the daily data volume cap is met.

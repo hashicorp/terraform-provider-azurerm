@@ -63,6 +63,14 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"custom_metrics_opted_in_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"WithDimensions",
+				}, false),
+			},
+
 			"retention_in_days": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -155,16 +163,18 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	applicationType := d.Get("application_type").(string)
+	customMetricsOptedInType := d.Get("custom_metrics_opted_in_type").(string)
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
 	disableIpMasking := d.Get("disable_ip_masking").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
-		ApplicationID:      &name,
-		ApplicationType:    insights.ApplicationType(applicationType),
-		SamplingPercentage: samplingPercentage,
-		DisableIPMasking:   utils.Bool(disableIpMasking),
+		ApplicationID:            &name,
+		ApplicationType:          insights.ApplicationType(applicationType),
+		CustomMetricsOptedInType: &customMetricsOptedInType,
+		SamplingPercentage:       samplingPercentage,
+		DisableIPMasking:         utils.Bool(disableIpMasking),
 	}
 
 	if v, ok := d.GetOk("retention_in_days"); ok {
@@ -254,6 +264,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
 		d.Set("application_type", string(props.ApplicationType))
+		d.Set("custom_metrics_opted_in_type", props.CustomMetricsOptedInType)
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)

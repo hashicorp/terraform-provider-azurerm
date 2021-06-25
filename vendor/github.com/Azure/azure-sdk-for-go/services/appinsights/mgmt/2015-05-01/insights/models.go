@@ -9,11 +9,12 @@ package insights
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
@@ -774,6 +775,8 @@ type ApplicationInsightsComponentProperties struct {
 	AppID *string `json:"AppId,omitempty"`
 	// ApplicationType - Type of application being monitored. Possible values include: 'Web', 'Other'
 	ApplicationType ApplicationType `json:"Application_Type,omitempty"`
+	// CustomMetricsOptedInType - Possible value include: 'WithDimensions'
+	CustomMetricsOptedInType *string `json:"CustomMetricsOptedInType,omitempty"`
 	// FlowType - Used by the Application Insights system to determine what kind of flow this component was created by. This is to be set to 'Bluefield' when creating/updating a component via the REST API. Possible values include: 'Bluefield'
 	FlowType FlowType `json:"Flow_Type,omitempty"`
 	// RequestSource - Describes what tool created this Application Insights component. Customers using this API should set this to the default 'rest'. Possible values include: 'Rest'
