@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,7 +24,7 @@ func TestAccSignalRServiceNetworkACL_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -38,7 +39,7 @@ func TestAccSignalRServiceNetworkACL_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -53,7 +54,7 @@ func TestAccSignalRServiceNetworkACL_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Allow"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -68,21 +69,21 @@ func TestAccSignalRServiceNetworkACL_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Allow"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -95,12 +96,19 @@ func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	_, err = clients.SignalR.Client.Get(ctx, id.ResourceGroup, id.SignalRName)
+	resp, err := clients.SignalR.Client.Get(ctx, id.ResourceGroup, id.SignalRName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(false), nil
+	requestTypes := signalr.PossibleRequestTypeValues()
+	requestTypes = append(requestTypes, "Trace")
+
+	if resp.Properties != nil && resp.Properties.NetworkACLs != nil && resp.Properties.NetworkACLs.DefaultAction == signalr.Deny && resp.Properties.NetworkACLs.PublicNetwork != nil && len(*resp.Properties.NetworkACLs.PublicNetwork.Allow) == len(requestTypes) {
+		return utils.Bool(false), nil
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r SignalRServiceNetworkACLResource) basic(data acceptance.TestData) string {
@@ -127,7 +135,14 @@ func (r SignalRServiceNetworkACLResource) requiresImport(data acceptance.TestDat
 
 resource "azurerm_signalr_service_network_acl" "import" {
   signalr_service_id = azurerm_signalr_service_network_acl.test.signalr_service_id
-  network_acl        = azurerm_signalr_service_network_acl.test.network_acl
+  
+  network_acl {
+    default_action = azurerm_signalr_service_network_acl.test.network_acl.0.default_action
+
+    public_network {
+      allowed_request_types = azurerm_signalr_service_network_acl.test.network_acl.0.public_network.0.allowed_request_types
+    }
+  }
 }
 `, r.basic(data))
 }
@@ -173,6 +188,11 @@ resource "azurerm_signalr_service_network_acl" "test" {
     default_action = "Allow"
 
     public_network {
+      denied_request_types = ["ClientConnection"]
+    }
+
+    private_endpoint {
+      id                   = azurerm_private_endpoint.test.id
       denied_request_types = ["ClientConnection"]
     }
   }
