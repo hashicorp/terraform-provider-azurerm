@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
+	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2021-01-01/powerbidedicated"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -107,7 +107,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				Members: utils.ExpandStringSlice(administrators),
 			},
 		},
-		Sku: &powerbidedicated.ResourceSku{
+		Sku: &powerbidedicated.CapacitySku{
 			Name: utils.String(skuName),
 		},
 		Tags: tags.Expand(t),
@@ -190,7 +190,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				Members: utils.ExpandStringSlice(administrators),
 			},
 		},
-		Sku: &powerbidedicated.ResourceSku{
+		Sku: &powerbidedicated.CapacitySku{
 			Name: utils.String(skuName),
 		},
 		Tags: tags.Expand(t),
