@@ -43,8 +43,8 @@ resource "azurerm_data_factory_dataset_binary" "example" {
   linked_service_name = azurerm_data_factory_linked_service_sftp.example.name
 
   sftp_server_location {
-	  path     = "/test/"
-	  filename = "**"
+    path     = "/test/"
+    filename = "**"
   }
 }
 ```
@@ -136,7 +136,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Data Factorys can be imported using the `resource id`, e.g.
+Data Factorie Binary Datasets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_binary.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example
