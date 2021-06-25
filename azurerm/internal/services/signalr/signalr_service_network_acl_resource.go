@@ -48,8 +48,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(signalr.Deny),
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(signalr.Allow),
 								string(signalr.Deny),

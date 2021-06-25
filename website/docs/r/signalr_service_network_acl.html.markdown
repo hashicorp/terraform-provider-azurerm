@@ -89,7 +89,7 @@ The following arguments are supported:
 
 A `network_acl` block supports the following:
 
-* `default_action` - (Optional) The default action when no other rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Required) The default action when no other rule matches. Possible values are `Allow` and `Deny`.
 
 * `public_network` - (Optional) A `public_network` block as defined below.
 
