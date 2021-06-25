@@ -151,7 +151,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
-						"enable_cmk_encryption": {
+						"customer_managed_key_enabled": {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
 							Default:      false,
