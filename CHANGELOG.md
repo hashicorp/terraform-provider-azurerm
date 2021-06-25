@@ -1,27 +1,27 @@
-## 2.65.0 (Unreleased)
+## 2.65.0 (June 25, 2021)
 
 FEATURES:
 
-* **New Resource** `azurerm_data_protection_backup_instance_postgresql` [GH-12220]
-* **New Resource** `azurerm_hpc_cache_blob_nfs_target` [GH-11671]
-* **New Resource** `azurerm_nat_gateway_public_ip_prefix_association` [GH-12353]
+* **New Resource** `azurerm_data_protection_backup_instance_postgresql` ([#12220](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12220))
+* **New Resource** `azurerm_hpc_cache_blob_nfs_target` ([#11671](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11671))
+* **New Resource** `azurerm_nat_gateway_public_ip_prefix_association` ([#12353](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12353))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v2.6.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-12209]
-* dependencies: upgrading to `v55.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-12263]
-* dependencies: updating to `v0.11.19` of `github.com/Azure/go-autorest/autorest` [GH-12209]
-* dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` [GH-12209]
-* dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` [GH-12290]
-* `azurerm_express_route_circuit_peering` - support for the `bandwidth_in_gbps` and `express_route_port_id` properties [GH-12289]
-* `azurerm_kusto_iothub_data_connection` - support for the `data_format`, `mapping_rule_name` and `table_name` properties [GH-12293]
-* `azurerm_linux_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce [GH-11790]
-* `azurerm_security_center_assessment_metadata` - support for the `categories` property [GH-12278]
-* `azurerm_windows_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce [GH-11790]
+* dependencies: updating to `v2.6.1` of `github.com/hashicorp/terraform-plugin-sdk` ([#12209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12209))
+* dependencies: upgrading to `v55.3.0` of `github.com/Azure/azure-sdk-for-go` ([#12263](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12263))
+* dependencies: updating to `v0.11.19` of `github.com/Azure/go-autorest/autorest` ([#12209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12209))
+* dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` ([#12209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12209))
+* dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` ([#12290](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12290))
+* `azurerm_express_route_circuit_peering` - support for the `bandwidth_in_gbps` and `express_route_port_id` properties ([#12289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12289))
+* `azurerm_kusto_iothub_data_connection` - support for the `data_format`, `mapping_rule_name` and `table_name` properties ([#12293](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12293))
+* `azurerm_linux_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce ([#11790](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11790))
+* `azurerm_security_center_assessment_metadata` - support for the `categories` property ([#12278](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12278))
+* `azurerm_windows_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce ([#11790](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11790))
 * 
 BUG FIXES:
 
-* `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing [GH-12128]
+* `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing ([#12128](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12128))
 
 ## 2.64.0 (June 18, 2021)
 
