@@ -3,10 +3,8 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,14 +16,12 @@ import (
 type ExpressRouteCircuitConnectionResource struct{}
 
 func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
-	skipExpressRouteCircuitConnection(t)
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,14 +30,12 @@ func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
-	skipExpressRouteCircuitConnection(t)
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,14 +44,12 @@ func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
-	skipExpressRouteCircuitConnection(t)
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,28 +58,26 @@ func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
-	skipExpressRouteCircuitConnection(t)
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,21 +86,19 @@ func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_updateAddressPrefixIPv6(t *testing.T) {
-	skipExpressRouteCircuitConnection(t)
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateAddressPrefixIPv6(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -146,7 +134,7 @@ resource "azurerm_express_route_circuit_connection" "test" {
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
 }
-`, r.template(), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ExpressRouteCircuitConnectionResource) requiresImport(data acceptance.TestData) string {
@@ -174,7 +162,7 @@ resource "azurerm_express_route_circuit_connection" "test" {
   authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
   address_prefix_ipv6 = "aa:bb::/125"
 }
-`, r.template(), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ExpressRouteCircuitConnectionResource) updateAddressPrefixIPv6(data acceptance.TestData) string {
@@ -189,23 +177,68 @@ resource "azurerm_express_route_circuit_connection" "test" {
   authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
   address_prefix_ipv6 = "aa:cc::/125"
 }
-`, r.template(), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r ExpressRouteCircuitConnectionResource) template() string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	circuitName1 := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
-	circuitName2 := os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND")
-
+func (r ExpressRouteCircuitConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ercircuitconn-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_port" "test" {
+  name                = "acctest-erp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  peering_location    = "Equinix-Seattle-SE2"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  express_route_port_id = azurerm_express_route_port.test.id
+  bandwidth_in_gbps     = 5
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
+resource "azurerm_express_route_port" "peer_test" {
+  name                = "acctest-erp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  peering_location    = "Allied-Toronto-King-West"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
+resource "azurerm_express_route_circuit" "peer_test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  express_route_port_id = azurerm_express_route_port.peer_test.id
+  bandwidth_in_gbps     = 5
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
 resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = "%[1]s"
-  resource_group_name           = "%[2]s"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
   shared_key                    = "ItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
@@ -215,19 +248,13 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
 resource "azurerm_express_route_circuit_peering" "peer_test" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = "%[3]s"
-  resource_group_name           = "%[2]s"
+  express_route_circuit_name    = azurerm_express_route_circuit.peer_test.name
+  resource_group_name           = azurerm_resource_group.test.name
   shared_key                    = "ItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.1.0/30"
   vlan_id                       = 100
 }
-`, circuitName1, rg, circuitName2)
-}
-
-func skipExpressRouteCircuitConnection(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
-	}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

@@ -18,65 +18,78 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_express_route_port" "example" {
+  name                = "example-erport"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  peering_location    = "Equinix-Seattle-SE2"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
 resource "azurerm_express_route_circuit" "example" {
-  name                  = "example-circuit"
-  resource_group_name   = azurerm_resource_group.example.name
+  name                  = "example-ercircuit"
   location              = azurerm_resource_group.example.location
-  service_provider_name = "Equinix"
-  peering_location      = "Silicon Valley"
-  bandwidth_in_mbps     = 50
+  resource_group_name   = azurerm_resource_group.example.name
+  express_route_port_id = azurerm_express_route_port.example.id
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Standard"
     family = "MeteredData"
   }
+}
 
-  allow_classic_operations = false
+resource "azurerm_express_route_port" "example2" {
+  name                = "example-erport2"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  peering_location    = "Allied-Toronto-King-West"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
 }
 
 resource "azurerm_express_route_circuit" "example2" {
-  name                  = "example-circuit2"
-  resource_group_name   = azurerm_resource_group.example.name
+  name                  = "example-ercircuit2"
   location              = azurerm_resource_group.example.location
-  service_provider_name = "Equinix"
-  peering_location      = "Silicon Valley"
-  bandwidth_in_mbps     = 50
+  resource_group_name   = azurerm_resource_group.example.name
+  express_route_port_id = azurerm_express_route_port.example2.id
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Standard"
     family = "MeteredData"
   }
-
-  allow_classic_operations = false
 }
 
 resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = azurerm_express_route_circuit.example.name
   resource_group_name           = azurerm_resource_group.example.name
+  shared_key                    = "ItsASecret"
   peer_asn                      = 100
-  primary_peer_address_prefix   = "123.0.0.0/30"
-  secondary_peer_address_prefix = "123.0.0.4/30"
-  vlan_id                       = 300
+  primary_peer_address_prefix   = "192.168.1.0/30"
+  secondary_peer_address_prefix = "192.168.1.0/30"
+  vlan_id                       = 100
 }
 
 resource "azurerm_express_route_circuit_peering" "example2" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = azurerm_express_route_circuit.example2.name
   resource_group_name           = azurerm_resource_group.example.name
+  shared_key                    = "ItsASecret"
   peer_asn                      = 100
-  primary_peer_address_prefix   = "123.0.0.0/30"
-  secondary_peer_address_prefix = "123.0.0.4/30"
-  vlan_id                       = 300
+  primary_peer_address_prefix   = "192.168.1.0/30"
+  secondary_peer_address_prefix = "192.168.1.0/30"
+  vlan_id                       = 100
 }
 
 resource "azurerm_express_route_circuit_connection" "example" {
-  name                = "example-expressroutecircuitconn"
+  name                = "example-ercircuitconnection"
   peering_id          = azurerm_express_route_circuit_peering.example.id
   peer_peering_id     = azurerm_express_route_circuit_peering.example2.id
-  address_prefix_ipv4 = "192.169.8.0/29"
-  authorization_key   = "00000000-0000-0000-0000-000000000000"
-  address_prefix_ipv6 = "2002:db01::/125"
+  address_prefix_ipv4 = "192.169.9.0/29"
+  authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
 }
 ```
 
