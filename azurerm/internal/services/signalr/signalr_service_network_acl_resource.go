@@ -57,7 +57,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 						},
 
 						"private_endpoint": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
@@ -73,7 +73,6 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 									"allowed_request_types": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -114,7 +113,6 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 									"allowed_request_types": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
-										Computed:      true,
 										ConflictsWith: []string{"network_acl.0.public_network.0.denied_request_types"},
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -314,7 +312,7 @@ func expandSignalRServiceNetworkACL(input []interface{}, privateEndpointConnecti
 	return &signalr.NetworkACLs{
 		DefaultAction:    signalr.ACLAction(v["default_action"].(string)),
 		PublicNetwork:    expandSignalRServicePublicNetwork(v["public_network"].([]interface{})),
-		PrivateEndpoints: expandSignalRServicePrivateEndpoint(v["private_endpoint"].([]interface{}), privateEndpointConnections),
+		PrivateEndpoints: expandSignalRServicePrivateEndpoint(v["private_endpoint"].(*pluginsdk.Set).List(), privateEndpointConnections),
 	}
 }
 
