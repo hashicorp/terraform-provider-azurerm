@@ -174,12 +174,11 @@ func (r DataProtectionBackupInstancePostgreSQLResource) basic(data acceptance.Te
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql" "test" {
-  name                = "acctest-dbi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  vault_name          = azurerm_data_protection_backup_vault.test.name
-  database_id         = azurerm_postgresql_database.test.id
-  backup_policy_id    = azurerm_data_protection_backup_policy_postgresql.test.id
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  database_id      = azurerm_postgresql_database.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -190,12 +189,11 @@ func (r DataProtectionBackupInstancePostgreSQLResource) requiresImport(data acce
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql" "import" {
-  name                = azurerm_data_protection_backup_instance_postgresql.test.name
-  resource_group_name = azurerm_data_protection_backup_instance_postgresql.test.resource_group_name
-  location            = azurerm_resource_group.test.location
-  vault_name          = azurerm_data_protection_backup_instance_postgresql.test.vault_name
-  database_id         = azurerm_postgresql_database.test.id
-  backup_policy_id    = azurerm_data_protection_backup_policy_postgresql.test.id
+  name             = azurerm_data_protection_backup_instance_postgresql.test.name
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_instance_postgresql.test.vault_id
+  database_id      = azurerm_postgresql_database.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql.test.id
 }
 `, config)
 }
@@ -206,12 +204,11 @@ func (r DataProtectionBackupInstancePostgreSQLResource) complete(data acceptance
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql" "test" {
-  name                = "acctest-dbi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  vault_name          = azurerm_data_protection_backup_vault.test.name
-  database_id         = azurerm_postgresql_database.test.id
-  backup_policy_id    = azurerm_data_protection_backup_policy_postgresql.another.id
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  database_id      = azurerm_postgresql_database.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql.another.id
 }
 `, template, data.RandomInteger)
 }

@@ -63,13 +63,12 @@ resource "azurerm_data_protection_backup_policy_postgresql" "example" {
 }
 
 resource "azurerm_data_protection_backup_instance_postgresql" "example" {
-  name                = "example-backup-instance"
-  resource_group_name = azurerm_resource_group.rg.name
-  vault_name          = azurerm_data_protection_backup_vault.example.name
+  name     = "example-backup-instance"
+  location = azurerm_resource_group.rg.location
+  vault_id = azurerm_data_protection_backup_vault.example.id
 
-  database_id       = azurerm_postgresql_database.example.id
-  database_location = azurerm_resource_group.rg.location
-  backup_policy_id  = azurerm_data_protection_backup_policy_postgresql.example.id
+  database_id      = azurerm_postgresql_database.example.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql.example.id
 }
 ```
 
@@ -79,13 +78,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Backup Instance PostgreSQL. Changing this forces a new Backup Instance PostgreSQL to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Instance PostgreSQL should exist. Changing this forces a new Backup Instance PostgreSQL to be created.
+* `location` - (Required) The location of the source database. Changing this forces a new Backup Instance PostgreSQL to be created.
 
-* `vault_name` - (Required) The name of the Backup Vault where the Backup Instance PostgreSQL should exist.. Changing this forces a new Backup Instance PostgreSQL to be created.
+* `vault_id` - (Required) The id of the Backup Vault where the Backup Instance PostgreSQL should exist.. Changing this forces a new Backup Instance PostgreSQL to be created.
 
 * `database_id` - (Required) The ID of the source database. Changing this forces a new Backup Instance PostgreSQL to be created.
-
-* `database_location` - (Required) The location of the source database. Changing this forces a new Backup Instance PostgreSQL to be created.
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 

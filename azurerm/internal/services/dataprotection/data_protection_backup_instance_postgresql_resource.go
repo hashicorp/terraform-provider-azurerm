@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -48,14 +47,13 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"location": location.Schema(),
 
-			"vault_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"vault_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.BackupVaultID,
 			},
 
 			"database_id": {
@@ -80,10 +78,9 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	vaultName := d.Get("vault_name").(string)
+	vaultId, _ := parse.BackupVaultID(d.Get("vault_id").(string))
 
-	id := parse.NewBackupInstanceID(subscriptionId, resourceGroup, vaultName, name)
+	id := parse.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroup, vaultId.Name, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
@@ -137,12 +134,16 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		return fmt.Errorf("waiting for creation/update of the DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(dataprotection.ConfiguringProtection), string(dataprotection.UpdatingProtection)},
 		Target:     []string{string(dataprotection.ProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:    time.Until(deadline),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -172,9 +173,9 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
+	vaultId := parse.NewBackupVaultID(id.SubscriptionId, id.ResourceGroup, id.BackupVaultName)
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("vault_name", id.BackupVaultName)
+	d.Set("vault_id", vaultId.ID())
 	if props := resp.Properties; props != nil {
 		if props.DataSourceInfo != nil {
 			d.Set("database_id", props.DataSourceInfo.ResourceID)
