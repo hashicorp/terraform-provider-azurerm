@@ -214,7 +214,7 @@ resource "azurerm_express_route_circuit" "test" {
 }
 
 resource "azurerm_express_route_port" "peer_test" {
-  name                = "acctest-erp-%d"
+  name                = "acctest-erp2-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "Allied-Toronto-King-West"
@@ -223,7 +223,7 @@ resource "azurerm_express_route_port" "peer_test" {
 }
 
 resource "azurerm_express_route_circuit" "peer_test" {
-  name                  = "acctest-erc-%d"
+  name                  = "acctest-erc2-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.peer_test.id
