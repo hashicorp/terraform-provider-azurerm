@@ -173,7 +173,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentitySchema(),
+			"identity": virtualMachineIdentity{}.Schema(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -214,7 +214,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -869,6 +868,22 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
+		}
+	}
+
+	if d.HasChange("proximity_placement_group_id") {
+		shouldUpdate = true
+
+		// Code="OperationNotAllowed" Message="Updating proximity placement group of VM is not allowed while the VM is running. Please stop/deallocate the VM and retry the operation."
+		shouldShutDown = true
+		shouldDeallocate = true
+
+		if ppgIDRaw, ok := d.GetOk("proximity_placement_group_id"); ok {
+			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{
+				ID: utils.String(ppgIDRaw.(string)),
+			}
+		} else {
+			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{}
 		}
 	}
 
