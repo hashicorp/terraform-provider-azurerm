@@ -131,7 +131,7 @@ func resourceDataFactoryLinkedServiceAzureSearchCreateUpdate(d *pluginsdk.Resour
 		AzureSearchLinkedServiceTypeProperties: &datafactory.AzureSearchLinkedServiceTypeProperties{
 			URL: d.Get("url").(string),
 			Key: &datafactory.SecureString{
-				Type:  datafactory.TypeTypeSecureString,
+				Type:  datafactory.TypeSecureString,
 				Value: utils.String(d.Get("search_service_key").(string)),
 			},
 		},

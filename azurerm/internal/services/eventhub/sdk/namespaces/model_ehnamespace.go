@@ -7,6 +7,7 @@ type EHNamespace struct {
 	Name       *string                `json:"name,omitempty"`
 	Properties *EHNamespaceProperties `json:"properties,omitempty"`
 	Sku        *Sku                   `json:"sku,omitempty"`
+	SystemData *SystemData            `json:"systemData,omitempty"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

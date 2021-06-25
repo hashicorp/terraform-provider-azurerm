@@ -201,7 +201,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	if v, ok := d.GetOk("connection_string"); ok {
 		sqlDatabaseProperties.ConnectionString = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 	}
 
@@ -214,7 +214,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))

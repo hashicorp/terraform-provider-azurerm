@@ -394,7 +394,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 		if adminPassword := catalogInfo["administrator_password"]; adminPassword.(string) != "" {
 			ssisProperties.CatalogInfo.CatalogAdminPassword = &datafactory.SecureString{
 				Value: utils.String(adminPassword.(string)),
-				Type:  datafactory.TypeTypeSecureString,
+				Type:  datafactory.TypeSecureString,
 			}
 		}
 	}
@@ -404,7 +404,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 
 		sasToken := &datafactory.SecureString{
 			Value: utils.String(customSetupScript["sas_token"].(string)),
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 
 		ssisProperties.CustomSetupScriptProperties = &datafactory.IntegrationRuntimeCustomSetupScriptProperties{

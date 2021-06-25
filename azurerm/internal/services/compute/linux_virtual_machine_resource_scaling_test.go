@@ -105,6 +105,50 @@ func TestAccLinuxVirtualMachine_scalingProximityPlacementGroup(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_scalingProximityPlacementGroupUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingProximityPlacementGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scalingProximityPlacementGroupUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_scalingProximityPlacementGroupRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingProximityPlacementGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scalingProximityPlacementGroupRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_scalingMachineSizeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -445,6 +489,93 @@ resource "azurerm_linux_virtual_machine" "test" {
   size                         = "Standard_F2"
   admin_username               = "adminuser"
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) scalingProximityPlacementGroupUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_proximity_placement_group" "second" {
+  name                = "acctestPPG2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                         = "acctestVM-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  size                         = "Standard_F2"
+  admin_username               = "adminuser"
+  proximity_placement_group_id = azurerm_proximity_placement_group.second.id
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) scalingProximityPlacementGroupRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

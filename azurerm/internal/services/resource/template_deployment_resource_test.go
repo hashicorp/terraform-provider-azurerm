@@ -199,7 +199,7 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *client
 		},
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, fmt.Errorf("waiting for Template Deployment %q to be deleted: %+v", id, err)
 	}
 

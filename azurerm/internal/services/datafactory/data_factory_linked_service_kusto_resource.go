@@ -173,7 +173,7 @@ func resourceDataFactoryLinkedServiceKustoCreateUpdate(d *pluginsdk.ResourceData
 			ServicePrincipalID: v.(string),
 			ServicePrincipalKey: &datafactory.SecureString{
 				Value: utils.String(d.Get("service_principal_key").(string)),
-				Type:  datafactory.TypeTypeSecureString,
+				Type:  datafactory.TypeSecureString,
 			},
 			Tenant: utils.String(d.Get("tenant").(string)),
 		}

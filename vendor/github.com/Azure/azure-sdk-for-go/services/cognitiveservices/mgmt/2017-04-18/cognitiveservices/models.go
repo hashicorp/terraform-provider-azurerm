@@ -95,6 +95,12 @@ type AccountEnumerateSkusResult struct {
 	Value *[]ResourceAndSku `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountEnumerateSkusResult.
+func (aesr AccountEnumerateSkusResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountKeys the access keys for the cognitive services account.
 type AccountKeys struct {
 	autorest.Response `json:"-"`
@@ -339,6 +345,12 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CheckDomainAvailabilityParameter check Domain availability parameter.
 type CheckDomainAvailabilityParameter struct {
 	// SubdomainName - The subdomain name to use.
@@ -461,6 +473,12 @@ type MetricName struct {
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - READ-ONLY; The friendly name of the metric.
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricName.
+func (mn MetricName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // NetworkRuleSet a set of rules governing the network accessibility.
@@ -662,6 +680,12 @@ type PrivateEndpoint struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnection the Private Endpoint Connection resource.
 type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
@@ -772,6 +796,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RegenerateKeyParameters regenerate key parameters.
 type RegenerateKeyParameters struct {
 	// KeyName - key name to generate (Key1|Key2). Possible values include: 'Key1', 'Key2'
@@ -786,6 +816,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceAndSku cognitive Services resource type and SKU.
@@ -812,12 +848,24 @@ type ResourceSku struct {
 	Restrictions *[]ResourceSkuRestrictions `json:"restrictions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSku.
+func (rs ResourceSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuRestrictionInfo ...
 type ResourceSkuRestrictionInfo struct {
 	// Locations - READ-ONLY; Locations where the SKU is restricted
 	Locations *[]string `json:"locations,omitempty"`
 	// Zones - READ-ONLY; List of availability zones where the SKU is restricted.
 	Zones *[]string `json:"zones,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictionInfo.
+func (rsri ResourceSkuRestrictionInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuRestrictions describes restrictions of a SKU.
@@ -830,6 +878,12 @@ type ResourceSkuRestrictions struct {
 	RestrictionInfo *ResourceSkuRestrictionInfo `json:"restrictionInfo,omitempty"`
 	// ReasonCode - READ-ONLY; The reason for restriction. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
 	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictions.
+func (rsr ResourceSkuRestrictions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkusResult the Get Skus operation response.
@@ -1078,6 +1132,12 @@ type UsagesResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of usages for Cognitive Service account.
 	Value *[]Usage `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UsagesResult.
+func (ur UsagesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UserAssignedIdentity user-assigned managed identity.

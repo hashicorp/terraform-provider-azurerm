@@ -146,6 +146,8 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						},
 
 						"composite_index": common.CosmosDbIndexingPolicyCompositeIndexSchema(),
+
+						"spatial_index": common.CosmosDbIndexingPolicySpatialIndexSchema(),
 					},
 				},
 			},
@@ -461,6 +463,8 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *pluginsdk.ResourceData) *
 		policy.CompositeIndexes = common.ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 
+	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+
 	if automatic, ok := input["automatic"].(bool); ok {
 		policy.Automatic = utils.Bool(automatic)
 	}
@@ -532,6 +536,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	indexPolicy["included_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
 	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexes(input.CompositeIndexes)
+	indexPolicy["spatial_index"] = common.FlattenCosmosDBIndexingPolicySpatialIndexes(input.SpatialIndexes)
 
 	return []interface{}{indexPolicy}
 }
