@@ -95,7 +95,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
-				RequiredWith:  []string{"service_principal_id", "service_principal_key},
+				RequiredWith:  []string{"service_principal_id", "service_principal_key"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
 				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
