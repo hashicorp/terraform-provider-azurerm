@@ -158,7 +158,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
-						"enable_infrastructure_encryption": {
+						"infrastructure_encryption_enabled": {
 							Type:         pluginsdk.TypeBool,
 							ForceNew:     true,
 							Optional:     true,
