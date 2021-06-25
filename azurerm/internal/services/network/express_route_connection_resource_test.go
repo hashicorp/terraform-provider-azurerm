@@ -129,6 +129,8 @@ resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
   express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
+
+  depends_on = [azurerm_virtual_hub_route_table.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -150,11 +152,6 @@ func (r ExpressRouteConnectionResource) complete(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-vhubrt-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
 resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
@@ -172,7 +169,7 @@ resource "azurerm_express_route_connection" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ExpressRouteConnectionResource) template(data acceptance.TestData) string {
@@ -240,5 +237,10 @@ resource "azurerm_express_route_gateway" "test" {
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-vhubrt-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
