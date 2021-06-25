@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -40,10 +39,10 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
@@ -57,10 +56,10 @@ func testAccExpressRouteConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -72,10 +71,10 @@ func testAccExpressRouteConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -87,24 +86,24 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
