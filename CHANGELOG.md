@@ -1,5 +1,13 @@
 ## 2.66.0 (Unreleased)
 
+FEATURES:
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
+* `azurerm_hdinsight_kafka_cluster` - will no longer panics from an empty `component_version` property [GH-12261]
+
 ## 2.65.0 (June 25, 2021)
 
 FEATURES:
@@ -20,7 +28,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce ([#11790](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11790))
 * `azurerm_security_center_assessment_metadata` - support for the `categories` property ([#12278](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12278))
 * `azurerm_windows_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce ([#11790](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11790))
-* 
+
 BUG FIXES:
 
 * `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing ([#12128](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12128))
