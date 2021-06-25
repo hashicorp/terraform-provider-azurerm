@@ -3,7 +3,6 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -17,14 +16,6 @@ import (
 type ExpressRouteConnectionResource struct{}
 
 func TestAccExpressRouteConnection(t *testing.T) {
-	// NOTE: As provider status of the Express Route Circuit must be set as provisioned manually by service team, so test cases have to use existing Express Route Circuit for testing.
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME") == "" {
-		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME are not specified")
-		return
-	}
-
-	// NOTE: As the provider status of the Express Route Circuit only can be manually updated to `Provisioned` by service team, so currently there is only one authorized test data.
-	// And there can be only one Express Route Connection on the same Express Route Circuit, otherwise tests will conflict if run at the same time.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccExpressRouteConnection_basic,
@@ -160,7 +151,7 @@ func (r ExpressRouteConnectionResource) complete(data acceptance.TestData) strin
 %s
 
 resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-VHUBRT-%d"
+  name           = "acctest-vhubrt-%d"
   virtual_hub_id = azurerm_virtual_hub.test.id
 }
 
@@ -185,18 +176,42 @@ resource "azurerm_express_route_connection" "test" {
 }
 
 func (r ExpressRouteConnectionResource) template(data acceptance.TestData) string {
-	circuitRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME")
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-erconnection-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_port" "test" {
+  name                = "acctest-erp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  peering_location    = "Equinix-Seattle-SE2"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  express_route_port_id = azurerm_express_route_port.test.id
+  bandwidth_in_gbps     = 5
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
 resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = "%s"
-  resource_group_name           = "%s"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
   shared_key                    = "ItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
@@ -204,31 +219,26 @@ resource "azurerm_express_route_circuit_peering" "test" {
   vlan_id                       = 100
 }
 
-resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-erconnection-%d"
-  location = "%s"
-}
-
 resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-VWAN-%d"
-  resource_group_name = azurerm_resource_group.test2.name
-  location            = azurerm_resource_group.test2.location
+  name                = "acctest-vwan-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-VHUB-%d"
-  resource_group_name = azurerm_resource_group.test2.name
-  location            = azurerm_resource_group.test2.location
+  name                = "acctest-vhub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.1.0/24"
 }
 
 resource "azurerm_express_route_gateway" "test" {
-  name                = "acctest-ERGW-%d"
-  resource_group_name = azurerm_resource_group.test2.name
-  location            = azurerm_resource_group.test2.location
+  name                = "acctest-ergw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = 1
 }
-`, circuitName, circuitRG, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

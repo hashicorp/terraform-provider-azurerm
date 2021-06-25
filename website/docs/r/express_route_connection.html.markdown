@@ -42,20 +42,26 @@ resource "azurerm_express_route_gateway" "example" {
   scale_units         = 1
 }
 
+resource "azurerm_express_route_port" "example" {
+  name                = "example-erp"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  peering_location    = "Equinix-Seattle-SE2"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
 resource "azurerm_express_route_circuit" "example" {
-  name                  = "example-expressroutecircuit"
+  name                  = "example-erc"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
-  service_provider_name = "Equinix"
-  peering_location      = "Silicon Valley"
-  bandwidth_in_mbps     = 50
+  express_route_port_id = azurerm_express_route_port.example.id
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Standard"
     family = "MeteredData"
   }
-
-  allow_classic_operations = false
 }
 
 resource "azurerm_express_route_circuit_peering" "example" {
