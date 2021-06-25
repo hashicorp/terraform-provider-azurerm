@@ -199,13 +199,9 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	sqlDatabaseProperties := &datafactory.AzureSQLDatabaseLinkedServiceTypeProperties{}
 
 	if v, ok := d.GetOk("connection_string"); ok {
-		if d.Get("use_managed_identity").(bool) {
-			sqlDatabaseProperties.ConnectionString = utils.String(v.(string))
-		} else {
-			sqlDatabaseProperties.ConnectionString = &datafactory.SecureString{
-				Value: utils.String(v.(string)),
-				Type:  datafactory.TypeSecureString,
-			}
+		sqlDatabaseProperties.ConnectionString = &datafactory.SecureString{
+			Value: utils.String(v.(string)),
+			Type:  datafactory.TypeSecureString,
 		}
 	}
 
