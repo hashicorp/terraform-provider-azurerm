@@ -70,7 +70,7 @@ resource "azurerm_signalr_service_network_acl" "example" {
     }
 
     private_endpoint {
-      name                  = azurerm_private_endpoint.example.name
+      id                    = azurerm_private_endpoint.example.id
       allowed_request_types = ["ServerConnection"]
     }
   }
@@ -113,7 +113,7 @@ A `public_network` block supports the following:
 
 A `private_endpoint` block supports the following:
 
-* `name` - (Required) The name of the Private Endpoint which is based on the SignalR service.
+* `id` - (Required) The ID of the Private Endpoint which is based on the SignalR service.
 
 **Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
 

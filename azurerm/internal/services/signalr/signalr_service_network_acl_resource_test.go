@@ -23,7 +23,7 @@ func TestAccSignalRServiceNetworkACL_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
 			),
 		},
 		data.ImportStep(),
@@ -38,7 +38,7 @@ func TestAccSignalRServiceNetworkACL_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -53,7 +53,7 @@ func TestAccSignalRServiceNetworkACL_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
@@ -68,42 +68,39 @@ func TestAccSignalRServiceNetworkACL_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_acl.0.default_action").HasValue("Deny"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.SignalR.Client.Get(ctx, id.ResourceGroup, id.SignalRName)
+	_, err = clients.SignalR.Client.Get(ctx, id.ResourceGroup, id.SignalRName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving %q %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Properties != nil && resp.Properties.NetworkACLs != nil), nil
+	return utils.Bool(false), nil
 }
 
 func (r SignalRServiceNetworkACLResource) basic(data acceptance.TestData) string {
