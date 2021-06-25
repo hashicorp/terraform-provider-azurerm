@@ -283,7 +283,23 @@ func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.Bas
 		return expandDataFactoryDatasetAzureBlobFSLocation(d)
 	}
 
+	if _, ok := d.GetOk("sftp_server_location"); ok {
+		return expandDataFactoryDatasetSFTPServerLocation(d)
+	}
+
 	return nil
+}
+
+func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	props := d.Get("sftp_server_location").([]interface{})[0].(map[string]interface{})
+	path := props["path"].(string)
+	filename := props["filename"].(string)
+
+	sftpServerLocation := datafactory.SftpLocation{
+		FolderPath: path,
+		FileName:   filename,
+	}
+	return sftpServerLocation
 }
 
 func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
@@ -402,4 +418,92 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 			"filename":    fileName,
 		},
 	}
+}
+func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.FolderPath != nil {
+		result["path"] = input.FolderPath
+	}
+	if input.FileName != nil {
+		result["filename"] = input.FileName
+	}
+
+	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetCompression(input datafactory.BasicDatasetCompression) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if compression, ok := input.AsDatasetBZip2Compression(); ok {
+		result["type"] = compression.Type
+	}
+	if compression, ok := input.AsDatasetDeflateCompression(); ok {
+		result["type"] = compression.Type
+	}
+	if compression, ok := input.AsDatasetGZipCompression(); ok {
+		result["type"] = compression.Type
+		result["level"] = compression.Level
+	}
+	if compression, ok := input.AsDatasetTarCompression(); ok {
+		result["type"] = compression.Type
+	}
+	if compression, ok := input.AsDatasetTarGZipCompression(); ok {
+		result["type"] = compression.Type
+		result["level"] = compression.Level
+	}
+	if compression, ok := input.AsDatasetZipDeflateCompression(); ok {
+		result["type"] = compression.Type
+		result["level"] = compression.Level
+	}
+
+	return []interface{}{result}
+}
+
+func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) datafactory.BasicDatasetCompression {
+	props := d.Get("compression").([]interface{})[0].(map[string]interface{})
+	level := props["level"].(string)
+	compressionType := props["type"].(string)
+
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeBZip2 {
+		return datafactory.DatasetBZip2Compression{
+			Type: datafactory.TypeBasicDatasetCompression(compressionType),
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeDeflate {
+		return datafactory.DatasetDeflateCompression{
+			Type: datafactory.TypeBasicDatasetCompression(compressionType),
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeGZip {
+		return datafactory.DatasetGZipCompression{
+			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
+			Level: level,
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTar {
+		return datafactory.DatasetTarCompression{
+			Type: datafactory.TypeBasicDatasetCompression(compressionType),
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTarGZip {
+		return datafactory.DatasetTarGZipCompression{
+			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
+			Level: level,
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeZipDeflate {
+		return datafactory.DatasetZipDeflateCompression{
+			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
+			Level: level,
+		}
+	}
+
+	return nil
 }

@@ -30,6 +30,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
+		"azurerm_data_factory_dataset_binary":                        resourceDataFactoryDatasetBinary(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
 		"azurerm_data_factory_dataset_delimited_text":                resourceDataFactoryDatasetDelimitedText(),
 		"azurerm_data_factory_dataset_http":                          resourceDataFactoryDatasetHTTP(),
