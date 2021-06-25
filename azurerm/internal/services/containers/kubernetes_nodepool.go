@@ -89,7 +89,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				"kubelet_disk_type": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  containerservice.KubeletDiskTypeOS,
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(containerservice.KubeletDiskTypeOS),
 					}, false),

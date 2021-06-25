@@ -25,6 +25,7 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"tags":                              testAccKubernetesCluster_tags,
 	"windowsProfile":                    testAccKubernetesCluster_windowsProfile,
 	"windowsProfileLicense":             testAccKubernetesCluster_windowsProfileLicense,
+	"updateWindowsProfileLicense":       TestAccKubernetesCluster_updateWindowsProfileLicense,
 	"outboundTypeLoadBalancer":          testAccKubernetesCluster_outboundTypeLoadBalancer,
 	"privateClusterOn":                  testAccKubernetesCluster_privateClusterOn,
 	"privateClusterOff":                 testAccKubernetesCluster_privateClusterOff,
@@ -470,6 +471,40 @@ func testAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
 		data.ImportStep(
 			"windows_profile.0.admin_password",
 		),
+	})
+}
+
+func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_updateWindowsProfileLicense(t)
+}
+
+func testAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+		{
+			Config: r.windowsProfileLicense(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+		{
+			Config: r.windowsProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 

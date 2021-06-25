@@ -317,7 +317,7 @@ A `default_node_pool` block supports the following:
 
 ~> NOTE: FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
-* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Defaults to `OS`. Possible Values are `OS`.
+* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. At this time the only possible value is `OS`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
@@ -614,7 +614,7 @@ A `windows_profile` block supports the following:
 
 * `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
-* `license` - (Optional) The license for Windows VMs. Possible values are `None` and `Windows_Server`.
+* `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
 
 ---
 

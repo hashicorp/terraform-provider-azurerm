@@ -693,7 +693,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.LicenseTypeNone),
 								string(containerservice.LicenseTypeWindowsServer),
 							}, false),
 						},
@@ -1665,16 +1664,17 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 	}
 
 	config := input[0].(map[string]interface{})
-	profile := containerservice.ManagedClusterWindowsProfile{
+
+	license := containerservice.LicenseTypeNone
+	if v := config["license"].(string); v != "" {
+		license = containerservice.LicenseType(v)
+	}
+
+	return &containerservice.ManagedClusterWindowsProfile{
 		AdminUsername: utils.String(config["admin_username"].(string)),
 		AdminPassword: utils.String(config["admin_password"].(string)),
+		LicenseType:   license,
 	}
-
-	if v := config["license"].(string); v != "" {
-		profile.LicenseType = containerservice.LicenseType(v)
-	}
-
-	return &profile
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -1693,11 +1693,16 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 		adminPassword = v.(string)
 	}
 
+	license := ""
+	if profile.LicenseType != containerservice.LicenseTypeNone {
+		license = string(profile.LicenseType)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"admin_password": adminPassword,
 			"admin_username": adminUsername,
-			"license":        string(profile.LicenseType),
+			"license":        license,
 		},
 	}
 }
