@@ -6,10 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -324,52 +322,26 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 func SchemaApiManagementCertificate() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
 		Computed: true,
-		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"expiry": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.IsRFC3339Time,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"subject": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"thumbprint": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 			},
 		},
 	}
-}
-
-func ExpandApiManagementCertificate(inputs []interface{}) *apimanagement.CertificateInformation {
-	if len(inputs) == 0 {
-		return nil
-	}
-
-	input := inputs[0].(map[string]interface{})
-
-	output := apimanagement.CertificateInformation{
-		Thumbprint: utils.String(input["thumbprint"].(string)),
-		Subject:    utils.String(input["subject"].(string)),
-	}
-
-	if v := input["expiry"].(string); v != "" {
-		t, _ := time.Parse(time.RFC3339, v)
-		output.Expiry = &date.Time{Time: t}
-	}
-
-	return &output
 }
 
 func FlattenApiManagementCertificate(input *apimanagement.CertificateInformation) []interface{} {

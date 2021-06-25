@@ -1079,10 +1079,6 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.NegotiateClientCertificate = utils.Bool(v.(bool))
 	}
 
-	if v, ok := input["certificate_information"]; ok {
-		output.Certificate = schemaz.ExpandApiManagementCertificate(v.([]interface{}))
-	}
-
 	if v, ok := input["identity_client_id"].(string); ok && v != "" {
 		output.IdentityClientID = utils.String(v)
 	}
@@ -1120,10 +1116,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.KeyVaultID != nil {
 			output["key_vault_id"] = *config.KeyVaultID
-		}
-
-		if config.Certificate != nil {
-			output["certificate_information"] = schemaz.FlattenApiManagementCertificate(config.Certificate)
 		}
 
 		if config.IdentityClientID != nil {
@@ -1201,10 +1193,6 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 
 		if certPassword := config["certificate_password"]; certPassword != nil {
 			cert.CertificatePassword = utils.String(certPassword.(string))
-		}
-
-		if v, ok := config["certificate_information"]; ok {
-			cert.Certificate = schemaz.ExpandApiManagementCertificate(v.([]interface{}))
 		}
 
 		results = append(results, cert)

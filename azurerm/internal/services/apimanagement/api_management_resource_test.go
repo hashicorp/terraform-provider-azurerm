@@ -100,6 +100,14 @@ func TestAccApiManagement_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.0.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("certificate.1.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("certificate.2.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("certificate.3.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.developer_portal.0.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.certificate_information.#").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.certificate_information.#").Exists(),
 			),
 		},
 		{
@@ -915,22 +923,12 @@ resource "azurerm_api_management" "test" {
     encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "CertificateAuthority"
-    certificate_information {
-      expiry     = "2028-07-02T10:33:30Z"
-      subject    = "CN=api.terraform.io"
-      thumbprint = "8155941A075F972A60AE1C74C749BBDDF82960B5"
-    }
   }
 
   certificate {
     encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "Root"
-    certificate_information {
-      expiry     = "2028-07-02T10:33:30Z"
-      subject    = "CN=api.terraform.io"
-      thumbprint = "8155941A075F972A60AE1C74C749BBDDF82960B5"
-    }
   }
 
   certificate {
@@ -973,11 +971,6 @@ resource "azurerm_api_management" "test" {
       certificate_password         = "terraform"
       default_ssl_binding          = true
       negotiate_client_certificate = false
-      certificate_information {
-        expiry     = "2028-07-02T10:33:30Z"
-        subject    = "CN=api.terraform.io"
-        thumbprint = "8155941A075F972A60AE1C74C749BBDDF82960B5"
-      }
     }
 
     proxy {
@@ -996,11 +989,6 @@ resource "azurerm_api_management" "test" {
     developer_portal {
       host_name   = "developer-portal.terraform.io"
       certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
-      certificate_information {
-        expiry     = "2021-10-09T08:04:41Z"
-        subject    = "CN=developer-portal.terraform.io"
-        thumbprint = "179D0C359DE2FACAEBFABF5DE2EE76D7D6A2E223"
-      }
     }
   }
 
