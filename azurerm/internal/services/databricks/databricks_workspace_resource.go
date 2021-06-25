@@ -79,7 +79,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"aml_workspace_id": {
+						"machine_learning_workspace_id": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
@@ -104,15 +104,15 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 											string(databricks.MicrosoftKeyvault),
 										}, true),
 									},
-									"key_name": {
+									"name": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
-									"key_version": {
+									"version": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
-									"key_vault_uri": {
+									"valut_uri": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
@@ -169,8 +169,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
-
 			"managed_resource_group_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -208,6 +206,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -240,55 +240,55 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					if len(cmkRaw) != 0 && cmkRaw[0] != nil {
 						cmk := cmkRaw[0].(map[string]interface{})
 
-						cmkSource := cmk["key_source"].(string)
-						cmkName := cmk["key_name"].(string)
-						cmkVersion := cmk["key_version"].(string)
-						cmkUri := cmk["key_vault_uri"].(string)
+						cmkSource := cmk["source"].(string)
+						cmkName := cmk["name"].(string)
+						cmkVersion := cmk["version"].(string)
+						cmkUri := cmk["valut_uri"].(string)
 
 						cmkEncrypt := false
 						oldCmkEncrypt := false
 						infraEncypt := false
 
-						if v, ok := config["enable_cmk_encryption"].(bool); ok {
+						if v, ok := config["customer_managed_key_enabled"].(bool); ok {
 							cmkEncrypt = v
 						}
 
-						if v, ok := oldConfig["enable_cmk_encryption"].(bool); ok {
+						if v, ok := oldConfig["customer_managed_key_enabled"].(bool); ok {
 							oldCmkEncrypt = v
 						}
 
-						if v, ok := config["enable_infrastructure_encryption"].(bool); ok {
+						if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
 							infraEncypt = v
 						}
 
 						if cmkEncrypt && infraEncypt {
-							return fmt.Errorf("'enable_cmk_encryption' and 'enable_infrastructure_encryption' cannot both be 'true'")
+							return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
 						}
 
 						if oldCmkEncrypt && !cmkEncrypt {
-							return fmt.Errorf("'enable_cmk_encryption' cannot be set to 'false' once it has been set to 'true'")
+							return fmt.Errorf("'customer_managed_key_enabled' cannot be set to 'false' once it has been set to 'true'")
 						}
 
 						// Key Source: Default
 						if strings.EqualFold(cmkSource, "default") {
 							if cmkEncrypt {
-								return fmt.Errorf("'enable_cmk_encryption' is only valid if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault', got %q", cmkSource)
+								return fmt.Errorf("'customer_managed_key_enabled' is only valid if the 'customer_managed_key' 'source' is set to 'Microsoft.Keyvault', got %q", cmkSource)
 							} else if !cmkEncrypt && (cmkName != "" || cmkVersion != "" || cmkUri != "") {
-								return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be empty if the 'customer_managed_key' 'key_source' is set to 'Default'")
+								return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key' 'source' is set to 'Default'")
 							}
 						}
 
 						// Key Source: Microsoft.Keyvault
 						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") {
 							if cmkEncrypt && (cmkName == "" || cmkVersion == "" || cmkUri == "") {
-								return fmt.Errorf("'key_name', 'key_version' and 'key_vault_uri' must be set if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
+								return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key' 'source' is set to 'Microsoft.Keyvault'")
 							} else if !cmkEncrypt {
-								return fmt.Errorf("'enable_cmk_encryption' cannot be 'false' if the 'customer_managed_key' 'key_source' is set to 'Microsoft.Keyvault'")
+								return fmt.Errorf("'customer_managed_key_enabled' cannot be 'false' if the 'customer_managed_key' 'source' is set to 'Microsoft.Keyvault'")
 							}
 						}
 
 						if cmkEncrypt && !strings.EqualFold("premium", changedSKU.(string)) {
-							return fmt.Errorf("'enable_cmk_encryption' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
+							return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
 						}
 					}
 				}
@@ -519,7 +519,7 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 
 	if v := input.AmlWorkspaceID; v != nil {
 		if v.Value != nil {
-			parameters["aml_workspace_id"] = *v.Value
+			parameters["machine_learning_workspace_id"] = *v.Value
 		}
 	}
 
@@ -551,16 +551,16 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 		e := make(map[string]interface{})
 
 		if t := v.Value.KeySource; t != "" {
-			e["key_source"] = t
+			e["source"] = t
 		}
 		if t := v.Value.KeyName; t != nil {
-			e["key_name"] = *t
+			e["name"] = *t
 		}
 		if t := v.Value.KeyVersion; t != nil {
-			e["key_version"] = *t
+			e["version"] = *t
 		}
 		if t := v.Value.KeyVaultURI; t != nil {
-			e["key_vault_uri"] = *t
+			e["valut_uri"] = *t
 		}
 
 		if len(e) != 0 {
@@ -570,13 +570,13 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 
 	if v := input.PrepareEncryption; v != nil {
 		if v.Value != nil {
-			parameters["enable_cmk_encryption"] = *v.Value
+			parameters["customer_managed_key_enabled"] = *v.Value
 		}
 	}
 
 	if v := input.RequireInfrastructureEncryption; v != nil {
 		if v.Value != nil {
-			parameters["enable_infrastructure_encryption"] = *v.Value
+			parameters["infrastructure_encryption_enabled"] = *v.Value
 		}
 	}
 
@@ -591,7 +591,7 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 	config := input[0].(map[string]interface{})
 	parameters := databricks.WorkspaceCustomParameters{}
 
-	if v, ok := config["aml_workspace_id"].(string); ok && v != "" {
+	if v, ok := config["machine_learning_workspace_id"].(string); ok && v != "" {
 		parameters.AmlWorkspaceID = &databricks.WorkspaceCustomStringParameter{
 			Value: &v,
 		}
@@ -607,16 +607,16 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 				var keyVersion string
 				var keyVaultURI string
 
-				if t := cmk["key_source"].(string); t != "" {
+				if t := cmk["source"].(string); t != "" {
 					keySource = t
 				}
-				if t := cmk["key_name"].(string); t != "" {
+				if t := cmk["name"].(string); t != "" {
 					keyName = t
 				}
-				if t := cmk["key_version"].(string); t != "" {
+				if t := cmk["version"].(string); t != "" {
 					keyVersion = t
 				}
-				if t := cmk["key_vault_uri"].(string); t != "" {
+				if t := cmk["valut_uri"].(string); t != "" {
 					keyVaultURI = t
 				}
 
@@ -652,13 +652,13 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 		}
 	}
 
-	if v, ok := config["enable_cmk_encryption"].(bool); ok {
+	if v, ok := config["customer_managed_key_enabled"].(bool); ok {
 		parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
 			Value: &v,
 		}
 	}
 
-	if v, ok := config["enable_infrastructure_encryption"].(bool); ok {
+	if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
 		parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
 			Value: &v,
 		}
@@ -680,7 +680,7 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 }
 
 func workspaceCustomParametersString() []string {
-	return []string{"custom_parameters.0.aml_workspace_id", "custom_parameters.0.customer_managed_key", "custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-		"custom_parameters.0.private_subnet_name", "custom_parameters.0.enable_cmk_encryption", "custom_parameters.0.enable_infrastructure_encryption", "custom_parameters.0.virtual_network_id",
+	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.customer_managed_key", "custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+		"custom_parameters.0.private_subnet_name", "custom_parameters.0.customer_managed_key_enabled", "custom_parameters.0.infrastructure_encryption_enabled", "custom_parameters.0.virtual_network_id",
 	}
 }

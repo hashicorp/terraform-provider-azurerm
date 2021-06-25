@@ -60,13 +60,13 @@ A `custom_parameters` block supports the following:
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
-* `enable_cmk_encryption` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`.
+* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`.
 
-~> **NOTE** Once `enable_cmk_encryption` has been set to `true` it cannot be set back to `false`. If you wish to remove your customer managed key encryption from your workspace you will need to update the `customer_managed_key` blocks `key_source` field to be `Default` and remove the `enable_cmk_encryption` attribute from the `custom_parameters` block. `enable_cmk_encryption` is olny available with the `premium` Databricks Workspace `sku`.
+~> **NOTE** Once `customer_managed_key_enabled` has been set to `true` it cannot be set back to `false`. If you wish to remove your customer managed key encryption from your workspace you will need to update the `customer_managed_key` blocks `source` field to be `Default` and remove the `customer_managed_key_enabled` attribute from the `custom_parameters` block. `customer_managed_key_enabled` is olny available with the `premium` Databricks Workspace `sku`.
 
-* `enable_infrastructure_encryption`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`.
+* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`.
 
-~> **NOTE** Once `enable_infrastructure_encryption` has been set to `true` it cannot be set back to `false`. `enable_infrastructure_encryption` is olny available with the `premium` Databricks Workspace `sku`.
+~> **NOTE** Once `infrastructure_encryption_enabled` has been set to `true` it cannot be set back to `false`. `infrastructure_encryption_enabled` is olny available with the `premium` Databricks Workspace `sku`.
 
 * `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -82,15 +82,15 @@ A `custom_parameters` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_source` - (Optional) The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`. Defaults to `Default`.
+* `source` - (Optional) The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`. Defaults to `Default`.
 
-* `key_name` - (Optional) The name of Key Vault key.
+* `name` - (Optional) The name of Key Vault key.
 
-* `key_version` - (Optional) The version of Key Vault key.
+* `version` - (Optional) The version of Key Vault key.
 
-* `key_vault_uri` - (Optional) The Uri of Key Vault.
+* `vault_uri` - (Optional) The Uri of Key Vault.
 
-~> **NOTE** To successfully provision `customer_managed_key` you must first set the `enable_cmk_encryption` field to `true`. Once the `enable_cmk_encryption` has been set to `true` you will then need to add the `customer_managed_key` block into your configuration file and `apply` the changes.
+~> **NOTE** To successfully provision `customer_managed_key` you must first set the `customer_managed_key_enabled` field to `true`. Once the `customer_managed_key_enabled` has been set to `true` you will then need to add the `customer_managed_key` block into your configuration file and `apply` the changes.
 
 ---
 
