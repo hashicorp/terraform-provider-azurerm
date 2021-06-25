@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location of the source database. Changing this forces a new Backup Instance PostgreSQL to be created.
 
-* `vault_id` - (Required) The id of the Backup Vault where the Backup Instance PostgreSQL should exist.. Changing this forces a new Backup Instance PostgreSQL to be created.
+* `vault_id` - (Required) The ID of the Backup Vault within which the PostgreSQL Backup Instance should exist. Changing this forces a new Backup Instance PostgreSQL to be created.
 
 * `database_id` - (Required) The ID of the source database. Changing this forces a new Backup Instance PostgreSQL to be created.
 
