@@ -233,13 +233,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 			cp := NewCustomParametersConfiguration(d)
 
-			// NOTE: These checks are kind of odd, but it's the best I could do because the origial resource was created
-			//       the way it was. This will cause our end users to be confused(prolly generating issues in the repo)
+			// NOTE: These checks are kind of odd, but it is the best I could do because the original resource was created
+			//       the way it was. This will cause our end users to be confused (prolly generating issues in the repo)
 			//       because some of the configurations/changes to the configuration file will not generate changes. This
-			//       will not seem right because the resoruce was originally introduced with the "custom_parameters" block
-			//       as Optional and Computed. The side effect of this is if it's not in the config file but it is in the
-			//       state file the value will be pulled from the state and during the compair show that there are no changes.
-			//       I can't do much about it now without introducing breaking changes... so this is my best effort... ¯\_(ツ)_/¯
+			//       will not seem right because the resource was originally introduced with the "custom_parameters" block
+			//       as Optional and Computed. The side effect of this is if it is not in the config file but it is in the
+			//       state file the value will be pulled from the state and during the compare show that there are no changes.
+			//       I cannot do much about it now without introducing breaking changes... so this is my best effort... ¯\_(ツ)_/¯
 			if d.HasChange("custom_parameters") {
 				if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
 					return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
