@@ -85,27 +85,6 @@ func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
 	})
 }
 
-func TestAccExpressRouteCircuitConnection_updateAddressPrefixIPv6(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
-	r := ExpressRouteCircuitConnectionResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateAddressPrefixIPv6(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ExpressRouteCircuitConnectionID(state.ID)
 	if err != nil {
@@ -160,22 +139,6 @@ resource "azurerm_express_route_circuit_connection" "test" {
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.9.0/29"
   authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
-  address_prefix_ipv6 = "aa:bb::/125"
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r ExpressRouteCircuitConnectionResource) updateAddressPrefixIPv6(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_express_route_circuit_connection" "test" {
-  name                = "acctest-ExpressRouteCircuitConn-%d"
-  peering_id          = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix_ipv4 = "192.169.9.0/29"
-  authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
-  address_prefix_ipv6 = "aa:cc::/125"
 }
 `, r.template(data), data.RandomInteger)
 }
