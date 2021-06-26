@@ -228,10 +228,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				oldParams := oldParamsRaw.([]interface{})
 
 				if len(params) != 0 && params[0] != nil {
+					var oldConfig map[string]interface{}
 					_, changedSKU := d.GetChange("sku")
 					config := params[0].(map[string]interface{})
 
-					var oldConfig map[string]interface{}
 					if len(oldParams) != 0 && oldParams[0] != nil {
 						oldConfig = oldParams[0].(map[string]interface{})
 					}
@@ -279,7 +279,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 					cmkRaw := config["customer_managed_key"].([]interface{})
 					if len(cmkRaw) != 0 && cmkRaw[0] != nil {
-
 						if infraEncypt {
 							return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
 						}
@@ -290,12 +289,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						cmkVersion := cmk["version"].(string)
 						cmkUri := cmk["valut_uri"].(string)
 
-						// Key Source: Default
 						if strings.EqualFold(cmkSource, "default") && cmkEncrypt && (cmkName != "" || cmkVersion != "" || cmkUri != "") {
 							return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
 						}
 
-						// Key Source: Microsoft.Keyvault
 						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") && cmkEncrypt && (cmkName == "" || cmkVersion == "" || cmkUri == "") {
 							return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
 						}
