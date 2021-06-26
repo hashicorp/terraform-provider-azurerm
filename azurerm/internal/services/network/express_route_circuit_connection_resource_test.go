@@ -15,7 +15,18 @@ import (
 
 type ExpressRouteCircuitConnectionResource struct{}
 
-func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
+func TestAccExpressRouteCircuitConnection(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"basic":          testAccExpressRouteCircuitConnection_basic,
+			"requiresImport": testAccExpressRouteCircuitConnection_requiresImport,
+			"complete":       testAccExpressRouteCircuitConnection_complete,
+			"update":         testAccExpressRouteCircuitConnection_update,
+		},
+	})
+}
+
+func testAccExpressRouteCircuitConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -29,7 +40,7 @@ func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
+func testAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -43,7 +54,7 @@ func TestAccExpressRouteCircuitConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
+func testAccExpressRouteCircuitConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -57,7 +68,7 @@ func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
 	})
 }
 
-func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
+func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
 	r := ExpressRouteCircuitConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -137,7 +148,7 @@ resource "azurerm_express_route_circuit_connection" "test" {
   name                = "acctest-ExpressRouteCircuitConn-%d"
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix_ipv4 = "192.169.9.0/29"
+  address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
 }
 `, r.template(data), data.RandomInteger)
