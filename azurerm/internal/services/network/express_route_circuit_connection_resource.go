@@ -122,8 +122,6 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("authorization_key"); ok {
 		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = utils.String(v.(string))
-	} else {
-		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = nil
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
@@ -226,8 +224,6 @@ func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("authorization_key"); ok {
 		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = utils.String(v.(string))
-	} else {
-		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = nil
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
