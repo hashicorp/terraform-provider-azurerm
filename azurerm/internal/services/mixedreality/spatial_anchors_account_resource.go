@@ -65,7 +65,7 @@ func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpatialAnchorsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpatialAnchorsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
