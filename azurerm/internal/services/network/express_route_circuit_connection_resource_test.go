@@ -73,13 +73,6 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 	r := ExpressRouteCircuitConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -87,7 +80,14 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.updateAuthorizationKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -150,6 +150,20 @@ resource "azurerm_express_route_circuit_connection" "test" {
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ExpressRouteCircuitConnectionResource) updateAuthorizationKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_circuit_connection" "test" {
+  name                = "acctest-ExpressRouteCircuitConn-%d"
+  peering_id          = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4 = "192.169.8.0/29"
+  authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee007a"
 }
 `, r.template(data), data.RandomInteger)
 }
