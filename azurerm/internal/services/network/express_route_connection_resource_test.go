@@ -18,10 +18,10 @@ type ExpressRouteConnectionResource struct{}
 func TestAccExpressRouteConnection(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
-			"basic": testAccExpressRouteConnection_basic,
-			//"requiresImport": testAccExpressRouteConnection_requiresImport,
-			//"complete":       testAccExpressRouteConnection_complete,
-			//"update":         testAccExpressRouteConnection_update,
+			"basic":          testAccExpressRouteConnection_basic,
+			"requiresImport": testAccExpressRouteConnection_requiresImport,
+			"complete":       testAccExpressRouteConnection_complete,
+			"update":         testAccExpressRouteConnection_update,
 		},
 	})
 }
