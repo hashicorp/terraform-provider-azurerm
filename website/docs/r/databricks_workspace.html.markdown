@@ -82,7 +82,7 @@ A `custom_parameters` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `source` - (Optional) The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`. Defaults to `Default`.
+* `source` - (Required) The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`.
 
 * `name` - (Optional) The name of Key Vault key.
 

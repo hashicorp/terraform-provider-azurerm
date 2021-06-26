@@ -23,6 +23,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type WorkspaceConfiguration struct {
+	CustomerEncryptionReady           bool
+	CustomerEncryptionEnabled         bool
+	PreviousCustomerEncryptionEnabled bool
+	InfrastructureEncryptionEnabled   bool
+	CustomerManagedKeyDefined         bool
+	Sku                               string
+	KeyName                           string
+	KeySource                         string
+	KeyVersion                        string
+	VaultURI                          string
+}
+
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreateUpdate,
@@ -81,7 +94,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"machine_learning_workspace_id": {
 							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -96,8 +108,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"source": {
 										Type:             pluginsdk.TypeString,
-										Optional:         true,
-										Default:          "Default",
+										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(databricks.Default),
@@ -154,6 +165,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						"customer_managed_key_enabled": {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
+							ForceNew:     true,
 							Default:      false,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
@@ -222,86 +234,120 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
+			cp := NewCustomParametersConfiguration(d)
+
 			if d.HasChange("custom_parameters") {
-				oldParamsRaw, paramsRaw := d.GetChange("custom_parameters")
-				params := paramsRaw.([]interface{})
-				oldParams := oldParamsRaw.([]interface{})
+				if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
+					return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
+				}
 
-				if len(params) != 0 && params[0] != nil {
-					var oldConfig map[string]interface{}
-					_, changedSKU := d.GetChange("sku")
-					config := params[0].(map[string]interface{})
+				if cp.CustomerEncryptionEnabled && !strings.EqualFold("premium", cp.Sku) {
+					return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", cp.Sku)
+				}
 
-					if len(oldParams) != 0 && oldParams[0] != nil {
-						oldConfig = oldParams[0].(map[string]interface{})
+				if cp.InfrastructureEncryptionEnabled && !strings.EqualFold("premium", cp.Sku) {
+					return fmt.Errorf("'infrastructure_encryption_enabled' is only available with a 'premium' workspace 'sku', got %q", cp.Sku)
+				}
+
+				if !cp.CustomerEncryptionReady && cp.CustomerManagedKeyDefined {
+					return fmt.Errorf("'customer_managed_key' block must not be defined on initial creation of the workspace")
+				}
+
+				if cp.CustomerManagedKeyDefined {
+					if cp.InfrastructureEncryptionEnabled && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
+						return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
 					}
 
-					infraEncypt := false
-					oldinfraEncypt := false
-					cmkEncrypt := false
-					oldCmkEncrypt := false
-
-					if v, ok := config["customer_managed_key_enabled"].(bool); ok {
-						cmkEncrypt = v
+					if strings.EqualFold(cp.KeySource, string(databricks.Default)) && cp.CustomerEncryptionEnabled && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
+						return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
 					}
 
-					if v, ok := oldConfig["customer_managed_key_enabled"].(bool); ok {
-						oldCmkEncrypt = v
-					}
-
-					if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
-						infraEncypt = v
-					}
-
-					if v, ok := oldConfig["infrastructure_encryption_enabled"].(bool); ok {
-						oldinfraEncypt = v
-					}
-
-					if cmkEncrypt && !strings.EqualFold("premium", changedSKU.(string)) {
-						return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
-					}
-
-					if oldCmkEncrypt && !cmkEncrypt {
-						d.ForceNew("customer_managed_key_enabled")
-					}
-
-					if cmkEncrypt && infraEncypt {
-						return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
-					}
-
-					if infraEncypt && !strings.EqualFold("premium", changedSKU.(string)) {
-						return fmt.Errorf("'infrastructure_encryption_enabled' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
-					}
-
-					if oldinfraEncypt && !infraEncypt {
-						d.ForceNew("infrastructure_encryption_enabled")
-					}
-
-					cmkRaw := config["customer_managed_key"].([]interface{})
-					if len(cmkRaw) != 0 && cmkRaw[0] != nil {
-						if infraEncypt {
-							return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
-						}
-
-						cmk := cmkRaw[0].(map[string]interface{})
-						cmkSource := cmk["source"].(string)
-						cmkName := cmk["name"].(string)
-						cmkVersion := cmk["version"].(string)
-						cmkUri := cmk["valut_uri"].(string)
-
-						if strings.EqualFold(cmkSource, "default") && cmkEncrypt && (cmkName != "" || cmkVersion != "" || cmkUri != "") {
-							return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
-						}
-
-						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") && cmkEncrypt && (cmkName == "" || cmkVersion == "" || cmkUri == "") {
-							return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
-						}
+					if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && cp.CustomerEncryptionEnabled && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
+						return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
 					}
 				}
 			}
 
+			// Second CMK run MSI is already set up this is where you set the key source and key info...
+			if cp.CustomerEncryptionReady && !cp.CustomerManagedKeyDefined {
+				return fmt.Errorf("'customer_managed_key' block must be defined once the workspace has been created and the 'customer_managed_key_enabled' has been set to 'true'")
+			}
+
+			if cp.CustomerEncryptionReady && cp.KeySource == "" {
+				return fmt.Errorf("once the workspace has been created and the 'customer_managed_key_enabled' has been set to 'true' the 'customer_managed_key.source' must also be set to either %q or %q", databricks.Default, databricks.MicrosoftKeyvault)
+			}
+
 			return nil
 		}),
+	}
+}
+
+func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfiguration {
+	o, n := d.GetChange("custom_parameters")
+	new := n.([]interface{})
+	old := o.([]interface{})
+	var config map[string]interface{}
+	var oConfig map[string]interface{}
+
+	source := ""
+	name := ""
+	version := ""
+	uri := ""
+	infra := false
+	cmk := false
+	oCmk := false
+	sku := ""
+	defined := false
+	ready := false
+
+	if len(new) != 0 && new[0] != nil {
+		_, changedSKU := d.GetChange("sku")
+		sku = changedSKU.(string)
+		config = new[0].(map[string]interface{})
+
+		if len(old) != 0 && old[0] != nil {
+			oConfig = old[0].(map[string]interface{})
+
+			if v, ok := oConfig["customer_managed_key_enabled"].(bool); ok {
+				oCmk = v
+			}
+		}
+
+		if v, ok := config["customer_managed_key_enabled"].(bool); ok {
+			cmk = v
+		}
+
+		if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
+			infra = v
+		}
+
+		if oCmk && cmk {
+			ready = true
+		}
+
+	}
+
+	cmkRaw := config["customer_managed_key"].([]interface{})
+	if len(cmkRaw) != 0 && cmkRaw[0] != nil {
+		defined = true
+		cmk := cmkRaw[0].(map[string]interface{})
+		source = cmk["source"].(string)
+		name = cmk["name"].(string)
+		version = cmk["version"].(string)
+		uri = cmk["valut_uri"].(string)
+	}
+
+	return WorkspaceConfiguration{
+		CustomerEncryptionReady:           ready,
+		CustomerEncryptionEnabled:         cmk,
+		PreviousCustomerEncryptionEnabled: oCmk,
+		InfrastructureEncryptionEnabled:   infra,
+		Sku:                               sku,
+		KeyName:                           name,
+		KeySource:                         source,
+		KeyVersion:                        version,
+		VaultURI:                          uri,
+		CustomerManagedKeyDefined:         defined,
 	}
 }
 
