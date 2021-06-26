@@ -123,7 +123,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
-									"valut_uri": {
+									"vault_uri": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
@@ -136,7 +136,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeBool,
 							ForceNew:     true,
 							Optional:     true,
-							Default:      false,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -166,7 +165,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
 							ForceNew:     true,
-							Default:      false,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -174,7 +172,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeBool,
 							ForceNew:     true,
 							Optional:     true,
-							Default:      false,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 					},
@@ -236,6 +233,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 			cp := NewCustomParametersConfiguration(d)
 
+			// NOTE: These checks are kind of odd, but it's the best I could do because the origial resource was created
+			//       the way it was. This will cause our end users to be confused(prolly generating issues in the repo)
+			//       because some of the configurations/changes to the configuration file will not generate changes. This
+			//       will not seem right because the resoruce was originally introduced with the "custom_parameters" block
+			//       as Optional and Computed. The side effect of this is if it's not in the config file but it is in the
+			//       state file the value will be pulled from the state and during the compair show that there are no changes.
+			//       I can't do much about it now without introducing breaking changes... so this is my best effort... ¯\_(ツ)_/¯
 			if d.HasChange("custom_parameters") {
 				if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
 					return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
@@ -249,32 +253,48 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					return fmt.Errorf("'infrastructure_encryption_enabled' is only available with a 'premium' workspace 'sku', got %q", cp.Sku)
 				}
 
+				if cp.InfrastructureEncryptionEnabled && cp.CustomerManagedKeyDefined {
+					return fmt.Errorf("'customer_managed_key' block cannot be defined if 'infrastructure_encryption_enabled' is set to 'true'")
+				}
+
 				if !cp.CustomerEncryptionReady && cp.CustomerManagedKeyDefined {
 					return fmt.Errorf("'customer_managed_key' block must not be defined on initial creation of the workspace")
 				}
 
 				if cp.CustomerManagedKeyDefined {
-					if cp.InfrastructureEncryptionEnabled && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
+					// If you set key info and your encryption type is infra error
+					if cp.InfrastructureEncryptionEnabled {
 						return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
 					}
 
+					// if you set your source to default and set any of the key info error
 					if strings.EqualFold(cp.KeySource, string(databricks.Default)) && cp.CustomerEncryptionEnabled && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
-						return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
+						return fmt.Errorf("'name', 'version' and 'vault_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
 					}
 
+					// if you set your source to KeyVault and you didn't set any of the key info error
 					if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && cp.CustomerEncryptionEnabled && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
-						return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
+						return fmt.Errorf("'name', 'version' and 'vault_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
 					}
 				}
 			}
 
-			// Second CMK run MSI is already set up this is where you set the key source and key info...
-			if cp.CustomerEncryptionReady && !cp.CustomerManagedKeyDefined {
-				return fmt.Errorf("'customer_managed_key' block must be defined once the workspace has been created and the 'customer_managed_key_enabled' has been set to 'true'")
-			}
+			// Second CMK run (e.g. old cmk is true and current cmk is true) MSI is already set up for the DBFS storage and this is where you should setup the double encryption info...
+			// This is a custom d.NewResource() hack since it does not exist in the pluginsdk.ResourceDiff schema...
+			if cp.CustomerEncryptionReady {
+				if !cp.CustomerManagedKeyDefined {
+					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is not defined")
+				}
 
-			if cp.CustomerEncryptionReady && cp.KeySource == "" {
-				return fmt.Errorf("once the workspace has been created and the 'customer_managed_key_enabled' has been set to 'true' the 'customer_managed_key.source' must also be set to either %q or %q", databricks.Default, databricks.MicrosoftKeyvault)
+				// Set key source to Default but you also set one or more key vault values return an error
+				if strings.EqualFold(cp.KeySource, string(databricks.Default)) && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
+					return fmt.Errorf("workspace DBFS has been configured to use Microsoft managed keys however the 'customer_managed_key' block has one or more of the following fields defined 'name', 'version', and/or 'vault_uri'")
+				}
+
+				// Set key source to KeyVault but you did not set one or more key vault values return an error
+				if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
+					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is missing values for one or more of the following fields 'name', 'version', and/or 'vault_uri'")
+				}
 			}
 
 			return nil
@@ -282,6 +302,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	}
 }
 
+// I am currently putting this inline with the resource, couldn't decide if moving it to a parse or an internal package was a better choice or not?
+// but I do feel strongly that this makes the CustomizeDiff code much more readable...
 func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfiguration {
 	o, n := d.GetChange("custom_parameters")
 	new := n.([]interface{})
@@ -334,7 +356,7 @@ func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfig
 		source = cmk["source"].(string)
 		name = cmk["name"].(string)
 		version = cmk["version"].(string)
-		uri = cmk["valut_uri"].(string)
+		uri = cmk["vault_uri"].(string)
 	}
 
 	return WorkspaceConfiguration{
@@ -612,7 +634,7 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 			e["version"] = *t
 		}
 		if t := v.Value.KeyVaultURI; t != nil {
-			e["valut_uri"] = *t
+			e["vault_uri"] = *t
 		}
 
 		if len(e) != 0 {
@@ -668,7 +690,7 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 				if t := cmk["version"].(string); t != "" {
 					keyVersion = t
 				}
-				if t := cmk["valut_uri"].(string); t != "" {
+				if t := cmk["vault_uri"].(string); t != "" {
 					keyVaultURI = t
 				}
 
