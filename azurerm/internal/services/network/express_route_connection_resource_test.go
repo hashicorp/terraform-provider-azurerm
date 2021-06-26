@@ -200,7 +200,7 @@ resource "azurerm_express_route_circuit" "test" {
   bandwidth_in_gbps     = 5
 
   sku {
-    tier   = "Standard"
+    tier   = "Premium"
     family = "MeteredData"
   }
 }
