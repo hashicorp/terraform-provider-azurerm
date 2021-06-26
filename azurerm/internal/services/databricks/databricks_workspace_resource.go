@@ -236,59 +236,68 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						oldConfig = oldParams[0].(map[string]interface{})
 					}
 
+					infraEncypt := false
+					oldinfraEncypt := false
+					cmkEncrypt := false
+					oldCmkEncrypt := false
+
+					if v, ok := config["customer_managed_key_enabled"].(bool); ok {
+						cmkEncrypt = v
+					}
+
+					if v, ok := oldConfig["customer_managed_key_enabled"].(bool); ok {
+						oldCmkEncrypt = v
+					}
+
+					if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
+						infraEncypt = v
+					}
+
+					if v, ok := oldConfig["infrastructure_encryption_enabled"].(bool); ok {
+						oldinfraEncypt = v
+					}
+
+					if cmkEncrypt && !strings.EqualFold("premium", changedSKU.(string)) {
+						return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
+					}
+
+					if oldCmkEncrypt && !cmkEncrypt {
+						d.ForceNew("customer_managed_key_enabled")
+					}
+
+					if cmkEncrypt && infraEncypt {
+						return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
+					}
+
+					if infraEncypt && !strings.EqualFold("premium", changedSKU.(string)) {
+						return fmt.Errorf("'infrastructure_encryption_enabled' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
+					}
+
+					if oldinfraEncypt && !infraEncypt {
+						d.ForceNew("infrastructure_encryption_enabled")
+					}
+
 					cmkRaw := config["customer_managed_key"].([]interface{})
 					if len(cmkRaw) != 0 && cmkRaw[0] != nil {
-						cmk := cmkRaw[0].(map[string]interface{})
 
+						if infraEncypt {
+							return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
+						}
+
+						cmk := cmkRaw[0].(map[string]interface{})
 						cmkSource := cmk["source"].(string)
 						cmkName := cmk["name"].(string)
 						cmkVersion := cmk["version"].(string)
 						cmkUri := cmk["valut_uri"].(string)
 
-						cmkEncrypt := false
-						oldCmkEncrypt := false
-						infraEncypt := false
-
-						if v, ok := config["customer_managed_key_enabled"].(bool); ok {
-							cmkEncrypt = v
-						}
-
-						if v, ok := oldConfig["customer_managed_key_enabled"].(bool); ok {
-							oldCmkEncrypt = v
-						}
-
-						if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
-							infraEncypt = v
-						}
-
-						if cmkEncrypt && infraEncypt {
-							return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
-						}
-
-						if oldCmkEncrypt && !cmkEncrypt {
-							return fmt.Errorf("'customer_managed_key_enabled' cannot be set to 'false' once it has been set to 'true'")
-						}
-
 						// Key Source: Default
-						if strings.EqualFold(cmkSource, "default") {
-							if cmkEncrypt {
-								return fmt.Errorf("'customer_managed_key_enabled' is only valid if the 'customer_managed_key' 'source' is set to 'Microsoft.Keyvault', got %q", cmkSource)
-							} else if !cmkEncrypt && (cmkName != "" || cmkVersion != "" || cmkUri != "") {
-								return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key' 'source' is set to 'Default'")
-							}
+						if strings.EqualFold(cmkSource, "default") && cmkEncrypt && (cmkName != "" || cmkVersion != "" || cmkUri != "") {
+							return fmt.Errorf("'name', 'version' and 'valut_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
 						}
 
 						// Key Source: Microsoft.Keyvault
-						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") {
-							if cmkEncrypt && (cmkName == "" || cmkVersion == "" || cmkUri == "") {
-								return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key' 'source' is set to 'Microsoft.Keyvault'")
-							} else if !cmkEncrypt {
-								return fmt.Errorf("'customer_managed_key_enabled' cannot be 'false' if the 'customer_managed_key' 'source' is set to 'Microsoft.Keyvault'")
-							}
-						}
-
-						if cmkEncrypt && !strings.EqualFold("premium", changedSKU.(string)) {
-							return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", changedSKU)
+						if strings.EqualFold(cmkSource, "Microsoft.Keyvault") && cmkEncrypt && (cmkName == "" || cmkVersion == "" || cmkUri == "") {
+							return fmt.Errorf("'name', 'version' and 'valut_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
 						}
 					}
 				}

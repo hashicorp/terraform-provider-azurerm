@@ -567,7 +567,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "%[3]s"
 
   custom_parameters {
-    aml_workspace_id = azurerm_machine_learning_workspace.test.id
+    machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
@@ -658,7 +658,7 @@ resource "azurerm_databricks_workspace" "test" {
 //   sku                 = "%[3]s"
 
 //   custom_parameters {
-//     enable_cmk_encryption = true
+//     customer_managed_key_enabled = true
 //   }
 // }
 // `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
@@ -749,13 +749,13 @@ resource "azurerm_databricks_workspace" "test" {
 //   sku                 = "%[3]s"
 
 //   custom_parameters {
-//     enable_cmk_encryption = true
+//     customer_managed_key_enabled = true
 
 //     customer_managed_key {
-//       key_source    = "Microsoft.KeyVault"
-//       key_name      = azurerm_key_vault_key.test.name
-//       key_version   = azurerm_key_vault_key.test.version
-//       key_vault_uri = azurerm_key_vault.test.vault_uri
+//       source    = "Microsoft.KeyVault"
+//       name      = azurerm_key_vault_key.test.name
+//       version   = azurerm_key_vault_key.test.version
+//       vault_uri = azurerm_key_vault.test.vault_uri
 //     }
 //   }
 // }
@@ -847,10 +847,10 @@ resource "azurerm_databricks_workspace" "test" {
 //   sku                 = "%[3]s"
 
 //   custom_parameters {
-//     enable_cmk_encryption = true
+//     customer_managed_key_enabled = true
 
 //     customer_managed_key {
-//       key_source = "Default"
+//       source = "Default"
 //     }
 //   }
 // }
@@ -877,7 +877,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "%[3]s"
 
   custom_parameters {
-    enable_infrastructure_encryption = true
+    infrastructure_encryption_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
