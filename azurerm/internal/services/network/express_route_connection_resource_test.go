@@ -18,10 +18,10 @@ type ExpressRouteConnectionResource struct{}
 func TestAccExpressRouteConnection(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
-			"basic":          testAccExpressRouteConnection_basic,
-			"requiresImport": testAccExpressRouteConnection_requiresImport,
-			"complete":       testAccExpressRouteConnection_complete,
-			"update":         testAccExpressRouteConnection_update,
+			"basic": testAccExpressRouteConnection_basic,
+			//"requiresImport": testAccExpressRouteConnection_requiresImport,
+			//"complete":       testAccExpressRouteConnection_complete,
+			//"update":         testAccExpressRouteConnection_update,
 		},
 	})
 }
@@ -187,7 +187,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-Seattle-SE2"
+  peering_location    = "CDC-Canberra"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
