@@ -178,45 +178,19 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"aad_tenant": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 						"aad_audience": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 						"aad_issuer": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 
 						"root_certificate": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-							},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -235,13 +209,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"revoked_certificate": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-							},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -258,28 +225,14 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						},
 
 						"radius_server_address": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: validation.IsIPv4Address,
 						},
 
 						"radius_server_secret": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 
 						"vpn_client_protocols": {
