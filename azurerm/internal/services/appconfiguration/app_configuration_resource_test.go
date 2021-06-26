@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/sdk/configurationstores"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -145,17 +144,17 @@ func TestAccAppConfiguration_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConfigurationStoreID(state.ID)
+	id, err := configurationstores.ConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppConfiguration.AppConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.AppConfiguration.ConfigurationStoresClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.ConfigurationStoreProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (AppConfigurationResource) free(data acceptance.TestData) string {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccLogicAppWorkflowDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
 				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
@@ -35,10 +34,10 @@ func TestAccLogicAppWorkflowDataSource_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Source").HasValue("AcceptanceTests"),

@@ -43,6 +43,18 @@ the following Attributes are exported:
 
 * `tags` - A mapping of tags assigned to the resource.
 
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Synapse Workspace.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

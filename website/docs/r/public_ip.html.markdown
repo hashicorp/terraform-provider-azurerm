@@ -50,6 +50,10 @@ The following arguments are supported:
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
 
+* `availability_zone` - (Optional) The availability zone to allocate the Public IP in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Defaults to `Zone-Redundant`. 
+
+-> **Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are zone redundant by default.
+
 * `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4.
 
 -> **Note** Only `dynamic` IP address allocation is supported for IPv6.
@@ -67,10 +71,6 @@ The following arguments are supported:
 -> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
-
--> **Please Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are zone redundant by default. 
 
 ## Attributes Reference
 

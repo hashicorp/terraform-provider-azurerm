@@ -5,34 +5,32 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVirtualDesktopHostPool() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopHostPoolCreateUpdate,
 		Read:   resourceVirtualDesktopHostPoolRead,
 		Update: resourceVirtualDesktopHostPoolCreateUpdate,
 		Delete: resourceVirtualDesktopHostPoolDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -45,9 +43,9 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			0: migration.HostPoolV0ToV1{},
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -58,7 +56,7 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -68,7 +66,7 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			},
 
 			"load_balancer_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -79,30 +77,30 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			},
 
 			"friendly_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
 			"validate_environment": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"custom_rdp_properties": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"personal_desktop_assignment_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -112,14 +110,20 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			},
 
 			"maximum_sessions_allowed": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      999999,
 				ValidateFunc: validation.IntBetween(0, 999999),
 			},
 
+			"start_vm_on_connect": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"preferred_app_group_type": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Optional:    true,
 				ForceNew:    true,
 				Description: "Preferred App Group type to display",
@@ -132,24 +136,24 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			},
 
 			"registration_info": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"expiration_date": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsRFC3339Time,
 							Required:     true,
 						},
 
 						"reset_token": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
 						"token": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Sensitive: true,
 							Computed:  true,
 						},
@@ -162,7 +166,7 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 	}
 }
 
-func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -200,6 +204,7 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta int
 			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
 			CustomRdpProperty:             utils.String(d.Get("custom_rdp_properties").(string)),
 			MaxSessionLimit:               utils.Int32(int32(d.Get("maximum_sessions_allowed").(int))),
+			StartVMOnConnect:              utils.Bool(d.Get("start_vm_on_connect").(bool)),
 			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
 			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
@@ -216,7 +221,7 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta int
 	return resourceVirtualDesktopHostPoolRead(d, meta)
 }
 
-func resourceVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,6 +262,7 @@ func resourceVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
+		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("custom_rdp_properties", props.CustomRdpProperty)
 
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
@@ -267,7 +273,7 @@ func resourceVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +290,7 @@ func resourceVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandVirtualDesktopHostPoolRegistrationInfo(d *schema.ResourceData) *desktopvirtualization.RegistrationInfo {
+func expandVirtualDesktopHostPoolRegistrationInfo(d *pluginsdk.ResourceData) *desktopvirtualization.RegistrationInfo {
 	old, new := d.GetChange("registration_info")
 	oldInterfaces := old.([]interface{})
 	newInterfaces := new.([]interface{})

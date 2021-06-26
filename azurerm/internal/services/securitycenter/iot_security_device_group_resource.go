@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIotSecurityDeviceGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIotSecurityDeviceGroupCreateUpdate,
 		Read:   resourceIotSecurityDeviceGroupRead,
 		Update: resourceIotSecurityDeviceGroupCreateUpdate,
@@ -30,58 +29,58 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"iothub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IotHubID,
 			},
 
 			"allow_rule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"connection_to_ip_not_allowed": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
 							AtLeastOneOf: []string{"allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.process_not_allowed"},
 						},
 
 						"local_user_not_allowed": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							AtLeastOneOf: []string{"allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.process_not_allowed"},
 						},
 
 						"process_not_allowed": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 							AtLeastOneOf: []string{"allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.process_not_allowed"},
 						},
@@ -90,12 +89,12 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 			},
 
 			"range_rule": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(security.RuleTypeActiveConnectionsNotInAllowedRange),
@@ -118,19 +117,19 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 						},
 
 						"max": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"min": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"duration": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ISO8601Duration,
 						},
@@ -141,7 +140,7 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 	}
 }
 
-func resourceIotSecurityDeviceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +159,7 @@ func resourceIotSecurityDeviceGroupCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	timeWindowRules, err := expandIotSecurityDeviceGroupTimeWindowRule(d.Get("range_rule").(*schema.Set).List())
+	timeWindowRules, err := expandIotSecurityDeviceGroupTimeWindowRule(d.Get("range_rule").(*pluginsdk.Set).List())
 	if err != nil {
 		return err
 	}
@@ -179,7 +178,7 @@ func resourceIotSecurityDeviceGroupCreateUpdate(d *schema.ResourceData, meta int
 	return resourceIotSecurityDeviceGroupRead(d, meta)
 }
 
-func resourceIotSecurityDeviceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,7 +213,7 @@ func resourceIotSecurityDeviceGroupRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceIotSecurityDeviceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,19 +237,19 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	v := input[0].(map[string]interface{})
 	result := make([]security.BasicAllowlistCustomAlertRule, 0)
 
-	if connectionToIPNotAllowed := v["connection_to_ip_not_allowed"].(*schema.Set).List(); len(connectionToIPNotAllowed) > 0 {
+	if connectionToIPNotAllowed := v["connection_to_ip_not_allowed"].(*pluginsdk.Set).List(); len(connectionToIPNotAllowed) > 0 {
 		result = append(result, security.ConnectionToIPNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(connectionToIPNotAllowed),
 			IsEnabled:       utils.Bool(true),
 		})
 	}
-	if LocalUserNotAllowed := v["local_user_not_allowed"].(*schema.Set).List(); len(LocalUserNotAllowed) > 0 {
+	if LocalUserNotAllowed := v["local_user_not_allowed"].(*pluginsdk.Set).List(); len(LocalUserNotAllowed) > 0 {
 		result = append(result, security.LocalUserNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(LocalUserNotAllowed),
 			IsEnabled:       utils.Bool(true),
 		})
 	}
-	if processNotAllowed := v["process_not_allowed"].(*schema.Set).List(); len(processNotAllowed) > 0 {
+	if processNotAllowed := v["process_not_allowed"].(*pluginsdk.Set).List(); len(processNotAllowed) > 0 {
 		result = append(result, security.ProcessNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(processNotAllowed),
 			IsEnabled:       utils.Bool(true),

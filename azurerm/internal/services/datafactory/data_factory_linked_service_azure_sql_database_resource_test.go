@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
 	r := LinkedServiceAzureSQLDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
 	r := LinkedServiceAzureSQLDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update1(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
@@ -50,7 +49,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_update(t *testing.T) {
 		data.ImportStep("connection_string"),
 		{
 			Config: r.update2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
@@ -66,10 +65,10 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_managed_id(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
 	r := LinkedServiceAzureSQLDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managed_id(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -77,14 +76,14 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_managed_id(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureSQLDatabase_KeyVaultReference(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_PasswordKeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
 	r := LinkedServiceAzureSQLDatabaseResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.key_vault_reference(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_string").Exists(),
 				check.That(data.ResourceName).Key("key_vault_password.0.linked_service_name").HasValue("linkkv"),
@@ -95,7 +94,26 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_KeyVaultReference(t *testin
 	})
 }
 
-func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_ConnectionStringKeyVaultReference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
+	r := LinkedServiceAzureSQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.connection_string_key_vault_reference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_connection_string.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("key_vault_connection_string.0.secret_name").HasValue("connection_string"),
+				check.That(data.ResourceName).Key("key_vault_password.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("key_vault_password.0.secret_name").HasValue("password"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -286,6 +304,58 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   key_vault_password {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureSQLDatabaseResource) connection_string_key_vault_reference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name                = "linkkv"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  key_vault_id        = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
+  name                = "acctestlssql%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+
+  key_vault_connection_string {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "connection_string"
+  }
+
+  key_vault_password {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "password"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

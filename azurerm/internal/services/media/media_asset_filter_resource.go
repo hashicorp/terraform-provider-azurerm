@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,28 +22,28 @@ const incrementsInASecond = 10000000
 const nanoSecondsInAIncrement = 100
 const milliSecondsInASecond = 1000
 
-func resourceMediaAssetFilter() *schema.Resource {
-	return &schema.Resource{
+func resourceMediaAssetFilter() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMediaAssetFilterCreateUpdate,
 		Read:   resourceMediaAssetFilterRead,
 		Update: resourceMediaAssetFilterCreateUpdate,
 		Delete: resourceMediaAssetFilterDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AssetFilterID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -54,26 +53,26 @@ func resourceMediaAssetFilter() *schema.Resource {
 			},
 
 			"asset_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"first_quality_bitrate": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"presentation_time_range": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"end_in_units": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
@@ -81,14 +80,14 @@ func resourceMediaAssetFilter() *schema.Resource {
 						},
 
 						"force_end": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
 								"presentation_time_range.0.presentation_window_in_units", "presentation_time_range.0.start_in_units", "presentation_time_range.0.unit_timescale_in_miliseconds"},
 						},
 
 						"live_backoff_in_units": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
@@ -96,7 +95,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 						},
 
 						"presentation_window_in_units": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
@@ -104,7 +103,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 						},
 
 						"start_in_units": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
@@ -112,7 +111,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 						},
 
 						"unit_timescale_in_miliseconds": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 							AtLeastOneOf: []string{"presentation_time_range.0.end_in_units", "presentation_time_range.0.force_end", "presentation_time_range.0.live_backoff_in_units",
@@ -123,18 +122,18 @@ func resourceMediaAssetFilter() *schema.Resource {
 			},
 
 			"track_selection": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						//lintignore:XS003
 						"condition": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"operation": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.FilterTrackPropertyCompareOperationEqual),
@@ -143,7 +142,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 									},
 
 									"property": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.FilterTrackPropertyTypeBitrate),
@@ -155,7 +154,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 									},
 
 									"value": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -169,7 +168,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 	}
 }
 
-func resourceMediaAssetFilterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetFiltersClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -220,7 +219,7 @@ func resourceMediaAssetFilterCreateUpdate(d *schema.ResourceData, meta interface
 	return resourceMediaAssetFilterRead(d, meta)
 }
 
-func resourceMediaAssetFilterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetFiltersClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -264,7 +263,7 @@ func resourceMediaAssetFilterRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceMediaAssetFilterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaAssetFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetFiltersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

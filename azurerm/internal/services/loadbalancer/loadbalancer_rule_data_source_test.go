@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +12,10 @@ func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicDataSource(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("frontend_ip_configuration_name").Exists(),
 				check.That(data.ResourceName).Key("protocol").Exists(),
@@ -31,10 +30,10 @@ func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.completeDataSource(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("frontend_ip_configuration_name").Exists(),
 				check.That(data.ResourceName).Key("protocol").Exists(),

@@ -8,16 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,8 +22,8 @@ import (
 type ServiceBusNamespaceDisasterRecoveryConfigResource struct {
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfig() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceDisasterRecoveryConfigCreate,
 		Read:   resourceServiceBusNamespaceDisasterRecoveryConfigRead,
 		Update: resourceServiceBusNamespaceDisasterRecoveryConfigUpdate,
@@ -37,53 +34,53 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"primary_namespace_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"partner_namespace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"alias_primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"alias_secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"default_secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -91,7 +88,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *schema.Resource {
 	}
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +126,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 		return fmt.Errorf("error creating/updating Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.Name, aliasName, d.Timeout(schema.TimeoutCreate)); err != nil {
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.Name, aliasName, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
 		return fmt.Errorf("error waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
 	}
 
@@ -147,7 +144,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceD
 	return resourceServiceBusNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +163,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceD
 			return fmt.Errorf("error issuing break pairing request for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 		}
 
-		if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(schema.TimeoutUpdate)); err != nil {
+		if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
 			return fmt.Errorf("error waiting for break pairing request to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 		}
 	}
@@ -181,14 +178,14 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceD
 		return fmt.Errorf("error creating/updating Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(schema.TimeoutUpdate)); err != nil {
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
 		return fmt.Errorf("error waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return resourceServiceBusNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +224,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *schema.ResourceDat
 	return nil
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +243,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 		return fmt.Errorf("error breaking pairing for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(schema.TimeoutDelete)); err != nil {
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return fmt.Errorf("error waiting for break pairing request to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
@@ -255,11 +252,11 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 	}
 
 	// no future for deletion so wait for it to vanish
-	deleteWait := &resource.StateChangeConf{
+	deleteWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"200"},
 		Target:     []string{"404"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
 			if err != nil {
@@ -273,17 +270,17 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 		},
 	}
 
-	if _, err := deleteWait.WaitForState(); err != nil {
+	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("error waiting the deletion of Service Bus Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	// it can take some time for the name to become available again
 	// this is mainly here 	to enable updating the resource in place
-	nameFreeWait := &resource.StateChangeConf{
+	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.CheckNameAvailabilityMethod(ctx, id.ResourceGroup, id.NamespaceName, servicebus.CheckNameAvailability{Name: utils.String(id.DisasterRecoveryConfigName)})
 			if err != nil {
@@ -294,7 +291,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 		},
 	}
 
-	if _, err := nameFreeWait.WaitForState(); err != nil {
+	if _, err := nameFreeWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("error waiting the the Service Bus Namespace Disaster Recovery Configs %q name to be available (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
@@ -302,7 +299,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceD
 }
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *servicebus.DisasterRecoveryConfigsClient, resourceGroup, namespaceName, name string, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(servicebus.Accepted)},
 		Target:     []string{string(servicebus.Succeeded)},
 		MinTimeout: 30 * time.Second,
@@ -324,6 +321,6 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.C
 		},
 	}
 
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	return err
 }

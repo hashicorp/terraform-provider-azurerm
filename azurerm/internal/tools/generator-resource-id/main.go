@@ -203,8 +203,8 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			continue
 		}
 
-		var segmentBuilder = func(key, value string, hasSubscriptionId bool) ResourceIdSegment {
-			var toCamelCase = func(input string) string {
+		segmentBuilder := func(key, value string, hasSubscriptionId bool) ResourceIdSegment {
+			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
 				for i, char := range strings.Title(input) {
@@ -377,7 +377,7 @@ func New%[1]sID(%[2]s string) %[1]sId {
 }
 
 func (id ResourceIdGenerator) codeForDescription() string {
-	var makeHumanReadable = func(input string) string {
+	makeHumanReadable := func(input string) string {
 		chars := make([]rune, 0)
 		for _, c := range input {
 			if unicode.IsUpper(c) {
@@ -787,7 +787,7 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 		},
 `, id.IDRaw, id.TypeName, strings.Join(expectAssignments, "\n")))
 
-	var testCaseWithTransformation = func(testCaseName string, transform func(in string) string) string {
+	testCaseWithTransformation := func(testCaseName string, transform func(in string) string) string {
 		resourceIdWithTransform := id.IDRaw
 		for _, segment := range id.Segments {
 			// we're not as concerned with these two for now

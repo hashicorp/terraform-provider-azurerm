@@ -1,7 +1,7 @@
 package eventgrid
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,16 +19,16 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_eventgrid_topic":        dataSourceEventGridTopic(),
 		"azurerm_eventgrid_domain_topic": dataSourceEventGridDomainTopic(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_eventgrid_domain":                          resourceEventGridDomain(),
 		"azurerm_eventgrid_domain_topic":                    resourceEventGridDomainTopic(),
 		"azurerm_eventgrid_event_subscription":              resourceEventGridEventSubscription(),

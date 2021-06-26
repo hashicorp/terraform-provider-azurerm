@@ -11,8 +11,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-var _client *clients.Client
-var clientLock = &sync.Mutex{}
+var (
+	_client    *clients.Client
+	clientLock = &sync.Mutex{}
+)
 
 func Build() (*clients.Client, error) {
 	clientLock.Lock()

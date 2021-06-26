@@ -5,26 +5,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
-
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCdnEndpoint() *schema.Resource {
-	return &schema.Resource{
+func resourceCdnEndpoint() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceCdnEndpointCreate,
 		Read:   resourceCdnEndpointRead,
 		Update: resourceCdnEndpointUpdate,
@@ -35,11 +32,11 @@ func resourceCdnEndpoint() *schema.Resource {
 			0: migration.CdnEndpointV0ToV1{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -47,9 +44,9 @@ func resourceCdnEndpoint() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -59,55 +56,55 @@ func resourceCdnEndpoint() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"profile_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"origin_host_header": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"is_http_allowed": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"is_https_allowed": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"origin": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"host_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"http_port": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							ForceNew: true,
 							Default:  80,
 						},
 
 						"https_port": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							ForceNew: true,
 							Default:  443,
@@ -117,13 +114,13 @@ func resourceCdnEndpoint() *schema.Resource {
 			},
 
 			"origin_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"querystring_caching_behaviour": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(cdn.IgnoreQueryString),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -135,37 +132,37 @@ func resourceCdnEndpoint() *schema.Resource {
 			},
 
 			"content_types_to_compress": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
-				Set: schema.HashString,
+				Set: pluginsdk.HashString,
 			},
 
 			"is_compression_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"probe_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
 			"geo_filter": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"relative_path": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"action": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.Allow),
@@ -174,10 +171,10 @@ func resourceCdnEndpoint() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"country_codes": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -185,7 +182,7 @@ func resourceCdnEndpoint() *schema.Resource {
 			},
 
 			"optimization_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cdn.DynamicSiteAcceleration),
@@ -198,7 +195,7 @@ func resourceCdnEndpoint() *schema.Resource {
 			},
 
 			"host_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -211,7 +208,7 @@ func resourceCdnEndpoint() *schema.Resource {
 	}
 }
 
-func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -238,7 +235,6 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
-	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
@@ -250,9 +246,12 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
-			OriginHostHeader:           utils.String(originHostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("origin_host_header"); ok {
+		endpoint.EndpointProperties.OriginHostHeader = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("content_types_to_compress"); ok {
@@ -330,7 +329,7 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceCdnEndpointRead(d, meta)
 }
 
-func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -343,7 +342,6 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
-	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
@@ -354,9 +352,12 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
-			OriginHostHeader:           utils.String(hostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("origin_host_header"); ok {
+		endpoint.EndpointPropertiesUpdateParameters.OriginHostHeader = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("content_types_to_compress"); ok {
@@ -420,7 +421,7 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceCdnEndpointRead(d, meta)
 }
 
-func resourceCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -496,7 +497,7 @@ func resourceCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -524,7 +525,7 @@ func resourceCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandCdnEndpointGeoFilters(d *schema.ResourceData) *[]cdn.GeoFilter {
+func expandCdnEndpointGeoFilters(d *pluginsdk.ResourceData) *[]cdn.GeoFilter {
 	filters := make([]cdn.GeoFilter, 0)
 
 	inputFilters := d.Get("geo_filter").([]interface{})
@@ -580,9 +581,9 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 	return results
 }
 
-func expandArmCdnEndpointContentTypesToCompress(d *schema.ResourceData) []string {
+func expandArmCdnEndpointContentTypesToCompress(d *pluginsdk.ResourceData) []string {
 	results := make([]string, 0)
-	input := d.Get("content_types_to_compress").(*schema.Set).List()
+	input := d.Get("content_types_to_compress").(*pluginsdk.Set).List()
 
 	for _, v := range input {
 		contentType := v.(string)
@@ -604,8 +605,8 @@ func flattenAzureRMCdnEndpointContentTypes(input *[]string) []interface{} {
 	return output
 }
 
-func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) []cdn.DeepCreatedOrigin {
-	configs := d.Get("origin").(*schema.Set).List()
+func expandAzureRmCdnEndpointOrigins(d *pluginsdk.ResourceData) []cdn.DeepCreatedOrigin {
+	configs := d.Get("origin").(*pluginsdk.Set).List()
 	origins := make([]cdn.DeepCreatedOrigin, 0)
 
 	for _, configRaw := range configs {

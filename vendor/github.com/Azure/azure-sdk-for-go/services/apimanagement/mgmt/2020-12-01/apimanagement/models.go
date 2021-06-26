@@ -1627,6 +1627,12 @@ type APIRevisionContract struct {
 	IsCurrent *bool `json:"isCurrent,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for APIRevisionContract.
+func (arc APIRevisionContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // APIRevisionInfoContract object used to create an API Revision or Version based on an existing API
 // Revision
 type APIRevisionInfoContract struct {
@@ -3800,6 +3806,12 @@ type ContentItemCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ContentItemCollection.
+func (cic ContentItemCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ContentItemCollectionIterator provides access to a complete listing of ContentItemContract values.
 type ContentItemCollectionIterator struct {
 	i    int
@@ -3979,6 +3991,12 @@ type ContentTypeCollection struct {
 	Value *[]ContentTypeContract `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Next page link, if any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContentTypeCollection.
+func (ctc ContentTypeCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ContentTypeCollectionIterator provides access to a complete listing of ContentTypeContract values.
@@ -4335,6 +4353,12 @@ type DeletedServicesCollection struct {
 	Value *[]DeletedServiceContract `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Next page link if any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedServicesCollection.
+func (dsc DeletedServicesCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DeletedServicesCollectionIterator provides access to a complete listing of DeletedServiceContract
@@ -5236,6 +5260,12 @@ type GatewayCertificateAuthorityCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for GatewayCertificateAuthorityCollection.
+func (gcac GatewayCertificateAuthorityCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // GatewayCertificateAuthorityCollectionIterator provides access to a complete listing of
 // GatewayCertificateAuthorityContract values.
 type GatewayCertificateAuthorityCollectionIterator struct {
@@ -5724,6 +5754,12 @@ type GatewayHostnameConfigurationCollection struct {
 	Value *[]GatewayHostnameConfigurationContract `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Next page link if any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GatewayHostnameConfigurationCollection.
+func (ghcc GatewayHostnameConfigurationCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // GatewayHostnameConfigurationCollectionIterator provides access to a complete listing of
@@ -9969,6 +10005,12 @@ type PolicyDescriptionContractProperties struct {
 	Scope *int64 `json:"scope,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PolicyDescriptionContractProperties.
+func (pdcp PolicyDescriptionContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PortalDelegationSettings delegation settings for a developer portal.
 type PortalDelegationSettings struct {
 	autorest.Response `json:"-"`
@@ -10061,6 +10103,12 @@ type PortalRevisionCollection struct {
 	Value *[]PortalRevisionContract `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Next page link, if any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PortalRevisionCollection.
+func (prc PortalRevisionCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PortalRevisionCollectionIterator provides access to a complete listing of PortalRevisionContract values.
@@ -11932,6 +11980,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceLocationDataContract resource location data properties.
 type ResourceLocationDataContract struct {
 	// Name - A canonical name for the geographic or physical location.
@@ -11962,6 +12016,12 @@ type ResourceSkuCapacity struct {
 	ScaleType ResourceSkuCapacityScaleType `json:"scaleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuCapacity.
+func (rsc ResourceSkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuResult describes an available API Management service SKU.
 type ResourceSkuResult struct {
 	// ResourceType - READ-ONLY; The type of resource the SKU applies to.
@@ -11970,6 +12030,12 @@ type ResourceSkuResult struct {
 	Sku *ResourceSku `json:"sku,omitempty"`
 	// Capacity - READ-ONLY; Specifies the number of API Management units.
 	Capacity *ResourceSkuCapacity `json:"capacity,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuResult.
+func (rsr ResourceSkuResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuResults the API Management service SKUs operation response.
@@ -12794,6 +12860,12 @@ type ServiceGetDomainOwnershipIdentifierResult struct {
 	DomainOwnershipIdentifier *string `json:"domainOwnershipIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceGetDomainOwnershipIdentifierResult.
+func (sgdoir ServiceGetDomainOwnershipIdentifierResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServiceGetSsoTokenResult the response of the GetSsoToken operation.
 type ServiceGetSsoTokenResult struct {
 	autorest.Response `json:"-"`
@@ -13604,12 +13676,24 @@ type Sku struct {
 	Restrictions *[]SkuRestrictions `json:"restrictions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Sku.
+func (s Sku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SkuCapabilities describes The SKU capabilities object.
 type SkuCapabilities struct {
 	// Name - READ-ONLY; An invariant to describe the feature.
 	Name *string `json:"name,omitempty"`
 	// Value - READ-ONLY; An invariant if the feature is measured by quantity.
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuCapabilities.
+func (sc SkuCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SkuCapacity describes scaling information of a SKU.
@@ -13624,6 +13708,12 @@ type SkuCapacity struct {
 	ScaleType SkuCapacityScaleType `json:"scaleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SkuCapacity.
+func (sc SkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SkuCosts describes metadata for retrieving price info.
 type SkuCosts struct {
 	// MeterID - READ-ONLY; Used for querying price from commerce.
@@ -13632,6 +13722,12 @@ type SkuCosts struct {
 	Quantity *int64 `json:"quantity,omitempty"`
 	// ExtendedUnit - READ-ONLY; An invariant to show the extended unit.
 	ExtendedUnit *string `json:"extendedUnit,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuCosts.
+func (sc SkuCosts) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SkuLocationInfo ...
@@ -13644,12 +13740,24 @@ type SkuLocationInfo struct {
 	ZoneDetails *[]SkuZoneDetails `json:"zoneDetails,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SkuLocationInfo.
+func (sli SkuLocationInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SkuRestrictionInfo ...
 type SkuRestrictionInfo struct {
 	// Locations - READ-ONLY; Locations where the SKU is restricted
 	Locations *[]string `json:"locations,omitempty"`
 	// Zones - READ-ONLY; List of availability zones where the SKU is restricted.
 	Zones *[]string `json:"zones,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuRestrictionInfo.
+func (sri SkuRestrictionInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SkuRestrictions describes scaling information of a SKU.
@@ -13662,6 +13770,12 @@ type SkuRestrictions struct {
 	RestrictionInfo *SkuRestrictionInfo `json:"restrictionInfo,omitempty"`
 	// ReasonCode - READ-ONLY; The reason for restriction. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
 	ReasonCode SkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuRestrictions.
+func (sr SkuRestrictions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SkusResult the List Resource Skus operation response.
@@ -13838,6 +13952,12 @@ type SkuZoneDetails struct {
 	Name *[]string `json:"name,omitempty"`
 	// Capabilities - READ-ONLY; A list of capabilities that are available for the SKU in the specified list of zones.
 	Capabilities *[]SkuCapabilities `json:"capabilities,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuZoneDetails.
+func (szd SkuZoneDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SubscriptionCollection paged Subscriptions list representation.
@@ -15199,6 +15319,12 @@ type TenantSettingsCollection struct {
 	Value *[]TenantSettingsContract `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Next page link if any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TenantSettingsCollection.
+func (tsc TenantSettingsCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TenantSettingsCollectionIterator provides access to a complete listing of TenantSettingsContract values.

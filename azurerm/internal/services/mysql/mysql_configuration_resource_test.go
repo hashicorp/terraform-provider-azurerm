@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,17 +19,17 @@ func TestAccMySQLConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 	r := MySQLConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.characterSetServer(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("hebrew")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				data.CheckWithClientForResource(r.checkReset("character_set_server"), "azurerm_mysql_server.test"),
 			),
@@ -42,17 +41,17 @@ func TestAccMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 	r := MySQLConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.interactiveTimeout(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("30")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				data.CheckWithClientForResource(r.checkReset("interactive_timeout"), "azurerm_mysql_server.test"),
 			),
@@ -64,17 +63,17 @@ func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 	r := MySQLConfigurationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.logSlowAdminStatements(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("on")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				data.CheckWithClientForResource(r.checkReset("log_slow_admin_statements"), "azurerm_mysql_server.test"),
 			),
@@ -82,7 +81,7 @@ func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	})
 }
 
-func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +96,7 @@ func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients
 }
 
 func (r MySQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.ServerID(state.Attributes["id"])
 		if err != nil {
 			return err
@@ -123,7 +122,7 @@ func (r MySQLConfigurationResource) checkReset(configurationName string) accepta
 }
 
 func (r MySQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.ConfigurationID(state.Attributes["id"])
 		if err != nil {
 			return err

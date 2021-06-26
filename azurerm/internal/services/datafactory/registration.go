@@ -1,7 +1,7 @@
 package datafactory
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,15 +19,15 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory": dataSourceDataFactory(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
@@ -45,14 +45,17 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceDataFactoryIntegrationRuntimeSelfHosted(),
 		"azurerm_data_factory_linked_service_azure_blob_storage":     resourceDataFactoryLinkedServiceAzureBlobStorage(),
 		"azurerm_data_factory_linked_service_azure_databricks":       resourceDataFactoryLinkedServiceAzureDatabricks(),
-		"azurerm_data_factory_linked_service_azure_table_storage":    resourceDataFactoryLinkedServiceAzureTableStorage(),
 		"azurerm_data_factory_linked_service_azure_file_storage":     resourceDataFactoryLinkedServiceAzureFileStorage(),
-		"azurerm_data_factory_linked_service_azure_sql_database":     resourceDataFactoryLinkedServiceAzureSQLDatabase(),
 		"azurerm_data_factory_linked_service_azure_function":         resourceDataFactoryLinkedServiceAzureFunction(),
+		"azurerm_data_factory_linked_service_azure_search":           resourceDataFactoryLinkedServiceAzureSearch(),
+		"azurerm_data_factory_linked_service_azure_sql_database":     resourceDataFactoryLinkedServiceAzureSQLDatabase(),
+		"azurerm_data_factory_linked_service_azure_table_storage":    resourceDataFactoryLinkedServiceAzureTableStorage(),
 		"azurerm_data_factory_linked_service_cosmosdb":               resourceDataFactoryLinkedServiceCosmosDb(),
 		"azurerm_data_factory_linked_service_data_lake_storage_gen2": resourceDataFactoryLinkedServiceDataLakeStorageGen2(),
 		"azurerm_data_factory_linked_service_key_vault":              resourceDataFactoryLinkedServiceKeyVault(),
+		"azurerm_data_factory_linked_service_kusto":                  resourceDataFactoryLinkedServiceKusto(),
 		"azurerm_data_factory_linked_service_mysql":                  resourceDataFactoryLinkedServiceMySQL(),
+		"azurerm_data_factory_linked_service_odata":                  resourceArmDataFactoryLinkedServiceOData(),
 		"azurerm_data_factory_linked_service_postgresql":             resourceDataFactoryLinkedServicePostgreSQL(),
 		"azurerm_data_factory_linked_service_sftp":                   resourceDataFactoryLinkedServiceSFTP(),
 		"azurerm_data_factory_linked_service_snowflake":              resourceDataFactoryLinkedServiceSnowflake(),

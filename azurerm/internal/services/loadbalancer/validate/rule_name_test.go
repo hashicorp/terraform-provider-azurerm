@@ -1,9 +1,8 @@
 package validate
 
 import (
+	"strings"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestRuleName_validation(t *testing.T) {
@@ -24,7 +23,7 @@ func TestRuleName_validation(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandStringFromCharSet(81, "abcdedfed"),
+			Value:    strings.Repeat("a", 81),
 			ErrCount: 1,
 		},
 		{

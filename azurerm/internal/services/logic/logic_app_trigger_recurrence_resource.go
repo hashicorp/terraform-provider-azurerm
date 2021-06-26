@@ -5,16 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func resourceLogicAppTriggerRecurrence() *schema.Resource {
-	return &schema.Resource{
+func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogicAppTriggerRecurrenceCreateUpdate,
 		Read:   resourceLogicAppTriggerRecurrenceRead,
 		Update: resourceLogicAppTriggerRecurrenceCreateUpdate,
@@ -22,29 +20,29 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"logic_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"frequency": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Month",
@@ -58,46 +56,46 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 			},
 
 			"interval": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"start_time": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"schedule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"at_these_hours": {
-							Type:         schema.TypeSet,
+							Type:         pluginsdk.TypeSet,
 							Optional:     true,
 							AtLeastOneOf: []string{"schedule.0.at_these_hours", "schedule.0.at_these_minutes", "schedule.0.on_these_days"},
-							Elem: &schema.Schema{
-								Type:         schema.TypeInt,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 23),
 							},
 						},
 						"at_these_minutes": {
-							Type:         schema.TypeSet,
+							Type:         pluginsdk.TypeSet,
 							Optional:     true,
 							AtLeastOneOf: []string{"schedule.0.at_these_hours", "schedule.0.at_these_minutes", "schedule.0.on_these_days"},
-							Elem: &schema.Schema{
-								Type:         schema.TypeInt,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 59),
 							},
 						},
 						"on_these_days": {
-							Type:         schema.TypeSet,
+							Type:         pluginsdk.TypeSet,
 							Optional:     true,
 							AtLeastOneOf: []string{"schedule.0.at_these_hours", "schedule.0.at_these_minutes", "schedule.0.on_these_days"},
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Monday",
 									"Tuesday",
@@ -114,7 +112,7 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 			},
 
 			"time_zone": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.TriggerRecurrenceTimeZone(),
@@ -123,7 +121,7 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 	}
 }
 
-func resourceLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	trigger := map[string]interface{}{
 		"recurrence": map[string]interface{}{
 			"frequency": d.Get("frequency").(string),
@@ -154,7 +152,7 @@ func resourceLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta 
 	return resourceLogicAppTriggerRecurrenceRead(d, meta)
 }
 
-func resourceLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -213,7 +211,7 @@ func resourceLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -239,7 +237,7 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 
 	attrs := input[0].(map[string]interface{})
 	if hoursRaw, ok := attrs["at_these_hours"]; ok {
-		hoursSet := hoursRaw.(*schema.Set).List()
+		hoursSet := hoursRaw.(*pluginsdk.Set).List()
 		hours := make([]int, 0)
 		for _, hour := range hoursSet {
 			hours = append(hours, hour.(int))
@@ -249,7 +247,7 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 		}
 	}
 	if minutesRaw, ok := attrs["at_these_minutes"]; ok {
-		minutesSet := minutesRaw.(*schema.Set).List()
+		minutesSet := minutesRaw.(*pluginsdk.Set).List()
 		minutes := make([]int, 0)
 		for _, minute := range minutesSet {
 			minutes = append(minutes, minute.(int))
@@ -259,7 +257,7 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 		}
 	}
 	if daysRaw, ok := attrs["on_these_days"]; ok {
-		daysSet := daysRaw.(*schema.Set).List()
+		daysSet := daysRaw.(*pluginsdk.Set).List()
 		days := make([]string, 0)
 		for _, day := range daysSet {
 			days = append(days, day.(string))

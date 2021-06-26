@@ -1,7 +1,7 @@
 package recoveryservices
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,8 +19,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_recovery_services_vault": dataSourceRecoveryServicesVault(),
 		"azurerm_backup_policy_vm":        dataSourceBackupPolicyVm(),
 	}
@@ -28,8 +28,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 
 // todo - this package should probably be split into backup, recovery, and site recovery?
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_backup_container_storage_account":           resourceBackupProtectionContainerStorageAccount(),
 		"azurerm_backup_policy_file_share":                   resourceBackupProtectionPolicyFileShare(),
 		"azurerm_backup_protected_file_share":                resourceBackupProtectedFileShare(),

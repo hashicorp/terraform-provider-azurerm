@@ -1,11 +1,11 @@
 package suppress
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func DiffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {
+func DiffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *pluginsdk.ResourceData) bool {
 	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)
 	if err != nil {
 		return false

@@ -14,7 +14,7 @@ Use this data source to access information about an existing Network Security Gr
 
 ```hcl
 data "azurerm_network_security_group" "example" {
-  name                = azurerm_network_security_group.example.name
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
 }
 

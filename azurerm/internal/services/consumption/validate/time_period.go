@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 func ConsumptionBudgetTimePeriodStartDate(i interface{}, k string) (warnings []string, errors []error) {

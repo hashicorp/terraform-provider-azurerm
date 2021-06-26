@@ -7,29 +7,28 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceRedisEnterpriseDatabase() *schema.Resource {
-	return &schema.Resource{
+func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceRedisEnterpriseDatabaseCreate,
 		Read:   resourceRedisEnterpriseDatabaseRead,
 		// Update currently is not implemented, will be for GA
 		Delete: resourceRedisEnterpriseDatabaseDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -39,9 +38,9 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 
 		// Since update is not currently supported all attribute have to be marked as FORCE NEW
 		// until support for Update comes online in the near future
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "default",
@@ -51,14 +50,14 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"cluster_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RedisEnterpriseClusterID,
 			},
 
 			"client_protocol": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(redisenterprise.Encrypted),
@@ -69,7 +68,7 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			},
 
 			"clustering_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(redisenterprise.OSSCluster),
@@ -80,7 +79,7 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			},
 
 			"eviction_policy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(redisenterprise.VolatileLRU),
@@ -97,14 +96,14 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			},
 
 			"module": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 3,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -115,14 +114,14 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 						},
 
 						"args": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
 							Default:  "",
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -131,18 +130,18 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 
 			// This attribute is currently in preview and is not returned by the RP
 			// "persistence": {
-			// 	Type:     schema.TypeList,
+			// 	Type:     pluginsdk.TypeList,
 			// 	Optional: true,
 			// 	MaxItems: 1,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
+			// 	Elem: &pluginsdk.Resource{
+			// 		Schema: map[string]*pluginsdk.Schema{
 			// 			"aof_enabled": {
-			// 				Type:     schema.TypeBool,
+			// 				Type:     pluginsdk.TypeBool,
 			// 				Optional: true,
 			// 			},
 
 			// 			"aof_frequency": {
-			// 				Type:     schema.TypeString,
+			// 				Type:     pluginsdk.TypeString,
 			// 				Optional: true,
 			// 				ValidateFunc: validation.StringInSlice([]string{
 			// 					string(redisenterprise.Ones),
@@ -151,12 +150,12 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			// 			},
 
 			// 			"rdb_enabled": {
-			// 				Type:     schema.TypeBool,
+			// 				Type:     pluginsdk.TypeBool,
 			// 				Optional: true,
 			// 			},
 
 			// 			"rdb_frequency": {
-			// 				Type:     schema.TypeString,
+			// 				Type:     pluginsdk.TypeString,
 			// 				Optional: true,
 			// 				ValidateFunc: validation.StringInSlice([]string{
 			// 					string(redisenterprise.Oneh),
@@ -169,7 +168,7 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			// },
 
 			"port": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      10000,
@@ -177,20 +176,20 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			},
 
 			"primary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 		},
 	}
 }
-func resourceRedisEnterpriseDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -251,7 +250,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *schema.ResourceData, meta interfac
 	return resourceRedisEnterpriseDatabaseRead(d, meta)
 }
 
-func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -299,7 +298,7 @@ func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceRedisEnterpriseDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ type HDInsightRServerClusterResource struct {
 func TestAccHDInsightRServerCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -46,10 +45,10 @@ func TestAccHDInsightRServerCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -63,10 +62,10 @@ func TestAccHDInsightRServerCluster_requiresImport(t *testing.T) {
 func TestAccHDInsightRServerCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -84,7 +83,7 @@ func TestAccHDInsightRServerCluster_update(t *testing.T) {
 			"storage_account"),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -106,10 +105,10 @@ func TestAccHDInsightRServerCluster_update(t *testing.T) {
 func TestAccHDInsightRServerCluster_sshKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshKeys(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -131,10 +130,10 @@ func TestAccHDInsightRServerCluster_sshKeys(t *testing.T) {
 func TestAccHDInsightRServerCluster_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualNetwork(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -156,10 +155,10 @@ func TestAccHDInsightRServerCluster_virtualNetwork(t *testing.T) {
 func TestAccHDInsightRServerCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -181,10 +180,10 @@ func TestAccHDInsightRServerCluster_complete(t *testing.T) {
 func TestAccHDInsightRServerCluster_tls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tls(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -203,7 +202,7 @@ func TestAccHDInsightRServerCluster_tls(t *testing.T) {
 	})
 }
 
-func (t HDInsightRServerClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t HDInsightRServerClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err

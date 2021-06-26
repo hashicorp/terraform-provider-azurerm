@@ -7,12 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_basic(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
 	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_complete(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
 	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,22 +50,22 @@ func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_update(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
 	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -77,10 +76,10 @@ func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport(t 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
 	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,7 +87,7 @@ func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport(t 
 	})
 }
 
-func (t VirtualDesktopWorkspaceApplicationGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t VirtualDesktopWorkspaceApplicationGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceApplicationGroupAssociationID(state.ID)
 	if err != nil {
 		return nil, err

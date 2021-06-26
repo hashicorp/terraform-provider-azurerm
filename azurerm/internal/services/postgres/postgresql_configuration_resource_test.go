@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,17 +18,17 @@ type PostgreSQLConfigurationResource struct {
 func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backslashQuote(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("on")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				data.CheckWithClientForResource(r.checkReset("backslash_quote"), "azurerm_postgresql_server.test"),
 			),
@@ -40,17 +39,17 @@ func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.clientMinMessages(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("DEBUG5")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				data.CheckWithClientForResource(r.checkReset("client_min_messages"), "azurerm_postgresql_server.test"),
 			),
@@ -61,17 +60,17 @@ func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.deadlockTimeout(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("5000")),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.empty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
 				data.CheckWithClientForResource(r.checkReset("deadlock_timeout"), "azurerm_postgresql_server.test"),
 			),
@@ -80,7 +79,7 @@ func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 }
 
 func (r PostgreSQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.ServerID(state.Attributes["id"])
 		if err != nil {
 			return err
@@ -106,7 +105,7 @@ func (r PostgreSQLConfigurationResource) checkReset(configurationName string) ac
 }
 
 func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.ConfigurationID(state.Attributes["id"])
 		if err != nil {
 			return err
@@ -129,7 +128,7 @@ func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.Cli
 	}
 }
 
-func (t PostgreSQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t PostgreSQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ConfigurationID(state.ID)
 	if err != nil {
 		return nil, err

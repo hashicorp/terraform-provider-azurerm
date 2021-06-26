@@ -9,9 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -22,12 +19,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMsSqlVirtualMachine() *schema.Resource {
-	return &schema.Resource{
+func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlVirtualMachineCreateUpdate,
 		Read:   resourceMsSqlVirtualMachineRead,
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
@@ -40,23 +38,23 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"virtual_machine_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
 			"sql_license_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -66,32 +64,32 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"auto_backup": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"encryption_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"encryption_password": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"manual_schedule": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"full_backup_frequency": {
-										Type:             schema.TypeString,
+										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -101,19 +99,19 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 									},
 
 									"full_backup_start_hour": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 23),
 									},
 
 									"full_backup_window_in_hours": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 23),
 									},
 
 									"log_backup_frequency_in_minutes": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(5, 60),
 									},
@@ -122,25 +120,25 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 						},
 
 						"retention_period_in_days": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 30),
 						},
 
 						"storage_blob_endpoint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 
 						"storage_account_access_key": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"system_databases_backup_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 					},
@@ -148,13 +146,13 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"auto_patching": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"day_of_week": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sqlvirtualmachine.Monday),
@@ -168,13 +166,13 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 						},
 
 						"maintenance_window_duration_in_minutes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(30, 180),
 						},
 
 						"maintenance_window_starting_hour": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 23),
 						},
@@ -183,13 +181,13 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"key_vault_credential": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							// api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
@@ -197,7 +195,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 						},
 
 						"key_vault_url": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
@@ -205,7 +203,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 						},
 
 						"service_principal_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
@@ -213,7 +211,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 						},
 
 						"service_principal_secret": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
@@ -224,19 +222,19 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"r_services_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"sql_connectivity_port": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1433,
 				ValidateFunc: validation.IntBetween(1024, 65535),
 			},
 
 			"sql_connectivity_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(sqlvirtualmachine.PRIVATE),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -247,27 +245,27 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"sql_connectivity_update_password": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"sql_connectivity_update_username": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validate.SqlVirtualMachineLoginUserName,
 			},
 
 			"storage_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disk_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sqlvirtualmachine.NEW),
@@ -276,7 +274,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 							}, false),
 						},
 						"storage_workload_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sqlvirtualmachine.GENERAL),
@@ -296,7 +294,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	// ForceNew when removing the auto_backup block.
 	// See https://github.com/Azure/azure-rest-api-specs/issues/12818#issuecomment-773727756
 	old, new := d.GetChange("auto_backup")
@@ -318,7 +316,7 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	vmclient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -399,7 +397,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
 	if autoBackup := d.Get("auto_backup"); (d.IsNewResource() && len(autoBackup.([]interface{})) > 0) || (!d.IsNewResource() && d.HasChange("auto_backup")) {
 		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoBackupSettings to take effect", d.Id())
-		stateConf := &resource.StateChangeConf{
+		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Retry", "Pending"},
 			Target:                    []string{"Updated"},
 			Refresh:                   resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx, client, d),
@@ -408,12 +406,12 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for SQL Virtual Machine %q AutoBackupSettings to take effect: %+v", d.Id(), err)
 		}
 	}
@@ -421,7 +419,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceMsSqlVirtualMachineRead(d, meta)
 }
 
-func resourceMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -480,7 +478,7 @@ func resourceMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -504,7 +502,7 @@ func resourceMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Context, client *sqlvirtualmachine.SQLVirtualMachinesClient, d *schema.ResourceData) resource.StateRefreshFunc {
+func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Context, client *sqlvirtualmachine.SQLVirtualMachinesClient, d *pluginsdk.ResourceData) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		id, err := parse.SqlVirtualMachineID(d.Id())
 		if err != nil {
@@ -628,7 +626,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualm
 	return &ret
 }
 
-func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackupSettings, d *schema.ResourceData) []interface{} {
+func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackupSettings, d *pluginsdk.ResourceData) []interface{} {
 	if autoBackup == nil || autoBackup.Enable == nil || !*autoBackup.Enable {
 		return []interface{}{}
 	}
@@ -741,7 +739,7 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 	}
 }
 
-func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
+func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *pluginsdk.ResourceData) []interface{} {
 	if keyVault == nil || keyVault.Enable == nil || !*keyVault.Enable {
 		return []interface{}{}
 	}
@@ -776,7 +774,7 @@ func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyV
 	}
 }
 
-func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	oldNamelist := strings.Split(old, ",")
 	for _, n := range oldNamelist {
 		cur := strings.Split(n, ":")

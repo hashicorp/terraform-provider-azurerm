@@ -5,10 +5,11 @@ import (
 	"log"
 )
 
+var _ Logger = ConsoleLogger{}
+
 // ConsoleLogger provides a Logger implementation which writes the log messages
 // to StdOut - in Terraform's perspective that's proxied via the Plugin SDK
-type ConsoleLogger struct {
-}
+type ConsoleLogger struct{}
 
 // Info prints out a message prefixed with `[INFO]` verbatim
 func (ConsoleLogger) Info(message string) {

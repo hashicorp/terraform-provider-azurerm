@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +14,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.builtIn("Allowed resource types"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 				check.That(data.ResourceName).Key("name").HasValue("a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Allowed resource types"),
@@ -33,10 +32,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtInByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.builtInByName("a08ec900-254a-4555-9bf5-e42af04b5c5c"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 				check.That(data.ResourceName).Key("name").HasValue("a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Allowed resource types"),
@@ -51,10 +50,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testi
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.builtInAtManagementGroup("Allowed resource types"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 			),
 		},
@@ -65,10 +64,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByDisplayName(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.customByDisplayName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPol-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctestPol-display-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("type").HasValue("Microsoft.Authorization/policyDefinitions"),
@@ -85,10 +84,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.customByName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPol-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctestPol-display-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("type").HasValue("Microsoft.Authorization/policyDefinitions"),

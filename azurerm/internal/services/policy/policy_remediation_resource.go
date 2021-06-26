@@ -7,21 +7,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPolicyRemediation() *schema.Resource {
-	return &schema.Resource{
+func resourceArmPolicyRemediation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmPolicyRemediationCreateUpdate,
 		Read:   resourceArmPolicyRemediationRead,
 		Update: resourceArmPolicyRemediationCreateUpdate,
@@ -32,23 +30,23 @@ func resourceArmPolicyRemediation() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RemediationName,
 			},
 
 			"scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
@@ -57,7 +55,7 @@ func resourceArmPolicyRemediation() *schema.Resource {
 			},
 
 			"policy_assignment_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -66,22 +64,22 @@ func resourceArmPolicyRemediation() *schema.Resource {
 			},
 
 			"location_filters": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"policy_definition_reference_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"resource_discovery_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(policyinsights.ExistingNonCompliant),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -93,7 +91,7 @@ func resourceArmPolicyRemediation() *schema.Resource {
 	}
 }
 
-func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +154,7 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceArmPolicyRemediationRead(d, meta)
 }
 
-func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +194,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,17 +221,17 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] waiting for the Policy Remediation %q (Scope %q) to be canceled", id.Name, id.ScopeId())
-		stateConf := &resource.StateChangeConf{
+		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"Cancelling"},
 			Target: []string{
 				"Succeeded", "Canceled", "Failed",
 			},
 			Refresh:    policyRemediationCancellationRefreshFunc(ctx, client, id.Name, id.PolicyScopeId),
 			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(schema.TimeoutDelete),
+			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for Policy Remediation %q to be canceled: %+v", id.Name, err)
 		}
 	}
@@ -276,7 +274,7 @@ func cancelRemediation(ctx context.Context, client *policyinsights.RemediationsC
 	}
 }
 
-func policyRemediationCancellationRefreshFunc(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.PolicyScopeId) resource.StateRefreshFunc {
+func policyRemediationCancellationRefreshFunc(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.PolicyScopeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := RemediationGetAtScope(ctx, client, name, scopeId)
 		if err != nil {

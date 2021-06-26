@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,22 +14,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorActionRuleSuppression() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorActionRuleSuppression() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorActionRuleSuppressionCreateUpdate,
 		Read:   resourceMonitorActionRuleSuppressionRead,
 		Update: resourceMonitorActionRuleSuppressionCreateUpdate,
 		Delete: resourceMonitorActionRuleSuppressionDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
@@ -39,9 +38,9 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 			return err
 		}, importMonitorActionRule(alertsmanagement.TypeSuppression)),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ActionRuleName,
@@ -50,13 +49,13 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"suppression": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"recurrence_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(alertsmanagement.Always),
@@ -68,41 +67,41 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 						},
 
 						"schedule": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"start_date_utc": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 
 									"end_date_utc": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 
 									"recurrence_weekly": {
-										Type:          schema.TypeSet,
+										Type:          pluginsdk.TypeSet,
 										Optional:      true,
 										MinItems:      1,
 										ConflictsWith: []string{"suppression.0.schedule.0.recurrence_monthly"},
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsDayOfTheWeek(false),
 										},
 									},
 
 									"recurrence_monthly": {
-										Type:          schema.TypeSet,
+										Type:          pluginsdk.TypeSet,
 										Optional:      true,
 										MinItems:      1,
 										ConflictsWith: []string{"suppression.0.schedule.0.recurrence_weekly"},
-										Elem: &schema.Schema{
-											Type:         schema.TypeInt,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
 											ValidateFunc: validation.IntBetween(1, 31),
 										},
 									},
@@ -114,12 +113,12 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -127,13 +126,13 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 			"condition": schemaActionRuleConditions(),
 
 			"scope": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(alertsmanagement.ScopeTypeResourceGroup),
@@ -142,10 +141,10 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 						},
 
 						"resource_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
 							},
 						},
@@ -158,7 +157,7 @@ func resourceMonitorActionRuleSuppression() *schema.Resource {
 	}
 }
 
-func resourceMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleSuppressionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +218,7 @@ func resourceMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData, me
 	return resourceMonitorActionRuleSuppressionRead(d, meta)
 }
 
-func resourceMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleSuppressionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +258,7 @@ func resourceMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMonitorActionRuleSuppressionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleSuppressionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,14 +303,14 @@ func expandActionRuleSuppressionSchedule(input []interface{}, suppressionType al
 	switch suppressionType {
 	case alertsmanagement.Weekly:
 		if recurrenceWeekly, ok := v["recurrence_weekly"]; ok {
-			recurrence = expandActionRuleSuppressionScheduleRecurrenceWeekly(recurrenceWeekly.(*schema.Set).List())
+			recurrence = expandActionRuleSuppressionScheduleRecurrenceWeekly(recurrenceWeekly.(*pluginsdk.Set).List())
 		}
 		if len(recurrence) == 0 {
 			return nil, fmt.Errorf("`recurrence_weekly` must be set and should have at least one element when `recurrence_type` is Weekly.")
 		}
 	case alertsmanagement.Monthly:
 		if recurrenceMonthly, ok := v["recurrence_monthly"]; ok {
-			recurrence = recurrenceMonthly.(*schema.Set).List()
+			recurrence = recurrenceMonthly.(*pluginsdk.Set).List()
 		}
 		if len(recurrence) == 0 {
 			return nil, fmt.Errorf("`recurrence_monthly` must be set and should have at least one element when `recurrence_type` is Monthly.")

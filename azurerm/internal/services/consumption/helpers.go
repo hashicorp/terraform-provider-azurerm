@@ -6,8 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/shopspring/decimal"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -199,8 +199,8 @@ func ExpandConsumptionBudgetFilter(i []interface{}) *consumption.BudgetFilter {
 		}
 	}
 
-	tags := ExpandConsumptionBudgetFilterTag(input["tag"].(*schema.Set).List())
-	dimensions := ExpandConsumptionBudgetFilterDimensions(input["dimension"].(*schema.Set).List())
+	tags := ExpandConsumptionBudgetFilterTag(input["tag"].(*pluginsdk.Set).List())
+	dimensions := ExpandConsumptionBudgetFilterDimensions(input["dimension"].(*pluginsdk.Set).List())
 
 	tagsSet := len(tags) > 0
 	dimensionsSet := len(dimensions) > 0

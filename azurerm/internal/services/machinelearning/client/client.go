@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	WorkspacesClient *machinelearningservices.WorkspacesClient
+	WorkspacesClient             *machinelearningservices.WorkspacesClient
+	MachineLearningComputeClient *machinelearningservices.MachineLearningComputeClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	WorkspacesClient := machinelearningservices.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
+	MachineLearningComputeClient := machinelearningservices.NewMachineLearningComputeClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&MachineLearningComputeClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		WorkspacesClient: &WorkspacesClient,
+		WorkspacesClient:             &WorkspacesClient,
+		MachineLearningComputeClient: &MachineLearningComputeClient,
 	}
 }

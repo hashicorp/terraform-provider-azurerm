@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ type NetworkSecurityRuleResource struct {
 func TestAccNetworkSecurityRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 	r := NetworkSecurityRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccNetworkSecurityRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 	r := NetworkSecurityRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -54,7 +53,7 @@ func TestAccNetworkSecurityRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 	r := NetworkSecurityRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -63,20 +62,20 @@ func TestAccNetworkSecurityRule_disappears(t *testing.T) {
 }
 
 func TestAccNetworkSecurityRule_addingRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	r := NetworkSecurityRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.updateBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 
 		{
 			Config: r.updateExtraRule(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -86,10 +85,10 @@ func TestAccNetworkSecurityRule_addingRules(t *testing.T) {
 func TestAccNetworkSecurityRule_augmented(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	r := NetworkSecurityRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.augmented(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -100,10 +99,10 @@ func TestAccNetworkSecurityRule_augmented(t *testing.T) {
 func TestAccNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	r := NetworkSecurityRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.applicationSecurityGroups(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -111,7 +110,7 @@ func TestAccNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	})
 }
 
-func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -128,7 +127,7 @@ func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (NetworkSecurityRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (NetworkSecurityRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

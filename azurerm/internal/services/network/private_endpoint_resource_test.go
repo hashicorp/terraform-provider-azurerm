@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
@@ -38,10 +37,10 @@ func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -49,7 +48,7 @@ func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withTag(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
@@ -57,7 +56,7 @@ func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -70,10 +69,10 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.requestMessage(data, "CATS: ALL YOUR BASE ARE BELONG TO US."),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CATS: ALL YOUR BASE ARE BELONG TO US."),
@@ -82,7 +81,7 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.requestMessage(data, "CAPTAIN: WHAT YOU SAY!!"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CAPTAIN: WHAT YOU SAY!!"),
@@ -100,10 +99,10 @@ func TestAccPrivateEndpoint_privateDnsZoneGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateDnsZoneGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
@@ -118,10 +117,10 @@ func TestAccPrivateEndpoint_privateDnsZoneRename(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateDnsZoneGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
@@ -131,7 +130,7 @@ func TestAccPrivateEndpoint_privateDnsZoneRename(t *testing.T) {
 		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 		{
 			Config: r.privateDnsZoneGroupRename(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
@@ -146,10 +145,10 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateDnsZoneGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
@@ -159,7 +158,7 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 		{
 			Config: r.privateDnsZoneGroupUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("2"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("2"),
@@ -174,10 +173,10 @@ func TestAccPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateDnsZoneGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
@@ -187,14 +186,14 @@ func TestAccPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 		{
 			Config: r.privateDnsZoneGroupRemove(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 		{
 			Config: r.privateDnsZoneGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
@@ -209,10 +208,10 @@ func TestAccPrivateEndpoint_privateConnectionAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateConnectionAlias(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_connection_resource_alias").Exists(),
@@ -222,7 +221,7 @@ func TestAccPrivateEndpoint_privateConnectionAlias(t *testing.T) {
 	})
 }
 
-func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -618,12 +617,12 @@ resource "azurerm_private_dns_zone" "finance" {
 }
 
 resource "azurerm_private_dns_zone" "sales" {
-  name                = "acctest.pdz.%d"
+  name                = "acceptance.pdz.%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_endpoint" "test" {
-  name                = "acctest.privatelink.%d"
+  name                = "acceptance.privatelink.%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.endpoint.id

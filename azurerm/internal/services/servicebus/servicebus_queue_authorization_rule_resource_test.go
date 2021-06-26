@@ -6,13 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,10 +37,10 @@ func testAccServiceBusQueueAuthorizationRule(t *testing.T, listen, send, manage 
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
 	r := ServiceBusQueueAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, listen, send, manage),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
@@ -64,10 +62,10 @@ func TestAccServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
 	r := ServiceBusQueueAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, true, false, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("listen").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -76,7 +74,7 @@ func TestAccServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 		},
 		{
 			Config: r.base(data, true, true, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
@@ -97,10 +95,10 @@ func TestAccServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
 	r := ServiceBusQueueAuthorizationRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data, true, false, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("listen").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -114,7 +112,7 @@ func TestAccServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ServiceBusQueueAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ServiceBusQueueAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.QueueAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err

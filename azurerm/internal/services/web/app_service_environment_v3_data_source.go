@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +19,10 @@ type AppServiceEnvironmentV3DataSource struct{}
 
 var _ sdk.DataSource = AppServiceEnvironmentV3DataSource{}
 
-func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AppServiceEnvironmentName,
 		},
@@ -31,25 +31,25 @@ func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*schema.Schema
 	}
 }
 
-func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"subnet_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"cluster_setting": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
 					"value": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 				},

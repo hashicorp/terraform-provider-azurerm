@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func logAnalyticsLinkedServiceDeleteWaitForState(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, workspaceName string, serviceType string) *resource.StateChangeConf {
-	return &resource.StateChangeConf{
+func logAnalyticsLinkedServiceDeleteWaitForState(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, workspaceName string, serviceType string) *pluginsdk.StateChangeConf {
+	return &pluginsdk.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"Deleted"},
 		MinTimeout: 30 * time.Second,
@@ -20,7 +20,7 @@ func logAnalyticsLinkedServiceDeleteWaitForState(ctx context.Context, meta inter
 	}
 }
 
-func logAnalyticsLinkedServiceRefresh(ctx context.Context, meta interface{}, resourceGroup string, workspaceName string, serviceType string) resource.StateRefreshFunc {
+func logAnalyticsLinkedServiceRefresh(ctx context.Context, meta interface{}, resourceGroup string, workspaceName string, serviceType string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 
