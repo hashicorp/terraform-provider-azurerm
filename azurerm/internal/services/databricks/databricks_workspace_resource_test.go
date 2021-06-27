@@ -73,34 +73,34 @@ func TestAccDatabricksWorkspace_machineLearning(t *testing.T) {
 // If you look at the azurerm_key_vault_access_policy that was created it does have purge enable, but since the default policy is 90 days you cannot purge
 // the keys for at least 90 days.
 
-// func TestAccDatabricksWorkspace_customerManagedKey(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-// 	r := DatabricksWorkspaceResource{}
+func TestAccDatabricksWorkspace_customerManagedKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.customerManagedKeysStepOne(data, "premium"),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.customerManagedKeysStepTwo(data, "premium"),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.customerManagedKeysStepThree(data, "premium"),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKeysStepOne(data, "premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeysStepTwo(data, "premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeysStepThree(data, "premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func TestAccDatabricksWorkspace_infrastructureEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -573,289 +573,289 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
 }
 
-// func (DatabricksWorkspaceResource) customerManagedKeysStepOne(data acceptance.TestData, sku string) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
+func (DatabricksWorkspaceResource) customerManagedKeysStepOne(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-// data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {}
 
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-db-%[1]d"
-//   location = "%[2]s"
-// }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-db-%[1]d"
+  location = "%[2]s"
+}
 
-// resource "azurerm_key_vault" "test" {
-//   name                = "acctest-kv-%[4]s"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-//   tenant_id           = data.azurerm_client_config.current.tenant_id
-//   sku_name            = "premium"
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-kv-%[4]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
 
-//   purge_protection_enabled = true
-// }
+  purge_protection_enabled = true
+}
 
-// resource "azurerm_key_vault_key" "test" {
-//   depends_on = [azurerm_key_vault_access_policy.test]
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault_access_policy.test]
 
-//   name         = "acctest-key-%[1]d"
-//   key_vault_id = azurerm_key_vault.test.id
-//   key_type     = "RSA"
-//   key_size     = 2048
+  name         = "acctest-key-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-//   key_opts = [
-//     "decrypt",
-//     "encrypt",
-//     "sign",
-//     "unwrapKey",
-//     "verify",
-//     "wrapKey",
-//   ]
-// }
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
 
-// resource "azurerm_key_vault_access_policy" "test" {
-//   key_vault_id = azurerm_key_vault.test.id
-//   tenant_id    = azurerm_key_vault.test.tenant_id
-//   object_id    = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-//   key_permissions = [
-//     "get",
-//     "list",
-//     "create",
-//     "decrypt",
-//     "encrypt",
-//     "sign",
-//     "unwrapKey",
-//     "verify",
-//     "wrapKey",
-//     "delete",
-//     "restore",
-//     "recover",
-//     "update",
-//     "purge",
-//   ]
-// }
+  key_permissions = [
+    "get",
+    "list",
+    "create",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+    "delete",
+    "restore",
+    "recover",
+    "update",
+    "purge",
+  ]
+}
 
-// resource "azurerm_key_vault_access_policy" "databricks" {
-//   key_vault_id = azurerm_key_vault.test.id
-//   tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-//   object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+resource "azurerm_key_vault_access_policy" "databricks" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
 
-//   key_permissions = [
-//     "get",
-//     "unwrapKey",
-//     "wrapKey",
-//     "delete",
-//     "purge",
-//   ]
-// }
+  key_permissions = [
+    "get",
+    "unwrapKey",
+    "wrapKey",
+    "delete",
+    "purge",
+  ]
+}
 
-// resource "azurerm_databricks_workspace" "test" {
-//   name                = "acctestDBW-%[1]d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "%[3]s"
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
 
-//   custom_parameters {
-//     customer_managed_key_enabled = true
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
-// }
+  custom_parameters {
+    customer_managed_key_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
+}
 
-// func (DatabricksWorkspaceResource) customerManagedKeysStepTwo(data acceptance.TestData, sku string) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
+func (DatabricksWorkspaceResource) customerManagedKeysStepTwo(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-// data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {}
 
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-db-%[1]d"
-//   location = "%[2]s"
-// }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-db-%[1]d"
+  location = "%[2]s"
+}
 
-// resource "azurerm_key_vault" "test" {
-//   name                = "acctest-kv-%[4]s"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-//   tenant_id           = data.azurerm_client_config.current.tenant_id
-//   sku_name            = "premium"
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-kv-%[4]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
 
-//   purge_protection_enabled = true
-// }
+  purge_protection_enabled = true
+}
 
-// resource "azurerm_key_vault_key" "test" {
-//   depends_on = [azurerm_key_vault_access_policy.test]
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault_access_policy.test]
 
-//   name         = "acctest-key-%[1]d"
-//   key_vault_id = azurerm_key_vault.test.id
-//   key_type     = "RSA"
-//   key_size     = 2048
+  name         = "acctest-key-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-//   key_opts = [
-//     "decrypt",
-//     "encrypt",
-//     "sign",
-//     "unwrapKey",
-//     "verify",
-//     "wrapKey",
-//   ]
-// }
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
 
-// resource "azurerm_key_vault_access_policy" "test" {
-//   key_vault_id = azurerm_key_vault.test.id
-//   tenant_id    = azurerm_key_vault.test.tenant_id
-//   object_id    = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-//   key_permissions = [
-//     "get",
-//     "list",
-//     "create",
-//     "decrypt",
-//     "encrypt",
-//     "sign",
-//     "unwrapKey",
-//     "verify",
-//     "wrapKey",
-//     "delete",
-//     "restore",
-//     "recover",
-//     "update",
-//     "purge",
-//   ]
-// }
+  key_permissions = [
+    "get",
+    "list",
+    "create",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+    "delete",
+    "restore",
+    "recover",
+    "update",
+    "purge",
+  ]
+}
 
-// resource "azurerm_key_vault_access_policy" "databricks" {
-//   key_vault_id = azurerm_key_vault.test.id
-//   tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-//   object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+resource "azurerm_key_vault_access_policy" "databricks" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
 
-//   key_permissions = [
-//     "get",
-//     "unwrapKey",
-//     "wrapKey",
-//     "delete",
-//     "purge",
-//   ]
-// }
+  key_permissions = [
+    "get",
+    "unwrapKey",
+    "wrapKey",
+    "delete",
+    "purge",
+  ]
+}
 
-// resource "azurerm_databricks_workspace" "test" {
-//   name                = "acctestDBW-%[1]d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "%[3]s"
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
 
-//   custom_parameters {
-//     customer_managed_key_enabled = true
+  custom_parameters {
+    customer_managed_key_enabled = true
 
-//     customer_managed_key {
-//       source    = "Microsoft.KeyVault"
-//       name      = azurerm_key_vault_key.test.name
-//       version   = azurerm_key_vault_key.test.version
-//       vault_uri = azurerm_key_vault.test.vault_uri
-//     }
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
-// }
+    customer_managed_key {
+      source    = "Microsoft.KeyVault"
+      name      = azurerm_key_vault_key.test.name
+      version   = azurerm_key_vault_key.test.version
+      vault_uri = azurerm_key_vault.test.vault_uri
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
+}
 
-// func (DatabricksWorkspaceResource) customerManagedKeysStepThree(data acceptance.TestData, sku string) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
+func (DatabricksWorkspaceResource) customerManagedKeysStepThree(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-// data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {}
 
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-db-%[1]d"
-//   location = "%[2]s"
-// }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-db-%[1]d"
+  location = "%[2]s"
+}
 
-// resource "azurerm_key_vault" "test" {
-//   name                = "acctest-kv-%[4]s"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-//   tenant_id           = data.azurerm_client_config.current.tenant_id
-//   sku_name            = "premium"
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-kv-%[4]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
 
-//   purge_protection_enabled = true
-// }
+  purge_protection_enabled = true
+}
 
-// resource "azurerm_key_vault_key" "test" {
-//   depends_on = [azurerm_key_vault_access_policy.test]
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault_access_policy.test]
 
-//   name         = "acctest-key-%[1]d"
-//   key_vault_id = azurerm_key_vault.test.id
-//   key_type     = "RSA"
-//   key_size     = 2048
+  name         = "acctest-key-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-//   key_opts = [
-//     "decrypt",
-//     "encrypt",
-//     "sign",
-//     "unwrapKey",
-//     "verify",
-//     "wrapKey",
-//   ]
-// }
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
 
-// resource "azurerm_key_vault_access_policy" "test" {
-//   key_vault_id = azurerm_key_vault.test.id
-//   tenant_id    = azurerm_key_vault.test.tenant_id
-//   object_id    = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-//   key_permissions = [
-//     "get",
-//     "list",
-//     "create",
-//     "decrypt",
-//     "encrypt",
-//     "sign",
-//     "unwrapKey",
-//     "verify",
-//     "wrapKey",
-//     "delete",
-//     "restore",
-//     "recover",
-//     "update",
-//     "purge",
-//   ]
-// }
+  key_permissions = [
+    "get",
+    "list",
+    "create",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+    "delete",
+    "restore",
+    "recover",
+    "update",
+    "purge",
+  ]
+}
 
-// resource "azurerm_key_vault_access_policy" "databricks" {
-//   key_vault_id = azurerm_key_vault.test.id
-//   tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-//   object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+resource "azurerm_key_vault_access_policy" "databricks" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
 
-//   key_permissions = [
-//     "get",
-//     "unwrapKey",
-//     "wrapKey",
-//     "delete",
-//     "purge",
-//   ]
-// }
+  key_permissions = [
+    "get",
+    "unwrapKey",
+    "wrapKey",
+    "delete",
+    "purge",
+  ]
+}
 
-// resource "azurerm_databricks_workspace" "test" {
-//   name                = "acctestDBW-%[1]d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "%[3]s"
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
 
-//   custom_parameters {
-//     customer_managed_key_enabled = true
+  custom_parameters {
+    customer_managed_key_enabled = true
 
-//     customer_managed_key {
-//       source = "Default"
-//     }
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
-// }
+    customer_managed_key {
+      source = "Default"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
+}
 
 func (DatabricksWorkspaceResource) infrastructureEncryptionStepOne(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
