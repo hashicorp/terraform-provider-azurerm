@@ -311,7 +311,7 @@ func expandSignalRServicePublicNetwork(input []interface{}) *signalr.NetworkACL 
 	allowedRTs := make([]signalr.RequestType, 0)
 	deniedRTs := make([]signalr.RequestType, 0)
 
-	if len(input) != 0 {
+	if len(input) != 0 && input[0] != nil {
 		v := input[0].(map[string]interface{})
 
 		for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
@@ -391,7 +391,7 @@ func flattenSignalRServiceNetworkACL(input *signalr.NetworkACLs, privateEndpoint
 }
 
 func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{} {
-	if input == nil || (input.Allow != nil && input.Deny != nil && len(*input.Allow) == 0 && len(*input.Deny) == 0) {
+	if input == nil {
 		return make([]interface{}, 0)
 	}
 
@@ -426,34 +426,32 @@ func flattenSignalRServicePrivateEndpoint(input *[]signalr.PrivateEndpointACL, p
 	}
 
 	for _, item := range *input {
-		if item.Allow != nil && item.Deny != nil && (len(*item.Allow) != 0 || len(*item.Deny) != 0) {
-			if privateEndpointConnections != nil {
-				for _, privateEndpointConnection := range *privateEndpointConnections {
-					if item.Name != nil && privateEndpointConnection.Name != nil && *item.Name == *privateEndpointConnection.Name && privateEndpointConnection.PrivateEndpointConnectionProperties != nil && privateEndpointConnection.PrivateEndpointConnectionProperties.PrivateEndpoint != nil && privateEndpointConnection.PrivateEndpointConnectionProperties.PrivateEndpoint.ID != nil {
-						allowedRequestTypes := make([]string, 0)
-						if item.Allow != nil {
-							for _, item := range *item.Allow {
-								allowedRequestTypes = append(allowedRequestTypes, (string)(item))
-							}
+		if privateEndpointConnections != nil {
+			for _, privateEndpointConnection := range *privateEndpointConnections {
+				if item.Name != nil && privateEndpointConnection.Name != nil && *item.Name == *privateEndpointConnection.Name && privateEndpointConnection.PrivateEndpointConnectionProperties != nil && privateEndpointConnection.PrivateEndpointConnectionProperties.PrivateEndpoint != nil && privateEndpointConnection.PrivateEndpointConnectionProperties.PrivateEndpoint.ID != nil {
+					allowedRequestTypes := make([]string, 0)
+					if item.Allow != nil {
+						for _, item := range *item.Allow {
+							allowedRequestTypes = append(allowedRequestTypes, (string)(item))
 						}
-						allow := utils.FlattenStringSlice(&allowedRequestTypes)
-
-						deniedRequestTypes := make([]string, 0)
-						if item.Deny != nil {
-							for _, item := range *item.Deny {
-								deniedRequestTypes = append(deniedRequestTypes, (string)(item))
-							}
-						}
-						deny := utils.FlattenStringSlice(&deniedRequestTypes)
-
-						results = append(results, map[string]interface{}{
-							"id":                    *privateEndpointConnection.PrivateEndpointConnectionProperties.PrivateEndpoint.ID,
-							"allowed_request_types": allow,
-							"denied_request_types":  deny,
-						})
-
-						break
 					}
+					allow := utils.FlattenStringSlice(&allowedRequestTypes)
+
+					deniedRequestTypes := make([]string, 0)
+					if item.Deny != nil {
+						for _, item := range *item.Deny {
+							deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+						}
+					}
+					deny := utils.FlattenStringSlice(&deniedRequestTypes)
+
+					results = append(results, map[string]interface{}{
+						"id":                    *privateEndpointConnection.PrivateEndpointConnectionProperties.PrivateEndpoint.ID,
+						"allowed_request_types": allow,
+						"denied_request_types":  deny,
+					})
+
+					break
 				}
 			}
 		}
