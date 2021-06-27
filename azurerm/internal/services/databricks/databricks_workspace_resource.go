@@ -329,18 +329,17 @@ func NewCustomParametersState(d *pluginsdk.ResourceDiff) CustomParametersState {
 		if oCmk && cmk {
 			ready = true
 		}
-	}
 
-	cmkRaw := config["customer_managed_key"].(interface{})
-	if cmkRaw != nil {
-		c := cmkRaw.([]interface{})
-		if len(c) != 0 && c[0] != nil {
-			defined = true
-			cmk := c[0].(map[string]interface{})
-			source = cmk["source"].(string)
-			name = cmk["name"].(string)
-			version = cmk["version"].(string)
-			uri = cmk["vault_uri"].(string)
+		if cmkRaw := config["customer_managed_key"].(interface{}); cmkRaw != nil {
+			c := cmkRaw.([]interface{})
+			if len(c) != 0 && c[0] != nil {
+				defined = true
+				cmk := c[0].(map[string]interface{})
+				source = cmk["source"].(string)
+				name = cmk["name"].(string)
+				version = cmk["version"].(string)
+				uri = cmk["vault_uri"].(string)
+			}
 		}
 	}
 
