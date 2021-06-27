@@ -88,7 +88,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"custom_parameters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				// Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -331,8 +331,7 @@ func NewCustomParametersState(d *pluginsdk.ResourceDiff) CustomParametersState {
 		}
 
 		if cmkRaw := config["customer_managed_key"].(interface{}); cmkRaw != nil {
-			c := cmkRaw.([]interface{})
-			if len(c) != 0 && c[0] != nil {
+			if c := cmkRaw.([]interface{}); len(c) != 0 && c[0] != nil {
 				defined = true
 				cmk := c[0].(map[string]interface{})
 				source = cmk["source"].(string)

@@ -60,13 +60,11 @@ A `custom_parameters` block supports the following:
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
-* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`.
+* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
 
-~> **NOTE** If the `customer_managed_key_enabled` field has been set to `true` attempting to revert this value back to `false` will cause a new resource to be created. If you wish to remove your customer managed key encryption from your workspaces DBFS storage you will need to update the `customer_managed_key` blocks `source` field to be `Default`.
+~> **NOTE** This is a two step process, first you must set the `customer_managed_key_enabled` to `true` and apply those changes. Once the resource has been created you will then need to define a `customer_managed_key` block as documented below. Apply those changes to finish the configuration of your customer managed keys on your databricks workspace. If you wish to remove your customer managed key encryption from your workspaces DBFS storage you will need to update the `customer_managed_key` blocks `source` field to be `Default`.
 
-* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`.
-
-~> **NOTE** If the `infrastructure_encryption_enabled` field has been set to `true` attempting to revert this value back to `false` will cause a new resource to be created. 
+* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
 
 * `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
