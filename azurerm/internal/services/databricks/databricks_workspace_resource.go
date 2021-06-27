@@ -102,7 +102,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						"customer_managed_key": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -231,7 +230,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			cp := NewCustomParametersConfiguration(d)
+			cp := NewCustomParametersState(d)
 
 			if d.HasChange("custom_parameters") {
 				if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
@@ -297,7 +296,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 // I am currently putting this inline with the resource, couldn't decide if moving it
 // to a parse or an internal package was a better choice or not?
 // but I do feel strongly that this makes the CustomizeDiff code much more readable...
-func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) CustomParametersState {
+func NewCustomParametersState(d *pluginsdk.ResourceDiff) CustomParametersState {
 	o, n := d.GetChange("custom_parameters")
 	new := n.([]interface{})
 	old := o.([]interface{})
@@ -332,14 +331,17 @@ func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) CustomParameter
 		}
 	}
 
-	cmkRaw := config["customer_managed_key"].([]interface{})
-	if len(cmkRaw) != 0 && cmkRaw[0] != nil {
-		defined = true
-		cmk := cmkRaw[0].(map[string]interface{})
-		source = cmk["source"].(string)
-		name = cmk["name"].(string)
-		version = cmk["version"].(string)
-		uri = cmk["vault_uri"].(string)
+	cmkRaw := config["customer_managed_key"].(interface{})
+	if cmkRaw != nil {
+		c := cmkRaw.([]interface{})
+		if len(c) != 0 && c[0] != nil {
+			defined = true
+			cmk := c[0].(map[string]interface{})
+			source = cmk["source"].(string)
+			name = cmk["name"].(string)
+			version = cmk["version"].(string)
+			uri = cmk["vault_uri"].(string)
+		}
 	}
 
 	return CustomParametersState{
