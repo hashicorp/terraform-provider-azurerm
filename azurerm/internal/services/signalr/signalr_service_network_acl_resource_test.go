@@ -31,21 +31,6 @@ func TestAccSignalRServiceNetworkACL_basic(t *testing.T) {
 	})
 }
 
-func TestAccSignalRServiceNetworkACL_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service_network_acl", "test")
-	r := SignalRServiceNetworkACLResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func TestAccSignalRServiceNetworkACL_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_network_acl", "test")
 	r := SignalRServiceNetworkACLResource{}
@@ -127,24 +112,6 @@ resource "azurerm_signalr_service_network_acl" "test" {
   }
 }
 `, r.template(data))
-}
-
-func (r SignalRServiceNetworkACLResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_signalr_service_network_acl" "import" {
-  signalr_service_id = azurerm_signalr_service_network_acl.test.signalr_service_id
-  
-  network_acl {
-    default_action = azurerm_signalr_service_network_acl.test.network_acl.0.default_action
-
-    public_network {
-      allowed_request_types = azurerm_signalr_service_network_acl.test.network_acl.0.public_network.0.allowed_request_types
-    }
-  }
-}
-`, r.basic(data))
 }
 
 func (r SignalRServiceNetworkACLResource) complete(data acceptance.TestData) string {
