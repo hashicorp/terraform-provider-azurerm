@@ -23,7 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type WorkspaceConfiguration struct {
+type CustomParametersState struct {
 	CustomerEncryptionReady           bool
 	CustomerEncryptionEnabled         bool
 	PreviousCustomerEncryptionEnabled bool
@@ -233,13 +233,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 			cp := NewCustomParametersConfiguration(d)
 
-			// NOTE: These checks are kind of odd, but it is the best I could do because the original resource was created
-			//       the way it was. This will cause our end users to be confused (prolly generating issues in the repo)
-			//       because some of the configurations/changes to the configuration file will not generate changes. This
-			//       will not seem right because the resource was originally introduced with the "custom_parameters" block
-			//       as Optional and Computed. The side effect of this is if it is not in the config file but it is in the
-			//       state file the value will be pulled from the state and during the compare show that there are no changes.
-			//       I cannot do much about it now without introducing breaking changes... so this is my best effort... ¯\_(ツ)_/¯
 			if d.HasChange("custom_parameters") {
 				if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
 					return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
@@ -279,8 +272,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			// Second CMK run (e.g. old cmk is true and current cmk is true) MSI is already set up for the DBFS storage and this is where you should setup the double encryption info...
-			// This is a custom d.NewResource() hack since it does not exist in the pluginsdk.ResourceDiff schema...
+			// if MSI is already set up for the DBFS storage setup validate the double encryption settings...
 			if cp.CustomerEncryptionReady {
 				if !cp.CustomerManagedKeyDefined {
 					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is not defined")
@@ -293,7 +285,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 				// Set key source to KeyVault but you did not set one or more key vault values return an error
 				if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
-					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is missing values for one or more of the following fields 'name', 'version', and/or 'vault_uri'")
+					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is missing one or more of the following fields 'name', 'version', and/or 'vault_uri'")
 				}
 			}
 
@@ -302,25 +294,18 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	}
 }
 
-// I am currently putting this inline with the resource, couldn't decide if moving it to a parse or an internal package was a better choice or not?
+// I am currently putting this inline with the resource, couldn't decide if moving it
+// to a parse or an internal package was a better choice or not?
 // but I do feel strongly that this makes the CustomizeDiff code much more readable...
-func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfiguration {
+func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) CustomParametersState {
 	o, n := d.GetChange("custom_parameters")
 	new := n.([]interface{})
 	old := o.([]interface{})
 	var config map[string]interface{}
 	var oConfig map[string]interface{}
 
-	source := ""
-	name := ""
-	version := ""
-	uri := ""
-	infra := false
-	cmk := false
-	oCmk := false
-	sku := ""
-	defined := false
-	ready := false
+	name, version, uri, sku, source := "", "", "", "", ""
+	infra, cmk, oCmk, defined, ready := false, false, false, false, false
 
 	if len(new) != 0 && new[0] != nil {
 		_, changedSKU := d.GetChange("sku")
@@ -329,7 +314,6 @@ func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfig
 
 		if len(old) != 0 && old[0] != nil {
 			oConfig = old[0].(map[string]interface{})
-
 			if v, ok := oConfig["customer_managed_key_enabled"].(bool); ok {
 				oCmk = v
 			}
@@ -346,7 +330,6 @@ func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfig
 		if oCmk && cmk {
 			ready = true
 		}
-
 	}
 
 	cmkRaw := config["customer_managed_key"].([]interface{})
@@ -359,7 +342,7 @@ func NewCustomParametersConfiguration(d *pluginsdk.ResourceDiff) WorkspaceConfig
 		uri = cmk["vault_uri"].(string)
 	}
 
-	return WorkspaceConfiguration{
+	return CustomParametersState{
 		CustomerEncryptionReady:           ready,
 		CustomerEncryptionEnabled:         cmk,
 		PreviousCustomerEncryptionEnabled: oCmk,

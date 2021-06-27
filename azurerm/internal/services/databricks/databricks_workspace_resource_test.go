@@ -863,8 +863,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-db-%[1]d"
   location = "%[2]s"
@@ -888,8 +886,6 @@ func (DatabricksWorkspaceResource) infrastructureEncryptionStepTwo(data acceptan
 provider "azurerm" {
   features {}
 }
-
-data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-db-%[1]d"
