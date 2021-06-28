@@ -7,7 +7,6 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.11.19` of `github.com/Azure/go-autorest/autorest` [GH-12209]
 * dependencies: updating to `v0.9.14` of `github.com/Azure/go-autorest/autorest/adal` [GH-12209]
 * dependencies: updating the embedded SDK for Eventhub Namespaces to use API Version `2021-01-01-preview` [GH-12290]
-* `azurerm_databricks_workspace` - support for `infrastructure_encryption_enabled` and `prepare_encryption` ([#9785](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9785))
 
 BUG FIXES:
 
