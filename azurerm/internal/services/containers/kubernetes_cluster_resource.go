@@ -330,6 +330,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"local_account_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -918,6 +923,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WindowsProfile:         windowsProfile,
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1162,6 +1168,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.LinuxProfile = linuxProfile
 	}
 
+	if d.HasChange("local_account_disabled") {
+		updateCluster = true
+		existing.ManagedClusterProperties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
+	}
+
 	if d.HasChange("network_profile") {
 		updateCluster = true
 
@@ -1383,6 +1394,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+		d.Set("local_account_disabled", props.DisableLocalAccounts)
 
 		upgradeChannel := ""
 		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
@@ -1456,8 +1468,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		// adminProfile is only available for RBAC enabled clusters with AAD
-		if props.AadProfile != nil {
+		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
+		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
 			if err != nil {
 				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)

@@ -319,6 +319,8 @@ A `default_node_pool` block supports the following:
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. At this time the only possible value is `OS`.
 
+* `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
+
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
