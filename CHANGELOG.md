@@ -4,12 +4,14 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `azurerm_lighthouse_definition` - supports for the `plan` block [GH-12360]
+* `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
 
 
 BUG FIXES:
 
-* `azurerm_hdinsight_kafka_cluster` - will no longer panics from an empty `component_version` property [GH-12261]
+* `azurerm_app_service` - fix app_setting and SCM setting ordering [GH-12280]
+* `azurerm_hdinsight_kafka_cluster` - will no longer panic from an empty `component_version` property [GH-12261]
+
 
 ## 2.65.0 (June 25, 2021)
 
