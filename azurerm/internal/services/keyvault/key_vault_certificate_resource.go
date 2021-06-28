@@ -485,9 +485,9 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
 		if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
 			stateConf.PollInterval = 30 * time.Second
-			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
 
+		stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
 		}
