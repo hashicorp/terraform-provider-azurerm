@@ -187,7 +187,7 @@ resource "azurerm_powerbi_embedded" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku_name            = "A1"
   administrators      = ["${data.azurerm_client_config.test.object_id}"]
-  mode				  = "Gen2"
+  mode                = "Gen2"
 }
 `, template, data.RandomInteger)
 }
