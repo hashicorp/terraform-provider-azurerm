@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
 * `data_azurerm_storage_account_sas` - add ip_addresses field [GH-12705]
+* `azurerm_app_service` - support for the `acr_use_managed_identity_creds` and `acr_user_managed_identity_id` properties [GH-12277]
 
 ---
 
