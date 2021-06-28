@@ -317,13 +317,3 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 		}
 	}
 }
-
-func SchemaApiManagementTags() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Elem: &pluginsdk.Schema{
-			Type: pluginsdk.TypeString,
-		},
-	}
-}
