@@ -426,27 +426,6 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	// Don't send source_control changes for ADO controlled Apps
-	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
-		sourceControlProperties := expandAppServiceSiteSourceControl(d)
-		sourceControl := &web.SiteSourceControl{}
-		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
-		if err != nil {
-			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
-		}
-
-		err = scFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
-		}
-
-		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
-		if err != nil {
-			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
-		}
-	}
-
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
@@ -498,6 +477,27 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 		if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
 			return fmt.Errorf("updating Application Settings for App Service %q: %+v", id.SiteName, err)
+		}
+	}
+
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+
+		err = scFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
+		}
+
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
 		}
 	}
 
