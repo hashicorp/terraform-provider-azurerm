@@ -991,11 +991,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  dns_prefix          = "acctestaks%d"
+  name                   = "acctestaks%d"
+  location               = "${azurerm_resource_group.test.location}"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  dns_prefix             = "acctestaks%d"
   local_account_disabled = true
+
   linux_profile {
     admin_username = "acctestuser%d"
 
