@@ -1,6 +1,7 @@
 package eventgrid
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"time"
@@ -36,6 +37,27 @@ const (
 	// WebHookEndpoint ...
 	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
 )
+
+func eventSubscriptionCustomizeDiffAdvancedFilter(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
+		filters := filterRaw.([]interface{})[0].(map[string]interface{})
+		valueCount := 0
+		for _, valRaw := range filters {
+			for _, val := range valRaw.([]interface{}) {
+				v := val.(map[string]interface{})
+				if values, ok := v["values"]; ok {
+					valueCount += len(values.([]interface{}))
+				} else if _, ok := v["value"]; ok {
+					valueCount++
+				}
+			}
+		}
+		if valueCount > 25 {
+			return fmt.Errorf("the total number of `advanced_filter` values allowed on a single event subscription is 25, but %d are configured", valueCount)
+		}
+	}
+	return nil
+}
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
 	return &pluginsdk.Schema{

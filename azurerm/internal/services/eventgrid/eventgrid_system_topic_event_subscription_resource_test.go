@@ -157,7 +157,7 @@ func TestAccEventGridSystemTopicEventSubscription_filter(t *testing.T) {
 }
 
 func TestAccEventGridSystemTopicEventSubscription_advancedFilter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test1")
 	r := EventGridSystemTopicEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -165,42 +165,7 @@ func TestAccEventGridSystemTopicEventSubscription_advancedFilter(t *testing.T) {
 			Config: r.advancedFilter(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.value").HasValue("1"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.value").HasValue("42"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.value").HasValue("42.1"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.value").HasValue("2"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.0").HasValue("0"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.0").HasValue("5"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in_range.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in_range.0.values.0").HasValue("[0, 1]"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in_range.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in_range.0.values.0").HasValue("[5, 13]"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.0").HasValue("bar"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_begins_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_begins_with.0.values.0").HasValue("lorem"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_ends_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_ends_with.0.values.0").HasValue("ipsum"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.key").HasValue("data.contentType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.0").HasValue("application"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_contains.0.key").HasValue("data.contentType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_contains.0.values.0").HasValue("text"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("Block"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.0").HasValue("Page"),
-				check.That(data.ResourceName).Key("advanced_filter.0.is_not_null.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.is_null_or_undefined.0.key").HasValue("subject"),
+				check.That("azurerm_eventgrid_system_topic_event_subscription.test2").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -216,43 +181,6 @@ func TestAccEventGridSystemTopicEventSubscription_advancedFilterMaxItems(t *test
 			Config: r.advancedFilterMaxItems(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.value").HasValue("2"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.value").HasValue("3"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.value").HasValue("4"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.value").HasValue("5"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.0").HasValue("6"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.1").HasValue("7"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.2").HasValue("8"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.0").HasValue("9"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.1").HasValue("10"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.2").HasValue("11"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("12"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.1").HasValue("13"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.2").HasValue("14"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.0").HasValue("15"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.1").HasValue("16"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.2").HasValue("17"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.key").HasValue("data.contentType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.0").HasValue("18"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.1").HasValue("19"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.2").HasValue("20"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("21"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.1").HasValue("22"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.2").HasValue("23"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.0").HasValue("24"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.1").HasValue("25"),
 			),
 		},
 		data.ImportStep(),
@@ -672,8 +600,8 @@ resource "azurerm_eventgrid_system_topic" "test" {
   topic_type             = "Microsoft.Resources.ResourceGroups"
 }
 
-resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
-  name                = "acctesteg-%[1]d"
+resource "azurerm_eventgrid_system_topic_event_subscription" "test1" {
+  name                = "acctesteg-%[1]d-1"
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
@@ -723,6 +651,20 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
       key    = "subject"
       values = ["foo"]
     }
+  }
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test2" {
+  name                = "acctesteg-%[1]d-2"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  storage_queue_endpoint {
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
+  }
+
+  advanced_filter {
     string_ends_with {
       key    = "subject"
       values = ["bar"]
@@ -758,7 +700,6 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
       key = "subject"
     }
   }
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
