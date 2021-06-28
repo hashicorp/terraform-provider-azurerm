@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
+* `azurerm_app_service` - support for the `acr_use_managed_identity_creds` and `acr_user_managed_identity_id` properties [GH-12277]
 
 
 BUG FIXES:
