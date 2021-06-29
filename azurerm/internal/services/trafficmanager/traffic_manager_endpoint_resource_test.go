@@ -882,13 +882,13 @@ resource "azurerm_traffic_manager_profile" "child" {
 }
 
 resource "azurerm_traffic_manager_endpoint" "nested" {
-  name                = "acctestend-parent%d"
-  type                = "nestedEndpoints"
-  target_resource_id  = azurerm_traffic_manager_profile.child.id
-  priority            = 1
-  profile_name        = azurerm_traffic_manager_profile.parent.name
-  resource_group_name = azurerm_resource_group.test.name
-  min_child_endpoints = 5
+  name                     = "acctestend-parent%d"
+  type                     = "nestedEndpoints"
+  target_resource_id       = azurerm_traffic_manager_profile.child.id
+  priority                 = 1
+  profile_name             = azurerm_traffic_manager_profile.parent.name
+  resource_group_name      = azurerm_resource_group.test.name
+  min_child_endpoints      = 5
   min_child_endpoints_ipv4 = 2
   min_child_endpoints_ipv6 = 2
 }
