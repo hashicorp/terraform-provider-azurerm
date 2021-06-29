@@ -14,6 +14,7 @@ type Client struct {
 	FirewallRulesClient                        *sql.FirewallRulesClient
 	FailoverGroupsClient                       *sql.FailoverGroupsClient
 	ManagedInstancesClient                     *msi.ManagedInstancesClient
+	ManagedDatabasesClient                     *msi.ManagedDatabasesClient
 	ServersClient                              *sql.ServersClient
 	ServerExtendedBlobAuditingPoliciesClient   *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerConnectionPoliciesClient             *sql.ServerConnectionPoliciesClient
@@ -44,6 +45,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstancesClient := msi.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
 
+	managedDatabasesClient := msi.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedDatabasesClient.Client, o.ResourceManagerAuthorizer)
+
 	serversClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
@@ -67,6 +71,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		FailoverGroupsClient:                       &failoverGroupsClient,
 		FirewallRulesClient:                        &firewallRulesClient,
 		ManagedInstancesClient:                     &managedInstancesClient,
+		ManagedDatabasesClient:                     &managedDatabasesClient,
 		ServersClient:                              &serversClient,
 		ServerAzureADAdministratorsClient:          &serverAzureADAdministratorsClient,
 		ServerConnectionPoliciesClient:             &serverConnectionPoliciesClient,
