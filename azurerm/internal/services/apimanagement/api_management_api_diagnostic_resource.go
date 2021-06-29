@@ -135,6 +135,7 @@ func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 					},
 					Set: pluginsdk.HashString,
 				},
+				"data_masking": schemaz.SchemaApiManagementDataMasking(),
 			},
 		},
 	}
@@ -329,6 +330,8 @@ func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) 
 		result.Headers = &headers
 	}
 
+	result.DataMasking = schemaz.ExpandApiManagementDataMasking(v["data_masking"].([]interface{}))
+
 	return result
 }
 
@@ -348,6 +351,9 @@ func flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(input *apimanagement
 	if input.Headers != nil {
 		diagnostic["headers_to_log"] = set.FromStringSlice(*input.Headers)
 	}
+
+	diagnostic["data_masking"] = schemaz.FlattenApiManagementDataMasking(input.DataMasking)
+
 	result = append(result, diagnostic)
 
 	return result
