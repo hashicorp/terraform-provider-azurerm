@@ -32,13 +32,13 @@ func NewResourceSkusClientWithBaseURI(baseURI string, subscriptionID string) Res
 }
 
 // List gets the list of Microsoft.CognitiveServices SKUs available for your Subscription.
-func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusResultPage, err error) {
+func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkuListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceSkusClient.List")
 		defer func() {
 			sc := -1
-			if result.rsr.Response.Response != nil {
-				sc = result.rsr.Response.Response.StatusCode
+			if result.rslr.Response.Response != nil {
+				sc = result.rslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -58,17 +58,17 @@ func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusR
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rsr.Response = autorest.Response{Response: resp}
+		result.rslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rsr, err = client.ListResponder(resp)
+	result.rslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
+	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -82,7 +82,7 @@ func (client ResourceSkusClient) ListPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -103,7 +103,7 @@ func (client ResourceSkusClient) ListSender(req *http.Request) (*http.Response, 
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client ResourceSkusClient) ListResponder(resp *http.Response) (result ResourceSkusResult, err error) {
+func (client ResourceSkusClient) ListResponder(resp *http.Response) (result ResourceSkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -114,8 +114,8 @@ func (client ResourceSkusClient) ListResponder(resp *http.Response) (result Reso
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ResourceSkusClient) listNextResults(ctx context.Context, lastResults ResourceSkusResult) (result ResourceSkusResult, err error) {
-	req, err := lastResults.resourceSkusResultPreparer(ctx)
+func (client ResourceSkusClient) listNextResults(ctx context.Context, lastResults ResourceSkuListResult) (result ResourceSkuListResult, err error) {
+	req, err := lastResults.resourceSkuListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -135,7 +135,7 @@ func (client ResourceSkusClient) listNextResults(ctx context.Context, lastResult
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ResourceSkusClient) ListComplete(ctx context.Context) (result ResourceSkusResultIterator, err error) {
+func (client ResourceSkusClient) ListComplete(ctx context.Context) (result ResourceSkuListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceSkusClient.List")
 		defer func() {
