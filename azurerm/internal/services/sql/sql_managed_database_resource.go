@@ -87,9 +87,13 @@ func resourceArmSqlManagedDatabaseCreateUpdate(d *schema.ResourceData, meta inte
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, database)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, database)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating SQL Managed Database %q: %+v", id.ID(), err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creating/updating to complete for SQL Managed Database %q: %+v", id.ID(), err)
 	}
 
 	d.SetId(id.ID())
