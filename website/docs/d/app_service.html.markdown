@@ -174,6 +174,10 @@ A `site_config` block exports the following:
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
+* `acr_use_managed_identity_creds` - Are Managed Identity Creds be used for Azure Container Registry pull.
+
+* `acr_user_managed_identity_id` - The User Managed Identity, Client Id.
+
 ---
 
 A `source_control` block exports the following:
