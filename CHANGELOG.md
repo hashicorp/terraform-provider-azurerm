@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
 
 
