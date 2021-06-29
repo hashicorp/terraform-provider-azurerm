@@ -1,4 +1,4 @@
-b---
+---
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
