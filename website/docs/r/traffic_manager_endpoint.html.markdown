@@ -110,6 +110,8 @@ The following arguments are supported:
     profile. This argument only applies to Endpoints of type `nestedEndpoints`
     and defaults to `1`.
 
+~>**NOTE**: If `min_child_endpoints` is less than either `min_child_endpoints_ipv4` or `min_child_endpoints_ipv6`, then it won't have any effect.
+
 * `min_child_endpoints_ipv4` - (Optional) This argument specifies the minimum number
     of IPv4 (DNS record type A) endpoints that must be ‘online’ in the child profile in order for the
     parent profile to direct traffic to any of the endpoints in that child
