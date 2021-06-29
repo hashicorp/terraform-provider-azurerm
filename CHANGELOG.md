@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
+
 ENHANCEMENTS:
 
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
