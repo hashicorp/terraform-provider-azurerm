@@ -9,7 +9,7 @@ ENHANCEMENTS:
 
 * `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
-
+* `azurerm_site_recovery_replicated_vm` - Add support for `target_disk_encryption_set_id` in `managed_disk` [GH-12374]
 
 BUG FIXES:
 
