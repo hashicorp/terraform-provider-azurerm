@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resouce** `azurerm_api_management_api_operation_tag` [GH-12384]
 * **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
 
 ENHANCEMENTS:
