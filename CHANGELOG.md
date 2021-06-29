@@ -11,6 +11,8 @@ BUG FIXES:
 
 * `azurerm_app_service` - fix app_setting and SCM setting ordering [GH-12280]
 * `azurerm_hdinsight_kafka_cluster` - will no longer panic from an empty `component_version` property [GH-12261]
+* `azurerm_spatial_anchors_account` - the `tags` property can now be updated without creating a new resource [GH-11985]
+
 
 
 ## 2.65.0 (June 25, 2021)
