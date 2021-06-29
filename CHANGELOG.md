@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resouce** `azurerm_api_management_api_operation_tag` [GH-12384]
 * **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
+* **New Resouce** `azurerm_express_route_connection` [GH-11320]
 * Cognitive Service now supports purging soft delete accounts [GH-12281]
 
 ENHANCEMENTS:
