@@ -48,7 +48,6 @@ func (r SqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, 
 	return utils.Bool(true), nil
 }
 
-/*
 func (r SqlManagedDatabase) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -58,14 +57,4 @@ resource "azurerm_sql_managed_database" "test" {
   location                = azurerm_resource_group.test.location
 }
 `, SqlManagedInstanceResource{}.basic(data), data.RandomInteger)
-}*/
-
-func (r SqlManagedDatabase) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_sql_managed_database" "test" {
-  sql_managed_instance_id = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestRG-matthewtest2/providers/Microsoft.Sql/managedInstances/acctestsqlservermatt"
-  name                    = "acctest-%d"
-  location = "westcentralus"
-}
-`, data.RandomInteger)
 }
