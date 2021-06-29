@@ -18,7 +18,7 @@ type ApiManagementGatewayAPIResource struct {
 
 func TestAccApiManagementGatewayApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_api", "test")
-	r := ApiManagementProductAPIResource{}
+	r := ApiManagementGatewayAPIResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccApiManagementGatewayApi_basic(t *testing.T) {
 
 func TestAccApiManagementGatewayApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_api", "test")
-	r := ApiManagementProductAPIResource{}
+	r := ApiManagementGatewayAPIResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,12 +85,12 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_gateway" "test" {
-	api_management_name   = azurerm_api_management.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	gateway_id          	= "TestGateway"
-	location 				= "old world updated"
-	description     		= "this is a test gateway updated"
-  }
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_id          = "TestGateway"
+  location            = "old world updated"
+  description         = "this is a test gateway updated"
+}
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"

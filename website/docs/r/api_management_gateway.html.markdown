@@ -15,8 +15,8 @@ Manages a API Management Gateway.
 ```hcl
 resource "azurerm_api_management_gateway" "example" {
   resource_group_name = "example"
-  location = "West Europe"
-  gateway_id = "my-gateway"
+  location            = "West Europe"
+  gateway_id          = "my-gateway"
   api_management_name = "example"
 }
 ```

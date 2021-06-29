@@ -135,7 +135,7 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 
 	if props := resp.GatewayContractProperties; props != nil {
 		d.Set("description", props.Description)
-		d.Set("location", string(*props.LocationData.Name))
+		d.Set("location", props.LocationData.Name)
 	}
 
 	return nil

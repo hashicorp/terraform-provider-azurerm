@@ -104,12 +104,12 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_gateway" "test" {
-	api_management_name   = azurerm_api_management.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	gateway_id          	= "TestGateway"
-	location 				= "old world updated"
-	description     		= "this is a test gateway updated"
-  }
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_id          = "TestGateway"
+  location            = "old world updated"
+  description         = "this is a test gateway updated"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
@@ -152,12 +152,12 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_gateway" "test" {
-	api_management_name   = azurerm_api_management.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	gateway_id          	= "TestGateway"
-	location 				= "old world"
-	description     		= "this is a test gateway"
-  }
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_id          = "TestGateway"
+  location            = "old world"
+  description         = "this is a test gateway"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
@@ -166,11 +166,11 @@ func (r ApiManagementGatewayResource) requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_api_management_gateway" "import" {
-	api_management_name   = azurerm_api_management_gateway.test.api_management_name
-	resource_group_name   = azurerm_api_management_gateway.test.resource_group_name
-	name          		  = azurerm_api_management_gateway.test.name
-	location 			  = azurerm_api_management_gateway.test.location
-	description     	  = azurerm_api_management_gateway.test.description
+  api_management_name = azurerm_api_management_gateway.test.api_management_name
+  resource_group_name = azurerm_api_management_gateway.test.resource_group_name
+  name                = azurerm_api_management_gateway.test.name
+  location            = azurerm_api_management_gateway.test.location
+  description         = azurerm_api_management_gateway.test.description
 }
 `, r.basic(data))
 }

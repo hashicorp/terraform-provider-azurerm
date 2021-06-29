@@ -33,8 +33,8 @@ data "azurerm_api_management_gateway" "example" {
 
 resource "azurerm_api_management_gateway_api" "example" {
   resource_group_name = data.azurerm_api_management.example.resource_group_name
-  api_name = data.azurerm_api_management_api.example.name
-  gateway_id = data.azurerm_api_management_product.example.gateway_id
+  api_name            = data.azurerm_api_management_api.example.name
+  gateway_id          = data.azurerm_api_management_product.example.gateway_id
   api_management_name = data.azurerm_api_management.example.name
 }
 ```

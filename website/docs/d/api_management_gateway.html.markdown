@@ -15,7 +15,7 @@ Use this data source to access information about an existing API Management Gate
 ```hcl
 data "azurerm_api_management_gateway" "example" {
   resource_group_name = "existing"
-  gateway_id = "my-gateway"
+  gateway_id          = "my-gateway"
   api_management_name = "existing"
 }
 
