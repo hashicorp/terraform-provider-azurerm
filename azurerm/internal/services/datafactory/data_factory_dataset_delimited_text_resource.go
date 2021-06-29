@@ -184,7 +184,6 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"null_value": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
