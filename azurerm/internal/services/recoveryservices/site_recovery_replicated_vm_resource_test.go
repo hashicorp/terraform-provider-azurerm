@@ -607,7 +607,7 @@ resource "azurerm_key_vault_key" "test2" {
     "wrapKey",
   ]
 
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+  depends_on = ["azurerm_key_vault_access_policy.service-principal2"]
 }
 
 resource "azurerm_disk_encryption_set" "test2" {
