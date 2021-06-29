@@ -2,8 +2,12 @@
 
 FEATURES:
 
+* **New Resouce** `azurerm_api_management_api_operation_tag` [GH-12384]
+* **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
+
 ENHANCEMENTS:
 
+* `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
 
 
@@ -11,6 +15,8 @@ BUG FIXES:
 
 * `azurerm_app_service` - fix app_setting and SCM setting ordering [GH-12280]
 * `azurerm_hdinsight_kafka_cluster` - will no longer panic from an empty `component_version` property [GH-12261]
+* `azurerm_spatial_anchors_account` - the `tags` property can now be updated without creating a new resource [GH-11985]
+
 
 
 ## 2.65.0 (June 25, 2021)
