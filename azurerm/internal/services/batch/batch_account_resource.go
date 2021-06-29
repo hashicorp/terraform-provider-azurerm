@@ -235,7 +235,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		if props.PublicNetworkAccess != "" {
-			d.Set("public_network_enabled", props.PublicNetworkAccess == batch.PublicNetworkAccessTypeEnabled)
+			d.Set("public_network_access_enabled", props.PublicNetworkAccess == batch.PublicNetworkAccessTypeEnabled)
 		}
 
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
