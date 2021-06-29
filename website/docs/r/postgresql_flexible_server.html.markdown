@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11` and `12`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12` and `13`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
@@ -112,8 +112,6 @@ A `maintenance_window` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the PostgreSQL Flexible Server.
-
-* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 

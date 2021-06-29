@@ -54,8 +54,7 @@ func (client ConfigurationsClient) Get(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("postgresqlflexibleservers.ConfigurationsClient", "Get", err.Error())
 	}
 
@@ -90,7 +89,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-14-preview"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -141,8 +140,7 @@ func (client ConfigurationsClient) ListByServer(ctx context.Context, resourceGro
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("postgresqlflexibleservers.ConfigurationsClient", "ListByServer", err.Error())
 	}
 
@@ -181,7 +179,7 @@ func (client ConfigurationsClient) ListByServerPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-14-preview"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -249,6 +247,99 @@ func (client ConfigurationsClient) ListByServerComplete(ctx context.Context, res
 	return
 }
 
+// Put updates a configuration of a server.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// serverName - the name of the server.
+// configurationName - the name of the server configuration.
+// parameters - the required parameters for updating a server configuration.
+func (client ConfigurationsClient) Put(ctx context.Context, resourceGroupName string, serverName string, configurationName string, parameters Configuration) (result ConfigurationsPutFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationsClient.Put")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("postgresqlflexibleservers.ConfigurationsClient", "Put", err.Error())
+	}
+
+	req, err := client.PutPreparer(ctx, resourceGroupName, serverName, configurationName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.ConfigurationsClient", "Put", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.PutSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.ConfigurationsClient", "Put", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// PutPreparer prepares the Put request.
+func (client ConfigurationsClient) PutPreparer(ctx context.Context, resourceGroupName string, serverName string, configurationName string, parameters Configuration) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"configurationName": autorest.Encode("path", configurationName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	parameters.SystemData = nil
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForPostgreSql/flexibleServers/{serverName}/configurations/{configurationName}", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PutSender sends the Put request. The method will close the
+// http.Response Body if it receives an error.
+func (client ConfigurationsClient) PutSender(req *http.Request) (future ConfigurationsPutFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// PutResponder handles the response to the Put request. The method always
+// closes the http.Response Body.
+func (client ConfigurationsClient) PutResponder(resp *http.Response) (result Configuration, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Update updates a configuration of a server.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
@@ -271,8 +362,7 @@ func (client ConfigurationsClient) Update(ctx context.Context, resourceGroupName
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("postgresqlflexibleservers.ConfigurationsClient", "Update", err.Error())
 	}
 
@@ -300,11 +390,12 @@ func (client ConfigurationsClient) UpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-14-preview"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

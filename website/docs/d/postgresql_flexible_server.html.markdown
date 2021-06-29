@@ -43,8 +43,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backup_retention_days` -  The backup retention days for the PostgreSQL Flexible Server.
 
-* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
-
 * `delegated_subnet_id` - The ID of the virtual network subnet to create the PostgreSQL Flexible Server.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
