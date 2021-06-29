@@ -159,9 +159,17 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"client_certificate_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.CertificateID,
+						},
+
 						"client_certificate_thumbprint": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"management_endpoints": {
@@ -469,14 +477,25 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 		return nil, nil
 	}
 	v := input[0].(map[string]interface{})
-	clientCertificatethumbprint := v["client_certificate_thumbprint"].(string)
 	managementEndpoints := v["management_endpoints"].(*pluginsdk.Set).List()
 	maxPartitionResolutionRetries := int32(v["max_partition_resolution_retries"].(int))
 	properties := apimanagement.BackendServiceFabricClusterProperties{
-		ClientCertificatethumbprint:   utils.String(clientCertificatethumbprint),
 		ManagementEndpoints:           utils.ExpandStringSlice(managementEndpoints),
 		MaxPartitionResolutionRetries: utils.Int32(maxPartitionResolutionRetries),
 	}
+
+	if v2, ok := v["client_certificate_thumbprint"].(string); ok && v2 != "" {
+		properties.ClientCertificatethumbprint = utils.String(v2)
+	}
+
+	if v2, ok := v["client_certificate_id"].(string); ok && v2 != "" {
+		properties.ClientCertificateID = utils.String(v2)
+	}
+
+	if properties.ClientCertificateID == nil && properties.ClientCertificatethumbprint == nil {
+		return fmt.Errorf("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
+	}
+
 	serverCertificateThumbprintsUnset := true
 	serverX509NamesUnset := true
 	if serverCertificateThumbprints := v["server_certificate_thumbprints"]; serverCertificateThumbprints != nil {
@@ -589,6 +608,11 @@ func flattenApiManagementBackendServiceFabricCluster(input *apimanagement.Backen
 	if clientCertificatethumbprint := input.ClientCertificatethumbprint; clientCertificatethumbprint != nil {
 		result["client_certificate_thumbprint"] = *clientCertificatethumbprint
 	}
+
+	if input.ClientCertificateID != nil {
+		result["client_certificate_id"] = *input.ClientCertificateID
+	}
+
 	if managementEndpoints := input.ManagementEndpoints; managementEndpoints != nil {
 		result["management_endpoints"] = *managementEndpoints
 	}
