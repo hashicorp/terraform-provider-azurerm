@@ -164,6 +164,13 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"target_disk_encryption_set_id": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							ValidateFunc:     azure.ValidateResourceID,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 				},
 			},
@@ -253,6 +260,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		recoveryResourceGroupId := diskInput["target_resource_group_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
 		targetDiskType := diskInput["target_disk_type"].(string)
+		targetEncryptionDiskSetID := diskInput["target_disk_encryption_set_id"].(string)
 
 		managedDisks = append(managedDisks, siterecovery.A2AVMManagedDiskInputDetails{
 			DiskID:                              &diskId,
@@ -260,6 +268,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 			RecoveryResourceGroupID:             &recoveryResourceGroupId,
 			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:       &targetDiskType,
+			RecoveryDiskEncryptionSetID:         &targetEncryptionDiskSetID,
 		})
 	}
 
@@ -453,6 +462,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				diskOutput["target_resource_group_id"] = *disk.RecoveryResourceGroupID
 				diskOutput["target_replica_disk_type"] = *disk.RecoveryReplicaDiskAccountType
 				diskOutput["target_disk_type"] = *disk.RecoveryTargetDiskAccountType
+				diskOutput["target_disk_encryption_set_id"] = *disk.RecoveryDiskEncryptionSetID
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
