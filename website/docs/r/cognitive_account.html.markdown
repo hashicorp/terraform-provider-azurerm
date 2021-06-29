@@ -10,6 +10,8 @@ description: |-
 
 Manages a Cognitive Services Account.
 
+-> **Note:** Version v2.65.0 of the Azure Provider and later will attempt to Purge the Cognitive Account during deletion. This feature can be disabled using the `features` block within the `provider` block, see [the provider documentation on the features block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information.
+
 ## Example Usage
 
 ```hcl

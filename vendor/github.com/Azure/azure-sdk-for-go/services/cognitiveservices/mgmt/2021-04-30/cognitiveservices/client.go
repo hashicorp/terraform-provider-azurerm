@@ -1,4 +1,4 @@
-// Package cognitiveservices implements the Azure ARM Cognitiveservices service API version 2017-04-18.
+// Package cognitiveservices implements the Azure ARM Cognitiveservices service API version 2021-04-30.
 //
 // Cognitive Services Management Client
 package cognitiveservices
@@ -48,7 +48,7 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 // CheckDomainAvailability check whether a domain is available.
 // Parameters:
 // parameters - check Domain Availability parameter.
-func (client BaseClient) CheckDomainAvailability(ctx context.Context, parameters CheckDomainAvailabilityParameter) (result CheckDomainAvailabilityResult, err error) {
+func (client BaseClient) CheckDomainAvailability(ctx context.Context, parameters CheckDomainAvailabilityParameter) (result DomainAvailability, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckDomainAvailability")
 		defer func() {
@@ -96,7 +96,7 @@ func (client BaseClient) CheckDomainAvailabilityPreparer(ctx context.Context, pa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -119,7 +119,7 @@ func (client BaseClient) CheckDomainAvailabilitySender(req *http.Request) (*http
 
 // CheckDomainAvailabilityResponder handles the response to the CheckDomainAvailability request. The method always
 // closes the http.Response Body.
-func (client BaseClient) CheckDomainAvailabilityResponder(resp *http.Response) (result CheckDomainAvailabilityResult, err error) {
+func (client BaseClient) CheckDomainAvailabilityResponder(resp *http.Response) (result DomainAvailability, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -133,7 +133,7 @@ func (client BaseClient) CheckDomainAvailabilityResponder(resp *http.Response) (
 // Parameters:
 // location - resource location.
 // parameters - check SKU Availability POST body.
-func (client BaseClient) CheckSkuAvailability(ctx context.Context, location string, parameters CheckSkuAvailabilityParameter) (result CheckSkuAvailabilityResultList, err error) {
+func (client BaseClient) CheckSkuAvailability(ctx context.Context, location string, parameters CheckSkuAvailabilityParameter) (result SkuAvailabilityListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckSkuAvailability")
 		defer func() {
@@ -183,7 +183,7 @@ func (client BaseClient) CheckSkuAvailabilityPreparer(ctx context.Context, locat
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -206,7 +206,7 @@ func (client BaseClient) CheckSkuAvailabilitySender(req *http.Request) (*http.Re
 
 // CheckSkuAvailabilityResponder handles the response to the CheckSkuAvailability request. The method always
 // closes the http.Response Body.
-func (client BaseClient) CheckSkuAvailabilityResponder(resp *http.Response) (result CheckSkuAvailabilityResultList, err error) {
+func (client BaseClient) CheckSkuAvailabilityResponder(resp *http.Response) (result SkuAvailabilityListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
