@@ -10,8 +10,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/Azure/go-autorest/tracing v0.6.0
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
-	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.38.69 // indirect
 	github.com/btubbs/datetime v0.1.0
@@ -20,7 +18,6 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -35,14 +32,12 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.3.1 // indirect
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
-	github.com/keybase/go-crypto v0.0.0-20161004153544-93f5b35093ba // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.2.0

@@ -158,10 +158,6 @@ github.com/Azure/go-autorest/tracing
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
-# github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412
-## explicit
-# github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7
-## explicit
 # github.com/apparentlymart/go-cidr v1.1.0
 ## explicit
 github.com/apparentlymart/go-cidr/cidr
@@ -240,8 +236,6 @@ github.com/gofrs/uuid
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
-# github.com/golang/mock v1.6.0
-## explicit
 # github.com/golang/protobuf v1.5.2
 github.com/golang/protobuf/internal/gengogrpc
 github.com/golang/protobuf/proto
@@ -368,8 +362,6 @@ github.com/jmespath/go-jmespath
 github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
 github.com/jstemmer/go-junit-report/parser
-# github.com/keybase/go-crypto v0.0.0-20161004153544-93f5b35093ba
-## explicit
 # github.com/klauspost/compress v1.13.1
 ## explicit
 github.com/klauspost/compress/fse
@@ -399,8 +391,6 @@ github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.1.0
 ## explicit
 github.com/oklog/run
-# github.com/pierrec/lz4 v2.6.1+incompatible
-## explicit
 # github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 ## explicit
 github.com/rickb777/date/period
