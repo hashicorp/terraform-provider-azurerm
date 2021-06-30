@@ -5,6 +5,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	preview "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-04-01-preview/insights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -25,6 +26,7 @@ type Client struct {
 	AlertRulesClient                 *classic.AlertRulesClient
 	DiagnosticSettingsClient         *classic.DiagnosticSettingsClient
 	DiagnosticSettingsCategoryClient *classic.DiagnosticSettingsCategoryClient
+	DataCollectionRulesClient        *preview.DataCollectionRulesClient
 	LogProfilesClient                *classic.LogProfilesClient
 	MetricAlertsClient               *classic.MetricAlertsClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
@@ -58,6 +60,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	DiagnosticSettingsCategoryClient := classic.NewDiagnosticSettingsCategoryClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DiagnosticSettingsCategoryClient.Client, o.ResourceManagerAuthorizer)
 
+	DataCollectionRulesClient := preview.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	LogProfilesClient := classic.NewLogProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LogProfilesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -77,6 +82,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		AlertRulesClient:                 &AlertRulesClient,
 		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
+		DataCollectionRulesClient:        &DataCollectionRulesClient,
 		LogProfilesClient:                &LogProfilesClient,
 		MetricAlertsClient:               &MetricAlertsClient,
 		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
