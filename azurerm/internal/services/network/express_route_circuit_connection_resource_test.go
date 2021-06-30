@@ -198,7 +198,7 @@ resource "azurerm_express_route_port" "peer_test" {
   name                = "acctest-erp2-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Allied-Toronto-King-West"
+  peering_location    = "CDC-Canberra"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
