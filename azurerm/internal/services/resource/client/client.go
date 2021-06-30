@@ -16,6 +16,7 @@ type Client struct {
 	ResourceProvidersClient     *resources.ProvidersClient
 	ResourcesClient             *resources.Client
 	TemplateSpecsVersionsClient *templatespecs.VersionsClient
+	TagsClient         			*resources.TagsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -42,6 +43,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	templatespecsVersionsClient := templatespecs.NewVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&templatespecsVersionsClient.Client, o.ResourceManagerAuthorizer)
 
+	tagsClient := resources.NewTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&tagsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		GroupsClient:                &groupsClient,
 		DeploymentsClient:           &deploymentsClient,
@@ -50,5 +54,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ResourceProvidersClient:     &resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
 		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
+		TagsClient:         		 &tagsClient,
 	}
 }

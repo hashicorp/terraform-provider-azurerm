@@ -110,15 +110,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				Computed:    true,
 			},
 
-			"tags": {
-				Type:        pluginsdk.TypeMap,
-				Description: "The tags of the resource",
-				Computed:    true,
-				Optional:    true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -128,7 +120,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	tagsClient := meta.(*clients.Client).Subscription.TagsClient
+	tagsClient := meta.(*clients.Client).Resource.TagsClient
 	defer cancel()
 
 	aliasName := ""
@@ -232,26 +224,15 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
 	}
 
-	d.SetId(id.ID())
-
-	// create or update tag values in subscription
-
-	if d.HasChange("tags") {
-		tagsDetails := d.Get("tags").(map[string]interface{})
-		resource_tags := resources.Tags{
-			Tags: tags.Expand(tagsDetails),
-		}
-		locks.ByID(subscriptionId)
-		defer locks.UnlockByID(subscriptionId)
-		tagParameters := resources.TagsPatchResource{Operation: "Merge", Properties: &resource_tags}
-		updateTags, updateErr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagParameters)
-		if updateErr != nil {
-			if !utils.ResponseWasNotFound(updateTags.Response) {
-				return fmt.Errorf("Adding tag value %q for subscription %q: %+v")
-			}
-		}
-		d.Set("tags", *updateTags.ID)
+	t := tags.Expand(d.Get("tags").(map[string]interface{}))
+	tagsClient = meta.(*clients.Client).Resource.TagsClient
+	scope := fmt.Sprintf("subscription/%s", subscriptionId)
+	
+	if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, resources.TagsResource{Properties: &resources.Tags{Tags: t}}); err != nil {
+		return fmt.Errorf("setting tags on %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	return resourceSubscriptionRead(d, meta)
 }
@@ -260,7 +241,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	tagsClient := meta.(*clients.Client).Subscription.TagsClient
+	tagsClient := meta.(*clients.Client).Resource.TagsClient
 	defer cancel()
 
 	id, err := parse.SubscriptionAliasID(d.Id())
@@ -291,8 +272,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
 		}
 	}
-	// Modify/update tags
-
+	
 	if d.HasChange("tags") {
 		tagsDetails := d.Get("tags").(map[string]interface{})
 		resource_tags := resources.Tags{
@@ -316,7 +296,6 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.Client
-	// tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 
 	defer cancel()
@@ -358,7 +337,6 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		t = resp.Tags
-		fmt.Println("Read resp tags %q", t)
 	}
 
 	// (@jackofallops) A subscription's billing scope is not exposed in any way in the API/SDK so we cannot read it back here
@@ -366,7 +344,7 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("subscription_id", subscriptionId)
 	d.Set("subscription_name", subscriptionName)
 	d.Set("tenant_id", tenantId)
-	d.Set("tags", t)
+
 	if err := tags.FlattenAndSet(d, t); err != nil {
 		return err
 	}
@@ -384,7 +362,6 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
-	tagsClient := meta.(*clients.Client).Subscription.TagsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -428,21 +405,6 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		tagsDetails := d.Get("tags").(map[string]interface{})
-		resource_tags := resources.Tags{
-			Tags: tags.Expand(tagsDetails),
-		}
-		locks.ByID(subscriptionId)
-		defer locks.UnlockByID(subscriptionId)
-		tagPatchParamter := resources.TagsPatchResource{Operation: "Delete", Properties: &resource_tags}
-		updateTags, delerr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagPatchParamter)
-		if delerr != nil {
-			return fmt.Errorf("Failed to Remove tags %q from subscription %q: %+v", tags.Flatten(resource_tags.Tags), subscriptionId, delerr)
-		}
-		d.Set("tags", *updateTags.ID)
-	}
-
 	resp, err := aliasClient.Delete(ctx, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
@@ -462,7 +424,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.Name, err)
 	}
 
-	return resourceSubscriptionRead(d, meta)
+	return nil
 }
 
 func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Client, subscriptionId string, targetState string, timeout time.Duration) error {
