@@ -208,9 +208,9 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   name                 = "acctestpa-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
-  parameters           = jsonencode({
-	"listOfAllowedLocations" = {
-      "value" = [ azurerm_resource_group.test.location, %[3]q ]
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = [azurerm_resource_group.test.location, "%[3]s"]
     }
   })
 }

@@ -25,9 +25,7 @@ import (
 
 type policyAssignmentIdentity = identity.SystemAssigned
 
-type assignmentBaseResource struct {
-	resourceName string
-}
+type assignmentBaseResource struct{}
 
 func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{

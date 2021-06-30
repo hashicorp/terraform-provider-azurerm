@@ -182,9 +182,9 @@ resource "azurerm_subscription_policy_assignment" "test" {
   name                 = "acctestpa-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
-  parameters           = jsonencode({
-	"listOfAllowedLocations" = {
-      "value" = [ %q ]
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = ["%s"]
     }
   })
 }
@@ -208,9 +208,9 @@ resource "azurerm_subscription_policy_assignment" "test" {
   name                 = "acctestpa-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
-  parameters           = jsonencode({
-	"listOfAllowedLocations" = {
-      "value" = [ %[3]q, %[4]q ]
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = ["%[3]s", "%[4]s"]
     }
   })
 }
