@@ -23,8 +23,6 @@ func resourceArmSqlManagedDatabase() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSqlManagedDatabaseCreateUpdate,
 		Read:   resourceArmSqlManagedDatabaseRead,
-		// TODO remove this comment
-		// Update: resourceArmSqlManagedDatabaseCreateUpdate,
 		Delete: resourceArmSqlManagedDatabaseDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedDatabaseID(id)
@@ -122,7 +120,7 @@ func resourceArmSqlManagedDatabaseRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("reading SQL Managed Database %q: %v", id.ID(), err)
 	}
 
-	d.Set("sql_managed_instance_id", parse.NewManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName))
+	d.Set("sql_managed_instance_id", parse.NewManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName).ID())
 	d.Set("name", resp.Name)
 
 	if location := resp.Location; location != nil {
