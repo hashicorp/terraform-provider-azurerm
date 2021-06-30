@@ -58,11 +58,7 @@ A `custom_parameters` block supports the following:
 
 * `aml_workspace_id` - (Optional) The ID of a Azure Machine Learning workspace to link with Databricks workspace. Changing this forces a new resource to be created.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
-
 * `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
-
-~> **NOTE** This is a two step process, first you must set the `customer_managed_key_enabled` to `true` and apply those changes. Once the resource has been created you will then need to define a `customer_managed_key` block as documented below. Apply those changes to finish the configuration of your customer managed keys on your databricks workspace. If you wish to remove your customer managed key encryption from your workspaces DBFS storage you will need to update the `customer_managed_key` blocks `source` field to be `Default`.
 
 * `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
 
@@ -76,19 +72,6 @@ A `custom_parameters` block supports the following:
 
 ~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
 
----
-
-A `customer_managed_key` block supports the following:
-
-* `source` - (Required) The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`.
-
-* `name` - (Optional) The name of Key Vault key.
-
-* `version` - (Optional) The version of Key Vault key.
-
-* `vault_uri` - (Optional) The Uri of Key Vault.
-
-~> **NOTE** To successfully provision `customer_managed_key` you must first set the `customer_managed_key_enabled` field to `true`. Once the `customer_managed_key_enabled` has been set to `true` you will then need to add the `customer_managed_key` block into your configuration file and `apply` the changes.
 
 ---
 

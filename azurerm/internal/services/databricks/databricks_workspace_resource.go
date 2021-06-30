@@ -17,24 +17,23 @@ import (
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type CustomParametersState struct {
-	CustomerEncryptionReady           bool
-	CustomerEncryptionEnabled         bool
-	PreviousCustomerEncryptionEnabled bool
-	InfrastructureEncryptionEnabled   bool
-	CustomerManagedKeyDefined         bool
-	Sku                               string
-	KeyName                           string
-	KeySource                         string
-	KeyVersion                        string
-	VaultURI                          string
-}
+// type CustomParametersState struct {
+// 	CustomerEncryptionReady           bool
+// 	CustomerEncryptionEnabled         bool
+// 	PreviousCustomerEncryptionEnabled bool
+// 	InfrastructureEncryptionEnabled   bool
+// 	CustomerManagedKeyDefined         bool
+// 	Sku                               string
+// 	KeyName                           string
+// 	KeySource                         string
+// 	KeyVersion                        string
+// 	VaultURI                          string
+// }
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -99,37 +98,37 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
-						"customer_managed_key": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"source": {
-										Type:             pluginsdk.TypeString,
-										Required:         true,
-										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(databricks.Default),
-											string(databricks.MicrosoftKeyvault),
-										}, true),
-									},
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"version": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"vault_uri": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
+						// "customer_managed_key": {
+						// 	Type:     pluginsdk.TypeList,
+						// 	Optional: true,
+						// 	MaxItems: 1,
+						// 	Elem: &pluginsdk.Resource{
+						// 		Schema: map[string]*pluginsdk.Schema{
+						// 			"source": {
+						// 				Type:             pluginsdk.TypeString,
+						// 				Required:         true,
+						// 				DiffSuppressFunc: suppress.CaseDifference,
+						// 				ValidateFunc: validation.StringInSlice([]string{
+						// 					string(databricks.Default),
+						// 					string(databricks.MicrosoftKeyvault),
+						// 				}, true),
+						// 			},
+						// 			"name": {
+						// 				Type:     pluginsdk.TypeString,
+						// 				Optional: true,
+						// 			},
+						// 			"version": {
+						// 				Type:     pluginsdk.TypeString,
+						// 				Optional: true,
+						// 			},
+						// 			"vault_uri": {
+						// 				Type:     pluginsdk.TypeString,
+						// 				Optional: true,
+						// 			},
+						// 		},
+						// 	},
+						// 	AtLeastOneOf: workspaceCustomParametersString(),
+						// },
 
 						"no_public_ip": {
 							Type:         pluginsdk.TypeBool,
@@ -230,63 +229,89 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			cp := NewCustomParametersState(d)
-
 			if d.HasChange("custom_parameters") {
-				if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
+				_, n := d.GetChange("custom_parameters")
+				sku := d.Get("sku").(string)
+				new := n.([]interface{})
+				var config map[string]interface{}
+				CustomerEncryptionEnabled, InfrastructureEncryptionEnabled := false, false
+
+				if len(new) != 0 && new[0] != nil {
+					config = new[0].(map[string]interface{})
+
+					if v, ok := config["customer_managed_key_enabled"].(bool); ok {
+						CustomerEncryptionEnabled = v
+					}
+
+					if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
+						InfrastructureEncryptionEnabled = v
+					}
+				}
+
+				if CustomerEncryptionEnabled && InfrastructureEncryptionEnabled {
 					return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
 				}
 
-				if cp.CustomerEncryptionEnabled && !strings.EqualFold("premium", cp.Sku) {
-					return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", cp.Sku)
+				if CustomerEncryptionEnabled && !strings.EqualFold("premium", sku) {
+					return fmt.Errorf("'customer_managed_key_enabled' is only available with a 'premium' workspace 'sku', got %q", sku)
 				}
 
-				if cp.InfrastructureEncryptionEnabled && !strings.EqualFold("premium", cp.Sku) {
-					return fmt.Errorf("'infrastructure_encryption_enabled' is only available with a 'premium' workspace 'sku', got %q", cp.Sku)
-				}
-
-				if cp.InfrastructureEncryptionEnabled && cp.CustomerManagedKeyDefined {
-					return fmt.Errorf("'customer_managed_key' block cannot be defined if 'infrastructure_encryption_enabled' is set to 'true'")
-				}
-
-				if !cp.CustomerEncryptionReady && cp.CustomerManagedKeyDefined {
-					return fmt.Errorf("'customer_managed_key' block must not be defined on initial creation of the workspace")
-				}
-
-				if cp.CustomerManagedKeyDefined {
-					// If you set key info and your encryption type is infra error
-					if cp.InfrastructureEncryptionEnabled {
-						return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
-					}
-
-					// if you set your source to default and set any of the key info error
-					if strings.EqualFold(cp.KeySource, string(databricks.Default)) && cp.CustomerEncryptionEnabled && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
-						return fmt.Errorf("'name', 'version' and 'vault_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
-					}
-
-					// if you set your source to KeyVault and you didn't set any of the key info error
-					if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && cp.CustomerEncryptionEnabled && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
-						return fmt.Errorf("'name', 'version' and 'vault_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
-					}
+				if InfrastructureEncryptionEnabled && !strings.EqualFold("premium", sku) {
+					return fmt.Errorf("'infrastructure_encryption_enabled' is only available with a 'premium' workspace 'sku', got %q", sku)
 				}
 			}
 
-			// if MSI is already set up for the DBFS storage setup validate the double encryption settings...
-			if cp.CustomerEncryptionReady {
-				if !cp.CustomerManagedKeyDefined {
-					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is not defined")
-				}
+			// --- TODO: REMOVE WHEN DONE
+			//
+			// cp := NewCustomParametersState(d)
 
-				// Set key source to Default but you also set one or more key vault values return an error
-				if strings.EqualFold(cp.KeySource, string(databricks.Default)) && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
-					return fmt.Errorf("workspace DBFS has been configured to use Microsoft managed keys however the 'customer_managed_key' block has one or more of the following fields defined 'name', 'version', and/or 'vault_uri'")
-				}
+			// if d.HasChange("custom_parameters") {
+			// 	if cp.CustomerEncryptionEnabled && cp.InfrastructureEncryptionEnabled {
+			// 		return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be 'true'")
+			// 	}
 
-				// Set key source to KeyVault but you did not set one or more key vault values return an error
-				if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
-					return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is missing one or more of the following fields 'name', 'version', and/or 'vault_uri'")
-				}
-			}
+			// 	if cp.InfrastructureEncryptionEnabled && cp.CustomerManagedKeyDefined {
+			// 		return fmt.Errorf("'customer_managed_key' block cannot be defined if 'infrastructure_encryption_enabled' is set to 'true'")
+			// 	}
+
+			// 	if !cp.CustomerEncryptionReady && cp.CustomerManagedKeyDefined {
+			// 		return fmt.Errorf("'customer_managed_key' block must not be defined on initial creation of the workspace")
+			// 	}
+
+			// 	if cp.CustomerManagedKeyDefined {
+			// 		// If you set key info and your encryption type is infra error
+			// 		if cp.InfrastructureEncryptionEnabled {
+			// 			return fmt.Errorf("'customer_managed_key' block cannot be defined when 'infrastructure_encryption_enabled' is set to 'true'")
+			// 		}
+
+			// 		// if you set your source to default and set any of the key info error
+			// 		if strings.EqualFold(cp.KeySource, string(databricks.Default)) && cp.CustomerEncryptionEnabled && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
+			// 			return fmt.Errorf("'name', 'version' and 'vault_uri' must be empty if the 'customer_managed_key.source' is set to 'Default'")
+			// 		}
+
+			// 		// if you set your source to KeyVault and you didn't set any of the key info error
+			// 		if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && cp.CustomerEncryptionEnabled && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
+			// 			return fmt.Errorf("'name', 'version' and 'vault_uri' must be set if the 'customer_managed_key.source' is set to 'Microsoft.Keyvault'")
+			// 		}
+			// 	}
+			// }
+
+			// // if MSI is already set up for the DBFS storage setup validate the double encryption settings...
+			// if cp.CustomerEncryptionReady {
+			// 	if !cp.CustomerManagedKeyDefined {
+			// 		return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is not defined")
+			// 	}
+
+			// 	// Set key source to Default but you also set one or more key vault values return an error
+			// 	if strings.EqualFold(cp.KeySource, string(databricks.Default)) && (cp.KeyName != "" || cp.KeyVersion != "" || cp.VaultURI != "") {
+			// 		return fmt.Errorf("workspace DBFS has been configured to use Microsoft managed keys however the 'customer_managed_key' block has one or more of the following fields defined 'name', 'version', and/or 'vault_uri'")
+			// 	}
+
+			// 	// Set key source to KeyVault but you did not set one or more key vault values return an error
+			// 	if strings.EqualFold(cp.KeySource, string(databricks.MicrosoftKeyvault)) && (cp.KeyName == "" || cp.KeyVersion == "" || cp.VaultURI == "") {
+			// 		return fmt.Errorf("workspace DBFS has been configured to use customer managed keys however the 'customer_managed_key' block is missing one or more of the following fields 'name', 'version', and/or 'vault_uri'")
+			// 	}
+			// }
 
 			return nil
 		}),
@@ -296,65 +321,65 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 // I am currently putting this inline with the resource, couldn't decide if moving it
 // to a parse or an internal package was a better choice or not?
 // but I do feel strongly that this makes the CustomizeDiff code much more readable...
-func NewCustomParametersState(d *pluginsdk.ResourceDiff) CustomParametersState {
-	o, n := d.GetChange("custom_parameters")
-	new := n.([]interface{})
-	old := o.([]interface{})
-	var config map[string]interface{}
-	var oConfig map[string]interface{}
+// func NewCustomParametersState(d *pluginsdk.ResourceDiff) CustomParametersState {
+// 	o, n := d.GetChange("custom_parameters")
+// 	new := n.([]interface{})
+// 	old := o.([]interface{})
+// 	var config map[string]interface{}
+// 	var oConfig map[string]interface{}
 
-	name, version, uri, sku, source := "", "", "", "", ""
-	infra, cmk, oCmk, defined, ready := false, false, false, false, false
+// 	name, version, uri, sku, source := "", "", "", "", ""
+// 	infra, cmk, oCmk, defined, ready := false, false, false, false, false
 
-	if len(new) != 0 && new[0] != nil {
-		_, changedSKU := d.GetChange("sku")
-		sku = changedSKU.(string)
-		config = new[0].(map[string]interface{})
+// 	if len(new) != 0 && new[0] != nil {
+// 		_, changedSKU := d.GetChange("sku")
+// 		sku = changedSKU.(string)
+// 		config = new[0].(map[string]interface{})
 
-		if len(old) != 0 && old[0] != nil {
-			oConfig = old[0].(map[string]interface{})
-			if v, ok := oConfig["customer_managed_key_enabled"].(bool); ok {
-				oCmk = v
-			}
-		}
+// 		if len(old) != 0 && old[0] != nil {
+// 			oConfig = old[0].(map[string]interface{})
+// 			if v, ok := oConfig["customer_managed_key_enabled"].(bool); ok {
+// 				oCmk = v
+// 			}
+// 		}
 
-		if v, ok := config["customer_managed_key_enabled"].(bool); ok {
-			cmk = v
-		}
+// 		if v, ok := config["customer_managed_key_enabled"].(bool); ok {
+// 			cmk = v
+// 		}
 
-		if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
-			infra = v
-		}
+// 		if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
+// 			infra = v
+// 		}
 
-		if oCmk && cmk {
-			ready = true
-		}
+// 		if oCmk && cmk {
+// 			ready = true
+// 		}
 
-		if cmkRaw := config["customer_managed_key"].(interface{}); cmkRaw != nil {
-			if c := cmkRaw.([]interface{}); len(c) != 0 && c[0] != nil {
-				defined = true
-				cmk := c[0].(map[string]interface{})
-				source = cmk["source"].(string)
-				name = cmk["name"].(string)
-				version = cmk["version"].(string)
-				uri = cmk["vault_uri"].(string)
-			}
-		}
-	}
+// 		if cmkRaw := config["customer_managed_key"].(interface{}); cmkRaw != nil {
+// 			if c := cmkRaw.([]interface{}); len(c) != 0 && c[0] != nil {
+// 				defined = true
+// 				cmk := c[0].(map[string]interface{})
+// 				source = cmk["source"].(string)
+// 				name = cmk["name"].(string)
+// 				version = cmk["version"].(string)
+// 				uri = cmk["vault_uri"].(string)
+// 			}
+// 		}
+// 	}
 
-	return CustomParametersState{
-		CustomerEncryptionReady:           ready,
-		CustomerEncryptionEnabled:         cmk,
-		PreviousCustomerEncryptionEnabled: oCmk,
-		InfrastructureEncryptionEnabled:   infra,
-		Sku:                               sku,
-		KeyName:                           name,
-		KeySource:                         source,
-		KeyVersion:                        version,
-		VaultURI:                          uri,
-		CustomerManagedKeyDefined:         defined,
-	}
-}
+// 	return CustomParametersState{
+// 		CustomerEncryptionReady:           ready,
+// 		CustomerEncryptionEnabled:         cmk,
+// 		PreviousCustomerEncryptionEnabled: oCmk,
+// 		InfrastructureEncryptionEnabled:   infra,
+// 		Sku:                               sku,
+// 		KeyName:                           name,
+// 		KeySource:                         source,
+// 		KeyVersion:                        version,
+// 		VaultURI:                          uri,
+// 		CustomerManagedKeyDefined:         defined,
+// 	}
+// }
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
@@ -604,26 +629,26 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 		}
 	}
 
-	if v := input.Encryption; v != nil {
-		e := make(map[string]interface{})
+	// if v := input.Encryption; v != nil {
+	// 	e := make(map[string]interface{})
 
-		if t := v.Value.KeySource; t != "" {
-			e["source"] = t
-		}
-		if t := v.Value.KeyName; t != nil {
-			e["name"] = *t
-		}
-		if t := v.Value.KeyVersion; t != nil {
-			e["version"] = *t
-		}
-		if t := v.Value.KeyVaultURI; t != nil {
-			e["vault_uri"] = *t
-		}
+	// 	if t := v.Value.KeySource; t != "" {
+	// 		e["source"] = t
+	// 	}
+	// 	if t := v.Value.KeyName; t != nil {
+	// 		e["name"] = *t
+	// 	}
+	// 	if t := v.Value.KeyVersion; t != nil {
+	// 		e["version"] = *t
+	// 	}
+	// 	if t := v.Value.KeyVaultURI; t != nil {
+	// 		e["vault_uri"] = *t
+	// 	}
 
-		if len(e) != 0 {
-			parameters["customer_managed_key"] = []interface{}{e}
-		}
-	}
+	// 	if len(e) != 0 {
+	// 		parameters["customer_managed_key"] = []interface{}{e}
+	// 	}
+	// }
 
 	if v := input.PrepareEncryption; v != nil {
 		if v.Value != nil {
@@ -654,48 +679,48 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 		}
 	}
 
-	if v, ok := config["customer_managed_key"]; ok {
-		if v != nil {
-			cmkRaw := v.([]interface{})
-			if len(cmkRaw) > 0 {
-				cmk := cmkRaw[0].(map[string]interface{})
-				var keySource string
-				var keyName string
-				var keyVersion string
-				var keyVaultURI string
+	// if v, ok := config["customer_managed_key"]; ok {
+	// 	if v != nil {
+	// 		cmkRaw := v.([]interface{})
+	// 		if len(cmkRaw) > 0 {
+	// 			cmk := cmkRaw[0].(map[string]interface{})
+	// 			var keySource string
+	// 			var keyName string
+	// 			var keyVersion string
+	// 			var keyVaultURI string
 
-				if t := cmk["source"].(string); t != "" {
-					keySource = t
-				}
-				if t := cmk["name"].(string); t != "" {
-					keyName = t
-				}
-				if t := cmk["version"].(string); t != "" {
-					keyVersion = t
-				}
-				if t := cmk["vault_uri"].(string); t != "" {
-					keyVaultURI = t
-				}
+	// 			if t := cmk["source"].(string); t != "" {
+	// 				keySource = t
+	// 			}
+	// 			if t := cmk["name"].(string); t != "" {
+	// 				keyName = t
+	// 			}
+	// 			if t := cmk["version"].(string); t != "" {
+	// 				keyVersion = t
+	// 			}
+	// 			if t := cmk["vault_uri"].(string); t != "" {
+	// 				keyVaultURI = t
+	// 			}
 
-				parameters.Encryption = &databricks.WorkspaceEncryptionParameter{
-					Value: &databricks.Encryption{
-						KeySource: databricks.KeySource(keySource),
-					},
-				}
+	// 			parameters.Encryption = &databricks.WorkspaceEncryptionParameter{
+	// 				Value: &databricks.Encryption{
+	// 					KeySource: databricks.KeySource(keySource),
+	// 				},
+	// 			}
 
-				// Only set the values if they are not empty strings
-				if keyName != "" {
-					parameters.Encryption.Value.KeyName = &keyName
-				}
-				if keyVersion != "" {
-					parameters.Encryption.Value.KeyVersion = &keyVersion
-				}
-				if keyVaultURI != "" {
-					parameters.Encryption.Value.KeyVaultURI = &keyVaultURI
-				}
-			}
-		}
-	}
+	// 			// Only set the values if they are not empty strings
+	// 			if keyName != "" {
+	// 				parameters.Encryption.Value.KeyName = &keyName
+	// 			}
+	// 			if keyVersion != "" {
+	// 				parameters.Encryption.Value.KeyVersion = &keyVersion
+	// 			}
+	// 			if keyVaultURI != "" {
+	// 				parameters.Encryption.Value.KeyVaultURI = &keyVaultURI
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	if v, ok := config["no_public_ip"].(bool); ok {
 		parameters.EnableNoPublicIP = &databricks.WorkspaceCustomBooleanParameter{
@@ -737,7 +762,7 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 }
 
 func workspaceCustomParametersString() []string {
-	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.customer_managed_key", "custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
-		"custom_parameters.0.private_subnet_name", "custom_parameters.0.customer_managed_key_enabled", "custom_parameters.0.infrastructure_encryption_enabled", "custom_parameters.0.virtual_network_id",
-	}
+	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
+		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.customer_managed_key_enabled",
+		"custom_parameters.0.infrastructure_encryption_enabled", "custom_parameters.0.virtual_network_id"}
 }
