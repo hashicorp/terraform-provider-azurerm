@@ -56,6 +56,18 @@ The following arguments are supported:
 
 * `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
+* `disable_local_auth` - (Optional) Whether local authentication methods is disabled for the Cognitive Account. Defaults to `false`.
+
+* `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
+  
+* `identity` - (Optional) An `identity` block is documented below.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
+
+* `restrict_outbound_network_access` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
+
+* `storage` - (Optional) An `identity` block is documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -67,6 +79,24 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
 * `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Cognitive Account.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on the Cognitive Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `storage` block supports the following:
+
+* `resource_id` - (Required) Full resource id of a Microsoft.Storage resource.
+
+* `identity_client_id` - (Optional) The client ID of the managed identity associated with the storage resource.
 
 ## Attributes Reference
 
